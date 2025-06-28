@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  person: one
+  label: MyString
+  value: MyString
+  date: 2025-06-28
+  location: MyString
+
+two:
+  person: two
+  label: MyString
+  value: MyString
+  date: 2025-06-28
+  location: MyString
