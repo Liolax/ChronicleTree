@@ -4,14 +4,14 @@ Rails.application.routes.draw do
 
   # All of your application’s JSON API lives under /api/v1
   namespace :api do
-  namespace :v1 do
-    devise_for :users,
-      path: 'auth',
-      controllers: {
-        sessions:      'api/v1/auth/sessions',
-        registrations: 'api/v1/auth/registrations',
-        passwords:     'api/v1/auth/passwords'
-      }
+    namespace :v1 do
+      devise_for :users,
+        path: 'auth',
+        controllers: {
+          sessions:      'api/v1/auth/sessions',
+          registrations: 'api/v1/auth/registrations',
+          passwords:     'api/v1/auth/passwords'
+        }
 
       # Users: show/update profile, change password, delete account
       get    'users/me', to: 'users#show'
@@ -37,9 +37,6 @@ Rails.application.routes.draw do
       resources :timeline_items, only: %i[update destroy]
       resources :media,          only: %i[destroy]
       resources :relationships,  only: %i[create destroy]
-
-      # Add a route for sign_in in your routes file
-      post '/api/v1/auth/sign_in', to: 'api/v1/auth/sessions#create'
     end
   end
 
@@ -56,3 +53,4 @@ Rails.application.routes.draw do
   # You can set root (HTML) if needed, or point to your SPA container:
   # root "home#index"
 end
+  # root "home#index"
