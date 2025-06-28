@@ -1,11 +1,20 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  person: one
-  friend: one
-  relationship_type: MyString
+alice_parent_of_bob:
+  person: alice
+  relative: bob
+  relationship_type: parent
 
-two:
-  person: two
-  friend: two
-  relationship_type: MyString
+bob_child_of_alice:
+  person: bob
+  relative: alice
+  relationship_type: child
+
+alice_sibling_of_charlie:
+  person: alice
+  relative: charlie
+  relationship_type: sibling
+  
+charlie_sibling_of_alice:
+  person: charlie
+  relative: alice
