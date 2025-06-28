@@ -37,6 +37,9 @@ Rails.application.routes.draw do
       resources :timeline_items, only: %i[update destroy]
       resources :media,          only: %i[destroy]
       resources :relationships,  only: %i[create destroy]
+
+      # Add a route for sign_in in your routes file
+      post '/api/v1/auth/sign_in', to: 'api/v1/auth/sessions#create'
     end
   end
 

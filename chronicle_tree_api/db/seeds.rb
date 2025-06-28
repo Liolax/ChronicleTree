@@ -7,3 +7,17 @@
 #   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
 #     MovieGenre.find_or_create_by!(name: genre_name)
 #   end
+#
+# Create a default user for development
+if Rails.env.development? && User.find_by(email: 'test@example.com').nil?
+  puts "Creating default development user..."
+  User.create!(
+    name: 'Test User',
+    email: 'test@example.com',
+    password: 'password123',
+    password_confirmation: 'password123'
+  )
+  puts "Default user created!"
+  puts "Email: test@example.com"
+  puts "Password: password123"
+end

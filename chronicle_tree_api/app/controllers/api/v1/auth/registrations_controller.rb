@@ -8,8 +8,11 @@ module Api
           build_resource(sign_up_params)
 
           if resource.save
-            sign_in(resource_name, resource)
-            token = request.env['warden-jwt_auth.token']
+            # Instead of relying on Devise's sign_in, which doesn't issue a JWT
+            # on its own in this context, we'll manually create the token.
+            warden.set_user(resource, scope: :user)
+            token = Warden::JWTAuth::UserEncoder.new.call(resource, :user, nil).first
+            
             render json: { token: token, user: Api::V1::UserSerializer.new(resource).as_json }, status: :created
           else
             render json: { errors: resource.errors.full_messages }, status: :unprocessable_entity
