@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: chronicle_tree_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d chronicle_tree_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Set up Ruby & run Rails tests
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.7
+          bundler-cache: true
+
+      - name: Install gems
+        run: |
+          cd chronicle_tree_api
+          bundle install
+      - name: Setup DB & run Rails tests
+        env:
+          RAILS_ENV: test
+          DATABASE_URL: postgres://postgres:password@localhost:5432/chronicle_tree_test
+        run: |
+          cd chronicle_tree_api
+          bin/rails db:create db:migrate
+          bin/rails test
+
+      # Set up Node & run React tests
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install frontend deps
+        run: |
+          cd chronicle_tree_client
+          npm ci
+      - name: Run frontend tests
+        run: |
+          cd chronicle_tree_client
+          npm run test -- --watch=false
+
