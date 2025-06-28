@@ -5,12 +5,16 @@ class Person < ApplicationRecord
            class_name: 'Relationship',
            foreign_key: 'person_id',
            inverse_of: :person
-
-  # incoming links (e.g. “Bob has Alice as parent”)
+           
   has_many :related_by_relationships,
            class_name: 'Relationship',
            foreign_key: 'relative_id',
            inverse_of: :relative
+
+  # through relationships, get Person relatives
+  has_many :relatives,
+           through: :relationships,
+           source: :relative
 
   belongs_to :user
 end

@@ -12,7 +12,7 @@ class RelationshipsControllerTest < ActionDispatch::IntegrationTest
 
   test "should create relationship" do
     assert_difference("Relationship.count") do
-      post relationships_url, params: { relationship: { friend_id: @relationship.friend_id, person_id: @relationship.person_id, relationship_type: @relationship.relationship_type } }, as: :json
+      post relationships_url, params: { relationship: { relative_id: @relationship.relative_id, person_id: @relationship.person_id, relationship_type: @relationship.relationship_type } }, as: :json
     end
 
     assert_response :created
@@ -24,7 +24,7 @@ class RelationshipsControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should update relationship" do
-    patch relationship_url(@relationship), params: { relationship: { friend_id: @relationship.friend_id, person_id: @relationship.person_id, relationship_type: @relationship.relationship_type } }, as: :json
+    patch relationship_url(@relationship), params: { relationship: { relative_id: @relationship.relative_id, person_id: @relationship.person_id, relationship_type: @relationship.relationship_type } }, as: :json
     assert_response :success
   end
 

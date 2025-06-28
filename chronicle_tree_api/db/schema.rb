@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_06_28_053345) do
+ActiveRecord::Schema[8.0].define(version: 2025_06_28_081319) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -84,12 +84,12 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_28_053345) do
 
   create_table "relationships", force: :cascade do |t|
     t.bigint "person_id", null: false
-    t.bigint "friend_id", null: false
+    t.bigint "relative_id", null: false
     t.string "relationship_type", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["friend_id"], name: "index_relationships_on_friend_id"
     t.index ["person_id"], name: "index_relationships_on_person_id"
+    t.index ["relative_id"], name: "index_relationships_on_relative_id"
   end
 
   create_table "timeline_items", force: :cascade do |t|
@@ -122,6 +122,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_28_053345) do
   add_foreign_key "people", "users"
   add_foreign_key "profiles", "people"
   add_foreign_key "relationships", "people"
-  add_foreign_key "relationships", "people", column: "friend_id"
+  add_foreign_key "relationships", "people", column: "relative_id"
   add_foreign_key "timeline_items", "people"
 end

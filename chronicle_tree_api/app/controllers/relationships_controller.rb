@@ -41,11 +41,15 @@ class RelationshipsController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_relationship
-      @relationship = Relationship.find(params.expect(:id))
+      @relationship = Relationship.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def relationship_params
-      params.expect(relationship: [ :person_id, :friend_id, :relationship_type ])
+      params.require(:relationship).permit(
+        :person_id,
+        :relative_id,
+        :relationship_type
+      )
     end
 end

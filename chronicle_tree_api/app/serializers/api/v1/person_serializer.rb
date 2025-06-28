@@ -13,7 +13,10 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   has_many :facts,         key: :key_facts,      serializer: Api::V1::FactSerializer
   has_many :timeline_items, key: :timeline,      serializer: Api::V1::TimelineItemSerializer
   has_many :media,         serializer: Api::V1::MediumSerializer
-  has_many :friends        # gives a flat list of related Person objects
+  has_many :relatives,
+           key: :relatives,
+           serializer: Api::V1::PersonSerializer
+
 
   def full_name
     "#{object.first_name} #{object.last_name}"
