@@ -1,42 +1,42 @@
 # frozen_string_literal: true
 
-# Assuming you have not yet modified this file, each configuration option below
-# is set to its default value. Note that some are commented out while others
-# are not: uncommented lines are intended to protect your configuration from
-# breaking changes in upgrades (i.e., in the event that future versions of
-# Devise change the default values for those options).
-#
-# Use this hook to configure devise mailer, warden hooks and so forth.
-# Many of these configuration options can be set straight in your model.
 Devise.setup do |config|
-  # The secret key used by Devise. Devise uses this key to generate
-  # random tokens. Changing this key will render invalid all existing
-  # confirmation, reset password and unlock tokens in the database.
-  # Devise will use the `secret_key_base` as its `secret_key`
-  # by default. You can change it below and use your own secret key.
-  # config.secret_key = '36b788ea2ae2c2d8cd189651431d44860fb69334b2d391ce4a3a615429e01d2550b502023eac619b554d2933b70afc4cbcef87b31a75c9e7a0c711a1f68316bf'
-
-  # ==> Controller configuration
-  # Configure the parent class to the devise controllers.
-  # config.parent_controller = 'DeviseController'
-
-  # ==> Mailer Configuration
-  # Configure the e-mail address which will be shown in Devise::Mailer,
-  # note that it will be overwritten if you use your own mailer class
-  # with default "from" parameter.
   config.mailer_sender = 'please-change-me-at-config-initializers-devise@example.com'
 
-  # Configure the class responsible to send e-mails.
-  # config.mailer = 'Devise::Mailer'
-
-  # Configure the parent class responsible to send e-mails.
-  # config.parent_mailer = 'ActionMailer::Base'
-
-  # ==> ORM configuration
-  # Load and configure the ORM. Supports :active_record (default) and
-  # :mongoid (bson_ext recommended) by default. Other ORMs may be
-  # available as additional gems.
   require 'devise/orm/active_record'
+
+  config.case_insensitive_keys = [:email]
+  config.strip_whitespace_keys = [:email]
+
+  config.skip_session_storage = [:http_auth]
+
+  config.stretches = Rails.env.test? ? 1 : 12
+
+  config.reconfirmable = true
+
+  config.expire_all_remember_me_on_sign_out = true
+
+  config.password_length = 6..128
+
+  config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
+
+  config.reset_password_within = 6.hours
+
+  config.sign_out_via = :delete
+
+  config.responder.error_status = :unprocessable_entity
+  config.responder.redirect_status = :see_other
+
+  require 'devise/jwt'
+
+  config.jwt do |jwt|
+    jwt.secret = Rails.application.credentials.devise_jwt_secret_key
+    jwt.revocation_requests = [
+      ['DELETE', %r{^/api/v1/auth/sign_out$}]
+    ]
+    jwt.expiration_time = 1.day.to_i
+  end
+end
 
   # ==> Configuration for any authentication mechanism
   # Configure which keys are used when authenticating a user. The default is
@@ -310,16 +310,14 @@ Devise.setup do |config|
   # When set to false, does not sign a user in automatically after their password is
   # changed. Defaults to true, so a user is signed in automatically after changing a password.
   # config.sign_in_after_change_password = true
-require 'devise/jwt'
+  require 'devise/jwt'
 
   config.jwt do |jwt|
     jwt.secret = Rails.application.credentials.devise_jwt_secret_key
-    jwt.dispatch_requests = [
-      ['POST', %r{^/api/v1/auth/sign_in$}]
-    ]
     jwt.revocation_requests = [
       ['DELETE', %r{^/api/v1/auth/sign_out$}]
     ]
     jwt.expiration_time = 1.day.to_i
   end
 end
+

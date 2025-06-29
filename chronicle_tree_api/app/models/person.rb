@@ -1,6 +1,5 @@
 # app/models/person.rb
 class Person < ApplicationRecord
-  # outgoing links (e.g. “Alice is parent of Bob”)
   has_many :relationships,
            class_name: 'Relationship',
            foreign_key: 'person_id',
@@ -13,7 +12,6 @@ class Person < ApplicationRecord
            inverse_of: :relative,
            dependent: :destroy
 
-  # through relationships, get Person relatives
   has_many :relatives,
            through: :relationships,
            source: :relative
@@ -23,5 +21,7 @@ class Person < ApplicationRecord
   has_one :profile, dependent: :destroy
   has_many :facts, dependent: :destroy
   has_many :timeline_items, dependent: :destroy
+  has_many :media, as: :attachable, dependent: :destroy
+end
   has_many :media, as: :attachable, dependent: :destroy
 end

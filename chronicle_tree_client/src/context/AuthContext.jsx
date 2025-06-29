@@ -27,7 +27,7 @@ export function AuthProvider({ children }) {
   function login(email, password) {
     return api.post('/auth/sign_in', { user: { email, password } })
       .then(res => {
-        const jwt = res.data.token
+        const jwt = res.headers.authorization.split(' ')[1]
         localStorage.setItem('token', jwt)
         setToken(jwt)
         setUser(res.data.user) // Set user from login response

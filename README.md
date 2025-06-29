@@ -23,7 +23,7 @@ A full-stack family-tree web app
 
 ## Prerequisites
 
-- Ruby 3.3.7 + Bundler  
+- Ruby 3.3.0 + Bundler  
 - Node.js ≥18 & npm (or Yarn)  
 - PostgreSQL (or your chosen DB)  
 - Git
@@ -70,7 +70,7 @@ The app uses `devise-jwt` for token-based authentication.
 2.  **Login**: `POST /api/v1/auth/sign_in`
 3.  **Logout**: `DELETE /api/v1/auth/sign_out`
 
-On successful login/registration, the API returns a JWT in the `Authorization` header. The client stores this token (e.g., in `localStorage`) and includes it in the header for all subsequent authenticated requests.
+On successful login/registration, the API returns a JSON object containing a `token` and `user` object. The client stores this token (e.g., in `localStorage`) and includes it in the `Authorization` header for all subsequent authenticated requests (e.g., `Authorization: Bearer <token>`).
 
 ## API Endpoints
 

@@ -1,8 +1,6 @@
 Rails.application.routes.draw do
-  # Health check endpoint, keep at top
   get "up" => "rails/health#show", as: :rails_health_check
 
-  # All of your application’s JSON API lives under /api/v1
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
       devise_for :users,
@@ -13,18 +11,16 @@ Rails.application.routes.draw do
           passwords:     'api/v1/auth/passwords'
         }
 
-      # Users: show/update profile, change password, delete account
       get    'users/me', to: 'users#show'
       patch  'users/me', to: 'users#update'
       put    'users/me', to: 'users#update'
       delete 'users/me', to: 'users#destroy'
       patch  'users/password', to: 'users#update_password'
 
-      # People & all nested resources
       resources :people, only: %i[index show create update destroy] do
         member do
-          get :tree       # /api/v1/people/:id/tree
-          get :relatives  # /api/v1/people/:id/relatives
+          get :tree
+          get :relatives
         end
 
         resources :facts,          only: %i[index create]
@@ -32,9 +28,13 @@ Rails.application.routes.draw do
         resources :media,          only: %i[index create]
       end
 
-      # Standalone updates/deletes
       resources :facts,          only: %i[update destroy]
       resources :timeline_items, only: %i[update destroy]
+      resources :media,          only: %i[destroy]
+      resources :relationships,  only: %i[create destroy]
+    end
+  end
+end
       resources :media,          only: %i[destroy]
       resources :relationships,  only: %i[create destroy]
     end

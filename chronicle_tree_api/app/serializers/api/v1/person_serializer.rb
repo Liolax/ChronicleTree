@@ -1,4 +1,3 @@
-# app/serializers/api/v1/person_serializer.rb
 class Api::V1::PersonSerializer < ActiveModel::Serializer
   attributes :id,
              :first_name,
@@ -33,4 +32,5 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
     return unless object.profile&.avatar&.attached?
     Rails.application.routes.url_helpers.rails_blob_url(object.profile.avatar, only_path: true)
   end
+end
 end

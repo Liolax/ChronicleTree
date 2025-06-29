@@ -30,9 +30,11 @@ describe('Login Component', () => {
   it('should allow a user to log in and redirects to home', async () => {
     // Arrange: Mock a successful API response
     const mockUser = { id: 1, name: 'Test User', email: 'test@example.com' }
-    const mockResponse = { data: { token: 'fake-jwt-token', user: mockUser } }
+    const mockResponse = {
+      data: { token: 'fake-jwt-token', user: mockUser },
+      headers: { authorization: 'Bearer fake-jwt-token' }
+    }
     api.post.mockResolvedValue(mockResponse)
-    api.get.mockResolvedValue({ data: mockUser }) // Mock the user fetch call
 
     render(
       <BrowserRouter>
@@ -65,4 +67,5 @@ describe('Login Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
+})
 })

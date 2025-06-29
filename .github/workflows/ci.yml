@@ -30,11 +30,10 @@ jobs:
       - name: Make Rails bin executable
         run: chmod +x chronicle_tree_api/bin/rails chronicle_tree_api/bin/rake
 
-      # Set up Ruby & run Rails tests
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.7
+          ruby-version: 3.3.0
           bundler-cache: true
 
       - name: Install gems
@@ -50,7 +49,6 @@ jobs:
           bin/rails db:create db:migrate
           bin/rails test
 
-      # Set up Node & run React tests
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -61,6 +59,8 @@ jobs:
           npm ci
       - name: Run frontend tests
         run: |
+          cd chronicle_tree_client
+          npm run test -- --watch=false
           cd chronicle_tree_client
           npm run test -- --watch=false
 

@@ -41,11 +41,11 @@ class PeopleController < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_person
-      @person = Person.find(params.expect(:id))
+      @person = Person.find(params[:id])
     end
 
     # Only allow a list of trusted parameters through.
     def person_params
-      params.expect(person: [ :first_name, :last_name, :date_of_birth, :date_of_death, :user_id ])
+      params.require(:person).permit(:first_name, :last_name, :date_of_birth, :date_of_death, :user_id)
     end
 end
