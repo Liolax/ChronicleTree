@@ -5,9 +5,9 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { AuthProvider } from '../../context/AuthContext'
-import Login from './Login'
-import api from '../../api/api'
+import { AuthProvider } from '../context/AuthContext'
+import Login from '../pages/Auth/Login'
+import api from '../api/api'
 
 // Mock the api module
 vi.mock('../../api/api')
@@ -32,7 +32,7 @@ describe('Login Component', () => {
     const mockUser = { id: 1, name: 'Test User', email: 'test@example.com' }
     const mockResponse = {
       data: { token: 'fake-jwt-token', user: mockUser },
-      headers: { authorization: 'Bearer fake-jwt-token' }
+      headers: { }
     }
     api.post.mockResolvedValue(mockResponse)
 
@@ -67,5 +67,4 @@ describe('Login Component', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
   })
-})
 })

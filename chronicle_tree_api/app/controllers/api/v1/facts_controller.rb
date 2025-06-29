@@ -1,4 +1,3 @@
-# app/controllers/api/v1/facts_controller.rb
 module Api
   module V1
     class FactsController < BaseController
@@ -51,7 +50,10 @@ module Api
         @fact = current_user.people
                             .flat_map(&:facts)
                             .find { |f| f.id == params[:id].to_i }
-        head :not_found unless @fact
+        unless @fact
+          head :not_found
+          return
+        end
       end
 
       def fact_params

@@ -1,0 +1,17 @@
+version: 2
+updates:
+  # Keep bundler dependencies for the Rails API up to date
+  - package-ecosystem: "bundler"
+    directory: "/chronicle_tree_api"
+    schedule:
+      interval: "daily"
+  # Keep npm dependencies for the React client up to date
+  - package-ecosystem: "npm"
+    directory: "/chronicle_tree_client"
+    schedule:
+      interval: "daily"
+  # Keep GitHub Actions up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"

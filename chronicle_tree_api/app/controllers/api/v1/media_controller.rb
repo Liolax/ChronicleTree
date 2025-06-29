@@ -1,4 +1,3 @@
-# app/controllers/api/v1/media_controller.rb
 module Api
   module V1
     class MediaController < BaseController
@@ -38,10 +37,14 @@ module Api
       end
 
       def set_media
-        @media = current_user.people
-                             .flat_map(&:media)
-                             .detect { |m| m.id == params[:id].to_i }
-        head :not_found unless @media
+        # Find the media record directly first
+        media = Medium.find(params[:id])
+        # Then, authorize that it belongs to the current user
+        if media.attachable_type == 'Person' && media.attachable.user == current_user
+          @media = media
+        else
+          head :not_found
+        end
       end
 
       def media_params

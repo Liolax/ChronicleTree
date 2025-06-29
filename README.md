@@ -70,7 +70,7 @@ The app uses `devise-jwt` for token-based authentication.
 2.  **Login**: `POST /api/v1/auth/sign_in`
 3.  **Logout**: `DELETE /api/v1/auth/sign_out`
 
-On successful login/registration, the API returns a JSON object containing a `token` and `user` object. The client stores this token (e.g., in `localStorage`) and includes it in the `Authorization` header for all subsequent authenticated requests (e.g., `Authorization: Bearer <token>`).
+On successful login/registration, the API returns a JWT in the `Authorization` header. The client stores this token (e.g., in `localStorage`) and includes it in the header for all subsequent authenticated requests.
 
 ## API Endpoints
 

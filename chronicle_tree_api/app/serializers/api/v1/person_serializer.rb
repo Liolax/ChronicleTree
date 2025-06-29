@@ -9,13 +9,10 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :date_of_death,
              :avatar_url
 
-  has_many :facts,         key: :key_facts,      serializer: Api::V1::FactSerializer
-  has_many :timeline_items, key: :timeline,      serializer: Api::V1::TimelineItemSerializer
-  has_many :media,         serializer: Api::V1::MediumSerializer
-  has_many :relatives,
-           key: :relatives,
-           serializer: Api::V1::RelativeSerializer
-
+  has_many :facts,          key: :key_facts,      serializer: Api::V1::FactSerializer
+  has_many :timeline_items, key: :timeline,       serializer: Api::V1::TimelineItemSerializer
+  has_many :media,                            serializer: Api::V1::MediumSerializer
+  has_many :relatives,      key: :relatives,      serializer: Api::V1::RelativeSerializer
 
   def full_name
     "#{object.first_name} #{object.last_name}"
@@ -32,5 +29,4 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
     return unless object.profile&.avatar&.attached?
     Rails.application.routes.url_helpers.rails_blob_url(object.profile.avatar, only_path: true)
   end
-end
 end

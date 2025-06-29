@@ -1,18 +1,24 @@
 Rails.application.routes.draw do
   # health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
+  get '/ping', to: 'application#ping'
+
+  # Devise routes for JWT authentication
+  devise_for :users,
+             path: 'api/v1/auth',
+             path_names: {
+               sign_in: 'sign_in',
+               sign_out: 'sign_out',
+               registration: '' # POST to /api/v1/auth
+             },
+             controllers: {
+               sessions:      'api/v1/auth/sessions',
+               registrations: 'api/v1/auth/registrations',
+               passwords:     'api/v1/auth/passwords'
+             }
 
   namespace :api, defaults: { format: :json } do
     namespace :v1 do
-      # Devise‐JWT routes under /api/v1/auth
-      devise_for :users,
-                 path: 'auth',
-                 controllers: {
-                   sessions:      'api/v1/auth/sessions',
-                   registrations: 'api/v1/auth/registrations',
-                   passwords:     'api/v1/auth/passwords'
-                 }
-
       # Current user endpoints
       get    'users/me',       to: 'users#show'
       patch  'users/me',       to: 'users#update'

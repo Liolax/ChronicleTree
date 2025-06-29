@@ -2,45 +2,51 @@
 module Api
   module V1
     class RelationshipsController < BaseController
-      before_action :set_person, only: %i[create]
       before_action :set_relationship, only: %i[destroy]
 
       # POST /api/v1/relationships
-      # body: { relationship: { person_id:, friend_id:, relationship_type: } }
+      # body: { relationship: { person_id:, relative_id:, relationship_type: } }
       def create
-        rel = @person.relationships.build(relationship_params)
-        if rel.save
-          render json: rel,
-                 serializer: Api::V1::RelationshipSerializer,
-                 status: :created
+        @relationship = Relationship.new(relationship_params)
+
+        person = current_user.people.find_by(id: relationship_params[:person_id])
+        relative = current_user.people.find_by(id: relationship_params[:relative_id])
+
+        if person && relative
+          if @relationship.save
+            render json: @relationship,
+                   serializer: Api::V1::RelationshipSerializer,
+                   status: :created
+          else
+            render json: { errors: @relationship.errors.full_messages },
+                   status: :unprocessable_entity
+          end
         else
-          render json: { errors: rel.errors.full_messages },
-                 status: :unprocessable_entity
+          render json: { errors: ["One or both persons not found in your records."] },
+                 status: :not_found
         end
       end
 
       # DELETE /api/v1/relationships/:id
       def destroy
-        @relationship.destroy
-        head :no_content
+        if @relationship.person.user == current_user
+          @relationship.destroy
+          head :no_content
+        else
+          head :forbidden
+        end
       end
 
       private
 
-      def set_person
-        @person = current_user.people.find(relationship_params[:person_id])
-      end
-
       def set_relationship
-        @relationship = current_user.people
-                                    .flat_map(&:relationships)
-                                    .find { |r| r.id == params[:id].to_i }
+        @relationship = Relationship.find_by(id: params[:id])
         head :not_found unless @relationship
       end
 
       def relationship_params
         params.require(:relationship)
-              .permit(:person_id, :friend_id, :relationship_type)
+              .permit(:person_id, :relative_id, :relationship_type)
       end
     end
   end

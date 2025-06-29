@@ -14,7 +14,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      // If you have an endpoint to fetch current user:
       api.get('/users/me')
         .then(res => setUser(res.data))
         .catch(() => logout())
@@ -22,30 +21,38 @@ export function AuthProvider({ children }) {
       delete api.defaults.headers.common['Authorization']
       setUser(null)
     }
+    // eslint-disable-next-line
   }, [token])
 
-  function login(email, password) {
-    return api.post('/auth/sign_in', { user: { email, password } })
-      .then(res => {
-        const jwt = res.headers.authorization.split(' ')[1]
-        localStorage.setItem('token', jwt)
-        setToken(jwt)
-        setUser(res.data.user) // Set user from login response
-        navigate('/')        // redirect to home
-        return res.data.user
-      })
+  // async/await implementation for login
+  async function login(email, password) {
+    const res = await api.post('/auth/sign_in', { user: { email, password } })
+    const jwt = res.headers.authorization.split(' ')[1]
+    localStorage.setItem('token', jwt)
+    setToken(jwt)
+    setUser(res.data.data)
+    navigate('/')
+    return res.data.data
   }
 
-  function register(name, email, password, password_confirmation) {
-    return api.post('/auth', { user: { name, email, password, password_confirmation } })
-      .then(res => {
-        const jwt = res.data.token
-        localStorage.setItem('token', jwt)
-        setToken(jwt)
-        setUser(res.data.user) // Set user from register response
-        navigate('/')
-        return res.data.user
-      })
+  // async/await implementation for register
+  async function register(name, email, password, password_confirmation) {
+    const res = await api.post('/auth', { user: { name, email, password, password_confirmation } })
+    const jwt = res.headers.authorization.split(' ')[1]
+    localStorage.setItem('token', jwt)
+    setToken(jwt)
+    setUser(res.data.data)
+    navigate('/')
+    return res.data.data
+  }
+
+  // async/await implementation for forgot password
+  // Returns { message } or throws error
+  async function forgotPassword(email) {
+    // Devise expects the user object for API format
+    const res = await api.post('/auth/password', { user: { email } })
+    // Devise returns { message: "You will receive an email with instructions..." }
+    return res.data
   }
 
   function logout() {
@@ -57,7 +64,7 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ token, user, login, register, logout }}>
+    <AuthContext.Provider value={{ token, user, login, register, forgotPassword, logout }}>
       {children}
     </AuthContext.Provider>
   )

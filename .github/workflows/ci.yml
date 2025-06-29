@@ -7,8 +7,41 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  lint:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+          working-directory: 'chronicle_tree_api'
+      - name: Lint Ruby code
+        run: |
+          cd chronicle_tree_api
+          bundle exec rubocop
+
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.3.0
+          bundler-cache: true
+          working-directory: 'chronicle_tree_api'
+      - name: Scan for vulnerabilities
+        run: |
+          cd chronicle_tree_api
+          bundle exec brakeman --no-pager
+
+  test_backend:
+    runs-on: ubuntu-latest
+    needs: [lint, scan]
     services:
       postgres:
         image: postgres:14
@@ -23,44 +56,37 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Make Rails bin executable
-        run: chmod +x chronicle_tree_api/bin/rails chronicle_tree_api/bin/rake
-
+      - uses: actions/checkout@v4
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.3.0
           bundler-cache: true
-
-      - name: Install gems
-        run: |
-          cd chronicle_tree_api
-          bundle install
+          working-directory: 'chronicle_tree_api'
       - name: Setup DB & run Rails tests
         env:
           RAILS_ENV: test
           DATABASE_URL: postgres://postgres:password@localhost:5432/chronicle_tree_test
         run: |
           cd chronicle_tree_api
-          bin/rails db:create db:migrate
-          bin/rails test
+          bundle exec rails db:create db:migrate
+          bundle exec rails test
 
+  test_frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./chronicle_tree_client
+    steps:
+      - uses: actions/checkout@v4
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: 'npm'
+          cache-dependency-path: chronicle_tree_client/package-lock.json
       - name: Install frontend deps
-        run: |
-          cd chronicle_tree_client
-          npm ci
+        run: npm ci
       - name: Run frontend tests
-        run: |
-          cd chronicle_tree_client
-          npm run test -- --watch=false
-          cd chronicle_tree_client
-          npm run test -- --watch=false
-
+        run: npm test -- --watch=false
