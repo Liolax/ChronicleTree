@@ -1,10 +1,10 @@
 module Api
   module V1
-    class BaseController < ApplicationController
-    include ActionController::RequestForgeryProtection
-      protect_from_forgery with: :null_session
-      before_action   :authenticate_user!
-      respond_to      :json
+    class BaseController < ActionController::API
+      # Require a signed-in user for *all* API actions by default
+      before_action :authenticate_user!
     end
+  end
+end
   end
 end

@@ -1,32 +1,31 @@
 module Api
   module V1
     module Auth
-      class SessionsController < Devise::SessionsController
-        respond_to :json
+      class SessionsController < Api::V1::BaseController
+        skip_before_action :authenticate_user!, only: [:create]
+
+        # POST /api/v1/auth/sign_in
+        def create
+          user = User.find_for_database_authentication(email: user_params[:email])
+          if user&.valid_password?(user_params[:password])
+            token = Warden::JWTAuth::UserEncoder.new.call(user, :user, nil).first
+            render json: { token: token, user: Api::V1::UserSerializer.new(user).as_json }, status: :ok
+          else
+            render json: { error: 'Invalid email or password' }, status: :unauthorized
+          end
+        end
+
+        # DELETE /api/v1/auth/sign_out
+        def destroy
+          # This is a simplified sign-out. The token is revoked on the client-side.
+          # If using a denylist strategy, you would add the token to the denylist here.
+          head :no_content
+        end
 
         private
 
-        def respond_with(resource, _opts = {})
-          # resource is the user instance
-          token = Warden::JWTAuth::UserEncoder.new.call(resource, :user, nil).first
-          render json: {
-            status: { code: 200, message: 'Logged in successfully.' },
-            data: { token: token, user: Api::V1::UserSerializer.new(resource).as_json }
-          }, status: :ok
-        end
-
-        def respond_to_on_destroy
-          if current_user
-            render json: {
-              status: 200,
-              message: "logged out successfully"
-            }, status: :ok
-          else
-            render json: {
-              status: 401,
-              message: "Couldn't find an active session."
-            }, status: :unauthorized
-          end
+        def user_params
+          params.require(:user).permit(:email, :password)
         end
       end
     end
