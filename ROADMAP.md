@@ -4,6 +4,26 @@ This document outlines the development plan for the ChronicleTree full-stack app
 
 ---
 
+## Recent Updates
+
+### [2025-06-29] PersonForm & TreeView Fixes
+- PersonForm now matches mockup: death date only enabled if "Deceased" is checked, relationship selection is present, and all register usages are correct.
+- TreeView always shows people if any exist (uses first person as root if needed).
+- Improved UX and reliability for adding people and visualizing the tree.
+
+### [2025-06-29] Profile Page Refactor
+- Profile page now displays the selected person from the tree, not the logged-in user.
+- Route `/profile/:id` fetches and shows all profile data (details, timeline, media, facts, relationships) for the chosen person.
+- Tabs and layout improved for extensibility and clarity.
+- UI/UX structure matches mock-ups and is ready for further CRUD enhancements.
+
+### [2025-06-29] CRUD Modal Unification & PersonCard Improvements
+- All delete confirmations now use a single, reusable `ConfirmDeleteModal` component (no more `DeletePersonModal`).
+- PersonCard UI/UX improved for consistency with mock-ups: clear action buttons, better layout, and modal flows.
+- Added several sample people and relationships to the test user in `db/seeds.rb` for development and demo purposes.
+
+---
+
 ## Backend Development (Rails API)
 
 This section outlines the development plan for the ChronicleTree Rails API, focusing on building out features, ensuring stability through testing, and finalizing the database structure.
@@ -121,4 +141,4 @@ Ensure the frontend is reliable and bug-free.
 
 -   **Unit/Component Tests**: Use `Vitest` and `React Testing Library` to write tests for individual components, especially forms and components with complex logic.
 -   **Integration Tests**: Create integration tests for key user flows, such as login, profile updates, and adding a family member.
--   **CI/CD**: Configure GitHub Actions to run `npm test` and `npm run lint` on every pull request.
+-   **CI/CD**: Configure GitHub Actions to run `npm test` and `npm run lint` on every pull request`.

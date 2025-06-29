@@ -36,30 +36,33 @@ export const deletePerson = (id) => api.delete(`/people/${id}`);
 
 export const useAddPerson = () => {
   const queryClient = useQueryClient();
-  return useMutation(newPerson => api.post('/people', { person: newPerson }), {
+  return useMutation({
+    mutationFn: newPerson => api.post('/people', { person: newPerson }),
     onSuccess: () => {
-      queryClient.invalidateQueries('people');
-      queryClient.invalidateQueries('tree');
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
     },
   });
 };
 
 export const useUpdatePerson = () => {
   const queryClient = useQueryClient();
-  return useMutation(({ id, ...person }) => api.put(`/people/${id}`, { person }), {
+  return useMutation({
+    mutationFn: ({ id, ...person }) => api.put(`/people/${id}`, { person }),
     onSuccess: () => {
-      queryClient.invalidateQueries('people');
-      queryClient.invalidateQueries('tree');
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
     },
   });
 };
 
 export const useDeletePerson = () => {
   const queryClient = useQueryClient();
-  return useMutation(id => api.delete(`/people/${id}`), {
+  return useMutation({
+    mutationFn: id => api.delete(`/people/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries('people');
-      queryClient.invalidateQueries('tree');
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
     },
   });
 };

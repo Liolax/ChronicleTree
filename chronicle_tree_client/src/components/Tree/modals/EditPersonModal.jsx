@@ -1,8 +1,8 @@
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import Modal from '../UI/Modal';
-import PersonForm from '../Forms/PersonForm';
-import { updatePerson } from '../../services/people';
+import Modal from '../../UI/Modal';
+import PersonForm from '../../Forms/PersonForm';
+import { updatePerson } from '../../../services/people';
 
 const EditPersonModal = ({ person, onClose }) => {
   const queryClient = useQueryClient();

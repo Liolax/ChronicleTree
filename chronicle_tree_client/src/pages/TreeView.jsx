@@ -1,11 +1,14 @@
 import React from 'react';
 import { TreeProvider, useTreeState } from '../context/TreeStateContext';
+import { ReactFlowProvider } from 'reactflow';
 import PageHeader from '../components/Layout/PageHeader';
 import Tree from '../components/Tree/Tree';
 import Button from '../components/UI/Button';
-import EditPersonModal from '../components/Tree/EditPersonModal';
-import AddRelationshipModal from '../components/Tree/AddRelationshipModal';
+import AddPersonModal from '../components/Tree/modals/AddPersonModal';
+import AddRelationshipModal from '../components/Tree/modals/AddRelationshipModal';
+import EditPersonModal from '../components/Tree/modals/EditPersonModal';
 import { usePeople } from '../services/people';
+import { UserPlusIcon } from '@heroicons/react/24/solid';
 
 const TreeViewContent = () => {
   const {
@@ -24,19 +27,21 @@ const TreeViewContent = () => {
       <PageHeader
         title="Family Tree"
         subtitle="Visualize and manage your family connections."
-      >
-        <div className="flex space-x-2">
-          <Button onClick={openAddPersonModal}>Add Person</Button>
-          <Button onClick={openAddRelationshipModal} variant="secondary" disabled={isLoading || isError}>
-            Add Relationship
-          </Button>
-        </div>
-      </PageHeader>
+      />
+      <div className="flex justify-center mb-6">
+        <Button
+          onClick={openAddPersonModal}
+          className="bg-button-primary hover:bg-button-primary-hover text-white font-semibold py-2 px-6 rounded-md flex items-center shadow-lg"
+        >
+          <UserPlusIcon className="w-5 h-5 mr-2" />
+          Add New Person
+        </Button>
+      </div>
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0 h-[600px]">
           <Tree />
         </div>
-        {isAddPersonModalOpen && <EditPersonModal onClose={closeAddPersonModal} />} 
+        {isAddPersonModalOpen && <AddPersonModal onClose={closeAddPersonModal} />}
         {isAddRelationshipModalOpen && !isLoading && !isError && (
           <AddRelationshipModal 
             onClose={closeAddRelationshipModal} 
@@ -51,7 +56,9 @@ const TreeViewContent = () => {
 export default function TreeView() {
   return (
     <TreeProvider>
-      <TreeViewContent />
+      <ReactFlowProvider>
+        <TreeViewContent />
+      </ReactFlowProvider>
     </TreeProvider>
   );
 }

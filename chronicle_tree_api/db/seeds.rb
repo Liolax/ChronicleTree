@@ -15,37 +15,21 @@ user.password = 'Password123!'
 user.password_confirmation = 'Password123!'
 user.save!
 
-people_data = {
-  'john_doe'    => { first_name: 'John',  last_name: 'Doe',   date_of_birth: '1960-05-10' },
-  'jane_doe'    => { first_name: 'Jane',  last_name: 'Smith', date_of_birth: '1962-08-15' },
-  'mike_doe'    => { first_name: 'Mike',  last_name: 'Doe',   date_of_birth: '1985-01-20' },
-  'sara_doe'    => { first_name: 'Sara',  last_name: 'Doe',   date_of_birth: '1988-11-30' },
-  'emily_jones' => { first_name: 'Emily', last_name: 'Jones', date_of_birth: '1986-03-25' },
-  'tom_doe'     => { first_name: 'Tom',   last_name: 'Doe',   date_of_birth: '2010-07-12' },
-  'lucy_doe'    => { first_name: 'Lucy',  last_name: 'Doe',   date_of_birth: '2012-09-05' }
-}
+puts "Creating sample people..."
+p1 = Person.create!(first_name: 'Yuliia', last_name: 'Smyshliakova', gender: 'Female', date_of_birth: '1990-05-15', user: user)
+p2 = Person.create!(first_name: 'John', last_name: 'Doe', gender: 'Male', date_of_birth: '1988-08-20', user: user)
+p3 = Person.create!(first_name: 'Jane', last_name: 'Doe', gender: 'Female', date_of_birth: '2020-01-10', user: user)
+p4 = Person.create!(first_name: 'Vira', last_name: 'Smyshliakova', gender: 'Female', date_of_birth: '1965-01-01', user: user)
+p5 = Person.create!(first_name: 'Anatoliy', last_name: 'Smyshliakova', gender: 'Male', date_of_birth: '1963-03-12', date_of_death: '2015-06-10', user: user)
 
-people = {}
-people_data.each do |key, data|
-  people[key] = Person.create!(data.merge(user: user))
-end
-
-def create_relationship(person1, person2, type1, type2)
-  Relationship.find_or_create_by!(person: person1, relative: person2, relationship_type: type1.to_s)
-  Relationship.find_or_create_by!(person: person2, relative: person1, relationship_type: type2.to_s)
-end
-
-create_relationship(people['john_doe'], people['jane_doe'], :spouse, :spouse)
-create_relationship(people['john_doe'], people['mike_doe'], :parent, :child)
-create_relationship(people['jane_doe'], people['mike_doe'], :parent, :child)
-create_relationship(people['john_doe'], people['sara_doe'], :parent, :child)
-create_relationship(people['jane_doe'], people['sara_doe'], :parent, :child)
-create_relationship(people['mike_doe'], people['sara_doe'], :sibling, :sibling)
-create_relationship(people['mike_doe'], people['emily_jones'], :spouse, :spouse)
-create_relationship(people['mike_doe'], people['tom_doe'], :parent, :child)
-create_relationship(people['emily_jones'], people['tom_doe'], :parent, :child)
-create_relationship(people['mike_doe'], people['lucy_doe'], :parent, :child)
-create_relationship(people['emily_jones'], people['lucy_doe'], :parent, :child)
-create_relationship(people['tom_doe'], people['lucy_doe'], :sibling, :sibling)
+puts "Creating sample relationships..."
+Relationship.create!(person: p1, relative: p2, relationship_type: 'spouse')
+Relationship.create!(person: p2, relative: p1, relationship_type: 'spouse')
+Relationship.create!(person: p1, relative: p3, relationship_type: 'parent')
+Relationship.create!(person: p3, relative: p1, relationship_type: 'child')
+Relationship.create!(person: p1, relative: p4, relationship_type: 'child')
+Relationship.create!(person: p4, relative: p1, relationship_type: 'parent')
+Relationship.create!(person: p1, relative: p5, relationship_type: 'child')
+Relationship.create!(person: p5, relative: p1, relationship_type: 'parent')
 
 puts "Seed data created successfully!"

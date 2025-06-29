@@ -1,6 +1,6 @@
 import React from 'react';
-import Modal from './Modal';
-import Button from './Button';
+import Modal from '../../UI/Modal';
+import Button from '../../UI/Button';
 
 const ConfirmDeleteModal = ({ onCancel, onConfirm, isLoading, title, message }) => {
   return (

@@ -1,7 +1,7 @@
 // src/main.jsx
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import App from './App.jsx';
 import './index.css';
 import { TreeProvider } from './context/TreeStateContext';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';

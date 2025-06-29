@@ -1,10 +1,10 @@
 import dagre from 'dagre';
 import React, { useCallback, useEffect } from 'react';
-import { ReactFlow, addEdge, Background, Controls, MiniMap, useEdgesState, useNodesState } from 'reactflow';
+import { ReactFlow, addEdge, Background, Controls, MiniMap, useEdgesState, useNodesState, ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
 
 import { useCurrentUser } from '../../services/users';
-import { useTree } from '../../services/people';
+import { useTree, usePeople } from '../../services/people';
 import CustomNode from './CustomNode';
 
 const dagreGraph = new dagre.graphlib.Graph();
@@ -52,23 +52,26 @@ const nodeTypes = {
 const initialNodes = [];
 const initialEdges = [];
 
-function Tree() {
+function TreeInner() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { data: user } = useCurrentUser();
-  const { data: treeData, isLoading } = useTree(user?.person_id);
+  const { data: people } = usePeople();
+  // Use the user's person_id, or fallback to the first person in the list
+  const rootPersonId = user?.person_id || (people && people.length > 0 ? people[0].id : null);
+  const { data: treeData, isLoading } = useTree(rootPersonId);
 
   const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
   useEffect(() => {
-    if (treeData) {
+    if (treeData && treeData.nodes && treeData.nodes.length > 0) {
       const initialNodes = treeData.nodes.map((person) => ({
         id: person.id.toString(),
         type: 'person',
         data: {
-          label: `${person.first_name} ${person.last_name}`,
-          birthDate: person.birth_date,
-          deathDate: person.death_date,
+          label: person.full_name || `${person.first_name} ${person.last_name}`,
+          birthDate: person.date_of_birth || person.birth_date,
+          deathDate: person.date_of_death || person.death_date,
           person: person, // Pass the entire person object
         },
         position: { x: 0, y: 0 }, // Initial position, will be updated by layout
@@ -78,6 +81,7 @@ function Tree() {
         id: `e${edge.from}-${edge.to}`,
         source: edge.from.toString(),
         target: edge.to.toString(),
+        type: edge.type === 'spouse' ? 'smoothstep' : 'default',
       }));
 
       const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
@@ -87,11 +91,18 @@ function Tree() {
 
       setNodes(layoutedNodes);
       setEdges(layoutedEdges);
+    } else {
+      setNodes([]);
+      setEdges([]);
     }
   }, [treeData, setNodes, setEdges]);
 
   if (isLoading) {
     return <div>Loading Tree...</div>;
+  }
+
+  if (!nodes.length) {
+    return <div className="text-center text-gray-400 py-20">No people found in your tree. Add a person to get started!</div>;
   }
 
   return (
@@ -110,6 +121,15 @@ function Tree() {
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
     </div>
+  );
+}
+
+function Tree() {
+  // Wrap TreeInner with ReactFlowProvider to provide context for ReactFlow and its hooks/components
+  return (
+    <ReactFlowProvider>
+      <TreeInner />
+    </ReactFlowProvider>
   );
 }
 
