@@ -95,6 +95,10 @@ All endpoints are prefixed with `/api/v1`. For a more detailed breakdown, see th
 | `POST`   | `/people/:person_id/media`            | Upload a new media file for a person.        |
 | `POST`   | `/people/:person_id/timeline_items`   | Create a new timeline item.                  |
 
+## Project Roadmap
+
+For a detailed plan of current and future development, please see the [Project Roadmap](./ROADMAP.md).
+
 ## Documentation
 
 For more detailed technical documentation, please see the following files:

@@ -1,8 +1,8 @@
-import { useQuery } from '@tanstack/react-query';
-import api from './api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import api from '../api/api';
 
 const getTree = async (personId) => {
-  const { data } = await api.get(`/api/v1/people/${personId}/tree`);
+  const { data } = await api.get(`/people/${personId}/tree`);
   return data;
 };
 
@@ -15,7 +15,7 @@ export function useTree(personId) {
 }
 
 const getPeople = async () => {
-  const { data } = await api.get('/api/v1/people');
+  const { data } = await api.get('/people');
   return data;
 };
 
@@ -26,10 +26,40 @@ export function usePeople() {
   });
 }
 
-export const createPerson = (person) => api.post('/api/v1/people', { person });
+export const createPerson = (person) => api.post('/people', { person });
 
-export const createRelationship = (relationship) => api.post('/api/v1/relationships', { relationship });
+export const createRelationship = (relationship) => api.post('/relationships', { relationship });
 
-export const updatePerson = (id, person) => api.put(`/api/v1/people/${id}`, { person });
+export const updatePerson = (id, person) => api.put(`/people/${id}`, { person });
 
-export const deletePerson = (id) => api.delete(`/api/v1/people/${id}`);
+export const deletePerson = (id) => api.delete(`/people/${id}`);
+
+export const useAddPerson = () => {
+  const queryClient = useQueryClient();
+  return useMutation(newPerson => api.post('/people', { person: newPerson }), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('people');
+      queryClient.invalidateQueries('tree');
+    },
+  });
+};
+
+export const useUpdatePerson = () => {
+  const queryClient = useQueryClient();
+  return useMutation(({ id, ...person }) => api.put(`/people/${id}`, { person }), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('people');
+      queryClient.invalidateQueries('tree');
+    },
+  });
+};
+
+export const useDeletePerson = () => {
+  const queryClient = useQueryClient();
+  return useMutation(id => api.delete(`/people/${id}`), {
+    onSuccess: () => {
+      queryClient.invalidateQueries('people');
+      queryClient.invalidateQueries('tree');
+    },
+  });
+};

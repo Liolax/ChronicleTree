@@ -15,4 +15,3 @@ class Api::V1::RelativeSerializer < ActiveModel::Serializer
     object.try(:relationship_type)
   end
 end
-end

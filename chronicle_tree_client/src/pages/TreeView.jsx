@@ -3,14 +3,14 @@ import { TreeProvider, useTreeState } from '../context/TreeStateContext';
 import PageHeader from '../components/Layout/PageHeader';
 import Tree from '../components/Tree/Tree';
 import Button from '../components/UI/Button';
-import AddPersonModal from '../components/Tree/AddPersonModal';
+import EditPersonModal from '../components/Tree/EditPersonModal';
 import AddRelationshipModal from '../components/Tree/AddRelationshipModal';
 import { usePeople } from '../services/people';
 
 const TreeViewContent = () => {
-  const { 
-    isAddPersonModalOpen, 
-    openAddPersonModal, 
+  const {
+    isAddPersonModalOpen,
+    openAddPersonModal,
     closeAddPersonModal,
     isAddRelationshipModalOpen,
     openAddRelationshipModal,
@@ -21,9 +21,9 @@ const TreeViewContent = () => {
 
   return (
     <>
-      <PageHeader 
-        title="Family Tree" 
-        subtitle="Visualize and manage your family connections." 
+      <PageHeader
+        title="Family Tree"
+        subtitle="Visualize and manage your family connections."
       >
         <div className="flex space-x-2">
           <Button onClick={openAddPersonModal}>Add Person</Button>
@@ -33,16 +33,16 @@ const TreeViewContent = () => {
         </div>
       </PageHeader>
       <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
+        <div className="px-4 py-6 sm:px-0 h-[600px]">
           <Tree />
-          {isAddPersonModalOpen && <AddPersonModal onClose={closeAddPersonModal} />} 
-          {isAddRelationshipModalOpen && !isLoading && !isError && (
-            <AddRelationshipModal 
-              onClose={closeAddRelationshipModal} 
-              people={people} 
-            />
-          )}
         </div>
+        {isAddPersonModalOpen && <EditPersonModal onClose={closeAddPersonModal} />} 
+        {isAddRelationshipModalOpen && !isLoading && !isError && (
+          <AddRelationshipModal 
+            onClose={closeAddRelationshipModal} 
+            people={people} 
+          />
+        )}
       </div>
     </>
   );

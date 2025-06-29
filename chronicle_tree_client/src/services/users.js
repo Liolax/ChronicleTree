@@ -1,6 +1,6 @@
 // src/services/users.js
-import api from '../api/api'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import api from '../api/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 // Fetch current user
 export function useCurrentUser() {

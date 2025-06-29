@@ -1,92 +1,94 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import ReactFlow, {
-  applyEdgeChanges,
-  applyNodeChanges,
-  Background,
-  Controls,
-  MiniMap,
-} from '@xyflow/react';
-import '@xyflow/react/dist/style.css';
+import dagre from 'dagre';
+import React, { useCallback, useEffect } from 'react';
+import { ReactFlow, addEdge, Background, Controls, MiniMap, useEdgesState, useNodesState } from 'reactflow';
+import 'reactflow/dist/style.css';
 
 import { useCurrentUser } from '../../services/users';
 import { useTree } from '../../services/people';
-import PersonNode from './PersonNode'; // Import the custom node
-import EditPersonModal from './modals/EditPersonModal';
-import ConfirmDeleteModal from '../UI/ConfirmDeleteModal';
+import CustomNode from './CustomNode';
+
+const dagreGraph = new dagre.graphlib.Graph();
+dagreGraph.setDefaultEdgeLabel(() => ({}));
+
+const nodeWidth = 172;
+const nodeHeight = 36;
+
+const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+  const isHorizontal = direction === 'LR';
+  dagreGraph.setGraph({ rankdir: direction });
+
+  nodes.forEach((node) => {
+    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+  });
+
+  edges.forEach((edge) => {
+    dagreGraph.setEdge(edge.source, edge.target);
+  });
+
+  dagre.layout(dagreGraph);
+
+  nodes.forEach((node) => {
+    const nodeWithPosition = dagreGraph.node(node.id);
+    node.targetPosition = isHorizontal ? 'left' : 'top';
+    node.sourcePosition = isHorizontal ? 'right' : 'bottom';
+
+    // We are shifting the dagre node position (anchor=center center) to the top left
+    // so it matches the React Flow node anchor point (top left).
+    node.position = {
+      x: nodeWithPosition.x - nodeWidth / 2,
+      y: nodeWithPosition.y - nodeHeight / 2,
+    };
+
+    return node;
+  });
+
+  return { nodes, edges };
+};
 
 const nodeTypes = {
-  person: PersonNode,
+  person: CustomNode,
 };
 
 const initialNodes = [];
 const initialEdges = [];
 
 function Tree() {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [edges, setEdges] = useState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const { data: user } = useCurrentUser();
   const { data: treeData, isLoading } = useTree(user?.person_id);
 
-  const [isEditModalOpen, setEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState(null);
-
-  const handleEdit = (person) => {
-    setSelectedPerson(person);
-    setEditModalOpen(true);
-  };
-
-  const handleDelete = (person) => {
-    setSelectedPerson(person);
-    setDeleteModalOpen(true);
-  };
-
-  const handleSaveEdit = (updatedPerson) => {
-    console.log('Saving person:', updatedPerson);
-    // Here you would call an API to update the person
-    setEditModalOpen(false);
-  };
-
-  const handleConfirmDelete = () => {
-    console.log('Deleting person:', selectedPerson);
-    // Here you would call an API to delete the person
-    setDeleteModalOpen(false);
-  };
+  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
 
   useEffect(() => {
     if (treeData) {
-      const newNodes = treeData.nodes.map((person) => ({
+      const initialNodes = treeData.nodes.map((person) => ({
         id: person.id.toString(),
         type: 'person',
-        position: { x: Math.random() * 400, y: Math.random() * 400 }, // Position randomly for now
         data: {
           label: `${person.first_name} ${person.last_name}`,
           birthDate: person.birth_date,
           deathDate: person.death_date,
-          onEdit: () => handleEdit(person),
-          onDelete: () => handleDelete(person),
+          person: person, // Pass the entire person object
         },
+        position: { x: 0, y: 0 }, // Initial position, will be updated by layout
       }));
 
-      const newEdges = treeData.edges.map((edge) => ({
+      const initialEdges = treeData.edges.map((edge) => ({
         id: `e${edge.from}-${edge.to}`,
         source: edge.from.toString(),
         target: edge.to.toString(),
       }));
 
-      setNodes(newNodes);
-      setEdges(newEdges);
-    }
-  }, [treeData]);
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+        initialNodes,
+        initialEdges
+      );
 
-  const onNodesChange = useCallback(
-    (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    [setNodes]
-  );
-  const onEdgesChange = useCallback(
-    (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    [setEdges]
-  );
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+    }
+  }, [treeData, setNodes, setEdges]);
 
   if (isLoading) {
     return <div>Loading Tree...</div>;
@@ -99,6 +101,7 @@ function Tree() {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
       >
@@ -106,23 +109,6 @@ function Tree() {
         <MiniMap />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
-      {selectedPerson && (
-        <EditPersonModal
-          isOpen={isEditModalOpen}
-          onClose={() => setEditModalOpen(false)}
-          onSave={handleSaveEdit}
-          person={selectedPerson}
-        />
-      )}
-      {selectedPerson && (
-        <ConfirmDeleteModal
-          isOpen={isDeleteModalOpen}
-          onClose={() => setDeleteModalOpen(false)}
-          onConfirm={handleConfirmDelete}
-          title="Delete Person"
-          message={`Are you sure you want to delete ${selectedPerson.first_name} ${selectedPerson.last_name}? This action cannot be undone.`}
-        />
-      )}
     </div>
   );
 }

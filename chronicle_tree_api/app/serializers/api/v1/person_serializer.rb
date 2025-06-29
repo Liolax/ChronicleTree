@@ -3,8 +3,8 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :first_name,
              :last_name,
              :full_name,
-             :age,
              :gender,
+             :age,
              :date_of_birth,
              :date_of_death,
              :avatar_url

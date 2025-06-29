@@ -2,27 +2,36 @@
 
 This document outlines the plan for building the ChronicleTree React client, from converting static mockups to creating a dynamic, data-driven single-page application (SPA).
 
-## 1. Convert HTML Mockups to React Components
+## 1. Component Architecture
 
-The primary goal is to translate the static HTML mockups into a reusable and stateful component architecture.
+The primary goal is to translate the static HTML mockups into a reusable and stateful component architecture. The project is organized by feature, with generic, reusable components placed in centralized directories.
+
+-   **Core Directories**:
+    -   `pages/`: Top-level components that correspond to a page view (e.g., `TreeView.jsx`, `Profile.jsx`).
+    -   `components/`: Contains all reusable components, organized into subdirectories.
+    -   `services/`: Houses API interaction logic and React Query hooks.
+    -   `context/`: Provides shared state management across the application.
 
 -   **Component Breakdown**:
-    -   **Pages**: `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `ProfilePage`, `SettingsPage`, `TreeViewPage`.
-    -   **Layout**: `NavBar`, `PageHeader`.
-    -   **Feature Components**: `ProfileHeader`, `FactList`, `Timeline`, `MediaGallery`, `RelationshipManager`.
+    -   **`components/UI`**: Generic, application-agnostic components (`Button`, `Card`, `Input`, `Modal`).
+    -   **`components/Layout`**: Components that define the page structure (`NavBar`, `PageHeader`, `Tabs`).
+    -   **`components/Forms`**: Reusable form components used for creating and editing data (`PersonForm`, `RelationshipForm`, `FactForm`).
+    -   **`components/Tree`**: Components specifically for the family tree visualization (`Tree`, `CustomNode`, `AddPersonModal`).
+    -   **`components/Profile`**: Components used within the user profile page (`ProfileHeader`, `ProfileDetails`, `FactList`).
+    -   **`components/Settings`**: Components for the user settings page (`ProfileSettings`, `PasswordSettings`).
+
 -   **Styling**: Continue using Tailwind CSS as established in the mockups.
--   **State Management**: Use React hooks (`useState`, `useEffect`, `useContext`) for managing component state.
--   **Routing**: Implement client-side routing using `react-router-dom` to create a seamless SPA experience. Replace all `<a>` tags with `<Link>` components for internal navigation.
+-   **Routing**: Implement client-side routing using `react-router-dom` to create a seamless SPA experience.
 
 ## 2. API Integration & State Management
 
 Connect the React components to the Rails backend to handle live data.
 
--   **API Client**: Use `axios` for making HTTP requests. Create a centralized API client instance that can be configured with the base URL and authentication headers.
+-   **API Client**: Use `axios` for making HTTP requests. A centralized API client is configured with the base URL and authentication headers.
 -   **Authentication Flow**:
     -   On login/registration, store the received JWT in `localStorage`.
     -   Attach the JWT as a `Bearer` token in the `Authorization` header for all authenticated API requests.
-    -   Implement an auto-logout mechanism that clears the token and redirects to the login page upon receiving a `401 Unauthorized` response.
+    -   Implement an auto-logout mechanism upon receiving a `401 Unauthorized` response.
 -   **Data Fetching**: Use `@tanstack/react-query` for server state management, including caching, refetching, and optimistic updates.
 -   **Authentication**: Implement context-based authentication using `AuthContext` to manage JWTs and user state.
 
@@ -31,25 +40,18 @@ Connect the React components to the Rails backend to handle live data.
 Implement the interactive family tree view.
 
 -   **Library**: Use `@xyflow/react` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
--   **State Management**: Use a dedicated `TreeStateContext` to manage UI state related to the tree, such as the currently selected node and the visibility of detail cards. This decouples the tree view from the components that display node information.
--   **Data Fetching**: Use the `useTree` hook with `@tanstack/react-query` to fetch node and edge data from the `/api/v1/people/:id/tree` endpoint.
--   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges, ensuring a clean and readable tree structure.
--   **Custom Nodes**: Develop a `CustomNode` component to display person details (name, photo, dates) as shown in the mockups.
+-   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges.
+-   **Custom Nodes**: A `CustomNode` component displays person details (name, photo, dates) and contains its own logic for triggering edit and delete modals, making it a self-contained and reusable unit.
 -   **Interaction**:
     -   Implement pan and zoom functionality using React Flow's built-in controls.
-    -   Display a modal `PersonCard` component on node click, managed via `TreeStateContext`.
-    -   Implement smooth viewport transitions to center the view on a selected node.
+    -   Modals for adding, editing, and deleting people and relationships are managed via context and local state.
 
 ## 4. Forms and User Input
 
 Build robust forms for creating and editing data.
 
--   **Form Library**: Use a library like `React Hook Form` with `Yup` for validation to handle form state, submission, and client-side validation efficiently.
--   **Forms to Implement**:
-    -   `PersonForm` (add/edit person)
-    -   `FactForm` (add/edit fact)
-    -   `MediaUploadForm`
-    -   `RelationshipForm`
+-   **Form Library**: Use `react-hook-form` for efficient form state management, submission, and validation.
+-   **Centralized Forms**: Reusable forms (`PersonForm`, `RelationshipForm`, `FactForm`) are located in `src/components/Forms` and are used by modal components to perform create/update operations.
 
 ## 5. Testing Strategy
 
