@@ -93,3 +93,9 @@ Manages file uploads (photos, documents) attached to a person.
 | `GET`    | `/people/:person_id/media` | `media#index`     | List all media for a person.          |
 | `POST`   | `/people/:person_id/media` | `media#create`    | Upload a new media file for a person. |
 | `DELETE` | `/media/:id`         | `media#destroy`         | Delete a specific media file.         |
+
+---
+
+## Conclusion
+
+This document serves as a reference for all API endpoints. For implementation details, refer to the [Backend Development Roadmap](./development_roadmap.md). For authentication specifics, see the [Devise & JWT Setup](./devise_setup.md).

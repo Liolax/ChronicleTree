@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronicleTree Login/Register Mockup</title>
+    <!-- Tailwind CSS CDN for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'app-bg': '#F8F4F0',
+                        'app-container': '#FEFEFA',
+                        'app-primary': '#4A4A4A',
+                        'app-accent': '#A0C49D',
+                        'button-primary': '#4F868E',
+                        'button-primary-hover': '#64A3AC',
+                        'link': '#4F868E',
+                        'link-hover': '#64A3AC',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Styling for wireframe feel */
+        .mockup-container {
+            border: 1px dashed #C0C0C0; /* Light grey dashed border */
+        }
+        .wireframe-input {
+            border: 1px solid #D3D3D3; /* Light grey for input borders */
+        }
+        /* Hide specific screens by default */
+        .hidden-screen {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-app-bg font-sans flex items-center justify-center min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <!-- Main Container for the Mockup -->
+    <div class="mockup-container bg-app-container w-full max-w-sm mx-auto p-6 rounded-lg shadow-lg">
+
+        <!-- Title of the Mockup -->
+        <h1 class="text-3xl font-bold text-center text-app-primary mb-6">ChronicleTree</h1>
+
+        <!-- Login Screen -->
+        <div id="loginScreen" class="screen">
+            <h2 class="text-2xl font-semibold text-center text-app-primary mb-4">Log In</h2>
+            <div class="mb-4">
+                <label for="loginEmail" class="block text-gray-600 text-sm font-medium mb-1">Email</label>
+                <input type="email" id="loginEmail" class="wireframe-input w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent" placeholder="your@example.com">
+            </div>
+            <div class="mb-4">
+                <label for="loginPassword" class="block text-gray-600 text-sm font-medium mb-1">Password</label>
+                <input type="password" id="loginPassword" class="wireframe-input w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent" placeholder="••••••••">
+                <div class="text-right mt-1">
+                    <a href="#" class="text-xs text-link hover:text-link-hover" onclick="showScreen('forgotPasswordScreen')">Forgot Password?</a>
+                </div>
+            </div>
+            <button class="bg-button-primary hover:bg-button-primary-hover text-white w-full py-2 px-4 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-app-accent transition-colors duration-200" onclick="window.location.href='chronicle_main_family_tree.html'">Log In</button>
+            <p class="text-center text-app-primary text-sm mt-4">
+                Don't have an account? <a href="#" class="text-link hover:text-link-hover underline" onclick="showScreen('registerScreen')">Register</a>
+            </p>
+        </div>
+
+        <!-- Registration Screen (initially hidden) -->
+        <div id="registerScreen" class="screen hidden-screen">
+            <h2 class="text-2xl font-semibold text-center text-app-primary mb-4">Register</h2>
+            <div class="mb-4">
+                <label for="registerName" class="block text-gray-600 text-sm font-medium mb-1">Name</label>
+                <input type="text" id="registerName" class="wireframe-input w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent" placeholder="Your Name">
+            </div>
+            <div class="mb-4">
+                <label for="registerEmail" class="block text-gray-600 text-sm font-medium mb-1">Email</label>
+                <input type="email" id="registerEmail" class="wireframe-input w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent" placeholder="your@example.com">
+            </div>
+            <div class="mb-4">
+                <label for="registerPassword" class="block text-gray-600 text-sm font-medium mb-1">Password</label>
+                <input type="password" id="registerPassword" class="wireframe-input w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent" placeholder="••••••••">
+            </div>
+            <button class="bg-button-primary hover:bg-button-primary-hover text-white w-full py-2 px-4 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-app-accent transition-colors duration-200" onclick="showScreen('loginScreen')">Register</button>
+            <p class="text-center text-app-primary text-sm mt-4">
+                Already have an account? <a href="#" class="text-link hover:text-link-hover underline" onclick="showScreen('loginScreen')">Log In</a>
+            </p>
+        </div>
+
+        <!-- Forgot Password Screen (initially hidden) -->
+        <div id="forgotPasswordScreen" class="screen hidden-screen">
+            <h2 class="text-2xl font-semibold text-center text-app-primary mb-4">Reset Password</h2>
+            <p class="text-center text-app-secondary text-sm mb-4">Enter your email and we'll send you a link to reset your password.</p>
+            <div class="mb-4">
+                <label for="forgotEmail" class="block text-gray-600 text-sm font-medium mb-1">Email</label>
+                <input type="email" id="forgotEmail" class="wireframe-input w-full p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-app-accent" placeholder="your@example.com">
+            </div>
+            <button class="bg-button-primary hover:bg-button-primary-hover text-white w-full py-2 px-4 rounded-md font-semibold focus:outline-none focus:ring-2 focus:ring-app-accent transition-colors duration-200" onclick="handlePasswordReset()">Send Reset Link</button>
+            <p class="text-center text-app-primary text-sm mt-4">
+                <a href="#" class="text-link hover:text-link-hover underline" onclick="showScreen('loginScreen')">Back to Log In</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.add('hidden-screen');
+            });
+            document.getElementById(screenId).classList.remove('hidden-screen');
+        }
+
+        function handlePasswordReset() {
+            const email = document.getElementById('forgotEmail').value;
+            if (!email) {
+                alert('Please enter your email address.');
+                return;
+            }
+            // In a real app, this would trigger an API call.
+            alert(`If an account with ${email} exists, a password reset link has been sent.`);
+            showScreen('loginScreen');
+        }
+    </script>
+
+</body>
+</html>

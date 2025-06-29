@@ -24,4 +24,36 @@ class Person < ApplicationRecord
   has_many :media,
            as: :attachable,
            dependent: :destroy
+
+  # Methods to query relationships
+  def parents
+    relatives.where(relationships: { relationship_type: 'parent' })
+  end
+
+  def children
+    relative_people.where(relationships: { person_id: id, relationship_type: 'parent' })
+  end
+
+  def spouses
+    relatives.where(relationships: { relationship_type: 'spouse' })
+  end
+
+  def siblings
+    # Siblings share at least one parent
+    return Person.none if parents.empty?
+
+    Person.joins(:related_by_relationships)
+          .where(related_by_relationships: {
+                   relationship_type: 'parent',
+                   relative_id: parents.ids
+                 })
+          .where.not(id: id)
+          .distinct
+  end
+
+  private
+
+  def relative_people
+    Person.joins(:relationships).where(relationships: { relative_id: id })
+  end
 end

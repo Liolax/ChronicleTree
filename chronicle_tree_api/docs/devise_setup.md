@@ -97,4 +97,6 @@ class BaseController < ApplicationController
 end
 ```
 
-This setup provides a secure, token-based authentication system that is well-integrated with the Rails framework and follows API design best practices.
+## 5. Conclusion
+
+This setup provides a secure, token-based authentication system that is well-integrated with the Rails framework and follows API design best practices. It forms the foundation for all protected endpoints in the application. For details on all available endpoints, see the [API Endpoints Overview](./api_endpoints_overview.md).

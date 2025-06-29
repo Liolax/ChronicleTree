@@ -74,4 +74,73 @@ On successful login/registration, the API returns a JWT in the `Authorization` h
 
 ## API Endpoints
 
-...existing code...
+All endpoints are prefixed with `/api/v1`. For a more detailed breakdown, see the [API Endpoints Overview](./chronicle_tree_api/docs/api_endpoints_overview.md).
+
+| Method   | Path                                  | Purpose                                      |
+| :------- | :------------------------------------ | :------------------------------------------- |
+| `POST`   | `/auth`                               | Register a new user.                         |
+| `POST`   | `/auth/sign_in`                       | Log in and receive a JWT.                    |
+| `DELETE` | `/auth/sign_out`                      | Log out and revoke the current JWT.          |
+| `GET`    | `/users/me`                           | Get the current user's profile.              |
+| `PATCH`  | `/users/password`                     | Change the current user's password.          |
+| `GET`    | `/people`                             | List all people for the current user.        |
+| `POST`   | `/people`                             | Create a new person.                         |
+| `GET`    | `/people/:id`                         | Get details for a specific person.           |
+| `PATCH`  | `/people/:id`                         | Update a person's details.                   |
+| `DELETE` | `/people/:id`                         | Delete a person.                             |
+| `GET`    | `/people/:id/tree`                    | Get family tree data for a person.           |
+| `POST`   | `/relationships`                      | Create a relationship between two people.    |
+| `DELETE` | `/relationships/:id`                  | Delete a relationship.                       |
+| `POST`   | `/people/:person_id/facts`            | Create a new fact for a person.              |
+| `POST`   | `/people/:person_id/media`            | Upload a new media file for a person.        |
+| `POST`   | `/people/:person_id/timeline_items`   | Create a new timeline item.                  |
+
+## Documentation
+
+For more detailed technical documentation, please see the following files:
+
+-   **Backend**:
+    -   [API Endpoints Overview](./chronicle_tree_api/docs/api_endpoints_overview.md)
+    -   [Development Roadmap](./chronicle_tree_api/docs/development_roadmap.md)
+    -   [Devise & JWT Setup](./chronicle_tree_api/docs/devise_setup.md)
+-   **Frontend**:
+    -   [Development Roadmap](./chronicle_tree_client/docs/development_roadmap.md)
+
+## Next Steps & Roadmap
+
+The project has a solid foundation with working authentication. The next phase involves building out the core features of the application. Detailed development roadmaps are available for both the backend and frontend:
+
+-   **Backend Roadmap**: See [`chronicle_tree_api/docs/development_roadmap.md`](./chronicle_tree_api/docs/development_roadmap.md) for the plan to build API endpoints, tests, and database models.
+-   **Frontend Roadmap**: See [`chronicle_tree_client/docs/development_roadmap.md`](./chronicle_tree_client/docs/development_roadmap.md) for the plan to convert mockups into React components and integrate with the API.
+
+---
+
+# Chronicle Tree - Client
+
+This directory contains the React frontend for the Chronicle Tree application, built with Vite.
+
+## Available Scripts
+
+In this directory, you can run:
+
+### `npm install`
+
+Installs the required dependencies for the project.
+
+### `npm run dev`
+
+Runs the app in development mode.
+Open [http://localhost:5173](http://localhost:5173) to view it in the browser.
+
+The page will reload if you make edits.
+You will also see any lint errors in the console.
+
+### `npm run build`
+
+Builds the app for production to the `dist` folder.
+It correctly bundles React in production mode and optimizes the build for the best performance.
+
+### `npm run lint`
+
+Lints the project files for code quality and style issues.
+

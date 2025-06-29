@@ -1,36 +1,34 @@
 module Api
   module V1
-    class FactsController < BaseController
-      before_action :set_person, only: %i[index create]
-      before_action :set_fact,   only: %i[update destroy]
+    class FactsController < ApplicationController
+      before_action :authenticate_user!
+      before_action :set_person, only: [:index, :create]
+      before_action :set_fact, only: [:update, :destroy]
 
       # GET /api/v1/people/:person_id/facts
       def index
-        render json: @person.facts,
-               each_serializer: Api::V1::FactSerializer,
-               status: :ok
+        @facts = @person.facts.order(date: :asc)
+        render json: @facts
       end
 
       # POST /api/v1/people/:person_id/facts
       def create
-        fact = @person.facts.build(fact_params)
-        if fact.save
-          render json: fact,
-                 serializer: Api::V1::FactSerializer,
-                 status: :created
+        @fact = @person.facts.build(fact_params)
+        @fact.user = current_user
+
+        if @fact.save
+          render json: @fact, status: :created
         else
-          render json: { errors: fact.errors.full_messages },
-                 status: :unprocessable_entity
+          render json: @fact.errors, status: :unprocessable_entity
         end
       end
 
-      # PATCH /api/v1/facts/:id
+      # PATCH/PUT /api/v1/facts/:id
       def update
         if @fact.update(fact_params)
-          render json: @fact, serializer: Api::V1::FactSerializer, status: :ok
+          render json: @fact
         else
-          render json: { errors: @fact.errors.full_messages },
-                 status: :unprocessable_entity
+          render json: @fact.errors, status: :unprocessable_entity
         end
       end
 
@@ -47,17 +45,11 @@ module Api
       end
 
       def set_fact
-        @fact = current_user.people
-                            .flat_map(&:facts)
-                            .find { |f| f.id == params[:id].to_i }
-        unless @fact
-          head :not_found
-          return
-        end
+        @fact = current_user.facts.find(params[:id])
       end
 
       def fact_params
-        params.require(:fact).permit(:label, :value, :date, :location)
+        params.require(:fact).permit(:fact_type, :date, :place, :description)
       end
     end
   end
