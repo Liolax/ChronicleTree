@@ -20,7 +20,7 @@ gem "devise-jwt"
 gem "active_model_serializers", "~> 0.10.0"
 
 # Avoid breaking changes from rubyzip v3
-gem "rubyzip", "~> 2.3.0"
+gem "rubyzip", "~> 2.4.1"
 
 group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
