@@ -16,16 +16,16 @@ module People
 
     def collect_nodes
       # include ancestors, siblings, spouses, children, self
-      [@center] + @center.parents + @center.siblings + @center.spouses + @center.children
+      ([@center] + @center.parents + @center.siblings + @center.spouses + @center.children).uniq
     end
 
     def collect_edges(nodes)
       edges = []
       nodes.each do |n|
-        n.parents.each { |pid| edges << { from: pid.id, to: n.id, type: 'child' } }
-        n.spouses.each { |sid| edges << { from: n.id, to: sid.id, type: 'spouse' } }
+        n.parents.each { |p| edges << { from: p.id, to: n.id, type: 'child' } }
+        n.spouses.each { |s| edges << { from: n.id, to: s.id, type: 'spouse' } if n.id < s.id }
       end
-      edges
+      edges.uniq
     end
   end
 end

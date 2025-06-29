@@ -23,23 +23,22 @@ Connect the React components to the Rails backend to handle live data.
     -   On login/registration, store the received JWT in `localStorage`.
     -   Attach the JWT as a `Bearer` token in the `Authorization` header for all authenticated API requests.
     -   Implement an auto-logout mechanism that clears the token and redirects to the login page upon receiving a `401 Unauthorized` response.
--   **Data Fetching**: Use `@tanstack/react-query` to fetch data from the Rails API. Create custom hooks for each resource (e.g., `useCurrentUser`, `useTree`).
--   **Authentication Context**: Use a React context (`AuthContext`) to manage the user's authentication state and JWT token globally.
+-   **Data Fetching**: Use `@tanstack/react-query` for server state management, including caching, refetching, and optimistic updates.
+-   **Authentication**: Implement context-based authentication using `AuthContext` to manage JWTs and user state.
 
-## 3. Tree Visualization with React Flow
+## 3. Tree Visualization with @xyflow/react (React Flow)
 
 Implement the interactive family tree view.
 
--   **Library**: Use a library like `D3.js`, `React Flow`, or `Konva.js` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
--   **Data Fetching**: Use the `useTree` hook to fetch node and edge data from the `/api/v1/people/:id/tree` endpoint.
--   **Data Transformation**: Create a utility function to transform the API response into a format compatible with React Flow (nodes with `id`, `position`, `data`; edges with `id`, `source`, `target`).
--   **Rendering**: Implement the `Tree.jsx` component to render the React Flow canvas, passing the transformed nodes and edges.
--   **Custom Nodes**: Develop a `CustomNode.jsx` component to display person data in a styled card, matching the mockups.
--   **Layout**: Implement a basic auto-layouting algorithm to position nodes hierarchically on the canvas.
+-   **Library**: Use `@xyflow/react` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
+-   **State Management**: Use a dedicated `TreeStateContext` to manage UI state related to the tree, such as the currently selected node and the visibility of detail cards. This decouples the tree view from the components that display node information.
+-   **Data Fetching**: Use the `useTree` hook with `@tanstack/react-query` to fetch node and edge data from the `/api/v1/people/:id/tree` endpoint.
+-   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges, ensuring a clean and readable tree structure.
+-   **Custom Nodes**: Develop a `CustomNode` component to display person details (name, photo, dates) as shown in the mockups.
 -   **Interaction**:
-    -   Implement pan and zoom functionality.
-    -   Implement the "Dynamic Centering" feature: clicking a node smoothly animates the view to center on that node.
-    -   Display a `PersonCard` component on node click/hover with summary details and action buttons.
+    -   Implement pan and zoom functionality using React Flow's built-in controls.
+    -   Display a modal `PersonCard` component on node click, managed via `TreeStateContext`.
+    -   Implement smooth viewport transitions to center the view on a selected node.
 
 ## 4. Forms and User Input
 

@@ -1,15 +1,22 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import ReactFlow, { 
-  Controls, 
-  Background, 
-  applyNodeChanges, 
+import React, { useState, useEffect, useCallback } from 'react';
+import ReactFlow, {
   applyEdgeChanges,
-  MiniMap
-} from 'reactflow';
-import 'reactflow/dist/style.css';
+  applyNodeChanges,
+  Background,
+  Controls,
+  MiniMap,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
 
-import { useTree } from '../../services/people';
 import { useCurrentUser } from '../../services/users';
+import { useTree } from '../../services/people';
+import PersonNode from './PersonNode'; // Import the custom node
+import EditPersonModal from './modals/EditPersonModal';
+import ConfirmDeleteModal from '../UI/ConfirmDeleteModal';
+
+const nodeTypes = {
+  person: PersonNode,
+};
 
 const initialNodes = [];
 const initialEdges = [];
@@ -18,26 +25,57 @@ function Tree() {
   const [nodes, setNodes] = useState(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
   const { data: user } = useCurrentUser();
-  const { data: treeData } = useTree(user?.person_id);
+  const { data: treeData, isLoading } = useTree(user?.person_id);
+
+  const [isEditModalOpen, setEditModalOpen] = useState(false);
+  const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+
+  const handleEdit = (person) => {
+    setSelectedPerson(person);
+    setEditModalOpen(true);
+  };
+
+  const handleDelete = (person) => {
+    setSelectedPerson(person);
+    setDeleteModalOpen(true);
+  };
+
+  const handleSaveEdit = (updatedPerson) => {
+    console.log('Saving person:', updatedPerson);
+    // Here you would call an API to update the person
+    setEditModalOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    console.log('Deleting person:', selectedPerson);
+    // Here you would call an API to delete the person
+    setDeleteModalOpen(false);
+  };
 
   useEffect(() => {
     if (treeData) {
-      // Transform the API data into a format that React Flow can use
-      const flowNodes = treeData.nodes.map((person, index) => ({
+      const newNodes = treeData.nodes.map((person) => ({
         id: person.id.toString(),
-        position: { x: index * 250, y: Math.random() * 400 }, // Simple positioning
-        data: { label: `${person.first_name} ${person.last_name}` },
+        type: 'person',
+        position: { x: Math.random() * 400, y: Math.random() * 400 }, // Position randomly for now
+        data: {
+          label: `${person.first_name} ${person.last_name}`,
+          birthDate: person.birth_date,
+          deathDate: person.death_date,
+          onEdit: () => handleEdit(person),
+          onDelete: () => handleDelete(person),
+        },
       }));
 
-      const flowEdges = treeData.edges.map((edge, index) => ({
-        id: `e${edge.from}-${edge.to}-${index}`,
+      const newEdges = treeData.edges.map((edge) => ({
+        id: `e${edge.from}-${edge.to}`,
         source: edge.from.toString(),
         target: edge.to.toString(),
-        animated: true,
       }));
 
-      setNodes(flowNodes);
-      setEdges(flowEdges);
+      setNodes(newNodes);
+      setEdges(newEdges);
     }
   }, [treeData]);
 
@@ -50,19 +88,41 @@ function Tree() {
     [setEdges]
   );
 
+  if (isLoading) {
+    return <div>Loading Tree...</div>;
+  }
+
   return (
-    <div style={{ height: '80vh', width: '100%' }} className="bg-gray-50 rounded-lg shadow-inner">
+    <div style={{ height: '70vh', width: '100%' }} className="bg-gray-50 rounded-lg shadow-inner">
       <ReactFlow
         nodes={nodes}
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
         fitView
       >
         <Controls />
         <MiniMap />
         <Background variant="dots" gap={12} size={1} />
       </ReactFlow>
+      {selectedPerson && (
+        <EditPersonModal
+          isOpen={isEditModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          onSave={handleSaveEdit}
+          person={selectedPerson}
+        />
+      )}
+      {selectedPerson && (
+        <ConfirmDeleteModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setDeleteModalOpen(false)}
+          onConfirm={handleConfirmDelete}
+          title="Delete Person"
+          message={`Are you sure you want to delete ${selectedPerson.first_name} ${selectedPerson.last_name}? This action cannot be undone.`}
+        />
+      )}
     </div>
   );
 }
