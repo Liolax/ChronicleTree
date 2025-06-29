@@ -4,12 +4,14 @@ class Person < ApplicationRecord
   has_many :relationships,
            class_name: 'Relationship',
            foreign_key: 'person_id',
-           inverse_of: :person
+           inverse_of: :person,
+           dependent: :destroy
            
   has_many :related_by_relationships,
            class_name: 'Relationship',
            foreign_key: 'relative_id',
-           inverse_of: :relative
+           inverse_of: :relative,
+           dependent: :destroy
 
   # through relationships, get Person relatives
   has_many :relatives,
@@ -17,4 +19,9 @@ class Person < ApplicationRecord
            source: :relative
 
   belongs_to :user
+
+  has_one :profile, dependent: :destroy
+  has_many :facts, dependent: :destroy
+  has_many :timeline_items, dependent: :destroy
+  has_many :media, as: :attachable, dependent: :destroy
 end

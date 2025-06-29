@@ -12,11 +12,12 @@ class Relationship < ApplicationRecord
              foreign_key: 'relative_id',
              inverse_of: :related_by_relationships
 
-  # optional: type of relationship (parent, child, spouse…)
-  enum relationship_type: {
-    parent: 0,
-    child: 1,
-    spouse: 2,
-    sibling: 3
-  }
+  validates :relationship_type, presence: true
+  validate :person_is_not_relative
+
+  private
+
+  def person_is_not_relative
+    errors.add(:relative, "can't be the same as person") if person == relative
+  end
 end

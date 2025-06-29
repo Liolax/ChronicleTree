@@ -3,7 +3,7 @@ Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
 
   # All of your application’s JSON API lives under /api/v1
-  namespace :api do
+  namespace :api, defaults: { format: :json } do
     namespace :v1 do
       devise_for :users,
         path: 'auth',

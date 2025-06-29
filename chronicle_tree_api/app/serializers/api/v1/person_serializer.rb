@@ -15,7 +15,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   has_many :media,         serializer: Api::V1::MediumSerializer
   has_many :relatives,
            key: :relatives,
-           serializer: Api::V1::PersonSerializer
+           serializer: Api::V1::RelativeSerializer
 
 
   def full_name

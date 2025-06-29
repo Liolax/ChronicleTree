@@ -4,22 +4,21 @@ module Api
       class RegistrationsController < Devise::RegistrationsController
         respond_to :json
 
-        def create
-          build_resource(sign_up_params)
+        private
 
-          if resource.save
-            # Instead of relying on Devise's sign_in, which doesn't issue a JWT
-            # on its own in this context, we'll manually create the token.
-            warden.set_user(resource, scope: :user)
+        def respond_with(resource, _opts = {})
+          if resource.persisted?
             token = Warden::JWTAuth::UserEncoder.new.call(resource, :user, nil).first
-            
-            render json: { token: token, user: Api::V1::UserSerializer.new(resource).as_json }, status: :created
+            render json: {
+              status: { code: 201, message: 'Signed up successfully.' },
+              data: { token: token, user: Api::V1::UserSerializer.new(resource).as_json }
+            }, status: :created
           else
-            render json: { errors: resource.errors.full_messages }, status: :unprocessable_entity
+            render json: {
+              status: { message: "User couldn't be created successfully. #{resource.errors.full_messages.to_sentence}" }
+            }, status: :unprocessable_entity
           end
         end
-
-        private
 
         def sign_up_params
           params.require(:user).permit(:name, :email, :password, :password_confirmation)
@@ -27,4 +26,5 @@ module Api
       end
     end
   end
+end
 end

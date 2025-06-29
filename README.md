@@ -42,3 +42,36 @@ bundle install
 # Install frontend deps (in another terminal)
 cd ../chronicle_tree_client
 npm install
+```
+
+## Running the App
+
+1.  **Start the Rails server** (from `chronicle_tree_api`):
+    ```bash
+    bin/rails s
+    ```
+    The API will be available at `http://localhost:3000`.
+
+2.  **Start the React dev server** (from `chronicle_tree_client`):
+    ```bash
+    npm run dev
+    ```
+    The client will be available at `http://localhost:5173`.
+
+**Default credentials for development:**  
+– **Email**: `test@example.com`  
+– **Password**: `Password123!`
+
+## Authentication Flow
+
+The app uses `devise-jwt` for token-based authentication.
+
+1.  **Register**: `POST /api/v1/auth`
+2.  **Login**: `POST /api/v1/auth/sign_in`
+3.  **Logout**: `DELETE /api/v1/auth/sign_out`
+
+On successful login/registration, the API returns a JWT in the `Authorization` header. The client stores this token (e.g., in `localStorage`) and includes it in the header for all subsequent authenticated requests.
+
+## API Endpoints
+
+...existing code...

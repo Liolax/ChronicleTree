@@ -47,7 +47,7 @@ describe('Login Component', () => {
       target: { value: 'test@example.com' },
     })
     fireEvent.change(screen.getByLabelText(/password/i), {
-      target: { value: 'password123' },
+      target: { value: 'Password123!' },
     })
     fireEvent.click(screen.getByRole('button', { name: /log in/i }))
 
@@ -56,7 +56,7 @@ describe('Login Component', () => {
       expect(api.post).toHaveBeenCalledWith('/auth/sign_in', {
         user: {
           email: 'test@example.com',
-          password: 'password123',
+          password: 'Password123!',
         },
       })
     })

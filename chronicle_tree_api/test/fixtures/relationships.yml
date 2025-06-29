@@ -3,29 +3,29 @@
 alice_parent_of_bob:
   person: alice
   relative: bob
-  relationship_type: parent
+  relationship_type: 'parent'
 
 bob_child_of_alice:
   person: bob
   relative: alice
-  relationship_type: child
+  relationship_type: 'child'
 
 alice_sibling_of_charlie:
   person: alice
   relative: charlie
-  relationship_type: sibling
+  relationship_type: 'sibling'
   
 charlie_sibling_of_alice:
   person: charlie
   relative: alice
-  relationship_type: sibling
+  relationship_type: 'sibling'
 
 one:
   person: one
   relative: two
-  relationship_type: spouse
+  relationship_type: 'spouse'
 
 two:
   person: two
   relative: one
-  relationship_type: spouse
+  relationship_type: 'spouse'
