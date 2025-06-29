@@ -1,3 +1,4 @@
+# app/models/relationship.rb
 class Relationship < ApplicationRecord
   belongs_to :person,
              class_name: 'Person',
@@ -10,14 +11,11 @@ class Relationship < ApplicationRecord
              inverse_of: :related_by_relationships
 
   validates :relationship_type, presence: true
-  validate :person_is_not_relative
+  validate  :person_is_not_relative
 
   private
 
   def person_is_not_relative
-    errors.add(:relative, "can't be the same as person") if person == relative
-  end
-end
     errors.add(:relative, "can't be the same as person") if person == relative
   end
 end

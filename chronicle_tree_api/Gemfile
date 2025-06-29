@@ -3,24 +3,27 @@
 source "https://rubygems.org"
 git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-ruby "3.3.0"
+ruby "3.3.7"
 
 gem "rails", "~> 8.0.2"
 gem "bootsnap", require: false
 gem "pg", "~> 1.5"
 gem "puma", "~> 6.6"
 gem "rack-cors"
-gem "tzinfo-data", platforms: %i[ mingw mswin x64_mingw jruby ]
+gem "tzinfo-data", platforms: %i[mingw mswin x64_mingw jruby]
 
 # Authentication
-gem 'devise'
-gem 'devise-jwt'
+gem "devise"
+gem "devise-jwt"
 
 # Serializers for JSON API
-gem 'active_model_serializers', '~> 0.10.0'
+gem "active_model_serializers", "~> 0.10.0"
+
+# Avoid breaking changes from rubyzip v3
+gem "rubyzip", "~> 2.3.0"
 
 group :development, :test do
-  gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"
+  gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "rubocop-rails-omakase", require: false
 end
 
@@ -35,31 +38,3 @@ group :test do
   gem "selenium-webdriver"
   gem "webdrivers", "= 5.3.0"
 end
-
-gem "rubyzip", "~> 2.3.0"
-  # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
-  gem "rubocop-rails-omakase", require: false
-end
-
-group :development do
-  # Use console on exceptions pages
-  gem "web-console"
-
-  # Add speed badges [https://github.com/noelrappin/rack-mini-profiler]
-  gem "rack-mini-profiler"
-
-  # A logger for ActiveRecord queries
-  gem "logidze"
-end
-
-group :test do
-  # Adds support for Capybara system testing and selenium driver
-  gem "capybara"
-  gem "selenium-webdriver"
-
-  # Easy installation and use of web drivers to run system tests with browsers
-  gem "webdrivers", "= 5.3.0"
-end
-
-# To avoid breaking changes from rubyzip v3
-gem "rubyzip", "~> 2.3.0"

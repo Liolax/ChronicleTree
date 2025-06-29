@@ -1,11 +1,13 @@
 # app/models/person.rb
 class Person < ApplicationRecord
+  belongs_to :user
+
   has_many :relationships,
            class_name: 'Relationship',
            foreign_key: 'person_id',
            inverse_of: :person,
            dependent: :destroy
-           
+
   has_many :related_by_relationships,
            class_name: 'Relationship',
            foreign_key: 'relative_id',
@@ -16,12 +18,10 @@ class Person < ApplicationRecord
            through: :relationships,
            source: :relative
 
-  belongs_to :user
-
-  has_one :profile, dependent: :destroy
-  has_many :facts, dependent: :destroy
+  has_one :profile,         dependent: :destroy
+  has_many :facts,          dependent: :destroy
   has_many :timeline_items, dependent: :destroy
-  has_many :media, as: :attachable, dependent: :destroy
-end
-  has_many :media, as: :attachable, dependent: :destroy
+  has_many :media,
+           as: :attachable,
+           dependent: :destroy
 end
