@@ -29,6 +29,18 @@ This document outlines the development plan for the ChronicleTree full-stack app
 - PersonCard UI/UX improved for consistency with mock-ups: clear action buttons, better layout, and modal flows.
 - Added several sample people and relationships to the test user in `db/seeds.rb` for development and demo purposes.
 
+### [2025-06-30] Robust Tree Visualization, Unified Modals, and Relationship Management
+- Upgraded the React family tree to use a visually distinct, accessible, and interactive tree layout with clear node/edge types and a wider canvas.
+- Unified all CRUD modals (`AddPersonModal`, `EditPersonModal`, `ConfirmDeleteModal`) for accessibility, single-modal logic, and consistent UI/UX.
+- Ensured only one modal can be open at a time by centralizing modal state logic in `TreeStateContext.jsx`.
+- Improved `PersonForm.jsx` to use `react-hook-form` with robust validation, accessibility, and enforced relationship selection with clear guidance.
+- Added a persistent, accessible "+ Add Person" button with icon and text.
+- Person card is now smaller, positioned near the node, and auto-closes on edit/delete; edit/delete handlers open the correct modals.
+- Added a single toggle for node interactivity ("Move Nodes"); node movement is only possible when enabled.
+- Moved `nodeTypes` and `edgeTypes` outside the `Tree` component to resolve React Flow warnings.
+- Removed all debug logs and duplicate modal/toggle rendering from the codebase.
+- Backend `/tree` and `/full_tree` endpoints and serializers updated for correct data structure and field mapping.
+
 ---
 
 ## Backend Development (Rails API)

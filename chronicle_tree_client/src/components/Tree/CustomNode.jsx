@@ -5,7 +5,7 @@ import { FaPen, FaBullseye, FaTrash, FaMars, FaVenus, FaCheckCircle } from 'reac
 import { Tooltip } from 'react-tooltip';
 
 const CustomNode = ({ data, id, selected }) => {
-  const { person, onEdit, onDelete, onCenter, setOpenCardId, openCardId, onPersonCardOpen } = data;
+  const { person, onEdit, onDelete, onCenter, onPersonCardOpen } = data;
   const avatarUrl = person.avatar_url;
   const birthYear = person.date_of_birth ? new Date(person.date_of_birth).getFullYear() : '';
   const deathYear = person.date_of_death ? new Date(person.date_of_death).getFullYear() : '';
@@ -13,11 +13,12 @@ const CustomNode = ({ data, id, selected }) => {
   const status = person.is_alive === false || person.date_of_death ? 'Deceased' : 'Alive';
   const statusColor = status === 'Alive' ? 'text-green-600' : 'text-gray-400';
 
-  const handleNodeClick = () => {
+  const handleNodeClick = (e) => {
+    // Prevent action button clicks from triggering card open
+    if (e.target.closest('button')) return;
     if (typeof onPersonCardOpen === 'function') {
-      onPersonCardOpen();
-    } else if (typeof setOpenCardId === 'function') {
-      setOpenCardId(openCardId === id ? null : id);
+      console.debug('CustomNode: Node clicked, opening person card for', person);
+      onPersonCardOpen(person);
     }
   };
 
@@ -26,13 +27,13 @@ const CustomNode = ({ data, id, selected }) => {
       className={`w-[170px] bg-app-container border border-gray-200 rounded-xl shadow-md p-4 text-center cursor-pointer transition-all duration-200 \
         hover:shadow-lg hover:scale-[1.03] hover:-translate-y-[3px] \
         focus:outline-none focus:ring-2 focus:ring-button-primary\n        ${selected ? 'border-button-primary bg-[#edf8f5] shadow-lg ring-2 ring-button-primary' : ''}`}
-      style={{ fontFamily: 'Inter, sans-serif', position: 'relative', zIndex: openCardId === id ? 1010 : 1, boxShadow: selected ? '0 8px 24px rgba(79,134,142,0.12)' : undefined }}
+      style={{ fontFamily: 'Inter, sans-serif', position: 'relative', zIndex: selected ? 1010 : 1, boxShadow: selected ? '0 8px 24px rgba(79,134,142,0.12)' : undefined }}
       onClick={handleNodeClick}
       aria-label={`Open details for ${person.first_name} ${person.last_name}`}
-      aria-pressed={openCardId === id}
+      aria-pressed={selected}
       tabIndex={0}
       role="button"
-      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleNodeClick(); }}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleNodeClick(e); }}
     >
       <div className="flex flex-col items-center mb-2">
         <Avatar

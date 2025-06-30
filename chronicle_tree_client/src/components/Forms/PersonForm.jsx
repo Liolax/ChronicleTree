@@ -59,17 +59,9 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
   // For test/demo data, if user_id is missing, show all except self
   const filteredPeople = people.filter(p => !person || p.id !== person.id);
 
-  // Debug logs
-  console.log('PersonForm isFirstPerson:', isFirstPerson, 'filteredPeople.length:', filteredPeople.length, 'people:', people);
-
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       {/* Removed form intro and heading for Add Person */}
-      {person && (
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-app-primary">Edit Person</h2>
-        </div>
-      )}
       {!person && (
         <div className="text-sm text-gray-600 mb-2">Required fields are marked with <span className='text-red-500'>*</span>.</div>
       )}
@@ -140,7 +132,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
         {errors.gender && <span className="text-red-500 text-xs">{errors.gender.message}</span>}
       </div>
       {/* Relationship selection guidance and fields */}
-      {(() => { console.log('Render relationship fields?', !isFirstPerson && filteredPeople.length > 0); return null; })()}
+      {/* Only show relationship fields if not first person and there are people to relate to */}
       {!isFirstPerson && filteredPeople.length > 0 && (
         <>
           <div>
