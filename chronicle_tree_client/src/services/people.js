@@ -26,6 +26,18 @@ export function usePeople() {
   });
 }
 
+const getFullTree = async () => {
+  const { data } = await api.get('/people/tree');
+  return data;
+};
+
+export function useFullTree() {
+  return useQuery({
+    queryKey: ['full-tree'],
+    queryFn: getFullTree,
+  });
+}
+
 export const createPerson = (person) => api.post('/people', { person });
 
 export const createRelationship = (relationship) => api.post('/relationships', { relationship });

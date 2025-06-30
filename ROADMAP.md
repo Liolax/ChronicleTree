@@ -6,6 +6,13 @@ This document outlines the development plan for the ChronicleTree full-stack app
 
 ## Recent Updates
 
+### [2025-06-30] Comprehensive Seed Data & First Person Logic
+- `db/seeds.rb` now creates a fully connected, multi-generational family tree with all relationship types (parent, child, spouse, sibling, cousin, grandparent, etc.) for robust frontend and backend testing.
+- Frontend and backend logic updated to allow creation of the first/root person without requiring a relationship type.
+- Add Person modal now hides the relationship type field when adding the first person.
+- All React Flow edge types are registered and visually distinct.
+- Tree layout and zoom are dynamic and logical for any tree size.
+
 ### [2025-06-29] PersonForm & TreeView Fixes
 - PersonForm now matches mockup: death date only enabled if "Deceased" is checked, relationship selection is present, and all register usages are correct.
 - TreeView always shows people if any exist (uses first person as root if needed).
@@ -110,11 +117,11 @@ Connect the React components to the Rails backend to handle live data.
 -   **Data Fetching**: Use `@tanstack/react-query` for server state management, including caching, refetching, and optimistic updates.
 -   **Authentication**: Implement context-based authentication using `AuthContext` to manage JWTs and user state.
 
-### 3. Tree Visualization with @xyflow/react (React Flow)
+### 3. Tree Visualization with reactflow (React Flow)
 
 Implement the interactive family tree view.
 
--   **Library**: Use `@xyflow/react` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
+-   **Library**: Use `reactflow` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
 -   **State Management**: Use a dedicated `TreeStateContext` to manage UI state related to the tree, such as the currently selected node and the visibility of detail cards. This decouples the tree view from the components that display node information.
 -   **Data Fetching**: Use the `useTree` hook with `@tanstack/react-query` to fetch node and edge data from the `/api/v1/people/:id/tree` endpoint.
 -   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges, ensuring a clean and readable tree structure.

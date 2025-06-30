@@ -20,7 +20,7 @@ const EditRelationshipForm = ({ relationship, onSave, onCancel }) => {
         error={errors.relationshipType}
       />
       <div className="flex justify-end gap-4 mt-4">
-        <Button type="button" onClick={onCancel} variant="secondary">
+        <Button type="button" onClick={onCancel} variant="grey">
           Cancel
         </Button>
         <Button type="submit">

@@ -1,18 +1,33 @@
 import React from 'react';
 import Modal from '../../UI/Modal';
 import Button from '../../UI/Button';
+import { useDeletePerson } from '../../../services/people';
+import { useQueryClient } from '@tanstack/react-query';
 
-const ConfirmDeleteModal = ({ onCancel, onConfirm, isLoading, title, message }) => {
+const ConfirmDeleteModal = ({ person, isOpen = true, onClose, confirmText, description, confirmButtonClass }) => {
+  const queryClient = useQueryClient();
+  const { mutate, isLoading } = useDeletePerson();
+
+  const handleDelete = () => {
+    mutate(person.id, {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['tree'] });
+        queryClient.invalidateQueries({ queryKey: ['people'] });
+        onClose();
+      },
+    });
+  };
+
   return (
-    <Modal title={title} onClose={onCancel}>
+    <Modal isOpen={isOpen} onClose={onClose} title={confirmText || 'Delete?'}>
       <div className="py-4">
-        <p>{message}</p>
+        <p>{description || 'Are you sure you want to delete this person? This action cannot be undone.'}</p>
       </div>
       <div className="flex justify-end space-x-4">
-        <Button variant="secondary" onClick={onCancel} disabled={isLoading}>
+        <Button variant="grey" onClick={onClose} disabled={isLoading}>
           Cancel
         </Button>
-        <Button variant="danger" onClick={onConfirm} isLoading={isLoading}>
+        <Button className={confirmButtonClass} onClick={handleDelete} isLoading={isLoading}>
           {isLoading ? 'Deleting...' : 'Delete'}
         </Button>
       </div>

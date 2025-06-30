@@ -3,11 +3,6 @@ alice_parent_of_bob:
   relative: bob
   relationship_type: 'parent'
 
-bob_child_of_alice:
-  person: bob
-  relative: alice
-  relationship_type: 'child'
-
 alice_sibling_of_charlie:
   person: alice
   relative: charlie

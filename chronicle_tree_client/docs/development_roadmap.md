@@ -35,11 +35,11 @@ Connect the React components to the Rails backend to handle live data.
 -   **Data Fetching**: Use `@tanstack/react-query` for server state management, including caching, refetching, and optimistic updates.
 -   **Authentication**: Implement context-based authentication using `AuthContext` to manage JWTs and user state.
 
-## 3. Tree Visualization with @xyflow/react (React Flow)
+## 3. Tree Visualization with reactflow (React Flow)
 
 Implement the interactive family tree view.
 
--   **Library**: Use `@xyflow/react` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
+-   **Library**: Use `reactflow` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
 -   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges.
 -   **Custom Nodes**: A `CustomNode` component displays person details (name, photo, dates) and contains its own logic for triggering edit and delete modals, making it a self-contained and reusable unit.
 -   **Interaction**:

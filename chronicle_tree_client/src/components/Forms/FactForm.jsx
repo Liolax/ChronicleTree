@@ -45,7 +45,7 @@ const FactForm = ({ fact, onSubmit, onCancel }) => {
         />
       </div>
       <div className="flex justify-end space-x-2">
-        <Button type="button" onClick={onCancel} disabled={isSubmitting} variant="secondary">
+        <Button type="button" onClick={onCancel} disabled={isSubmitting} variant="grey">
           Cancel
         </Button>
         <Button type="submit" disabled={isSubmitting}>

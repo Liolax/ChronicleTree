@@ -62,6 +62,12 @@ npm install
 – **Email**: `test@example.com`  
 – **Password**: `Password123!`
 
+## Demo Seed Data & Relationship Types
+
+- The app now seeds a multi-generational, fully connected family tree with all relationship types: parent, child, spouse, sibling, cousin, grandparent, and more.
+- The frontend and backend support robust tree initialization, including creation of the first/root person without a relationship type.
+- All React Flow edge types are registered and visually distinct for demo and development.
+
 ## Authentication Flow
 
 The app uses `devise-jwt` for token-based authentication.

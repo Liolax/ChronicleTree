@@ -1,19 +1,45 @@
+import React, { useEffect, useCallback, useRef, useState } from 'react';
+import ReactFlow, {
+  useReactFlow,
+  ReactFlowProvider,
+  Background,
+  Controls,
+  MiniMap,
+} from 'reactflow';
 import dagre from 'dagre';
-import React, { useCallback, useEffect } from 'react';
-import { ReactFlow, addEdge, Background, Controls, MiniMap, useEdgesState, useNodesState, ReactFlowProvider } from 'reactflow';
 import 'reactflow/dist/style.css';
-
-import { useCurrentUser } from '../../services/users';
-import { useTree, usePeople } from '../../services/people';
 import CustomNode from './CustomNode';
-
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
+import ParentEdge from './edges/ParentEdge';
+import ChildEdge from './edges/ChildEdge';
+import { SmoothStepEdge, StraightEdge, BezierEdge } from 'reactflow';
+import { useTreeState } from '../../context/TreeStateContext';
+import { useFullTree, usePeople } from '../../services/people';
+import Button from '../UI/Button';
+import AddPersonModal from './modals/AddPersonModal';
+import EditPersonModal from './modals/EditPersonModal';
+import ConfirmDeleteModal from './modals/ConfirmDeleteModal';
 
 const nodeWidth = 172;
-const nodeHeight = 36;
+const nodeHeight = 60;
 
-const getLayoutedElements = (nodes, edges, direction = 'TB') => {
+// Map your relationship types to edge components
+const edgeTypes = {
+  parent: ParentEdge,
+  child: ChildEdge, // Now using the new ChildEdge
+  spouse: SmoothStepEdge,
+  sibling: StraightEdge,
+  cousin: BezierEdge,
+  grandparent: StraightEdge,
+  default: StraightEdge,
+};
+
+const nodeTypes = {
+  person: CustomNode,
+};
+
+function getLayoutedElements(nodes, edges, direction = 'TB') {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
   const isHorizontal = direction === 'LR';
   dagreGraph.setGraph({ rankdir: direction });
 
@@ -27,110 +53,158 @@ const getLayoutedElements = (nodes, edges, direction = 'TB') => {
 
   dagre.layout(dagreGraph);
 
-  nodes.forEach((node) => {
-    const nodeWithPosition = dagreGraph.node(node.id);
-    node.targetPosition = isHorizontal ? 'left' : 'top';
-    node.sourcePosition = isHorizontal ? 'right' : 'bottom';
+  return {
+    nodes: nodes.map((node) => {
+      const nodeWithPosition = dagreGraph.node(node.id);
+      return {
+        ...node,
+        position: nodeWithPosition
+          ? {
+              x: nodeWithPosition.x - nodeWidth / 2,
+              y: nodeWithPosition.y - nodeHeight / 2,
+            }
+          : node.position || { x: 0, y: 0 },
+        targetPosition: isHorizontal ? 'left' : 'top',
+        sourcePosition: isHorizontal ? 'right' : 'bottom',
+      };
+    }),
+    edges,
+  };
+}
 
-    // We are shifting the dagre node position (anchor=center center) to the top left
-    // so it matches the React Flow node anchor point (top left).
-    node.position = {
-      x: nodeWithPosition.x - nodeWidth / 2,
-      y: nodeWithPosition.y - nodeHeight / 2,
-    };
+const Tree = () => {
+  const { selectedPerson } = useTreeState();
+  const { data, isLoading, isError } = useFullTree();
+  const { openAddPersonModal, closeAddPersonModal, isAddPersonModalOpen } = useTreeState();
+  const { data: people = [] } = usePeople();
+  const [nodes, setNodes] = useState([]);
+  const [edges, setEdges] = useState([]);
+  const [editPerson, setEditPerson] = useState(null);
+  const [deletePerson, setDeletePerson] = useState(null);
+  const reactFlowWrapper = useRef(null);
+  const { fitView } = useReactFlow();
 
-    return node;
-  });
+  // Handler to open edit modal
+  const handleEditPerson = useCallback((person) => {
+    setEditPerson(person);
+  }, []);
 
-  return { nodes, edges };
-};
+  // Handler to close edit modal
+  const handleCloseEditModal = useCallback(() => {
+    setEditPerson(null);
+  }, []);
 
-const nodeTypes = {
-  person: CustomNode,
-};
+  // Handler to open delete modal
+  const handleDeletePerson = useCallback((person) => {
+    setDeletePerson(person);
+  }, []);
 
-const initialNodes = [];
-const initialEdges = [];
+  // Handler to close delete modal
+  const handleCloseDeleteModal = useCallback(() => {
+    setDeletePerson(null);
+  }, []);
 
-function TreeInner() {
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { data: user } = useCurrentUser();
-  const { data: people } = usePeople();
-  // Use the user's person_id, or fallback to the first person in the list
-  const rootPersonId = user?.person_id || (people && people.length > 0 ? people[0].id : null);
-  const { data: treeData, isLoading } = useTree(rootPersonId);
-
-  const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), [setEdges]);
-
+  // Layout and fit view on mount or when nodes/edges change
   useEffect(() => {
-    if (treeData && treeData.nodes && treeData.nodes.length > 0) {
-      const initialNodes = treeData.nodes.map((person) => ({
-        id: person.id.toString(),
+    if (data && typeof data === 'object' && Array.isArray(data.nodes) && Array.isArray(data.edges)) {
+      // API returns { nodes: [...], edges: [...] }
+      const apiNodes = data.nodes;
+      const apiEdges = data.edges;
+      // Convert backend format to React Flow format
+      const rfNodes = apiNodes.map((n) => ({
+        id: String(n.id),
         type: 'person',
         data: {
-          label: person.full_name || `${person.first_name} ${person.last_name}`,
-          birthDate: person.date_of_birth || person.birth_date,
-          deathDate: person.date_of_death || person.death_date,
-          person: person, // Pass the entire person object
+          person: n,
+          onEdit: handleEditPerson,
+          onDelete: handleDeletePerson,
+          // ...other handlers (onCenter, etc.) can be passed here as needed
         },
-        position: { x: 0, y: 0 }, // Initial position, will be updated by layout
+        position: { x: 0, y: 0 }, // will be set by layout
       }));
-
-      const initialEdges = treeData.edges.map((edge) => ({
-        id: `e${edge.from}-${edge.to}`,
-        source: edge.from.toString(),
-        target: edge.to.toString(),
-        type: edge.type === 'spouse' ? 'smoothstep' : 'default',
+      const rfEdges = apiEdges.map((e, i) => ({
+        id: `${e.type}-${e.from}-${e.to}`,
+        source: String(e.from),
+        target: String(e.to),
+        type: e.type,
       }));
-
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-        initialNodes,
-        initialEdges
-      );
-
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(rfNodes, rfEdges, 'TB');
       setNodes(layoutedNodes);
       setEdges(layoutedEdges);
+      setTimeout(() => fitView({ padding: 0.2, minZoom: 0.2, maxZoom: 1.5 }), 0);
     } else {
       setNodes([]);
       setEdges([]);
     }
-  }, [treeData, setNodes, setEdges]);
+  }, [data, fitView, handleEditPerson, handleDeletePerson]);
 
-  if (isLoading) {
-    return <div>Loading Tree...</div>;
-  }
-
-  if (!nodes.length) {
-    return <div className="text-center text-gray-400 py-20">No people found in your tree. Add a person to get started!</div>;
-  }
+  if (isLoading) return <div className="flex items-center justify-center h-full">Loading tree...</div>;
+  if (isError) return <div className="flex items-center justify-center h-full text-red-600">Failed to load tree.</div>;
+  if (!nodes.length) return (
+    <div className="flex flex-col items-center justify-center h-full text-gray-500 gap-4">
+      <div>No tree data available.</div>
+      <Button onClick={openAddPersonModal} variant="primary">Add Person</Button>
+    </div>
+  );
 
   return (
-    <div style={{ height: '70vh', width: '100%' }} className="bg-gray-50 rounded-lg shadow-inner">
+    <div ref={reactFlowWrapper} style={{ width: '100%', height: '100%', position: 'relative' }}>
+      {/* Top-right Add Person Button */}
+      <button
+        onClick={openAddPersonModal}
+        className="absolute top-6 right-8 z-50 bg-button-primary text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center text-2xl hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-button-primary"
+        aria-label="Add Person"
+        title="Add Person"
+        type="button"
+      >
+        +
+      </button>
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         fitView
+        minZoom={0.2}
+        maxZoom={1.5}
+        panOnDrag
+        zoomOnScroll
+        zoomOnPinch
+        selectionOnDrag
+        defaultEdgeOptions={{ type: 'default' }}
       >
-        <Controls />
-        <MiniMap />
-        <Background variant="dots" gap={12} size={1} />
+        <Background gap={24} color="#eee" />
+        <MiniMap nodeColor={() => '#4F868E'} />
+        <Controls showInteractive={true} />
       </ReactFlow>
+      {isAddPersonModalOpen && (
+        <AddPersonModal
+          key={`add-person-modal-${people.length}`}
+          isOpen={isAddPersonModalOpen}
+          onClose={closeAddPersonModal}
+          people={people}
+          isFirstPerson={people.length === 0}
+        />
+      )}
+      {editPerson && (
+        <EditPersonModal
+          person={editPerson}
+          isOpen={!!editPerson}
+          onClose={handleCloseEditModal}
+        />
+      )}
+      {deletePerson && (
+        <ConfirmDeleteModal
+          isOpen={!!deletePerson}
+          onClose={handleCloseDeleteModal}
+          person={deletePerson}
+          confirmText={`Delete ${deletePerson.first_name} ${deletePerson.last_name}`}
+          description={`Are you sure you want to delete ${deletePerson.first_name} ${deletePerson.last_name}? This action cannot be undone.`}
+          confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
+        />
+      )}
     </div>
   );
-}
-
-function Tree() {
-  // Wrap TreeInner with ReactFlowProvider to provide context for ReactFlow and its hooks/components
-  return (
-    <ReactFlowProvider>
-      <TreeInner />
-    </ReactFlowProvider>
-  );
-}
+};
 
 export default Tree;

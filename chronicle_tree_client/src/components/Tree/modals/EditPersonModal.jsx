@@ -2,15 +2,17 @@ import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Modal from '../../UI/Modal';
 import PersonForm from '../../Forms/PersonForm';
-import { updatePerson } from '../../../services/people';
+import { updatePerson, usePeople } from '../../../services/people';
 
-const EditPersonModal = ({ person, onClose }) => {
+const EditPersonModal = ({ person, isOpen = true, onClose }) => {
   const queryClient = useQueryClient();
+  const { data: people = [] } = usePeople();
 
-  const { mutate, isLoading } = useMutation((data) => updatePerson(person.id, data), {
+  const { mutate, isLoading } = useMutation({
+    mutationFn: (data) => updatePerson(person.id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['tree']);
-      queryClient.invalidateQueries(['person', person.id]);
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
+      queryClient.invalidateQueries({ queryKey: ['person', person.id] });
       onClose();
     },
     onError: (error) => {
@@ -22,16 +24,16 @@ const EditPersonModal = ({ person, onClose }) => {
     const personData = {
       first_name: data.firstName,
       last_name: data.lastName,
-      birth_date: data.birthDate,
-      death_date: data.deathDate,
+      date_of_birth: data.date_of_birth,
+      date_of_death: data.date_of_death,
       gender: data.gender,
     };
     mutate(personData);
   };
 
   return (
-    <Modal title="Edit Person" onClose={onClose}>
-      <PersonForm person={person} onSubmit={handleSubmit} onCancel={onClose} isLoading={isLoading} />
+    <Modal isOpen={isOpen} onClose={onClose} title="Edit Person">
+      <PersonForm person={person} onSubmit={handleSubmit} onCancel={onClose} isLoading={isLoading} people={people} cancelVariant="grey" />
     </Modal>
   );
 };

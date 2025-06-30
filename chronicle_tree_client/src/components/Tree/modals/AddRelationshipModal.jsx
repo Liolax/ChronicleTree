@@ -4,7 +4,7 @@ import Modal from '../../UI/Modal';
 import RelationshipForm from '../../Forms/RelationshipForm';
 import { createRelationship } from '../../../services/people';
 
-const AddRelationshipModal = ({ onClose, people }) => {
+const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
   const queryClient = useQueryClient();
 
   const { mutate, isLoading } = useMutation(createRelationship, {
@@ -27,12 +27,13 @@ const AddRelationshipModal = ({ onClose, people }) => {
   };
 
   return (
-    <Modal title="Add New Relationship" onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} title="Add New Relationship">
       <RelationshipForm 
         onSubmit={handleSubmit} 
         onCancel={onClose} 
         people={people} 
         isLoading={isLoading} 
+        cancelVariant="grey"
       />
     </Modal>
   );

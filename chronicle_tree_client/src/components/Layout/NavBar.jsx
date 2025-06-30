@@ -15,7 +15,7 @@ export default function NavBar() {
         ChronicleTree
       </Link>
       {/* Desktop Nav */}
-      <nav className="hidden md:flex items-center space-x-6">
+      <nav className="hidden md:flex items-center space-x-2">
         {user ? (
           <>
             <NavLink to="/" className={navLinkClasses}>Tree</NavLink>
@@ -23,9 +23,12 @@ export default function NavBar() {
             <NavLink to="/settings" className={navLinkClasses}>Settings</NavLink>
             <button
               onClick={logout}
-              className="ml-4 px-4 py-2 bg-button-danger hover:bg-button-danger-hover text-white font-bold rounded transition-colors"
+              className="px-4 py-2 rounded transition-colors duration-150 text-app-secondary hover:text-button-danger hover:bg-app-accent/20"
+              title="Logout"
+              aria-label="Logout"
+              style={{ marginLeft: '0.5rem' }}
             >
-              Logout
+              <i className="fas fa-sign-out-alt mr-1"></i>Logout
             </button>
           </>
         ) : (
@@ -50,9 +53,11 @@ export default function NavBar() {
               <NavLink to="/settings" className={navLinkClasses} onClick={() => setMobileOpen(false)}>Settings</NavLink>
               <button
                 onClick={() => { logout(); setMobileOpen(false); }}
-                className="mt-2 px-4 py-2 bg-button-danger hover:bg-button-danger-hover text-white font-bold rounded transition-colors"
+                className="px-4 py-2 rounded transition-colors duration-150 text-app-secondary hover:text-button-danger hover:bg-app-accent/20 mt-2"
+                title="Logout"
+                aria-label="Logout"
               >
-                Logout
+                <i className="fas fa-sign-out-alt mr-1"></i>Logout
               </button>
             </>
           ) : (

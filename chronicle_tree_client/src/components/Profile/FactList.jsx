@@ -2,9 +2,8 @@ import React from 'react';
 
 const FactList = ({ facts }) => {
   if (!facts || facts.length === 0) {
-    return <p>No facts available.</p>;
+    return <p className="text-gray-400">No facts available.</p>;
   }
-
   return (
     <div className="bg-white shadow sm:rounded-lg">
       <div className="px-4 py-5 sm:p-6">
@@ -16,7 +15,7 @@ const FactList = ({ facts }) => {
           {facts.map((fact) => (
             <li key={fact.id} className="py-4 flex">
               <div className="flex-shrink-0">
-                <span className="text-sm font-semibold text-gray-600">{new Date(fact.date).toLocaleDateString()}</span>
+                <span className="text-sm font-semibold text-gray-600">{fact.date ? new Date(fact.date).toLocaleDateString() : ''}</span>
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-900">{fact.title}</p>

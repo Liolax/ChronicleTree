@@ -27,26 +27,26 @@ class Person < ApplicationRecord
 
   # Methods to query relationships
   def parents
-    relatives.where(relationships: { relationship_type: 'parent' })
+    Person.joins(:relationships)
+          .where(relationships: { relative_id: id, relationship_type: 'child' })
   end
 
   def children
-    relative_people.where(relationships: { person_id: id, relationship_type: 'parent' })
+    relatives.where(relationships: { relationship_type: 'child' })
   end
 
   def spouses
-    relatives.where(relationships: { relationship_type: 'spouse' })
+    Person.joins(:relationships)
+          .where(relationships: { person_id: id, relationship_type: 'spouse' })
   end
 
   def siblings
     # Siblings share at least one parent
-    return Person.none if parents.empty?
+    parent_ids = parents.pluck(:id)
+    return Person.none if parent_ids.empty?
 
-    Person.joins(:related_by_relationships)
-          .where(related_by_relationships: {
-                   relationship_type: 'parent',
-                   relative_id: parents.ids
-                 })
+    Person.joins(:relationships)
+          .where(relationships: { relationship_type: 'child', relative_id: parent_ids })
           .where.not(id: id)
           .distinct
   end

@@ -9,13 +9,26 @@ export const TreeProvider = ({ children }) => {
   const [isAddRelationshipModalOpen, setAddRelationshipModalOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
 
-  const openAddPersonModal = () => setAddPersonModalOpen(true);
+  // Ensure only one modal is open at a time
+  const openAddPersonModal = () => {
+    setAddRelationshipModalOpen(false);
+    setSelectedPerson(null);
+    setAddPersonModalOpen(true);
+  };
   const closeAddPersonModal = () => setAddPersonModalOpen(false);
 
-  const openAddRelationshipModal = () => setAddRelationshipModalOpen(true);
+  const openAddRelationshipModal = () => {
+    setAddPersonModalOpen(false);
+    setSelectedPerson(null);
+    setAddRelationshipModalOpen(true);
+  };
   const closeAddRelationshipModal = () => setAddRelationshipModalOpen(false);
 
-  const openPersonCard = (person) => setSelectedPerson(person);
+  const openPersonCard = (person) => {
+    setAddPersonModalOpen(false);
+    setAddRelationshipModalOpen(false);
+    setSelectedPerson(person);
+  };
   const closePersonCard = () => setSelectedPerson(null);
 
   const value = {
@@ -31,5 +44,9 @@ export const TreeProvider = ({ children }) => {
     isPersonCardVisible: !!selectedPerson,
   };
 
-  return <TreeStateContext.Provider value={value}>{children}</TreeStateContext.Provider>;
+  return (
+    <TreeStateContext.Provider value={value}>
+      {children}
+    </TreeStateContext.Provider>
+  );
 };

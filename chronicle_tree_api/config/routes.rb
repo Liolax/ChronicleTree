@@ -27,6 +27,8 @@ Rails.application.routes.draw do
       patch  'users/password', to: 'users#update_password'
 
       # Family‐tree resources
+      get 'people/tree', to: 'people#full_tree'
+
       resources :people, only: %i[index show create update destroy] do
         member do
           get :tree

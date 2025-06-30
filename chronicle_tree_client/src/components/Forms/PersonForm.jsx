@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
+import { useCurrentUser } from '../../services/users';
 
 const RELATIONSHIP_TYPES = [
   { value: '', label: 'Relationship Type' },
@@ -10,17 +11,18 @@ const RELATIONSHIP_TYPES = [
   { value: 'spouse', label: 'Spouse' },
 ];
 
-const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [] }) => {
+const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirstPerson = false }) => {
   const { register, handleSubmit, formState: { errors }, setValue, watch, reset } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { data: currentUser } = useCurrentUser();
 
   useEffect(() => {
     if (person) {
       reset({
         firstName: person.first_name || '',
         lastName: person.last_name || '',
-        birthDate: person.birth_date || '',
-        deathDate: person.death_date || '',
+        date_of_birth: person.date_of_birth || '',
+        date_of_death: person.date_of_death || '',
         gender: person.gender || '',
         isDeceased: !!person.is_deceased,
         relationType: '',
@@ -30,8 +32,8 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [] }) => {
       reset({
         firstName: '',
         lastName: '',
-        birthDate: '',
-        deathDate: '',
+        date_of_birth: '',
+        date_of_death: '',
         gender: '',
         isDeceased: false,
         relationType: '',
@@ -42,7 +44,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [] }) => {
 
   const isDeceased = watch('isDeceased');
   useEffect(() => {
-    if (!isDeceased) setValue('deathDate', '');
+    if (!isDeceased) setValue('date_of_death', '');
   }, [isDeceased, setValue]);
 
   const handleFormSubmit = async (data) => {
@@ -53,8 +55,24 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [] }) => {
 
   const relationType = watch('relationType');
 
+  // Only show people with the same user_id as the current user
+  // For test/demo data, if user_id is missing, show all except self
+  const filteredPeople = people.filter(p => !person || p.id !== person.id);
+
+  // Debug logs
+  console.log('PersonForm isFirstPerson:', isFirstPerson, 'filteredPeople.length:', filteredPeople.length, 'people:', people);
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      {/* Removed form intro and heading for Add Person */}
+      {person && (
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-app-primary">Edit Person</h2>
+        </div>
+      )}
+      {!person && (
+        <div className="text-sm text-gray-600 mb-2">Required fields are marked with <span className='text-red-500'>*</span>.</div>
+      )}
       <Input
         label="First Name"
         id="firstName"
@@ -71,10 +89,17 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [] }) => {
       />
       <Input
         label="Birth Date"
-        id="birthDate"
+        id="date_of_birth"
         type="date"
-        {...register('birthDate', { required: 'Birth date is required' })}
-        error={errors.birthDate}
+        max={new Date().toISOString().split('T')[0]}
+        value={watch('date_of_birth') ? watch('date_of_birth').slice(0, 10) : ''}
+        {...register('date_of_birth', { required: 'Birth date is required',
+          validate: value => {
+            if (value && new Date(value) > new Date()) return 'Birth date cannot be in the future';
+            return true;
+          }
+        })}
+        error={errors.date_of_birth}
       />
       <div className="flex items-center">
         <input
@@ -87,57 +112,75 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [] }) => {
       </div>
       <Input
         label="Death Date"
-        id="deathDate"
+        id="date_of_death"
         type="date"
-        {...register('deathDate')}
+        max={new Date().toISOString().split('T')[0]}
+        value={watch('date_of_death') ? watch('date_of_death').slice(0, 10) : ''}
+        {...register('date_of_death', {
+          validate: value => {
+            if (value && new Date(value) > new Date()) return 'Death date cannot be in the future';
+            return true;
+          }
+        })}
         disabled={!isDeceased}
-        error={errors.deathDate}
+        error={errors.date_of_death}
       />
       <div>
         <label className="block text-sm font-medium text-gray-700">Gender</label>
         <select
+          id="gender"
           {...register('gender', { required: 'Gender is required' })}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+          className="mt-1 block w-full pl-3 pr-10 py-2 border border-app-accent focus:outline-none focus:ring-app-accent focus:border-app-accent sm:text-sm rounded-md bg-white"
         >
           <option value="">Select Gender</option>
-          <option value="female">Female</option>
-          <option value="male">Male</option>
-          <option value="other">Other</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
         </select>
         {errors.gender && <span className="text-red-500 text-xs">{errors.gender.message}</span>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Relationship Type</label>
-        <select
-          {...register('relationType')}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-        >
-          {RELATIONSHIP_TYPES.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
-      </div>
-      {relationType && relationType !== '' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Related Person</label>
-          <select
-            {...register('relatedPersonId')}
-            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-          >
-            <option value="">Select Person</option>
-            {people.map(p => (
-              <option key={p.id} value={p.id}>{p.full_name || `${p.first_name} ${p.last_name}`}</option>
-            ))}
-          </select>
-        </div>
+      {/* Relationship selection guidance and fields */}
+      {(() => { console.log('Render relationship fields?', !isFirstPerson && filteredPeople.length > 0); return null; })()}
+      {!isFirstPerson && filteredPeople.length > 0 && (
+        <>
+          <div>
+            <label htmlFor="relationType" className="block text-sm font-medium text-gray-700">Relationship Type <span className="text-red-500">*</span></label>
+            <select
+              id="relationType"
+              {...register('relationType', { required: 'Relationship type is required' })}
+              className="mt-1 block w-full pl-3 pr-10 py-2 border border-app-accent focus:outline-none focus:ring-app-accent focus:border-app-accent sm:text-sm rounded-md bg-white"
+              required
+            >
+              {RELATIONSHIP_TYPES.map(type => (
+                <option key={type.value} value={type.value}>{type.label}</option>
+              ))}
+            </select>
+            {errors.relationType && <span className="text-red-500 text-xs">{errors.relationType.message}</span>}
+          </div>
+          {relationType && relationType !== '' && (
+            <div>
+              <label htmlFor="relatedPersonId" className="block text-sm font-medium text-gray-700">Related Person <span className="text-red-500">*</span></label>
+              <select
+                id="relatedPersonId"
+                {...register('relatedPersonId', { required: 'Related person is required' })}
+                className="mt-1 block w-full pl-3 pr-10 py-2 border border-app-accent focus:outline-none focus:ring-app-accent focus:border-app-accent sm:text-sm rounded-md bg-white"
+                required
+              >
+                <option value="">Select Person</option>
+                {filteredPeople.map(p => (
+                  <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
+                ))}
+              </select>
+              {errors.relatedPersonId && <span className="text-red-500 text-xs">{errors.relatedPersonId.message}</span>}
+            </div>
+          )}
+        </>
       )}
-      <div className="flex justify-end space-x-2">
-        <Button type="button" onClick={onCancel} disabled={isSubmitting || isLoading} variant="secondary">
-          Cancel
-        </Button>
-        <Button type="submit" disabled={isSubmitting || isLoading}>
+      <div className="flex justify-end gap-4 mt-4">
+        <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold shadow hover:bg-gray-300 transition-colors">Cancel</button>
+        <button type="submit" disabled={isSubmitting || isLoading} className="bg-button-primary text-white px-4 py-2 rounded-md font-semibold shadow hover:bg-button-primary-hover transition-colors">
           {isSubmitting || isLoading ? 'Saving...' : 'Save'}
-        </Button>
+        </button>
       </div>
     </form>
   );

@@ -27,15 +27,29 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
       <Input
         label="Birth Date"
         type="date"
-        {...register('birthDate')}
+        max={new Date().toISOString().split('T')[0]}
+        {...register('birthDate', {
+          validate: value => {
+            if (value && new Date(value) > new Date()) return 'Birth date cannot be in the future';
+            return true;
+          }
+        })}
+        error={errors.birthDate}
       />
       <Input
         label="Death Date"
         type="date"
-        {...register('deathDate')}
+        max={new Date().toISOString().split('T')[0]}
+        {...register('deathDate', {
+          validate: value => {
+            if (value && new Date(value) > new Date()) return 'Death date cannot be in the future';
+            return true;
+          }
+        })}
+        error={errors.deathDate}
       />
       <div className="flex justify-end gap-4 mt-4">
-        <Button type="button" onClick={onCancel} variant="secondary">
+        <Button type="button" onClick={onCancel} variant="grey">
           Cancel
         </Button>
         <Button type="submit">
