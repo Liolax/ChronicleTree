@@ -5,7 +5,7 @@ import { FaPen, FaBullseye, FaTrash, FaMars, FaVenus, FaCheckCircle } from 'reac
 import { Tooltip } from 'react-tooltip';
 
 const CustomNode = ({ data, id, selected }) => {
-  const { person, onEdit, onDelete, onCenter, setOpenCardId, openCardId } = data;
+  const { person, onEdit, onDelete, onCenter, setOpenCardId, openCardId, onPersonCardOpen } = data;
   const avatarUrl = person.avatar_url;
   const birthYear = person.date_of_birth ? new Date(person.date_of_birth).getFullYear() : '';
   const deathYear = person.date_of_death ? new Date(person.date_of_death).getFullYear() : '';
@@ -14,7 +14,9 @@ const CustomNode = ({ data, id, selected }) => {
   const statusColor = status === 'Alive' ? 'text-green-600' : 'text-gray-400';
 
   const handleNodeClick = () => {
-    if (typeof setOpenCardId === 'function') {
+    if (typeof onPersonCardOpen === 'function') {
+      onPersonCardOpen();
+    } else if (typeof setOpenCardId === 'function') {
       setOpenCardId(openCardId === id ? null : id);
     }
   };

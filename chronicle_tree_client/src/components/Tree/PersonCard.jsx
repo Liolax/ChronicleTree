@@ -37,52 +37,52 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position }) => {
   const style = position
     ? {
         position: 'absolute',
-        left: position.x + 180, // offset to the right of the node
-        top: position.y - 40, // vertically align with node
+        left: position.x + 120, // closer to node
+        top: position.y - 20, // align better
         zIndex: 2000,
         fontFamily: 'Inter, sans-serif',
-        minWidth: '260px',
-        maxWidth: '320px',
+        minWidth: '180px',
+        maxWidth: '220px',
         padding: 0,
         ...fadeInCard,
       }
-    : { fontFamily: 'Inter, sans-serif', minWidth: '260px', maxWidth: '320px', ...fadeInCard };
+    : { fontFamily: 'Inter, sans-serif', minWidth: '180px', maxWidth: '220px', ...fadeInCard };
 
   return (
     <div
-      className="bg-app-container rounded-xl shadow-[0_4px_15px_rgba(0,0,0,0.2)] border-[1.5px] border-gray-200 px-7 py-7 flex flex-col items-center animate-fadeInCard"
+      className="bg-app-container rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.13)] border border-gray-200 px-3 py-3 flex flex-col items-center animate-fadeInCard"
       style={style}
     >
-      <button className="absolute top-4 right-4 text-app-secondary hover:text-red-500 text-2xl transition-colors" onClick={onClose} aria-label="Close">
+      <button className="absolute top-2 right-2 text-app-secondary hover:text-red-500 text-lg transition-colors" onClick={onClose} aria-label="Close">
         <FaTimes />
       </button>
-      <div className="flex flex-col items-center mb-4 w-full">
+      <div className="flex flex-col items-center mb-2 w-full">
         <Avatar
           name={`${person.first_name} ${person.last_name}`}
           src={avatarUrl}
-          size="52"
+          size="32"
           round={true}
-          className="border-4 border-white shadow mb-2"
-          style={{ width: '52px', height: '52px', fontSize: '1.25rem', boxShadow: '0 0 6px rgba(0,0,0,0.10)' }}
+          className="border-2 border-white shadow mb-1"
+          style={{ width: '32px', height: '32px', fontSize: '0.9rem', boxShadow: '0 0 4px rgba(0,0,0,0.10)' }}
         />
-        <div className="text-xl font-bold text-app-primary text-center mt-2 truncate w-full flex items-center justify-center gap-2">
+        <div className="text-base font-bold text-app-primary text-center mt-1 truncate w-full flex items-center justify-center gap-1">
           {person.first_name} {person.last_name} {genderIcon}
         </div>
-        <div className="text-app-secondary text-base mt-1 text-center w-full">
+        <div className="text-xs text-app-secondary mt-1 text-center w-full">
           {birthDate}{deathDate ? ` — ${deathDate}` : ''}
         </div>
         {age !== null && (
-          <div className="text-gray-500 text-sm mt-1">Age: {age}</div>
+          <div className="text-gray-500 text-xs mt-1">Age: {age}</div>
         )}
       </div>
-      <div className="flex flex-col gap-2 w-full mt-4">
-        <button className="w-full bg-[#edf8f5] text-[#4F868E] px-4 py-2 rounded-lg font-semibold shadow hover:bg-[#e0f3ec] transition-colors flex items-center justify-center gap-2" onClick={() => window.location.href = `/profile/${person.id}`}>
+      <div className="flex flex-col gap-1 w-full mt-2">
+        <button className="w-full bg-[#edf8f5] text-[#4F868E] px-2 py-1 rounded font-semibold shadow hover:bg-[#e0f3ec] transition-colors flex items-center justify-center gap-1 text-xs" onClick={() => window.location.href = `/profile/${person.id}`}>
           <FaEye />View Profile
         </button>
-        <button className="w-full bg-gray-100 text-app-primary px-4 py-2 rounded-lg font-semibold shadow hover:bg-gray-200 transition-colors flex items-center justify-center gap-2" onClick={() => onEdit && onEdit(person)}>
+        <button className="w-full bg-gray-100 text-app-primary px-2 py-1 rounded font-semibold shadow hover:bg-gray-200 transition-colors flex items-center justify-center gap-1 text-xs" onClick={() => onEdit && onEdit(person)}>
           <FaPen />Edit
         </button>
-        <button className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-semibold shadow transition-colors flex items-center justify-center gap-2" onClick={() => onDelete && onDelete(person)}>
+        <button className="w-full bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-semibold shadow transition-colors flex items-center justify-center gap-1 text-xs" onClick={() => onDelete && onDelete(person)}>
           <FaTrash />Delete
         </button>
       </div>

@@ -18,6 +18,7 @@ import Button from '../UI/Button';
 import AddPersonModal from './modals/AddPersonModal';
 import EditPersonModal from './modals/EditPersonModal';
 import ConfirmDeleteModal from './modals/ConfirmDeleteModal';
+import PersonCard from './PersonCard';
 
 const nodeWidth = 172;
 const nodeHeight = 60;
@@ -73,7 +74,7 @@ function getLayoutedElements(nodes, edges, direction = 'TB') {
 }
 
 const Tree = () => {
-  const { selectedPerson } = useTreeState();
+  const { selectedPerson, openPersonCard, closePersonCard } = useTreeState();
   const { data, isLoading, isError } = useFullTree();
   const { openAddPersonModal, closeAddPersonModal, isAddPersonModalOpen } = useTreeState();
   const { data: people = [] } = usePeople();
@@ -118,7 +119,7 @@ const Tree = () => {
           person: n,
           onEdit: handleEditPerson,
           onDelete: handleDeletePerson,
-          // ...other handlers (onCenter, etc.) can be passed here as needed
+          onPersonCardOpen: () => openPersonCard(n),
         },
         position: { x: 0, y: 0 }, // will be set by layout
       }));
@@ -152,12 +153,13 @@ const Tree = () => {
       {/* Top-right Add Person Button */}
       <button
         onClick={openAddPersonModal}
-        className="absolute top-6 right-8 z-50 bg-button-primary text-white rounded-full shadow-lg w-12 h-12 flex items-center justify-center text-2xl hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-button-primary"
+        className="absolute top-6 right-8 z-50 bg-button-primary text-white rounded-full shadow-lg flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-button-primary"
         aria-label="Add Person"
         title="Add Person"
         type="button"
       >
-        +
+        <span className="text-2xl leading-none">+</span>
+        <span className="hidden sm:inline">Add Person</span>
       </button>
       <ReactFlow
         nodes={nodes}
@@ -203,6 +205,30 @@ const Tree = () => {
           confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
         />
       )}
+      {selectedPerson && (() => {
+        // Find the node for the selected person
+        const node = nodes.find(n => n.data && n.data.person && n.data.person.id === selectedPerson.id);
+        // Get the position (center of node in ReactFlow coordinates)
+        const position = node ? node.position : undefined;
+        // Wrap edit/delete to close card first
+        const handleEditAndClose = (person) => {
+          closePersonCard();
+          handleEditPerson(person);
+        };
+        const handleDeleteAndClose = (person) => {
+          closePersonCard();
+          handleDeletePerson(person);
+        };
+        return (
+          <PersonCard
+            person={selectedPerson}
+            onClose={closePersonCard}
+            onEdit={handleEditAndClose}
+            onDelete={handleDeleteAndClose}
+            position={position}
+          />
+        );
+      })()}
     </div>
   );
 };
