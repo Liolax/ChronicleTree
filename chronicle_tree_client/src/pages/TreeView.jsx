@@ -5,6 +5,8 @@ import PageHeader from '../components/Layout/PageHeader';
 import Tree from '../components/Tree/Tree';
 import { usePeople } from '../services/people';
 
+const HEADER_HEIGHT = 72;
+
 const TreeViewContent = () => {
   const {
     isAddPersonModalOpen,
@@ -14,17 +16,16 @@ const TreeViewContent = () => {
   const { data: people, isLoading, isError } = usePeople();
 
   return (
-    <>
+    <div className="flex flex-col w-full min-h-screen h-screen max-h-screen overflow-hidden">
       <PageHeader
         title="Family Tree"
         subtitle="Visualize and manage your family connections."
+        noMargin
       />
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0 h-[600px]">
-          <Tree />
-        </div>
+      <div className="flex-1 min-h-0 max-h-full overflow-hidden flex flex-col justify-start">
+        <Tree headerHeight={HEADER_HEIGHT + 54} />
       </div>
-    </>
+    </div>
   );
 }
 
