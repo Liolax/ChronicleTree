@@ -262,7 +262,7 @@ const Tree = () => {
   };
 
   return (
-    <div ref={reactFlowWrapper} style={{ width: '100%', height: '100%', minWidth: 1200, position: 'relative' }}>
+    <div ref={reactFlowWrapper} style={{ width: '100vw', height: '100vh', minWidth: 0, minHeight: 0, maxWidth: '100vw', maxHeight: '100vh', position: 'fixed', left: 0, top: 0, overflow: 'hidden', zIndex: 0 }}>
       {/* Only the original Move Nodes toggle should exist elsewhere */}
       {/* Top-right Add Person Button */}
       <button
@@ -294,7 +294,11 @@ const Tree = () => {
         onMove={(_, transformObj) => setTransform(transformObj)}
       >
         <Background gap={24} color="#eee" />
-        <MiniMap nodeColor={() => '#4F868E'} />
+        <MiniMap nodeColor={() => '#4F868E'} style={{ background: '#f8f4f0' }}>
+          <div style={{ position: 'absolute', left: 8, bottom: 8, zIndex: 10, fontSize: 12, color: '#4F868E', fontWeight: 600, pointerEvents: 'none' }}>
+            ChronicleTree
+          </div>
+        </MiniMap>
         <Controls showInteractive={true} />
       </ReactFlow>
       {/* Render PersonCard as a fixed overlay above the canvas */}
