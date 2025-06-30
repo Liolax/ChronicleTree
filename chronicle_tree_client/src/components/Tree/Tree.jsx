@@ -156,7 +156,15 @@ function getD3LayoutedElements(nodes, edges, direction = "TB") {
   return { nodes: layoutedNodes, edges };
 }
 
-const Tree = ({ headerHeight = 72 }) => {
+// Helper to detect mobile screen
+function isMobile() {
+  if (typeof window !== 'undefined') {
+    return window.innerWidth <= 640; // Tailwind's sm breakpoint
+  }
+  return false;
+}
+
+const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }) => {
   const { selectedPerson, openPersonCard, closePersonCard } = useTreeState();
   const { data, isLoading, isError } = useFullTree();
   const { openAddPersonModal, closeAddPersonModal, isAddPersonModalOpen } =
@@ -168,6 +176,7 @@ const Tree = ({ headerHeight = 72 }) => {
   const [deletePerson, setDeletePerson] = useState(null);
   const [interactivity, setInteractivity] = useState(false);
   const [transform, setTransform] = useState({ x: 0, y: 0, zoom: 1 });
+  const [layoutDirection, setLayoutDirection] = useState('TB');
   const reactFlowWrapper = useRef(null);
   const { fitView } = useReactFlow();
 
@@ -203,6 +212,16 @@ const Tree = ({ headerHeight = 72 }) => {
     []
   );
 
+  // Update layout direction on window resize
+  useEffect(() => {
+    function handleResize() {
+      setLayoutDirection(isMobile() ? 'LR' : 'TB');
+    }
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Layout and fit view on mount or when nodes/edges change
   useEffect(() => {
     if (data && typeof data === "object" && Array.isArray(data.nodes) && Array.isArray(data.edges)) {
@@ -232,7 +251,7 @@ const Tree = ({ headerHeight = 72 }) => {
         type: e.type,
       }));
       // Use D3-based layout
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getD3LayoutedElements(rfNodes, rfEdges, 'TB');
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getD3LayoutedElements(rfNodes, rfEdges, layoutDirection);
       setNodes(layoutedNodes);
       setEdges(layoutedEdges);
       setTimeout(() => fitView({ padding: 0.2, minZoom: 0.2, maxZoom: 1.5 }), 0);
@@ -240,7 +259,7 @@ const Tree = ({ headerHeight = 72 }) => {
       setNodes([]);
       setEdges([]);
     }
-  }, [data, fitView, handleEditPerson, handleDeletePerson]);
+  }, [data, fitView, handleEditPerson, handleDeletePerson, layoutDirection]);
 
   if (isLoading)
     return (
@@ -316,6 +335,152 @@ const Tree = ({ headerHeight = 72 }) => {
     return null;
   };
 
+  // --- MiniMap viewport rectangle logic ---
+  function MiniMapWithViewport({ nodes, transform, ...props }) {
+    const miniMapRef = useRef(null);
+    const [dragging, setDragging] = useState(false);
+    const [dragStart, setDragStart] = useState(null);
+    const { setViewport } = useReactFlow();
+
+    // Calculate bounds for the viewport rectangle
+    // These calculations are approximate and may need tuning for your node/canvas scale
+    const scale = transform.zoom;
+    const offsetX = transform.x;
+    const offsetY = transform.y;
+    // MiniMap size (default 200x120, can be customized)
+    const miniMapWidth = 200;
+    const miniMapHeight = 120;
+    // Find bounds of all nodes
+    const nodeXs = nodes.map(n => n.position.x);
+    const nodeYs = nodes.map(n => n.position.y);
+    const minX = Math.min(...nodeXs);
+    const minY = Math.min(...nodeYs);
+    const maxX = Math.max(...nodeXs);
+    const maxY = Math.max(...nodeYs);
+    const nodesWidth = maxX - minX + 172; // nodeWidth
+    const nodesHeight = maxY - minY + 60; // nodeHeight
+    // Main canvas visible area in node space
+    const viewW = window.innerWidth / scale;
+    const viewH = window.innerHeight / scale;
+    // Rectangle position in minimap
+    // Remove rectScale and use true proportional mapping for MiniMap rectangle size and position for maximum accuracy
+    // Rectangle size: proportion of visible area to total node area
+    let rectW = (nodesWidth > 0) ? Math.min(miniMapWidth, Math.max(24, (viewW / nodesWidth) * miniMapWidth)) : miniMapWidth;
+    let rectH = (nodesHeight > 0) ? Math.min(miniMapHeight, Math.max(18, (viewH / nodesHeight) * miniMapHeight)) : miniMapHeight;
+    // If the visible area is larger than the node area, fill the minimap
+    if (viewW >= nodesWidth) rectW = miniMapWidth;
+    if (viewH >= nodesHeight) rectH = miniMapHeight;
+    // Rectangle position: where the visible area starts in the minimap
+    let unclampedRectX = (nodesWidth > 0) ? ((-offsetX - minX) / nodesWidth) * miniMapWidth : 0;
+    let unclampedRectY = (nodesHeight > 0) ? ((-offsetY - minY) / nodesHeight) * miniMapHeight : 0;
+    // Clamp position so rectangle always stays inside minimap
+    const rectX = Math.max(0, Math.min(unclampedRectX, miniMapWidth - rectW));
+    const rectY = Math.max(0, Math.min(unclampedRectY, miniMapHeight - rectH));
+
+    // Drag logic
+    const onRectMouseDown = (e) => {
+      e.stopPropagation();
+      const miniMapRect = miniMapRef.current?.getBoundingClientRect();
+      const offsetXInRect = e.clientX - (miniMapRect?.left ?? 0) - rectX;
+      const offsetYInRect = e.clientY - (miniMapRect?.top ?? 0) - rectY;
+      setDragging(true);
+      setDragStart({
+        offsetXInRect,
+        offsetYInRect,
+      });
+    };
+    // Touch support
+    const onRectTouchStart = (e) => {
+      if (e.touches.length !== 1) return;
+      e.stopPropagation();
+      e.preventDefault();
+      const touch = e.touches[0];
+      const miniMapRect = miniMapRef.current?.getBoundingClientRect();
+      const offsetXInRect = touch.clientX - (miniMapRect?.left ?? 0) - rectX;
+      const offsetYInRect = touch.clientY - (miniMapRect?.top ?? 0) - rectY;
+      setDragging(true);
+      setDragStart({
+        offsetXInRect,
+        offsetYInRect,
+      });
+    };
+    useEffect(() => {
+      if (!dragging) return;
+      let animationFrame;
+      const onMouseMove = (e) => {
+        animationFrame = requestAnimationFrame(() => {
+          const miniMapRect = miniMapRef.current?.getBoundingClientRect();
+          const mouseX = e.clientX - (miniMapRect?.left ?? 0);
+          const mouseY = e.clientY - (miniMapRect?.top ?? 0);
+          let newRectX = mouseX - dragStart.offsetXInRect;
+          let newRectY = mouseY - dragStart.offsetYInRect;
+          newRectX = Math.max(0, Math.min(newRectX, miniMapWidth - rectW));
+          newRectY = Math.max(0, Math.min(newRectY, miniMapHeight - rectH));
+          const newOffsetX = -minX - (newRectX / miniMapWidth) * nodesWidth;
+          const newOffsetY = -minY - (newRectY / miniMapHeight) * nodesHeight;
+          setViewport({ x: newOffsetX, y: newOffsetY, zoom: scale });
+        });
+      };
+      const onTouchMove = (e) => {
+        if (e.touches.length !== 1) return;
+        e.preventDefault();
+        const touch = e.touches[0];
+        const miniMapRect = miniMapRef.current?.getBoundingClientRect();
+        const mouseX = touch.clientX - (miniMapRect?.left ?? 0);
+        const mouseY = touch.clientY - (miniMapRect?.top ?? 0);
+        let newRectX = mouseX - dragStart.offsetXInRect;
+        let newRectY = mouseY - dragStart.offsetYInRect;
+        newRectX = Math.max(0, Math.min(newRectX, miniMapWidth - rectW));
+        newRectY = Math.max(0, Math.min(newRectY, miniMapHeight - rectH));
+        const newOffsetX = -minX - (newRectX / miniMapWidth) * nodesWidth;
+        const newOffsetY = -minY - (newRectY / miniMapHeight) * nodesHeight;
+        setViewport({ x: newOffsetX, y: newOffsetY, zoom: scale });
+      };
+      const onMouseUp = () => setDragging(false);
+      const onTouchEnd = () => setDragging(false);
+      window.addEventListener('mousemove', onMouseMove);
+      window.addEventListener('mouseup', onMouseUp);
+      window.addEventListener('touchmove', onTouchMove, { passive: false });
+      window.addEventListener('touchend', onTouchEnd);
+      return () => {
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('mouseup', onMouseUp);
+        window.removeEventListener('touchmove', onTouchMove);
+        window.removeEventListener('touchend', onTouchEnd);
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+      };
+    }, [dragging, dragStart, setViewport, scale, rectW, rectH, miniMapWidth, miniMapHeight, minX, minY, nodesWidth, nodesHeight]);
+
+    return (
+      <div style={{ position: 'absolute', right: 16, bottom: 150, width: miniMapWidth, height: miniMapHeight, zIndex: 20 }}>
+        <MiniMap
+          ref={miniMapRef}
+          nodeColor={() => "#4F868E"}
+          style={{ background: "white", width: miniMapWidth, height: miniMapHeight }}
+          {...props}
+        />
+        {/* Viewport rectangle */}
+        <div
+          style={{
+            position: 'absolute',
+            left: rectX,
+            top: rectY,
+            width: rectW,
+            height: rectH,
+            border: '2px solid #4F868E',
+            background: 'rgba(79,134,142,0.08)',
+            cursor: 'grab',
+            zIndex: 30,
+            transition: dragging ? 'none' : 'left 0.25s cubic-bezier(0.4,0,0.2,1), top 0.25s cubic-bezier(0.4,0,0.2,1), width 0.25s cubic-bezier(0.4,0,0.2,1), height 0.25s cubic-bezier(0.4,0,0.2,1)',
+            willChange: 'left, top, width, height',
+          }}
+          onMouseDown={onRectMouseDown}
+          onTouchStart={onRectTouchStart}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={reactFlowWrapper}
@@ -380,10 +545,8 @@ const Tree = ({ headerHeight = 72 }) => {
           }}
         >
           <Background gap={24} color="#eee" />
-          <MiniMap
-            nodeColor={() => "#4F868E"}
-            style={{ background: "white", bottom: 150 }}
-          />
+          {/* MiniMap with draggable viewport rectangle */}
+          <MiniMapWithViewport nodes={nodes} transform={transform} setTransform={setTransform} />
           <Controls showInteractive={true} style={{ bottom: 150 }} />
         </ReactFlow>
         {/* Render PersonCard as a fixed overlay above the canvas */}
