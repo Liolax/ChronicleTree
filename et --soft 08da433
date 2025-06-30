@@ -1,0 +1,31 @@
+[33m08da433[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m fix the treeview
+[33m7098383[m tree canvas fit the screen
+[33m1514a93[m good person card
+[33m861528d[m fix
+[33m0bbbdba[m fix tree issue
+[33m2a59d62[m problem
+[33m5cd8287[m fix api
+[33m6a6d4f3[m ui
+[33mbd92e8a[m tree
+[33m9bcbaf1[m add facts
+[33mbac5c6c[m fix sign in
+[33m7676c28[m fix
+[33m3f00eff[m fix
+[33m32e27e2[m test: add default_user fixture & reference in people, media, relationships
+[33m2bb1f5f[m feat(api): enforce JWT auth in BaseController and inherit in API controllers; skip auth for sign_in
+[33m4e43642[m test: add default_user fixture with Password123 and update login tests
+[33m7b78c30[m login
+[33m86ccaaa[m login
+[33ma9b1bbb[m login
+[33md1e595d[m refactor: rename friend to relative throughout models, controller, serializer, fixtures & tests
+[33mce0fdd1[m refactor: rename friend to relative and add relationship_type enum
+[33m55a735b[m chore: add active_model_serializers & fix friend association
+[33m370b4d1[m chore: add active_model_serializers gem
+[33m761129b[m fix: CSRF protection from API BaseController
+[33mb49f90a[m fix: update shebang in binstubs to use ruby instead of ruby.exe
+[33m6420c3e[m ci: chmod Rails binstubs so workflows can run bin/rails
+[33m7b8826d[m ci: add GitHub Actions workflow for Rails & React tests
+[33m634e22d[m :wqMerge branch 'main' of https://github.com/Liolax/ChronicleTree
+[33mce37f66[m README.md
+[33m9891bfd[m Delete app/serializers/api/v1 directory
+[33me894f3c[m Initial import of ChronicleTree API + client

@@ -60,7 +60,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
   const filteredPeople = people.filter(p => !person || p.id !== person.id);
 
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 max-h-[340px] overflow-y-auto">
       {/* Removed form intro and heading for Add Person */}
       {!person && (
         <div className="text-sm text-gray-600 mb-2">Required fields are marked with <span className='text-red-500'>*</span>.</div>
