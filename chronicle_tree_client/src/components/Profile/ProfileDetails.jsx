@@ -21,18 +21,6 @@ export default function ProfileDetails({ person }) {
           <p className="font-medium text-gray-500">Date of Death</p>
           <p className="text-gray-800">{person?.date_of_death ? new Date(person.date_of_death).toLocaleDateString() : 'N/A'}</p>
         </div>
-        <div>
-          <p className="font-medium text-gray-500">Age</p>
-          <p className="text-gray-800">{person?.age !== null && person?.age !== undefined ? person.age : 'N/A'}</p>
-        </div>
-        <div className="md:col-span-2">
-          <p className="font-medium text-gray-500">Bio</p>
-          <p className="text-gray-800">{person?.profile?.bio || 'No bio available.'}</p>
-        </div>
-        <div className="md:col-span-2">
-          <p className="font-medium text-gray-500">Notes</p>
-          <p className="text-gray-800">{person?.profile?.notes || 'No notes available.'}</p>
-        </div>
       </div>
     </Card>
   );

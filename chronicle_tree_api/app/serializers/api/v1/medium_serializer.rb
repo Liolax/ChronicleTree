@@ -6,6 +6,10 @@ class Api::V1::MediumSerializer < ActiveModel::Serializer
   include Rails.application.routes.url_helpers
 
   def file_url
-    rails_blob_url(object.file, only_path: true)
+    if object.file.attached?
+      rails_blob_url(object.file, only_path: true)
+    else
+      nil
+    end
   end
 end

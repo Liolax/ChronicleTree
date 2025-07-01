@@ -4,6 +4,22 @@ This document outlines the development plan for the ChronicleTree full-stack app
 
 ---
 
+# MiniMap Viewport Rectangle Improvements (June 2025)
+
+- Refined the MiniMap viewport rectangle logic for the Family Tree page to ensure a visually clear, responsive, and user-friendly experience.
+- The viewport rectangle now:
+  - Always stays fully inside the MiniMap, even at extreme zoom/pan levels or when the visible area is larger than the node area.
+  - Uses true proportional mapping for position and size, ensuring accuracy at all zoom and pan levels (no artificial scaling).
+  - Moves smoothly and responsively, following the mouse or touch cursor as closely as possible during drag operations.
+  - Supports both mouse and touch (mobile/tablet) interactions.
+  - Uses requestAnimationFrame for smooth dragging and a CSS transition for smooth animation when not dragging.
+  - Stores the pointer offset inside the rectangle on drag start, so the rectangle follows the cursor/finger precisely.
+- All changes are isolated to the MiniMap rectangle logic; no unrelated UI or logic was changed.
+
+These improvements make the MiniMap a robust and intuitive navigation tool for all users, regardless of device or zoom level.
+
+---
+
 ## Recent Updates
 
 ### [2025-06-30] Comprehensive Seed Data & First Person Logic
@@ -40,6 +56,27 @@ This document outlines the development plan for the ChronicleTree full-stack app
 - Moved `nodeTypes` and `edgeTypes` outside the `Tree` component to resolve React Flow warnings.
 - Removed all debug logs and duplicate modal/toggle rendering from the codebase.
 - Backend `/tree` and `/full_tree` endpoints and serializers updated for correct data structure and field mapping.
+
+### [2025-06-30] Profile Page CRUD & Navigation Enhancements
+- Profile page now uses modular components and matches the latest mock-up for layout, style, and UX.
+- Added sticky header with share button and improved section cards for details, facts, timeline, media, and relationships.
+- All modals (edit picture, add fact, add timeline, add media, share) are present and styled.
+- Data fields and layout are mapped to backend and mock-up requirements.
+- Navigation: Profile page links to relatives' profiles and tree/settings via `<Link>` components for seamless SPA navigation.
+- Next steps: Implement full CRUD for facts, timeline, media, and relationships directly from the profile page, with optimistic updates and error handling.
+
+---
+
+## July 2025: Profile, Tree, and Data Model Upgrades
+
+### [2025-07-01] Unified Notes, Age/Date Display, and Deceased Status
+- Refactored backend to support a single note per person (not per profile); updated models, migrations, serializers, and API endpoints accordingly.
+- Improved and expanded seed data: all people have explicit IDs, gender, date_of_birth, and realistic values; Jane Doe is now marked as deceased for UI testing.
+- Frontend now displays all profile data (facts, timeline, media, relationships, notes) and is fully aligned with backend API keys.
+- "Age" is now only shown under the avatar in the profile and at tree nodes as "{age} y.o."; it is removed from the "Basic Information" section and person cards.
+- Tree node status badge now displays "Deceased (YEAR)" if the person is deceased, with the year of death; no birth year is shown at the node.
+- Person cards show full date of birth and, if deceased, date of death.
+- All changes tested and confirmed in both backend and frontend.
 
 ---
 

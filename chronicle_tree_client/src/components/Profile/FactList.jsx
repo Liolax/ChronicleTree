@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FactList = ({ facts }) => {
+const FactList = ({ facts, onEdit, onDelete }) => {
   if (!facts || facts.length === 0) {
     return <p className="text-gray-400">No facts available.</p>;
   }
@@ -13,14 +13,28 @@ const FactList = ({ facts }) => {
         </div>
         <ul className="mt-5 divide-y divide-gray-200">
           {facts.map((fact) => (
-            <li key={fact.id} className="py-4 flex">
-              <div className="flex-shrink-0">
-                <span className="text-sm font-semibold text-gray-600">{fact.date ? new Date(fact.date).toLocaleDateString() : ''}</span>
+            <li key={fact.id} className="py-4 flex items-center justify-between">
+              <div className="flex items-center">
+                <span className="text-sm font-semibold text-gray-600 mr-4">{fact.date ? new Date(fact.date).toLocaleDateString() : ''}</span>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{fact.title}</p>
+                  <p className="text-sm text-gray-500">{fact.description}</p>
+                </div>
               </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-900">{fact.title}</p>
-                <p className="text-sm text-gray-500">{fact.description}</p>
-              </div>
+              {(onEdit || onDelete) && (
+                <div className="flex gap-2 ml-4">
+                  {onEdit && (
+                    <button className="text-blue-600 hover:underline text-xs" onClick={() => onEdit(fact)} title="Edit Fact">
+                      <i className="fas fa-pencil-alt"></i>
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button className="text-red-500 hover:underline text-xs" onClick={() => onDelete(fact.id)} title="Delete Fact">
+                      <i className="fas fa-trash-alt"></i>
+                    </button>
+                  )}
+                </div>
+              )}
             </li>
           ))}
         </ul>

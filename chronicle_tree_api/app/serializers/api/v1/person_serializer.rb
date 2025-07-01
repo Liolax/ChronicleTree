@@ -7,12 +7,13 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :age,
              :date_of_birth,
              :date_of_death,
-             :avatar_url
+             :avatar_url,
+             :note
 
-  has_many :facts,          key: :key_facts,      serializer: Api::V1::FactSerializer
-  has_many :timeline_items, key: :timeline,       serializer: Api::V1::TimelineItemSerializer
-  has_many :media,                            serializer: Api::V1::MediumSerializer
-  has_many :relatives,      key: :relatives,      serializer: Api::V1::RelativeSerializer
+  has_many :facts, key: :key_facts, serializer: Api::V1::FactSerializer
+  has_many :timeline_items, key: :timeline_events, serializer: Api::V1::TimelineItemSerializer
+  has_many :media, serializer: Api::V1::MediumSerializer
+  has_many :relatives, serializer: Api::V1::RelativeSerializer
 
   def full_name
     "#{object.first_name} #{object.last_name}"
@@ -26,7 +27,14 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   end
 
   def avatar_url
-    return unless object.profile&.avatar&.attached?
-    Rails.application.routes.url_helpers.rails_blob_url(object.profile.avatar, only_path: true)
+    if object.profile&.respond_to?(:avatar) && object.profile.avatar.respond_to?(:attached?) && object.profile.avatar.attached?
+      Rails.application.routes.url_helpers.rails_blob_url(object.profile.avatar, only_path: true)
+    else
+      nil
+    end
+  end
+
+  def note
+    object.note ? Api::V1::NoteSerializer.new(object.note, scope: scope) : nil
   end
 end

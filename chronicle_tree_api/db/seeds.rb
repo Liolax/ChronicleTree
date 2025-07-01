@@ -1,5 +1,5 @@
 # db/seeds.rb
-# This file seeds the database with a realistic, multi-generation family tree for development and testing.
+# This file seeds the database with fixture-style test people for development and testing.
 
 if Rails.env.development?
   puts "Clearing existing data..."
@@ -15,74 +15,74 @@ user.password = 'Password123!'
 user.password_confirmation = 'Password123!'
 user.save!
 
-puts "Creating people..."
-# Generation 1 (Great-grandparents)
-ggfather1 = Person.create!(first_name: 'Edward', last_name: 'Smith', gender: 'Male', date_of_birth: '1920-01-01', user: user)
-ggmother1 = Person.create!(first_name: 'Margaret', last_name: 'Smith', gender: 'Female', date_of_birth: '1922-03-15', user: user)
-ggfather2 = Person.create!(first_name: 'George', last_name: 'Brown', gender: 'Male', date_of_birth: '1921-06-10', user: user)
-ggmother2 = Person.create!(first_name: 'Helen', last_name: 'Brown', gender: 'Female', date_of_birth: '1923-09-20', user: user)
+puts "Adding fixture-style test people and their data for UI testing..."
+# --- PEOPLE ---
+p1 = Person.find_or_create_by!(id: 1, first_name: 'John', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1980, 1, 1))
+p2 = Person.find_or_create_by!(id: 2, first_name: 'Jane', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1982, 2, 2), date_of_death: Date.new(2022, 6, 15))
+alice = Person.find_or_create_by!(id: 44, first_name: 'Alice', last_name: 'A', user: user, gender: 'Female', date_of_birth: Date.new(1990, 7, 1))
+david = Person.find_or_create_by!(id: 3, first_name: 'David', last_name: 'A', user: user, gender: 'Male', date_of_birth: Date.new(1988, 5, 15))
+bob = Person.find_or_create_by!(id: 4, first_name: 'Bob', last_name: 'B', user: user, gender: 'Male', date_of_birth: Date.new(2010, 3, 10))
+emily = Person.find_or_create_by!(id: 5, first_name: 'Emily', last_name: 'A', user: user, gender: 'Female', date_of_birth: Date.new(2012, 8, 20))
+charlie = Person.find_or_create_by!(id: 6, first_name: 'Charlie', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(2015, 12, 5))
 
-# Generation 2 (Grandparents)
-gfather1 = Person.create!(first_name: 'William', last_name: 'Smith', gender: 'Male', date_of_birth: '1945-05-10', user: user)
-gmother1 = Person.create!(first_name: 'Patricia', last_name: 'Smith', gender: 'Female', date_of_birth: '1947-07-22', user: user)
-gfather2 = Person.create!(first_name: 'Charles', last_name: 'Brown', gender: 'Male', date_of_birth: '1946-11-30', user: user)
-gmother2 = Person.create!(first_name: 'Barbara', last_name: 'Brown', gender: 'Female', date_of_birth: '1948-02-14', user: user)
-
-# Generation 3 (Parents, aunts/uncles)
-father = Person.create!(first_name: 'John', last_name: 'Smith', gender: 'Male', date_of_birth: '1970-08-20', user: user)
-mother = Person.create!(first_name: 'Linda', last_name: 'Brown', gender: 'Female', date_of_birth: '1972-05-15', user: user)
-aunt1 = Person.create!(first_name: 'Susan', last_name: 'Smith', gender: 'Female', date_of_birth: '1973-11-30', user: user)
-uncle1 = Person.create!(first_name: 'James', last_name: 'Brown', gender: 'Male', date_of_birth: '1971-04-18', user: user)
-
-# Generation 4 (Children, cousins)
-child1 = Person.create!(first_name: 'Emily', last_name: 'Smith', gender: 'Female', date_of_birth: '2000-01-10', user: user)
-child2 = Person.create!(first_name: 'Michael', last_name: 'Smith', gender: 'Male', date_of_birth: '2002-03-12', user: user)
-cousin1 = Person.create!(first_name: 'Jessica', last_name: 'Brown', gender: 'Female', date_of_birth: '2001-07-25', user: user)
-cousin2 = Person.create!(first_name: 'David', last_name: 'Brown', gender: 'Male', date_of_birth: '2003-09-30', user: user)
-
-puts "Creating relationships..."
-def create_bidirectional_relationship(a, b, type1, type2)
-  Relationship.create!(person_id: a.id, relative_id: b.id, relationship_type: type1)
-  Relationship.create!(person_id: b.id, relative_id: a.id, relationship_type: type2)
+# --- NOTES ---
+[p1, p2, alice, david, bob, emily, charlie].each do |person|
+  Note.find_or_create_by!(person: person) do |note|
+    note.content = "Add a note about this person. You can use this space to record stories, memories, or important details."
+  end
 end
-# Great-grandparents married
-create_bidirectional_relationship(ggfather1, ggmother1, 'spouse', 'spouse')
-create_bidirectional_relationship(ggfather2, ggmother2, 'spouse', 'spouse')
-# Great-grandparents' children (grandparents)
-create_bidirectional_relationship(ggfather1, gfather1, 'parent', 'child')
-create_bidirectional_relationship(ggmother1, gfather1, 'parent', 'child')
-create_bidirectional_relationship(ggfather2, gfather2, 'parent', 'child')
-create_bidirectional_relationship(ggmother2, gfather2, 'parent', 'child')
-# Grandparents married
-create_bidirectional_relationship(gfather1, gmother1, 'spouse', 'spouse')
-create_bidirectional_relationship(gfather2, gmother2, 'spouse', 'spouse')
-# Grandparents' children (parents, aunts/uncles)
-create_bidirectional_relationship(gfather1, father, 'parent', 'child')
-create_bidirectional_relationship(gmother1, father, 'parent', 'child')
-create_bidirectional_relationship(gfather1, aunt1, 'parent', 'child')
-create_bidirectional_relationship(gmother1, aunt1, 'parent', 'child')
-create_bidirectional_relationship(gfather2, mother, 'parent', 'child')
-create_bidirectional_relationship(gmother2, mother, 'parent', 'child')
-create_bidirectional_relationship(gfather2, uncle1, 'parent', 'child')
-create_bidirectional_relationship(gmother2, uncle1, 'parent', 'child')
-# Parents married
-create_bidirectional_relationship(father, mother, 'spouse', 'spouse')
-# Aunts/uncles married (optional, for more connections)
-# create_bidirectional_relationship(aunt1, uncle1, 'spouse', 'spouse')
-# Parents' children
-create_bidirectional_relationship(father, child1, 'parent', 'child')
-create_bidirectional_relationship(mother, child1, 'parent', 'child')
-create_bidirectional_relationship(father, child2, 'parent', 'child')
-create_bidirectional_relationship(mother, child2, 'parent', 'child')
-# Uncle's children (cousins)
-create_bidirectional_relationship(uncle1, cousin1, 'parent', 'child')
-create_bidirectional_relationship(uncle1, cousin2, 'parent', 'child')
-# Aunt's children (none in this example, but can add if desired)
-# Sibling relationships
-create_bidirectional_relationship(child1, child2, 'sibling', 'sibling')
-create_bidirectional_relationship(cousin1, cousin2, 'sibling', 'sibling')
-# Cousin relationships
-create_bidirectional_relationship(child1, cousin1, 'cousin', 'cousin')
-create_bidirectional_relationship(child2, cousin2, 'cousin', 'cousin')
+# --- PROFILES ---
+[p1, p2, alice, david, bob, emily, charlie].each do |person|
+  Profile.find_or_create_by!(person: person)
+end
+# Ensure avatars are nil
+[p1, p2, alice, david, bob, emily, charlie].each do |person|
+  profile = person.profile
+  profile.avatar.purge if profile.avatar.attached?
+end
 
-puts "Seed data created successfully!"
+# --- FACTS ---
+Fact.find_or_create_by!(id: 101, person: p1, label: 'Birthplace', value: 'City A', date: Date.today - 30.years, location: 'City A')
+Fact.find_or_create_by!(id: 102, person: p2, label: 'Graduation', value: 'High School', date: Date.today - 12.years, location: 'School B')
+Fact.find_or_create_by!(id: 103, person: alice, label: 'Hobby', value: 'Painting', date: Date.today - 5.years, location: 'Studio')
+Fact.find_or_create_by!(id: 104, person: david, label: 'Occupation', value: 'Engineer', date: Date.today - 10.years, location: 'Company X')
+Fact.find_or_create_by!(id: 105, person: bob, label: 'Favorite Sport', value: 'Soccer', date: Date.today - 2.years, location: 'Field Y')
+Fact.find_or_create_by!(id: 106, person: emily, label: 'Favorite Book', value: 'Pride and Prejudice', date: Date.today - 1.year, location: 'Library Z')
+Fact.find_or_create_by!(id: 107, person: charlie, label: 'Instrument', value: 'Guitar', date: Date.today - 3.years, location: 'Music School')
+# Extra facts for better testing
+Fact.find_or_create_by!(id: 108, person: p1, label: 'Military Service', value: 'Army', date: Date.today - 10.years, location: 'Base Q')
+Fact.find_or_create_by!(id: 109, person: p2, label: 'First Job', value: 'Teacher', date: Date.today - 8.years, location: 'School C')
+Fact.find_or_create_by!(id: 110, person: alice, label: 'Award', value: 'Art Prize', date: Date.today - 2.years, location: 'Gallery')
+# --- TIMELINE ITEMS ---
+TimelineItem.find_or_create_by!(id: 201, person: p1, title: 'Born', date: Date.today - 30.years, place: 'City A', icon: 'baby')
+TimelineItem.find_or_create_by!(id: 202, person: p2, title: 'Graduated', date: Date.today - 12.years, place: 'School B', icon: 'graduation-cap')
+TimelineItem.find_or_create_by!(id: 203, person: alice, title: 'Started Painting', date: Date.today - 5.years, place: 'Studio', icon: 'palette')
+TimelineItem.find_or_create_by!(id: 204, person: david, title: 'Started Engineering', date: Date.today - 10.years, place: 'Company X', icon: 'briefcase')
+TimelineItem.find_or_create_by!(id: 205, person: bob, title: 'Joined Soccer Team', date: Date.today - 2.years, place: 'Field Y', icon: 'soccer-ball')
+TimelineItem.find_or_create_by!(id: 206, person: emily, title: 'Read Favorite Book', date: Date.today - 1.year, place: 'Library Z', icon: 'book')
+TimelineItem.find_or_create_by!(id: 207, person: charlie, title: 'Learned Guitar', date: Date.today - 3.years, place: 'Music School', icon: 'guitar')
+# Extra timeline items for better testing
+TimelineItem.find_or_create_by!(id: 208, person: p1, title: 'Married Jane', date: Date.today - 8.years, place: 'City A', icon: 'heart')
+TimelineItem.find_or_create_by!(id: 209, person: p2, title: 'Moved to City B', date: Date.today - 7.years, place: 'City B', icon: 'home')
+TimelineItem.find_or_create_by!(id: 210, person: alice, title: 'Exhibition', date: Date.today - 1.year, place: 'Gallery', icon: 'star')
+# --- MEDIA ---
+Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Profile photo')
+Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting')
+Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane graduation photo')
+Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David at work')
+# --- RELATIONSHIPS ---
+Relationship.find_or_create_by!(id: 401, person: alice, relative: david, relationship_type: 'spouse')
+Relationship.find_or_create_by!(id: 402, person: david, relative: alice, relationship_type: 'spouse')
+Relationship.find_or_create_by!(id: 403, person: alice, relative: bob, relationship_type: 'parent')
+Relationship.find_or_create_by!(id: 404, person: david, relative: bob, relationship_type: 'parent')
+Relationship.find_or_create_by!(id: 405, person: alice, relative: emily, relationship_type: 'parent')
+Relationship.find_or_create_by!(id: 406, person: david, relative: emily, relationship_type: 'parent')
+Relationship.find_or_create_by!(id: 407, person: alice, relative: charlie, relationship_type: 'sibling')
+Relationship.find_or_create_by!(id: 408, person: charlie, relative: alice, relationship_type: 'sibling')
+Relationship.find_or_create_by!(id: 409, person: p1, relative: p2, relationship_type: 'spouse')
+Relationship.find_or_create_by!(id: 410, person: p2, relative: p1, relationship_type: 'spouse')
+# Extra relationships for better testing
+Relationship.find_or_create_by!(id: 411, person: bob, relative: emily, relationship_type: 'sibling')
+Relationship.find_or_create_by!(id: 412, person: emily, relative: bob, relationship_type: 'sibling')
+
+puts 'Fixture-style test people and their data added.'

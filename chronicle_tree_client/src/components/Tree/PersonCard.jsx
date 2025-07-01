@@ -8,18 +8,6 @@ const getInitials = (first, last) => {
   return (first || last)[0].toUpperCase();
 };
 
-const getAge = (birth, death) => {
-  if (!birth) return null;
-  const birthDate = new Date(birth);
-  const endDate = death ? new Date(death) : new Date();
-  let age = endDate.getFullYear() - birthDate.getFullYear();
-  const m = endDate.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && endDate.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
-};
-
 const fadeInCard = {
   animation: 'fadeInCard 0.3s cubic-bezier(0.4,0,0.2,1)',
 };
@@ -32,7 +20,6 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
   const birthDate = person.date_of_birth ? new Date(person.date_of_birth).toLocaleDateString() : '';
   const deathDate = person.date_of_death ? new Date(person.date_of_death).toLocaleDateString() : '';
   const initials = getInitials(person.first_name, person.last_name);
-  const age = getAge(person.date_of_birth, person.date_of_death);
   const avatarUrl = person.avatar_url;
   const genderIcon = person.gender === 'Female' ? <FaVenus className="text-pink-500 ml-1" title="Female" /> : person.gender === 'Male' ? <FaMars className="text-blue-500 ml-1" title="Male" /> : null;
 
@@ -99,12 +86,12 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
         <div className="text-base font-bold text-app-primary text-center mt-1 truncate w-full flex items-center justify-center gap-1">
           {person.first_name} {person.last_name} {genderIcon}
         </div>
+        {/* Show full date of birth and death if available, only if deceased for death */}
         <div className="text-xs text-app-secondary mt-1 text-center w-full">
-          {birthDate}{deathDate ? ` — ${deathDate}` : ''}
+          {birthDate}
+          {person.date_of_death && deathDate ? ` — ${deathDate}` : ''}
         </div>
-        {age !== null && (
-          <div className="text-gray-500 text-xs mt-1">Age: {age}</div>
-        )}
+        {/* Remove age from card, as it is now only shown at node */}
       </div>
       <div className="flex flex-col gap-1 w-full mt-2">
         <button className="w-full bg-[#edf8f5] text-[#4F868E] px-2 py-1 rounded font-semibold shadow hover:bg-[#e0f3ec] transition-colors flex items-center justify-center gap-1 text-xs" onClick={() => window.location.href = `/profile/${person.id}`}>

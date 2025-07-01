@@ -12,6 +12,17 @@ const CustomNode = ({ data, id, selected }) => {
   const genderIcon = person.gender === 'Female' ? <FaVenus className="text-pink-500 ml-1" /> : person.gender === 'Male' ? <FaMars className="text-blue-500 ml-1" /> : null;
   const status = person.is_alive === false || person.date_of_death ? 'Deceased' : 'Alive';
   const statusColor = status === 'Alive' ? 'text-green-600' : 'text-gray-400';
+  // Calculate age for node display
+  const getAge = (dob, dod) => {
+    if (!dob) return null;
+    const birth = new Date(dob);
+    const end = dod ? new Date(dod) : new Date();
+    let age = end.getFullYear() - birth.getFullYear();
+    const m = end.getMonth() - birth.getMonth();
+    if (m < 0 || (m === 0 && end.getDate() < birth.getDate())) age--;
+    return age;
+  };
+  const age = getAge(person.date_of_birth, person.date_of_death);
 
   const handleNodeClick = (e) => {
     // Prevent action button clicks from triggering card open
@@ -47,11 +58,15 @@ const CustomNode = ({ data, id, selected }) => {
           {person.first_name} {person.last_name} {genderIcon}
         </div>
         <div className={`text-xs font-medium ${statusColor} flex items-center gap-1`}>
-          <FaCheckCircle /> {status}
+          <FaCheckCircle />
+          {status === 'Deceased' && deathYear
+            ? `Deceased (${deathYear})`
+            : status}
         </div>
-        <div className="text-xs text-gray-500 mt-1">
-          {birthYear}{deathYear ? ` – ${deathYear}` : ''}
-        </div>
+        {/* Show age at node if available, as "{age} y.o." */}
+        {age !== null && (
+          <div className="text-xs text-gray-700 mt-1">{age} y.o.</div>
+        )}
       </div>
       {/* Action buttons (edit, delete, center) */}
       <div className="flex justify-center gap-2 mt-2">

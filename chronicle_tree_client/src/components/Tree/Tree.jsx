@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState } from "react";
+import React, { useEffect, useCallback, useRef, useState, forwardRef } from "react";
 import ReactDOM from "react-dom";
 import ReactFlow, {
   useReactFlow,
@@ -6,6 +6,9 @@ import ReactFlow, {
   Background,
   Controls,
   MiniMap,
+  applyNodeChanges,
+  applyEdgeChanges,
+  addEdge,
 } from "reactflow";
 import * as d3 from "d3-hierarchy";
 import "reactflow/dist/style.css";
@@ -20,6 +23,7 @@ import AddPersonModal from "./modals/AddPersonModal";
 import EditPersonModal from "./modals/EditPersonModal";
 import ConfirmDeleteModal from "./modals/ConfirmDeleteModal";
 import PersonCard from "./PersonCard";
+import './tree-animations.css';
 
 const nodeWidth = 172;
 const nodeHeight = 60;
@@ -43,25 +47,31 @@ const nodeTypes = {
 function getD3LayoutedElements(nodes, edges, direction = "TB") {
   // Build a map of nodes by id
   const nodeMap = new Map(nodes.map((n) => [n.id, n]));
+  // Only use parent/child edges for tree structure
+  const parentChildEdges = edges.filter(e => e.type === "parent" || e.type === "child");
+  // DEBUG: Print all node ids and first names
+  console.log('All node ids and first names:', nodes.map(n => ({ id: n.id, name: n.data && n.data.person && n.data.person.first_name })));
+  // DEBUG: Print parent/child edges for Bob and Charlie
+  const bobNode = nodes.find(n => n.data && n.data.person && n.data.person.first_name === 'Bob');
+  const charlieNode = nodes.find(n => n.data && n.data.person && n.data.person.first_name === 'Charlie');
+  if (bobNode && charlieNode) {
+    const bobToCharlieEdges = parentChildEdges.filter(e => e.source === bobNode.id && e.target === charlieNode.id);
+    console.log('Bob to Charlie parent/child edges:', bobToCharlieEdges);
+  }
   // Build a map of children for each node
   const childrenMap = {};
-  edges.forEach((e) => {
-    if (e.type === "parent" || e.type === "child") {
-      // parent: source=parent, target=child
-      const parentId = e.source;
-      const childId = e.target;
-      if (!childrenMap[parentId]) childrenMap[parentId] = [];
-      childrenMap[parentId].push(childId);
-    }
+  parentChildEdges.forEach((e) => {
+    const parentId = e.source;
+    const childId = e.target;
+    if (!childrenMap[parentId]) childrenMap[parentId] = [];
+    childrenMap[parentId].push(childId);
   });
-  // Find root nodes (no incoming parent edge)
-  const childIds = new Set(
-    edges
-      .filter((e) => e.type === "parent" || e.type === "child")
-      .map((e) => e.target)
-  );
+  // Find root nodes (no incoming parent/child edge)
+  const childIds = new Set(parentChildEdges.map((e) => e.target));
   let rootNodes = nodes.filter((n) => !childIds.has(n.id));
-  console.log("Root nodes for D3 layout:", rootNodes);
+  console.log("All edges:", edges);
+  console.log("Parent/child edges:", parentChildEdges);
+  console.log("Root nodes for D3 layout:", rootNodes.map(n => n.id));
   // If no root, pick the oldest person as root
   if (!rootNodes.length && nodes.length) {
     // Try to find the node with the earliest date_of_birth
@@ -102,7 +112,8 @@ function getD3LayoutedElements(nodes, edges, direction = "TB") {
   });
   // Use d3.tree() to layout each tree
   // Increase node separation to prevent overlap
-  const treeLayout = d3.tree().nodeSize([nodeWidth * 2.5, nodeHeight * 2.5]);
+  // Increase vertical gap between parent/child nodes
+  const treeLayout = d3.tree().nodeSize([nodeWidth * 2.5, nodeHeight * 4]);
   let layoutedNodes = [];
   d3Trees.forEach((tree) => {
     treeLayout(tree);
@@ -121,15 +132,15 @@ function getD3LayoutedElements(nodes, edges, direction = "TB") {
   // Optionally, adjust for multiple roots (shift horizontally)
   if (d3Trees.length > 1) {
     let offset = 0;
-    d3Trees.forEach((tree) => {
+    d3Trees.forEach((tree, i) => {
       const minX = Math.min(...Array.from(tree.descendants(), (d) => d.x));
       const maxX = Math.max(...Array.from(tree.descendants(), (d) => d.x));
-      const width = maxX - minX;
+      const width = maxX - minX + nodeWidth;
       tree.each((d) => {
         const node = layoutedNodes.find((n) => n.id === d.data.id);
         if (node) node.position.x += offset;
       });
-      offset += width + nodeWidth * 2;
+      offset += width + 800; // force a large fixed gap between root trees
     });
   }
   // Ensure all nodes are shown: add any not in layoutedNodes in a grid below
@@ -214,12 +225,8 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
 
   // Update layout direction on window resize
   useEffect(() => {
-    function handleResize() {
-      setLayoutDirection(isMobile() ? 'LR' : 'TB');
-    }
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    // Always use vertical (top-to-bottom) layout
+    setLayoutDirection('TB');
   }, []);
 
   // Layout and fit view on mount or when nodes/edges change
@@ -239,10 +246,10 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
           onEdit: handleEditPerson,
           onDelete: handleDeletePerson,
           onPersonCardOpen: () => openPersonCard(n),
-          // Add onClick handler for node selection
           onClick: () => openPersonCard(n),
         },
         position: { x: 0, y: 0 }, // will be set by layout
+        className: 'tree-node-animate', // <-- add this
       }));
       const rfEdges = apiEdges.map((e, i) => ({
         id: `${e.type}-${e.from}-${e.to}`,
@@ -327,7 +334,9 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
             left,
             top,
             position: 'fixed',
+            transition: 'left 0.4s cubic-bezier(0.4,0,0.2,1), top 0.4s cubic-bezier(0.4,0,0.2,1)', // smooth move
           }}
+          className="person-card-animate"
         />, 
         document.body
       );
@@ -336,8 +345,8 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
   };
 
   // --- MiniMap viewport rectangle logic ---
-  function MiniMapWithViewport({ nodes, transform, ...props }) {
-    const miniMapRef = useRef(null);
+  const MiniMapWithViewport = forwardRef(function MiniMapWithViewport({ nodes, transform, ...props }, ref) {
+    const miniMapRef = ref || useRef(null);
     const [dragging, setDragging] = useState(false);
     const [dragStart, setDragStart] = useState(null);
     const { setViewport } = useReactFlow();
@@ -449,52 +458,41 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
         window.removeEventListener('touchend', onTouchEnd);
         if (animationFrame) cancelAnimationFrame(animationFrame);
       };
-    }, [dragging, dragStart, setViewport, scale, rectW, rectH, miniMapWidth, miniMapHeight, minX, minY, nodesWidth, nodesHeight]);
+    }, [dragging, dragStart, miniMapRef, nodesWidth, nodesHeight, rectH, rectW, scale, setViewport]);
 
     return (
-      <div style={{ position: 'absolute', right: 16, bottom: 150, width: miniMapWidth, height: miniMapHeight, zIndex: 20 }}>
+      <div style={{ position: 'absolute', right: 16, bottom: 150, width: miniMapWidth, height: miniMapHeight, zIndex: 20 }} ref={miniMapRef}>
         <MiniMap
-          ref={miniMapRef}
           nodeColor={() => "#4F868E"}
           style={{ background: "white", width: miniMapWidth, height: miniMapHeight }}
           {...props}
         />
-        {/* Viewport rectangle */}
-        <div
-          style={{
-            position: 'absolute',
-            left: rectX,
-            top: rectY,
-            width: rectW,
-            height: rectH,
-            border: '2px solid #4F868E',
-            background: 'rgba(79,134,142,0.08)',
-            cursor: 'grab',
-            zIndex: 30,
-            transition: dragging ? 'none' : 'left 0.25s cubic-bezier(0.4,0,0.2,1), top 0.25s cubic-bezier(0.4,0,0.2,1), width 0.25s cubic-bezier(0.4,0,0.2,1), height 0.25s cubic-bezier(0.4,0,0.2,1)',
-            willChange: 'left, top, width, height',
-          }}
-          onMouseDown={onRectMouseDown}
-          onTouchStart={onRectTouchStart}
-        />
+        {/* Viewport rectangle only appears when zoomed in very close to nodes */}
+        {scale > 1.3 && (
+          <div
+            style={{
+              position: 'absolute',
+              left: rectX,
+              top: rectY,
+              width: rectW,
+              height: rectH,
+              border: '2px solid #4F868E',
+              background: 'rgba(79,134,142,0.08)',
+              cursor: 'grab',
+              zIndex: 30,
+              transition: dragging ? 'none' : 'left 0.4s cubic-bezier(0.4,0,0.2,1), top 0.4s cubic-bezier(0.4,0,0.2,1), width 0.4s cubic-bezier(0.4,0,0.2,1), height 0.4s cubic-bezier(0.4,0,0.2,1)',
+              willChange: 'left, top, width, height',
+            }}
+            onMouseDown={onRectMouseDown}
+            onTouchStart={onRectTouchStart}
+          />
+        )}
       </div>
     );
-  }
+  });
 
   return (
-    <div
-      ref={reactFlowWrapper}
-      className="relative w-full h-full flex flex-col items-center justify-start flex-1"
-      style={{
-        minWidth: 0,
-        minHeight: 0,
-        maxWidth: "100vw",
-        maxHeight: "100vh",
-        height: "100vh",
-        overflow: "hidden",
-        zIndex: 0,
-      }}
-    >
+    <div className="reactflow-wrapper" ref={reactFlowWrapper} style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
       {/* Add Person Button, always visible at the top center of the tree area */}
       <div className="w-full flex justify-center items-start" style={{ marginTop: 24, marginBottom: 8, zIndex: 10, position: 'relative', top: '0' }}>
         <button
@@ -508,76 +506,50 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
           <span className="hidden sm:inline">Add Person</span>
         </button>
       </div>
-      {/* Tree canvas fills the rest of the area */}
-      <div
-        className="flex-1 w-full relative"
-        style={{
-          minWidth: 0,
-          minHeight: 0,
-          maxWidth: "100vw",
-          maxHeight: "100%",
-          height: "100%",
-          overflow: "hidden",
-          background: "transparent",
-        }}
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={(changes) => setNodes((nds) => applyNodeChanges(changes, nds))}
+        onEdgesChange={(changes) => setEdges((eds) => applyEdgeChanges(changes, eds))}
+        onConnect={(params) => setEdges((eds) => addEdge(params, eds))}
+        onMove={handleMove}
+        fitView
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        attributionPosition="bottom-right"
+        panOnScroll
+        zoomOnScroll
+        zoomOnPinch
+        panOnDrag
+        style={{ backgroundColor: "#F9FAFB" }}
+        {...(interactivity ? {} : { nodesDraggable: false, nodesConnectable: false, edgesUpdatable: false })}
       >
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          fitView
-          minZoom={0.2}
-          maxZoom={1.5}
-          panOnDrag
-          zoomOnScroll
-          zoomOnPinch
-          selectionOnDrag
-          defaultEdgeOptions={{ type: "default" }}
-          nodesDraggable={interactivity}
-          nodesConnectable={false}
-          elementsSelectable={interactivity}
-          onMove={(_, transformObj) => setTransform(transformObj)}
-          className="min-h-screen bg-gray-100"
-          style={{
-            '--react-flow-controls-bottom': '150px',
-            '--react-flow-minimap-bottom': '150px',
+        <Background color="#888" gap={16} />
+        <Controls style={{ bottom: 180 }} />
+        <MiniMapWithViewport nodes={nodes} transform={transform} nodeColor={() => "#4F868E"} />
+      </ReactFlow>
+      {renderPersonCardOverlay(selectedPerson, nodes)}
+      {isAddPersonModalOpen && <AddPersonModal onClose={closeAddPersonModal} />}
+      {editPerson && (
+        <EditPersonModal
+          person={editPerson}
+          onClose={handleCloseEditModal}
+          onSave={() => {
+            handleCloseEditModal();
+            // Optionally, refetch or update local data
           }}
-        >
-          <Background gap={24} color="#eee" />
-          {/* MiniMap with draggable viewport rectangle */}
-          <MiniMapWithViewport nodes={nodes} transform={transform} setTransform={setTransform} />
-          <Controls showInteractive={true} style={{ bottom: 150 }} />
-        </ReactFlow>
-        {/* Render PersonCard as a fixed overlay above the canvas */}
-        {renderPersonCardOverlay(selectedPerson, nodes)}
-        {isAddPersonModalOpen && (
-          <AddPersonModal
-            key={`add-person-modal-${people.length}`}
-            isOpen={isAddPersonModalOpen}
-            onClose={closeAddPersonModal}
-            people={people}
-            isFirstPerson={people.length === 0}
-          />
-        )}
-        {editPerson && (
-          <EditPersonModal
-            person={editPerson}
-            isOpen={!!editPerson}
-            onClose={handleCloseEditModal}
-          />
-        )}
-        {deletePerson && (
-          <ConfirmDeleteModal
-            isOpen={!!deletePerson}
-            onClose={handleCloseDeleteModal}
-            person={deletePerson}
-            confirmText={`Delete ${deletePerson.first_name} ${deletePerson.last_name}`}
-            description={`Are you sure you want to delete ${deletePerson.first_name} ${deletePerson.last_name}? This action cannot be undone.`}
-            confirmButtonClass="bg-red-600 hover:bg-red-700 text-white"
-          />
-        )}
-      </div>
+        />
+      )}
+      {deletePerson && (
+        <ConfirmDeleteModal
+          person={deletePerson}
+          onClose={handleCloseDeleteModal}
+          onConfirm={() => {
+            handleCloseDeleteModal();
+            // Optionally, refetch or update local data
+          }}
+        />
+      )}
     </div>
   );
 };

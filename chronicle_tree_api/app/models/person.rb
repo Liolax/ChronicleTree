@@ -24,6 +24,7 @@ class Person < ApplicationRecord
   has_many :media,
            as: :attachable,
            dependent: :destroy
+  has_one :note, dependent: :destroy
 
   # Methods to query relationships
   def parents

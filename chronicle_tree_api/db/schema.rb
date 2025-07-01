@@ -70,6 +70,14 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
     t.index ["attachable_type", "attachable_id"], name: "index_media_on_attachable"
   end
 
+  create_table "notes", force: :cascade do |t|
+    t.bigint "person_id", null: false
+    t.text "content", default: "", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["person_id"], name: "index_notes_on_person_id", unique: true
+  end
+
   create_table "people", force: :cascade do |t|
     t.string "first_name"
     t.string "last_name"
@@ -84,8 +92,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
 
   create_table "profiles", force: :cascade do |t|
     t.bigint "person_id", null: false
-    t.text "bio"
-    t.text "notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["person_id"], name: "index_profiles_on_person_id"
@@ -128,6 +134,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "facts", "people"
+  add_foreign_key "notes", "people"
   add_foreign_key "people", "users"
   add_foreign_key "profiles", "people"
   add_foreign_key "relationships", "people"
