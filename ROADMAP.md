@@ -88,6 +88,14 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 - Seeds and schema confirmed: every person has a profile, and avatars are purged in seeds for clean test data.
 - This completes the modern, mockup-aligned profile page with robust media and avatar support.
 
+### [2025-07-03] Media Title Support & Gallery Improvements
+- Added `title` column to the `media` table via migration; all media records now support a user-friendly title.
+- Updated backend API to permit and save `title` for media uploads and edits (`media_params`).
+- Updated seeds to include a `title` for each media record, ensuring clean test data and a better demo experience.
+- Updated `MediumSerializer` to include `title` in API responses.
+- Updated frontend media gallery to display only the media `title` (never the raw filename), with a fallback label if missing.
+- Users can now set and edit a media title via the UI and API, improving clarity and usability in the profile gallery.
+
 ---
 
 ## Profile Picture (Avatar) Data Flow Diagram

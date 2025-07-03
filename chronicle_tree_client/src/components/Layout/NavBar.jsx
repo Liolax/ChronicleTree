@@ -19,7 +19,6 @@ export default function NavBar() {
         {user ? (
           <>
             <NavLink to="/" className={navLinkClasses}>Tree</NavLink>
-            <NavLink to="/profile/me" className={navLinkClasses}>Profile</NavLink>
             <NavLink to="/settings" className={navLinkClasses}>Settings</NavLink>
             <button
               onClick={logout}
@@ -49,7 +48,6 @@ export default function NavBar() {
           {user ? (
             <>
               <NavLink to="/" className={navLinkClasses} onClick={() => setMobileOpen(false)}>Tree</NavLink>
-              <NavLink to="/profile/me" className={navLinkClasses} onClick={() => setMobileOpen(false)}>Profile</NavLink>
               <NavLink to="/settings" className={navLinkClasses} onClick={() => setMobileOpen(false)}>Settings</NavLink>
               <button
                 onClick={() => { logout(); setMobileOpen(false); }}

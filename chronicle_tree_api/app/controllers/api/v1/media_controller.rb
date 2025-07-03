@@ -10,9 +10,9 @@ module Api
       end
 
       # POST /api/v1/people/:person_id/media
-      # Expects multipart form-data: media[file], media[description]
+      # Expects multipart form-data: media[title], media[file], media[description]
       def create
-        media = @person.media.build(description: media_params[:description])
+        media = @person.media.build(title: media_params[:title], description: media_params[:description])
         media.file.attach(media_params[:file])  # ActiveStorage
         if media.save
           render json: media,
@@ -59,7 +59,7 @@ module Api
       end
 
       def media_params
-        params.require(:media).permit(:description, :file)
+        params.require(:media).permit(:title, :description, :file)
       end
     end
   end
