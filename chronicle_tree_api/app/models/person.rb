@@ -26,6 +26,8 @@ class Person < ApplicationRecord
            dependent: :destroy
   has_one :note, dependent: :destroy
 
+  after_create :ensure_profile
+
   # Methods to query relationships
   def parents
     Person.joins(:relationships)
@@ -53,6 +55,10 @@ class Person < ApplicationRecord
   end
 
   private
+
+  def ensure_profile
+    Profile.find_or_create_by!(person: self)
+  end
 
   def relative_people
     Person.joins(:relationships).where(relationships: { relative_id: id })

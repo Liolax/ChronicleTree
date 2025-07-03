@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../api/api';
+import { FaBookOpen, FaPen, FaSave, FaTimes } from 'react-icons/fa';
 
 export default function Notes({ person, onNotesUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -18,12 +19,10 @@ export default function Notes({ person, onNotesUpdated }) {
     setError(null);
     try {
       if (person.note && person.note.id) {
-        // Update existing note
         const response = await api.patch(`/people/${person.id}/note`, { note: { content: notes } });
         setNotes(response.data.content);
         if (onNotesUpdated) onNotesUpdated(response.data.content);
       } else {
-        // Create new note
         const response = await api.post(`/people/${person.id}/note`, { note: { content: notes } });
         setNotes(response.data.content);
         if (onNotesUpdated) onNotesUpdated(response.data.content);
@@ -37,35 +36,38 @@ export default function Notes({ person, onNotesUpdated }) {
   };
 
   return (
-    <section className="details-section" id="notesSection">
+    <section className="bg-slate-50 rounded-xl p-6 shadow-inner border border-slate-100">
       <div className="flex justify-between items-center pb-2 border-b mb-4">
-        <h2 className="text-2xl font-semibold">Notes & Stories</h2>
+        <h2 className="text-2xl font-semibold tracking-wide flex items-center gap-2">
+          <FaBookOpen className="text-blue-400" /> Notes & Stories
+        </h2>
         {!editing && (
-          <button className="view-mode text-app-primary hover:text-link-hover" onClick={handleEdit}>
-            <i className="fas fa-pencil-alt"></i> Edit
+          <button className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-blue-100 text-blue-600 text-sm" onClick={handleEdit} title="Edit Notes">
+            <FaPen />
           </button>
         )}
-        {editing && (
-          <div className="edit-mode space-x-2">
-            <button className="bg-button-primary hover:bg-button-primary-hover text-white font-semibold py-1 px-3 rounded-md transition-colors" onClick={handleSave} disabled={saving}>
-              Save
+      </div>
+      {editing ? (
+        <div>
+          <textarea
+            className="w-full p-2 border rounded-md mb-2"
+            value={notes}
+            onChange={e => setNotes(e.target.value)}
+            rows={5}
+            disabled={saving}
+          />
+          {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
+          <div className="flex gap-2 justify-end">
+            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded-md flex items-center gap-2" onClick={handleSave} disabled={saving}>
+              <FaSave /> Save
             </button>
-            <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-1 px-3 rounded-md transition-colors" onClick={handleCancel} disabled={saving}>
-              Cancel
+            <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-1 px-3 rounded-md flex items-center gap-2" onClick={handleCancel} disabled={saving}>
+              <FaTimes /> Cancel
             </button>
           </div>
-        )}
-      </div>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      {!editing ? (
-        <p className="text-gray-800 whitespace-pre-line">{notes || 'No notes available.'}</p>
+        </div>
       ) : (
-        <textarea
-          className="w-full border rounded p-2 min-h-[120px]"
-          value={notes}
-          onChange={e => setNotes(e.target.value)}
-          disabled={saving}
-        />
+        <div className="whitespace-pre-line text-gray-800 min-h-[60px]">{notes ? notes : <span className="text-gray-400">No notes yet.</span>}</div>
       )}
     </section>
   );

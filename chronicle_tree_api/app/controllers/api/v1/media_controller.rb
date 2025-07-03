@@ -19,6 +19,8 @@ module Api
                  serializer: Api::V1::MediumSerializer,
                  status: :created
         else
+          Rails.logger.error("MEDIA SAVE ERROR: #{media.errors.full_messages.inspect}")
+          Rails.logger.error("PARAMS: #{params.inspect}")
           render json: { errors: media.errors.full_messages },
                  status: :unprocessable_entity
         end

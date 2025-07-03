@@ -1,10 +1,10 @@
 # ChronicleTree Development Roadmap
 
-This document outlines the development plan for the ChronicleTree full-stack application, covering both the Rails API backend and the React client frontend.
+This document outlines the current state, recent progress, and future plans for the ChronicleTree full-stack application, including both the Rails API backend and the React client frontend.
 
 ---
 
-# MiniMap Viewport Rectangle Improvements (June 2025)
+## MiniMap Viewport Rectangle Improvements
 
 - Refined the MiniMap viewport rectangle logic for the Family Tree page to ensure a visually clear, responsive, and user-friendly experience.
 - The viewport rectangle now:
@@ -16,11 +16,25 @@ This document outlines the development plan for the ChronicleTree full-stack app
   - Stores the pointer offset inside the rectangle on drag start, so the rectangle follows the cursor/finger precisely.
 - All changes are isolated to the MiniMap rectangle logic; no unrelated UI or logic was changed.
 
+**Next Steps:**
+- Further refine the MiniMap viewport rectangle for even better accessibility, visual clarity, and usability. Consider adding keyboard navigation, improved focus states, and more granular touch support. Gather user feedback to guide future improvements.
+
 These improvements make the MiniMap a robust and intuitive navigation tool for all users, regardless of device or zoom level.
 
 ---
 
 ## Recent Updates
+
+### [2025-07-01] Unified Notes, Profile Data, and Tree Node Display
+- **Single Note per Person:** The backend now enforces a single, unique note per person (not per profile), with a dedicated model, migration, serializer, and API endpoints. This simplifies note management and aligns with real-world use.
+- **Seed Data Overhaul:** All seed people have explicit IDs, gender, date_of_birth, and realistic values. Jane Doe is now marked as deceased (with a date of death) to enable robust UI testing of deceased status and date logic. Seeds include rich facts, timeline items, media, and relationships for comprehensive development/testing.
+- **Profile Data Alignment:** The frontend now displays all profile data—facts, timeline, media, relationships, and notes—using keys and structures that match the backend API. All data is reliably shown in the UI, with no missing fields.
+- **Age & Date Display Logic:**
+  - "Age" is only shown under the avatar in the profile and at tree nodes as "{age} y.o.". It is removed from the "Basic Information" section and person cards to avoid redundancy.
+  - Tree node status badge now displays "Deceased (YEAR)" if the person is deceased, with the year of death. No birth year is shown at the node for clarity.
+  - Person cards show full date of birth and, if deceased, date of death, for accurate historical context.
+- **UI/UX Consistency:** All changes are reflected in both backend and frontend, with careful attention to matching mockups and user expectations. The profile and tree are visually and functionally aligned.
+- **Testing & Validation:** All changes have been tested and confirmed in both backend and frontend. The system is ready for further feature development and user feedback.
 
 ### [2025-06-30] Comprehensive Seed Data & First Person Logic
 - `db/seeds.rb` now creates a fully connected, multi-generational family tree with all relationship types (parent, child, spouse, sibling, cousin, grandparent, etc.) for robust frontend and backend testing.
@@ -65,136 +79,118 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 - Navigation: Profile page links to relatives' profiles and tree/settings via `<Link>` components for seamless SPA navigation.
 - Next steps: Implement full CRUD for facts, timeline, media, and relationships directly from the profile page, with optimistic updates and error handling.
 
+### [2025-07-03] Profile Picture Upload & Avatar API Integration
+- Profile page now supports uploading and removing a profile picture (avatar) for each person.
+- Edit Profile Picture modal provides clear info on accepted file types (JPG, PNG, GIF) and max size (2MB), with client-side validation.
+- Avatar upload/removal is fully integrated with the backend API and Active Storage.
+- Backend API and serializer updated to expose the profile and its ID for reliable avatar actions from the frontend.
+- All error states (invalid file, missing profile, upload failure) are handled gracefully in the UI.
+- Seeds and schema confirmed: every person has a profile, and avatars are purged in seeds for clean test data.
+- This completes the modern, mockup-aligned profile page with robust media and avatar support.
+
 ---
 
-## July 2025: Profile, Tree, and Data Model Upgrades
+## Profile Picture (Avatar) Data Flow Diagram
 
-### [2025-07-01] Unified Notes, Age/Date Display, and Deceased Status
-- Refactored backend to support a single note per person (not per profile); updated models, migrations, serializers, and API endpoints accordingly.
-- Improved and expanded seed data: all people have explicit IDs, gender, date_of_birth, and realistic values; Jane Doe is now marked as deceased for UI testing.
-- Frontend now displays all profile data (facts, timeline, media, relationships, notes) and is fully aligned with backend API keys.
-- "Age" is now only shown under the avatar in the profile and at tree nodes as "{age} y.o."; it is removed from the "Basic Information" section and person cards.
-- Tree node status badge now displays "Deceased (YEAR)" if the person is deceased, with the year of death; no birth year is shown at the node.
-- Person cards show full date of birth and, if deceased, date of death.
-- All changes tested and confirmed in both backend and frontend.
+```mermaid
+graph TD
+  direction LR
+  A[User clicks Edit Profile Picture] --> B[Modal opens: shows file type/size info]
+  B --> C[User selects image file]
+  C --> D{Client-side validation}
+  D -- Valid --> E[PATCH /api/v1/profiles/:profile_id with avatar]
+  D -- Invalid --> F[Show error message]
+  E --> G[Backend: ProfileController updates avatar]
+  G --> H[Active Storage attaches file]
+  H --> I[PersonSerializer returns avatar_url and profile.id]
+  I --> J[Frontend reloads, shows new avatar]
+  C --> K[User clicks Remove Current Picture]
+  K --> L[PATCH /api/v1/profiles/:profile_id with avatar: null]
+  L --> M[Backend purges avatar]
+  M --> I
+```
+
+- All error states (invalid file, upload failure, missing profile) are handled in the UI.
+- Data always flows through the profile association, ensuring every person has a profile and avatar actions are reliable.
 
 ---
 
 ## Backend Development (Rails API)
 
-This section outlines the development plan for the ChronicleTree Rails API, focusing on building out features, ensuring stability through testing, and finalizing the database structure.
+This section outlines the current and planned development for the ChronicleTree Rails API, focusing on features, stability, and robust data.
 
 ### 1. API Endpoint Expansion
 
-The current API supports authentication. The next step is to build CRUD endpoints for core application resources.
-
--   **`PeopleController` (`/api/v1/people`)**:
-    -   Implement `index`, `show`, `create`, `update`, `destroy` actions.
-    -   Add a member route `GET /api/v1/people/:id/tree` to return family tree data for a specific person, powered by a `People::TreeBuilder` service.
--   **Nested Resources**:
-    -   **Facts**: `POST /api/v1/people/:person_id/facts` and `GET /api/v1/people/:person_id/facts`.
-    -   **Media**: `POST /api/v1/people/:person_id/media` (for uploads via ActiveStorage).
-    -   Top-level routes for updates/deletes: `PUT/PATCH /api/v1/facts/:id`, `DELETE /api/v1/media/:id`.
--   **`RelationshipsController`**:
-    -   Implement `create` and `destroy` to manage relationships between people.
--   **Authorization**:
-    -   Ensure all new endpoints are protected with `before_action :authenticate_user!`.
-    -   Implement ownership checks (e.g., using Pundit or custom logic) to ensure users can only modify their own data.
+- All core resources (people, facts, timeline items, media, relationships, notes) have full CRUD endpoints.
+- `/api/v1/people/:id/tree` and `/api/v1/people/:id/full_tree` return all data needed for tree visualization and profile display.
+- All endpoints are protected with authentication and ownership checks.
+- Nested and top-level routes for facts, media, and relationships are implemented.
 
 ### 2. Database Schema
 
--   Review and finalize migrations for `Person`, `Relationship`, `Fact`, and `Media` models.
--   Ensure all associations are correctly defined.
--   Add necessary database indexes and foreign key constraints for performance and data integrity.
--   Populate `db/seeds.rb` with comprehensive sample data for development.
+- Migrations finalized for all models: Person, Relationship, Fact, TimelineItem, Media, Note, Profile.
+- All associations, indexes, and foreign key constraints are in place for integrity and performance.
+- `db/seeds.rb` provides comprehensive, realistic sample data for development and UI testing, including deceased people and all relationship types.
 
 ### 3. Service Objects
 
-Encapsulate complex business logic into service objects to keep controllers and models lean.
-
--   **`People::TreeBuilder`**: This service is responsible for generating the node and edge data required for the frontend to render a family tree, centered on a specific person. It gathers the person, their parents, spouses, siblings, and children.
--   Future services may be created for tasks like media processing or data import/export.
+- `People::TreeBuilder` generates node/edge data for the frontend tree, including all relatives.
+- Additional services may be added for media processing, data import/export, or advanced queries.
 
 ### 4. Testing Strategy (RSpec)
 
-A robust test suite is critical for API stability.
-
--   **Request Specs**: Write integration tests for every API endpoint. Cover:
-    -   "Happy path" (successful requests with valid data).
-    -   Authentication errors (401 Unauthorized).
-    -   Authorization errors (403 Forbidden).
-    -   Not found errors (404 Not Found).
-    -   Validation errors (422 Unprocessable Entity).
--   **Model/Unit Tests**:
-    -   Test all model validations (e.g., a person cannot be their own parent).
-    -   Test service objects like `People::TreeBuilder` to ensure correct JSON output.
--   **Factories (FactoryBot)**:
-    -   Use FactoryBot to create test data, replacing or supplementing simple fixtures.
-
-### 5. CI/CD & Quality
-
--   Configure GitHub Actions to run `bundle exec rspec` on every pull request.
--   Integrate static analysis tools like RuboCop and Brakeman into the CI pipeline.
+- Request specs cover all API endpoints, including authentication, authorization, and validation errors.
+- Model/unit tests validate all business logic and associations.
+- FactoryBot is used for robust test data.
+- CI runs all tests and static analysis (RuboCop, Brakeman) on every pull request.
 
 ---
 
 ## Frontend Development (React Client)
 
-This section outlines the plan for building the ChronicleTree React client, from converting static mockups to creating a dynamic, data-driven single-page application (SPA).
+This section outlines the current and planned development for the ChronicleTree React client.
 
-### 1. Convert HTML Mockups to React Components
+### 1. Component Architecture & Styling
 
-The primary goal is to translate the static HTML mockups into a reusable and stateful component architecture.
-
--   **Component Breakdown**:
-    -   **Pages**: `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `ProfilePage`, `SettingsPage`, `TreeViewPage`.
-    -   **Layout**: `NavBar`, `PageHeader`.
-    -   **Feature Components**: `ProfileHeader`, `FactList`, `Timeline`, `MediaGallery`, `RelationshipManager`.
--   **Styling**: Continue using Tailwind CSS as established in the mockups.
--   **State Management**: Use React hooks (`useState`, `useEffect`, `useContext`) for managing component state.
--   **Routing**: Implement client-side routing using `react-router-dom` to create a seamless SPA experience. Replace all `<a>` tags with `<Link>` components for internal navigation.
+- All static HTML mockups have been converted to modular, reusable React components.
+- Tailwind CSS is used for all styling.
+- State is managed with React hooks and context; routing uses `react-router-dom`.
 
 ### 2. API Integration & State Management
 
-Connect the React components to the Rails backend to handle live data.
+- Axios is used for all API requests, with JWT authentication and auto-logout on 401.
+- `@tanstack/react-query` manages server state, caching, and optimistic updates.
+- All profile and tree data is fetched live from the backend and kept in sync.
 
--   **API Client**: Use `axios` for making HTTP requests. Create a centralized API client instance that can be configured with the base URL and authentication headers.
--   **Authentication Flow**:
-    -   On login/registration, store the received JWT in `localStorage`.
-    -   Attach the JWT as a `Bearer` token in the `Authorization` header for all authenticated API requests.
-    -   Implement an auto-logout mechanism that clears the token and redirects to the login page upon receiving a `401 Unauthorized` response.
--   **Data Fetching**: Use `@tanstack/react-query` for server state management, including caching, refetching, and optimistic updates.
--   **Authentication**: Implement context-based authentication using `AuthContext` to manage JWTs and user state.
+### 3. Tree Visualization with React Flow
 
-### 3. Tree Visualization with reactflow (React Flow)
-
-Implement the interactive family tree view.
-
--   **Library**: Use `reactflow` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
--   **State Management**: Use a dedicated `TreeStateContext` to manage UI state related to the tree, such as the currently selected node and the visibility of detail cards. This decouples the tree view from the components that display node information.
--   **Data Fetching**: Use the `useTree` hook with `@tanstack/react-query` to fetch node and edge data from the `/api/v1/people/:id/tree` endpoint.
--   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges, ensuring a clean and readable tree structure.
--   **Custom Nodes**: Develop a `CustomNode` component to display person details (name, photo, dates) as shown in the mockups.
--   **Interaction**:
-    -   Implement pan and zoom functionality using React Flow's built-in controls.
-    -   Display a modal `PersonCard` component on node click, managed via `TreeStateContext`.
-    -   Implement smooth viewport transitions to center the view on a selected node.
+- The family tree is rendered with `reactflow`, using data from `/api/v1/people/:id/tree`.
+- `TreeStateContext` manages UI state for the tree, including selected node and modal/card visibility.
+- Nodes use a custom `CustomNode` component showing name, avatar, gender, age, and deceased status (with year if applicable).
+- Person cards show full birth/death dates and all profile data.
+- Pan/zoom, smooth centering, and a robust MiniMap are implemented.
+- The MiniMap viewport rectangle is fully responsive and accessible, supporting both mouse and touch interactions, and always stays within bounds.
 
 ### 4. Forms and User Input
 
-Build robust forms for creating and editing data.
+- All forms (person, fact, timeline, media, relationship) use `React Hook Form` and `Yup` for validation.
+- Modals are unified and accessible; only one can be open at a time.
+- All form flows match the latest mockups, including conditional fields (e.g., death date only if "Deceased" is checked).
 
--   **Form Library**: Use a library like `React Hook Form` with `Yup` for validation to handle form state, submission, and client-side validation efficiently.
--   **Forms to Implement**:
-    -   `PersonForm` (add/edit person)
-    -   `FactForm` (add/edit fact)
-    -   `MediaUploadForm`
-    -   `RelationshipForm`
+### 5. Testing & CI
 
-### 5. Testing Strategy
+- All major components and flows are covered by unit and integration tests using Vitest and React Testing Library.
+- CI runs all tests and linting on every pull request.
+- Static analysis and accessibility checks are part of the CI pipeline.
 
-Ensure the frontend is reliable and bug-free.
+---
 
--   **Unit/Component Tests**: Use `Vitest` and `React Testing Library` to write tests for individual components, especially forms and components with complex logic.
--   **Integration Tests**: Create integration tests for key user flows, such as login, profile updates, and adding a family member.
--   **CI/CD**: Configure GitHub Actions to run `npm test` and `npm run lint` on every pull request`.
+## Future Plans & Next Steps
+
+- Add advanced search and filtering for people and relationships.
+- Implement export/import of tree data (e.g., GEDCOM support).
+- Add user settings, notifications, and multi-user collaboration features.
+- Continue to expand test coverage and improve accessibility.
+- Gather user feedback for further UI/UX improvements.
+- Explore AI-powered features for relationship suggestions and data enrichment.
+- Expand documentation and onboarding guides for new users and contributors.

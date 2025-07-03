@@ -1,45 +1,51 @@
 import React from 'react';
+import { FaCalendarAlt, FaInfoCircle, FaMapMarkerAlt, FaAlignLeft, FaPen, FaTrashAlt } from 'react-icons/fa';
 
 const FactList = ({ facts, onEdit, onDelete }) => {
   if (!facts || facts.length === 0) {
-    return <p className="text-gray-400">No facts available.</p>;
+    return <div className="text-gray-400 text-center py-6">No key facts available.</div>;
   }
   return (
-    <div className="bg-white shadow sm:rounded-lg">
-      <div className="px-4 py-5 sm:p-6">
-        <h3 className="text-lg leading-6 font-medium text-gray-900">Key Facts</h3>
-        <div className="mt-2 max-w-xl text-sm text-gray-500">
-          <p>Important dates and events in this person's life.</p>
-        </div>
-        <ul className="mt-5 divide-y divide-gray-200">
-          {facts.map((fact) => (
-            <li key={fact.id} className="py-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="text-sm font-semibold text-gray-600 mr-4">{fact.date ? new Date(fact.date).toLocaleDateString() : ''}</span>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{fact.title}</p>
-                  <p className="text-sm text-gray-500">{fact.description}</p>
-                </div>
-              </div>
-              {(onEdit || onDelete) && (
-                <div className="flex gap-2 ml-4">
-                  {onEdit && (
-                    <button className="text-blue-600 hover:underline text-xs" onClick={() => onEdit(fact)} title="Edit Fact">
-                      <i className="fas fa-pencil-alt"></i>
-                    </button>
-                  )}
-                  {onDelete && (
-                    <button className="text-red-500 hover:underline text-xs" onClick={() => onDelete(fact.id)} title="Delete Fact">
-                      <i className="fas fa-trash-alt"></i>
-                    </button>
-                  )}
-                </div>
+    <ul className="space-y-2 text-app-primary text-sm">
+      {facts.map((fact) => (
+        <li key={fact.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-slate-100 shadow group hover:bg-blue-50 transition">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
+            <span className="text-xs font-semibold text-blue-600 min-w-[80px] flex items-center gap-1">
+              <FaCalendarAlt className="mr-1 text-blue-400" />
+              {fact.date ? new Date(fact.date).toLocaleDateString() : ''}
+            </span>
+            <span className="text-sm font-medium text-slate-900 truncate flex items-center gap-1">
+              <FaInfoCircle className="text-slate-400" />
+              {fact.title || fact.fact_type}
+            </span>
+            {fact.place && (
+              <span className="text-xs text-slate-500 ml-2 flex items-center gap-1">
+                <FaMapMarkerAlt className="text-slate-300" />{fact.place}
+              </span>
+            )}
+            {fact.description && (
+              <span className="text-xs text-slate-500 ml-2 flex items-center gap-1">
+                <FaAlignLeft className="text-slate-300" />{fact.description}
+              </span>
+            )}
+          </div>
+          {(onEdit || onDelete) && (
+            <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              {onEdit && (
+                <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-blue-100" onClick={() => onEdit(fact)} title="Edit Fact">
+                  <FaPen className="text-blue-600" />
+                </button>
               )}
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
+              {onDelete && (
+                <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100" onClick={() => onDelete(fact.id)} title="Delete Fact">
+                  <FaTrashAlt className="text-red-600" />
+                </button>
+              )}
+            </div>
+          )}
+        </li>
+      ))}
+    </ul>
   );
 };
 

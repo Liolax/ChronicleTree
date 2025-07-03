@@ -14,6 +14,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   has_many :timeline_items, key: :timeline_events, serializer: Api::V1::TimelineItemSerializer
   has_many :media, serializer: Api::V1::MediumSerializer
   has_many :relatives, serializer: Api::V1::RelativeSerializer
+  has_one :profile, serializer: Api::V1::ProfileSerializer
 
   def full_name
     "#{object.first_name} #{object.last_name}"
