@@ -96,6 +96,11 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 - Updated frontend media gallery to display only the media `title` (never the raw filename), with a fallback label if missing.
 - Users can now set and edit a media title via the UI and API, improving clarity and usability in the profile gallery.
 
+### [2025-07-03] Profile Navigation Streamlined
+- Removed "Profile" from the main navigation bar (desktop and mobile) in the React client.
+- Profile pages are now only accessible by clicking a person node or person card in the tree view, matching the intended user flow and mockups.
+- This change reduces navigation clutter and ensures users always access profiles in the context of the family tree.
+
 ---
 
 ## Profile Picture (Avatar) Data Flow Diagram
