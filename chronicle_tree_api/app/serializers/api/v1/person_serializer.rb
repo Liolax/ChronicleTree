@@ -38,4 +38,8 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   def note
     object.note ? Api::V1::NoteSerializer.new(object.note, scope: scope) : nil
   end
+
+  def media
+    object.media.select { |m| m.file.attached? }
+  end
 end

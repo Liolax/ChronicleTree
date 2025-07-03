@@ -66,10 +66,10 @@ TimelineItem.find_or_create_by!(id: 208, person: p1, title: 'Married Jane', date
 TimelineItem.find_or_create_by!(id: 209, person: p2, title: 'Moved to City B', date: Date.today - 7.years, place: 'City B', icon: 'home')
 TimelineItem.find_or_create_by!(id: 210, person: alice, title: 'Exhibition', date: Date.today - 1.year, place: 'Gallery', icon: 'star')
 # --- MEDIA ---
-Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Profile photo')
-Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting')
-Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane graduation photo')
-Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David at work')
+Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Profile photo', title: 'John Doe Profile Photo')
+Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting', title: 'Alice Painting')
+Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane graduation photo', title: 'Jane Graduation Photo')
+Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David at work', title: 'David at Work')
 # --- RELATIONSHIPS ---
 Relationship.find_or_create_by!(id: 401, person: alice, relative: david, relationship_type: 'spouse')
 Relationship.find_or_create_by!(id: 402, person: david, relative: alice, relationship_type: 'spouse')

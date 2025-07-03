@@ -1,15 +1,26 @@
 # app/serializers/api/v1/medium_serializer.rb
 class Api::V1::MediumSerializer < ActiveModel::Serializer
-  attributes :id, :file_url, :description
-
-  # rails_blob_url requires including the URL helper
   include Rails.application.routes.url_helpers
 
-  def file_url
+  attributes :id, :title, :description, :created_at, :updated_at, :url, :filename, :content_type, :byte_size
+
+  def url
     if object.file.attached?
       rails_blob_url(object.file, only_path: true)
     else
       nil
     end
+  end
+
+  def filename
+    object.file.filename.to_s if object.file.attached?
+  end
+
+  def content_type
+    object.file.content_type if object.file.attached?
+  end
+
+  def byte_size
+    object.file.byte_size if object.file.attached?
   end
 end

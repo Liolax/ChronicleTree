@@ -67,6 +67,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
     t.string "description"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "title"
     t.index ["attachable_type", "attachable_id"], name: "index_media_on_attachable"
   end
 

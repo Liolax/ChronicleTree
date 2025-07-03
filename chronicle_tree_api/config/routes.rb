@@ -62,7 +62,7 @@ Rails.application.routes.draw do
       # Sub‐resources that can be updated/destroyed directly
       resources :facts,          only: %i[update destroy]
       resources :timeline_items, only: %i[update destroy]
-      resources :media,          only: %i[destroy]
+      resources :media, only: %i[update destroy]
       resources :relationships,  only: %i[create destroy]
       resources :profiles,       only: %i[index show create update destroy]
     end

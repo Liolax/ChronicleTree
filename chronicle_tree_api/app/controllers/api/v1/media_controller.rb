@@ -2,7 +2,7 @@ module Api
   module V1
     class MediaController < BaseController
       before_action :set_person, only: %i[index create]
-      before_action :set_media,  only: %i[destroy]
+      before_action :set_media,  only: %i[destroy update]
 
       # GET /api/v1/people/:person_id/media
       def index
@@ -30,6 +30,15 @@ module Api
       def destroy
         @media.destroy
         head :no_content
+      end
+
+      # PATCH/PUT /api/v1/media/:id
+      def update
+        if @media.update(media_params)
+          render json: @media, status: :ok
+        else
+          render json: { errors: @media.errors.full_messages }, status: :unprocessable_entity
+        end
       end
 
       private
