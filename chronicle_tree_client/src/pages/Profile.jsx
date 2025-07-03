@@ -229,23 +229,6 @@ export default function Profile() {
             </div>
             <FactList facts={facts} onEdit={handleFactEdit} onDelete={handleFactDelete} />
           </section>
-          {/* Timeline */}
-          <section className="w-full bg-slate-50 rounded-xl p-6 shadow-inner border border-slate-100">
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-lg font-semibold tracking-wide flex items-center gap-2">
-                <FaStream className="text-blue-400" /> Life Timeline
-              </h3>
-              <button
-                className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 shadow transition"
-                onClick={() => { setEditingTimeline(null); setShowAddTimeline(true); }}
-                title="Add Milestone"
-                aria-label="Add Milestone"
-              >
-                <FaPlus className="text-lg" />
-              </button>
-            </div>
-            <Timeline events={timeline} onEdit={handleTimelineEdit} onDelete={handleTimelineDelete} compact />
-          </section>
           {/* Relationships */}
           <RelationshipManager
             person={person}
@@ -277,6 +260,23 @@ export default function Profile() {
               Object.assign(person, updated);
               setEditingDetails(false);
             }} />
+          </section>
+          {/* Life Timeline (moved here) */}
+          <section className="w-full bg-slate-50 rounded-xl p-6 shadow-inner border border-slate-100">
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="text-lg font-semibold tracking-wide flex items-center gap-2">
+                <FaStream className="text-blue-400" /> Life Timeline
+              </h3>
+              <button
+                className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 shadow transition"
+                onClick={() => { setEditingTimeline(null); setShowAddTimeline(true); }}
+                title="Add Milestone"
+                aria-label="Add Milestone"
+              >
+                <FaPlus className="text-lg" />
+              </button>
+            </div>
+            <Timeline events={timeline} onEdit={handleTimelineEdit} onDelete={handleTimelineDelete} compact />
           </section>
           {/* Notes & Stories */}
           <Notes person={person} onNotesUpdated={handleNotesUpdated} />
@@ -400,12 +400,12 @@ export default function Profile() {
           </div>
         </div>
       )}
-      {showAddMedia && (
+      { (showAddMedia || editingMedia) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg p-6 shadow-xl w-full max-w-md">
             <MediaForm
               personId={person.id}
-              mediaItem={editingMedia}
+              media={editingMedia}
               onMediaAdded={handleMediaAdded}
               onMediaUpdated={handleMediaUpdated}
               onCancel={() => { setShowAddMedia(false); setEditingMedia(null); }}
