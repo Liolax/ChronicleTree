@@ -238,6 +238,23 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
       const apiNodes = data.nodes;
       const apiEdges = data.edges;
       // Convert backend format to React Flow format
+      // Check for duplicate node IDs
+      const nodeIdCounts = {};
+      apiNodes.forEach(n => {
+        const id = String(n.id);
+        nodeIdCounts[id] = (nodeIdCounts[id] || 0) + 1;
+      });
+      const duplicateNodeIds = Object.entries(nodeIdCounts).filter(([id, count]) => count > 1);
+      // Remove duplicate edge check and warning, since edge IDs are now unique
+      // const edgeIdCounts = {};
+      // apiEdges.forEach(e => {
+      //   const id = `${e.type}-${e.from}-${e.to}`;
+      //   edgeIdCounts[id] = (edgeIdCounts[id] || 0) + 1;
+      // });
+      // const duplicateEdgeIds = Object.entries(edgeIdCounts).filter(([id, count]) => count > 1);
+      // if (duplicateEdgeIds.length) {
+      //   console.warn('Duplicate edge IDs detected:', duplicateEdgeIds);
+      // }
       const rfNodes = apiNodes.map((n) => ({
         id: String(n.id),
         type: "person",
@@ -252,7 +269,7 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
         className: 'tree-node-animate', // <-- add this
       }));
       const rfEdges = apiEdges.map((e, i) => ({
-        id: `${e.type}-${e.from}-${e.to}`,
+        id: `${e.type}-${e.from}-${e.to}-${i}`,
         source: String(e.from),
         target: String(e.to),
         type: e.type,
@@ -491,20 +508,26 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
     );
   });
 
+  // --- Render unconnected people as nodes in ReactFlow ---
+  // Instead of custom cards, show all nodes (including unconnected) in ReactFlow
+  // Remove the separate unconnected people cards near Add Person button
+
   return (
     <div className="reactflow-wrapper" ref={reactFlowWrapper} style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      {/* Add Person Button, always visible at the top center of the tree area */}
-      <div className="w-full flex justify-center items-start" style={{ marginTop: 24, marginBottom: 8, zIndex: 10, position: 'relative', top: '0' }}>
-        <button
-          onClick={openAddPersonModal}
-          className="bg-button-primary text-white rounded-full shadow-lg flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-button-primary"
-          aria-label="Add Person"
-          title="Add Person"
-          type="button"
-        >
-          <span className="text-2xl leading-none">+</span>
-          <span className="hidden sm:inline">Add Person</span>
-        </button>
+      {/* Add Person Button at the top center of the tree area */}
+      <div className="w-full flex flex-col items-center" style={{ marginTop: 24, marginBottom: 8, zIndex: 10, position: 'relative', top: '0' }}>
+        <div className="flex flex-row items-center gap-6">
+          <button
+            onClick={openAddPersonModal}
+            className="bg-button-primary text-white rounded-full shadow-lg flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-button-primary"
+            aria-label="Add Person"
+            title="Add Person"
+            type="button"
+          >
+            <span className="text-2xl leading-none">+</span>
+            <span className="hidden sm:inline">Add Person</span>
+          </button>
+        </div>
       </div>
       <ReactFlow
         nodes={nodes}

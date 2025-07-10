@@ -1,27 +1,36 @@
 import React from 'react';
 import Modal from '../../UI/Modal';
 import PersonForm from '../../Forms/PersonForm';
-import { useAddPerson } from '../../../services/people';
+import { useAddPerson, usePeople } from '../../../services/people';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
 
-export default function AddPersonModal({ isOpen = true, onClose, people = [], isFirstPerson = false }) {
+export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson = false }) {
   const addPerson = useAddPerson();
+  const { data: people = [] } = usePeople();
 
   const handleSubmit = async (data) => {
-    // Only send relationship fields if not the first person
+    // Only send permitted fields
     const payload = {
       first_name: data.firstName,
       last_name: data.lastName,
-      birth_date: data.birthDate,
-      death_date: data.deathDate,
+      date_of_birth: data.date_of_birth, // <-- fixed field name
+      date_of_death: data.date_of_death, // <-- fixed field name
       gender: data.gender,
-      is_deceased: data.isDeceased,
     };
+    // Add relationship type and related person if not first person
     if (!isFirstPerson) {
+      if (!data.relationType) {
+        alert('Relationship Type is required');
+        return;
+      }
+      if (!data.relatedPersonId) {
+        alert('Related Person is required');
+        return;
+      }
       payload.relation_type = data.relationType;
       payload.related_person_id = data.relatedPersonId;
     }
-    console.log('AddPersonModal payload:', payload); // Debug log
+    console.log('AddPersonModal payload:', { person: payload }); // Debug log
     try {
       await addPerson.mutateAsync(payload);
       onClose();
@@ -47,6 +56,7 @@ export default function AddPersonModal({ isOpen = true, onClose, people = [], is
         isLoading={addPerson.isPending}
         people={people}
         isFirstPerson={isFirstPerson}
+        showRelationshipFields={true}
         aria-describedby="add-person-instructions"
         cancelVariant="grey"
       />
