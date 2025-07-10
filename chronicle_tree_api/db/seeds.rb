@@ -71,18 +71,34 @@ Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person',
 Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane graduation photo', title: 'Jane Graduation Photo')
 Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David at work', title: 'David at Work')
 # --- RELATIONSHIPS ---
-Relationship.find_or_create_by!(id: 401, person: alice, relative: david, relationship_type: 'spouse')
-Relationship.find_or_create_by!(id: 402, person: david, relative: alice, relationship_type: 'spouse')
-Relationship.find_or_create_by!(id: 403, person: alice, relative: bob, relationship_type: 'parent')
-Relationship.find_or_create_by!(id: 404, person: david, relative: bob, relationship_type: 'parent')
-Relationship.find_or_create_by!(id: 405, person: alice, relative: emily, relationship_type: 'parent')
-Relationship.find_or_create_by!(id: 406, person: david, relative: emily, relationship_type: 'parent')
-Relationship.find_or_create_by!(id: 407, person: alice, relative: charlie, relationship_type: 'sibling')
-Relationship.find_or_create_by!(id: 408, person: charlie, relative: alice, relationship_type: 'sibling')
-Relationship.find_or_create_by!(id: 409, person: p1, relative: p2, relationship_type: 'spouse')
-Relationship.find_or_create_by!(id: 410, person: p2, relative: p1, relationship_type: 'spouse')
-# Extra relationships for better testing
-Relationship.find_or_create_by!(id: 411, person: bob, relative: emily, relationship_type: 'sibling')
-Relationship.find_or_create_by!(id: 412, person: emily, relative: bob, relationship_type: 'sibling')
+# John and Jane are spouses
+Relationship.find_or_create_by!(person: p1, relative: p2, relationship_type: 'spouse')
+Relationship.find_or_create_by!(person: p2, relative: p1, relationship_type: 'spouse')
+
+# John and Jane are parents of Charlie, Alice, and David
+Relationship.find_or_create_by!(person: p1, relative: charlie, relationship_type: 'child')
+Relationship.find_or_create_by!(person: p2, relative: charlie, relationship_type: 'child')
+Relationship.find_or_create_by!(person: p1, relative: alice, relationship_type: 'child')
+Relationship.find_or_create_by!(person: p2, relative: alice, relationship_type: 'child')
+Relationship.find_or_create_by!(person: p1, relative: david, relationship_type: 'child')
+Relationship.find_or_create_by!(person: p2, relative: david, relationship_type: 'child')
+
+# Alice and David are spouses
+Relationship.find_or_create_by!(person: alice, relative: david, relationship_type: 'spouse')
+Relationship.find_or_create_by!(person: david, relative: alice, relationship_type: 'spouse')
+
+# Alice and David are parents of Bob and Emily
+Relationship.find_or_create_by!(person: alice, relative: bob, relationship_type: 'child')
+Relationship.find_or_create_by!(person: david, relative: bob, relationship_type: 'child')
+Relationship.find_or_create_by!(person: alice, relative: emily, relationship_type: 'child')
+Relationship.find_or_create_by!(person: david, relative: emily, relationship_type: 'child')
+
+# Bob and Emily are siblings
+Relationship.find_or_create_by!(person: bob, relative: emily, relationship_type: 'sibling')
+Relationship.find_or_create_by!(person: emily, relative: bob, relationship_type: 'sibling')
+
+# Charlie is sibling to Alice
+Relationship.find_or_create_by!(person: charlie, relative: alice, relationship_type: 'sibling')
+Relationship.find_or_create_by!(person: alice, relative: charlie, relationship_type: 'sibling')
 
 puts 'Fixture-style test people and their data added.'

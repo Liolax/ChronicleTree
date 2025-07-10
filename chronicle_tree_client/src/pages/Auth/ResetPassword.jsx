@@ -11,6 +11,8 @@ export default function ResetPassword() {
   const location = useLocation();
   const [error, setError] = useState(null);
   const [status, setStatus] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Extract token from URL query params
   const token = new URLSearchParams(location.search).get('reset_password_token');
@@ -44,21 +46,43 @@ export default function ResetPassword() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">New Password</label>
-            <input
-              id="password"
-              type="password"
-              {...register('password', { required: true })}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...register('password', { required: true })}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
           <div>
             <label htmlFor="password_confirmation" className="block text-sm font-medium text-gray-700">Confirm New Password</label>
-            <input
-              id="password_confirmation"
-              type="password"
-              {...register('password_confirmation', { required: true })}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            />
+            <div className="relative">
+              <input
+                id="password_confirmation"
+                type={showConfirm ? "text" : "password"}
+                {...register('password_confirmation', { required: true })}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10"
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+                onClick={() => setShowConfirm(v => !v)}
+                aria-label={showConfirm ? "Hide password" : "Show password"}
+              >
+                {showConfirm ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
           <button
             type="submit"

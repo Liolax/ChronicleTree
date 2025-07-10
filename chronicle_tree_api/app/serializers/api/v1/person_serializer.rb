@@ -8,12 +8,12 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :date_of_birth,
              :date_of_death,
              :avatar_url,
-             :note
+             :note,
+             :relatives
 
   has_many :facts, key: :key_facts, serializer: Api::V1::FactSerializer
   has_many :timeline_items, key: :timeline_events, serializer: Api::V1::TimelineItemSerializer
   has_many :media, serializer: Api::V1::MediumSerializer
-  has_many :relatives, serializer: Api::V1::RelativeSerializer
   has_one :profile, serializer: Api::V1::ProfileSerializer
 
   def full_name
@@ -37,6 +37,17 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
 
   def note
     object.note ? Api::V1::NoteSerializer.new(object.note, scope: scope) : nil
+  end
+
+  # Custom relatives array with relationship_type
+  def relatives
+    object.relationships.includes(:relative).map do |rel|
+      rel.relative.as_json(only: [:id, :first_name, :last_name]).merge({
+        full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
+        relationship_type: rel.relationship_type,
+        id: rel.relative.id
+      })
+    end
   end
 
   def media

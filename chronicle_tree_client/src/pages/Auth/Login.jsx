@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -6,6 +7,7 @@ import PageHeader from '../../components/Layout/PageHeader';
 export default function Login() {
   const { register: registerInput, handleSubmit } = useForm();
   const { login } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = ({ email, password }) => {
     login(email, password)
@@ -34,13 +36,24 @@ export default function Login() {
             <label htmlFor="password" className="block text-sm font-medium text-gray-700">
               Password
             </label>
-            <input
-              id="password"
-              type="password"
-              {...registerInput('password', { required: true })}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              placeholder="••••••••"
-            />
+            <div className="relative">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                {...registerInput('password', { required: true })}
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                tabIndex={-1}
+                onClick={() => setShowPassword(v => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? '🙈' : '👁️'}
+              </button>
+            </div>
           </div>
           <button
             type="submit"

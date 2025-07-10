@@ -23,6 +23,15 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Handle dropdown change
+  const handleFactTypeChange = (e) => {
+    const selected = e.target.value;
+    setFactType(selected);
+    if (selected !== 'Custom') {
+      setCustomLabel(''); // Clear custom label when switching to standard type
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -68,7 +77,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
           <select
             id="label"
             value={factType}
-            onChange={e => setFactType(e.target.value)}
+            onChange={handleFactTypeChange}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           >
             {FACT_TYPE_OPTIONS.map(option => (
