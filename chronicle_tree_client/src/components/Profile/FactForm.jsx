@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import api from '../../api/api';
 
+const FACT_TYPE_OPTIONS = [
+  'Birth',
+  'Death',
+  'Marriage',
+  'Residence',
+  'Occupation',
+  'Custom',
+];
+
 export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, onCancel }) {
   const isEdit = !!fact;
-  // Map UI fields to backend attributes
-  const [label, setLabel] = useState(fact?.label || 'Birth');
+  // Determine if the label is custom
+  const isLabelCustom = fact && fact.label && !FACT_TYPE_OPTIONS.includes(fact.label);
+  // State for select and custom label
+  const [factType, setFactType] = useState(isLabelCustom ? 'Custom' : (fact?.label || 'Birth'));
+  const [customLabel, setCustomLabel] = useState(isLabelCustom ? fact.label : '');
   const [value, setValue] = useState(fact?.value || '');
   const [date, setDate] = useState(fact?.date || '');
   const [location, setLocation] = useState(fact?.location || '');
@@ -16,18 +28,25 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
     setSubmitting(true);
     setError(null);
     try {
+      const labelToSend = factType === 'Custom' ? customLabel.trim() : factType;
+      if (!labelToSend) {
+        setError('Please enter a Fact Type.');
+        setSubmitting(false);
+        return;
+      }
       let response;
       if (isEdit) {
         response = await api.put(`/facts/${fact.id}`, {
-          fact: { label, value, date, location }
+          fact: { label: labelToSend, value, date, location }
         });
         onFactUpdated && onFactUpdated(response.data);
       } else {
         response = await api.post(`/people/${personId}/facts`, {
-          fact: { label, value, date, location }
+          fact: { label: labelToSend, value, date, location }
         });
         onFactAdded && onFactAdded(response.data);
-        setLabel('Birth');
+        setFactType('Birth');
+        setCustomLabel('');
         setValue('');
         setDate('');
         setLocation('');
@@ -46,14 +65,26 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label htmlFor="label" className="block text-sm font-medium text-gray-700">Fact Type</label>
-          <select id="label" value={label} onChange={e => setLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
-            <option>Birth</option>
-            <option>Death</option>
-            <option>Marriage</option>
-            <option>Residence</option>
-            <option>Occupation</option>
-            <option>Custom</option>
+          <select
+            id="label"
+            value={factType}
+            onChange={e => setFactType(e.target.value)}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          >
+            {FACT_TYPE_OPTIONS.map(option => (
+              <option key={option} value={option}>{option}</option>
+            ))}
           </select>
+          {factType === 'Custom' && (
+            <input
+              type="text"
+              className="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+              placeholder="Enter custom fact type"
+              value={customLabel}
+              onChange={e => setCustomLabel(e.target.value)}
+              autoFocus
+            />
+          )}
         </div>
         <div>
           <label htmlFor="date" className="block text-sm font-medium text-gray-700">Date</label>
