@@ -3,10 +3,11 @@ import api from '../../api/api';
 
 export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, onCancel }) {
   const isEdit = !!fact;
-  const [factType, setFactType] = useState(fact?.fact_type || 'Birth');
+  // Map UI fields to backend attributes
+  const [label, setLabel] = useState(fact?.label || 'Birth');
+  const [value, setValue] = useState(fact?.value || '');
   const [date, setDate] = useState(fact?.date || '');
-  const [place, setPlace] = useState(fact?.place || '');
-  const [description, setDescription] = useState(fact?.description || '');
+  const [location, setLocation] = useState(fact?.location || '');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -15,19 +16,21 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
     setSubmitting(true);
     setError(null);
     try {
+      let response;
       if (isEdit) {
-        const response = await api.put(`/facts/${fact.id}`, {
-          fact: { fact_type: factType, date, place, description }
+        response = await api.put(`/facts/${fact.id}`, {
+          fact: { label, value, date, location }
         });
         onFactUpdated && onFactUpdated(response.data);
       } else {
-        const response = await api.post(`/people/${personId}/facts`, {
-          fact: { fact_type: factType, date, place, description }
+        response = await api.post(`/people/${personId}/facts`, {
+          fact: { label, value, date, location }
         });
         onFactAdded && onFactAdded(response.data);
+        setLabel('Birth');
+        setValue('');
         setDate('');
-        setPlace('');
-        setDescription('');
+        setLocation('');
       }
     } catch (err) {
       setError('Failed to save fact. Please check your input.');
@@ -42,8 +45,8 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
       {error && <p className="text-red-500 mb-2">{error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="factType" className="block text-sm font-medium text-gray-700">Fact Type</label>
-          <select id="factType" value={factType} onChange={e => setFactType(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+          <label htmlFor="label" className="block text-sm font-medium text-gray-700">Fact Type</label>
+          <select id="label" value={label} onChange={e => setLabel(e.target.value)} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
             <option>Birth</option>
             <option>Death</option>
             <option>Marriage</option>
@@ -57,12 +60,12 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
           <input type="text" id="date" value={date} onChange={e => setDate(e.target.value)} placeholder="e.g., 1 Jan 1900" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="place" className="block text-sm font-medium text-gray-700">Place</label>
-          <input type="text" id="place" value={place} onChange={e => setPlace(e.target.value)} placeholder="e.g., London, England" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700">Location</label>
+          <input type="text" id="location" value={location} onChange={e => setLocation(e.target.value)} placeholder="e.g., London, England" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm" />
         </div>
         <div className="md:col-span-2">
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
-          <textarea id="description" value={description} onChange={e => setDescription(e.target.value)} rows="3" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+          <label htmlFor="value" className="block text-sm font-medium text-gray-700">Value / Description</label>
+          <textarea id="value" value={value} onChange={e => setValue(e.target.value)} rows="3" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-4">

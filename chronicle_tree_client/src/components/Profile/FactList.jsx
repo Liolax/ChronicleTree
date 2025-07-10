@@ -10,22 +10,26 @@ const FactList = ({ facts, onEdit, onDelete }) => {
       {facts.map((fact) => (
         <li key={fact.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-slate-100 shadow group hover:bg-blue-50 transition">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
+            {/* Fact Type (label) */}
             <span className="text-xs font-semibold text-blue-600 min-w-[80px] flex items-center gap-1">
-              <FaCalendarAlt className="mr-1 text-blue-400" />
+              <FaInfoCircle className="mr-1 text-blue-400" />
+              {fact.label}
+            </span>
+            {/* Date */}
+            <span className="text-xs text-slate-700 flex items-center gap-1">
+              <FaCalendarAlt className="text-slate-400" />
               {fact.date ? new Date(fact.date).toLocaleDateString() : ''}
             </span>
-            <span className="text-sm font-medium text-slate-900 truncate flex items-center gap-1">
-              <FaInfoCircle className="text-slate-400" />
-              {fact.title || fact.fact_type}
-            </span>
-            {fact.place && (
+            {/* Location */}
+            {fact.location && (
               <span className="text-xs text-slate-500 ml-2 flex items-center gap-1">
-                <FaMapMarkerAlt className="text-slate-300" />{fact.place}
+                <FaMapMarkerAlt className="text-slate-300" />{fact.location}
               </span>
             )}
-            {fact.description && (
+            {/* Value / Description */}
+            {fact.value && (
               <span className="text-xs text-slate-500 ml-2 flex items-center gap-1">
-                <FaAlignLeft className="text-slate-300" />{fact.description}
+                <FaAlignLeft className="text-slate-300" />{fact.value}
               </span>
             )}
           </div>

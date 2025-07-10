@@ -14,8 +14,6 @@ module Api
       # POST /api/v1/people/:person_id/facts
       def create
         @fact = @person.facts.build(fact_params)
-        @fact.user = current_user
-
         if @fact.save
           render json: @fact, status: :created
         else
@@ -45,11 +43,14 @@ module Api
       end
 
       def set_fact
-        @fact = current_user.facts.find(params[:id])
+        @fact = Fact.find(params[:id])
+        unless @fact.person.user_id == current_user.id
+          head :forbidden
+        end
       end
 
       def fact_params
-        params.require(:fact).permit(:fact_type, :date, :place, :description)
+        params.require(:fact).permit(:label, :value, :date, :location)
       end
     end
   end
