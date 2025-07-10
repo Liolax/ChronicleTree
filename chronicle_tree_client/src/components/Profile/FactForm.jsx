@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
 import api from '../../api/api';
+import Input from '../UI/Input';
+import Button from '../UI/Button';
 
 const FACT_TYPE_OPTIONS = [
   'Birth',
@@ -23,6 +26,10 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
+  const { register, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: fact || {},
+  });
+
   // Handle dropdown change
   const handleFactTypeChange = (e) => {
     const selected = e.target.value;
@@ -32,8 +39,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleFormSubmit = async (data) => {
     setSubmitting(true);
     setError(null);
     try {
@@ -68,7 +74,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
       <h3 className="text-xl font-semibold mb-2">{isEdit ? 'Edit Fact' : 'Add a New Fact'}</h3>
       {error && <p className="text-red-500 mb-2">{error}</p>}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -109,10 +115,12 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-4">
-        <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={onCancel} disabled={submitting}>Cancel</button>
-        <button type="submit" disabled={submitting} className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50">
+        <Button type="button" onClick={onCancel} disabled={submitting} variant="grey">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={submitting}>
           {submitting ? 'Saving...' : (isEdit ? 'Save Fact' : 'Add Fact')}
-        </button>
+        </Button>
       </div>
     </form>
   );
