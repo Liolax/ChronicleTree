@@ -57,6 +57,7 @@ Rails.application.routes.draw do
         resources :facts,          only: %i[index create]
         resources :timeline_items, only: %i[index create]
         resources :media,          only: %i[index create]
+        resource  :note,           only: %i[show create update]
       end
 
       # Sub‐resources that can be updated/destroyed directly

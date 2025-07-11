@@ -26,6 +26,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const [showAdd, setShowAdd] = useState(false);
   const [addType, setAddType] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [warning, setWarning] = useState('');
 
   // Helper to get IDs of already-related people for a given type
   const getRelatedIds = (type) => {
@@ -42,31 +43,35 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   // Custom handleAdd for each type
   const handleAdd = async (data) => {
     setIsLoading(true);
+    setWarning('');
     try {
+      // Check for duplicate relationship
+      const alreadyRelated = getRelatedIds(addType).includes(data.selectedId);
+      if (alreadyRelated) {
+        setWarning('This person is already related as ' + RELATIONSHIP_LABELS[addType].slice(0, -1) + '.');
+        setIsLoading(false);
+        return;
+      }
       let payload;
       if (addType === 'parent') {
-        // Adding a parent: parent is person_id, current person is relative_id, type is 'child'
         payload = {
           person_id: data.selectedId,
           relative_id: person.id,
           relationship_type: 'child',
         };
       } else if (addType === 'child') {
-        // Adding a child: current person is person_id, child is relative_id, type is 'child'
         payload = {
           person_id: person.id,
           relative_id: data.selectedId,
           relationship_type: 'child',
         };
       } else if (addType === 'spouse') {
-        // Adding a spouse: current person is person_id, spouse is relative_id, type is 'spouse'
         payload = {
           person_id: person.id,
           relative_id: data.selectedId,
           relationship_type: 'spouse',
         };
       } else if (addType === 'sibling') {
-        // Adding a sibling: current person is person_id, sibling is relative_id, type is 'sibling'
         payload = {
           person_id: person.id,
           relative_id: data.selectedId,
@@ -77,6 +82,11 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       setShowAdd(false);
       setAddType(null);
       if (onRelationshipAdded) onRelationshipAdded();
+    } catch (err) {
+      setWarning(
+        err?.response?.data?.errors?.[0] ||
+        'This relationship is not allowed. Please check your selection.'
+      );
     } finally {
       setIsLoading(false);
     }
@@ -157,12 +167,13 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
               )}
               {showAdd && addType === type && (
                 <div className="mt-4">
+                  {warning && <div className="text-red-500 mb-2">{warning}</div>}
                   <RelationshipForm
                     type={type}
                     people={getSelectablePeople(type)}
                     person={person}
                     onSubmit={handleAdd}
-                    onCancel={() => { setShowAdd(false); setAddType(null); }}
+                    onCancel={() => { setShowAdd(false); setAddType(null); setWarning(''); }}
                     isLoading={isLoading}
                     forceEx={forceEx}
                   />
