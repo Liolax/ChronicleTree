@@ -14,6 +14,9 @@ class Relationship < ApplicationRecord
   validate  :person_is_not_relative
   validate  :valid_relationship_type
 
+  # Add a scope for ex-spouses
+  scope :ex_spouses, -> { where(relationship_type: 'spouse', is_ex: true) }
+
   private
 
   def person_is_not_relative

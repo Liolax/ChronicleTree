@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { usePeople, getPerson, deletePerson } from '../services/people';
+import { usePeople, getPerson, deletePerson, toggleSpouseEx } from '../services/people';
 import FactList from '../components/Profile/FactList';
 import Timeline from '../components/Profile/Timeline';
 import MediaGallery from '../components/Profile/MediaGallery';
@@ -195,6 +195,19 @@ export default function Profile() {
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  // Handler to toggle ex/current spouse in DeletePersonModal
+  const handleToggleSpouseEx = async (relationshipId) => {
+    if (!relationshipId) return;
+    console.log('[Profile] Toggling spouse relationshipId:', relationshipId);
+    const resp = await toggleSpouseEx(relationshipId);
+    console.log('[Profile] Toggle API response:', resp);
+    // Refresh the person and relationships for the modal
+    const data = await getPerson(person.id);
+    console.log('[Profile] Refreshed person data:', data);
+    setDeletePersonData(data);
+    setDeleteRelationships(groupRelationships(data));
   };
 
   return (
@@ -483,6 +496,7 @@ export default function Profile() {
           onConfirm={handleConfirmDelete}
           onCancel={() => setShowDeleteModal(false)}
           isLoading={isDeleting}
+          onToggleSpouseEx={handleToggleSpouseEx}
         />
       )}
     </main>

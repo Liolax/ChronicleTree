@@ -3,7 +3,7 @@ import RelationshipForm from '../Forms/RelationshipForm';
 import { createRelationship, deletePerson, getPerson } from '../../services/people';
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
-import { useQuery } from '@tanstack/react-query';
+import api from '../../api/api';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -250,8 +250,42 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                         ) : (
                           <span className="font-medium">
                             <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
-                            {rel.inLaw && <span className="ml-1 text-xs text-blue-500">(in-law)</span>}
                           </span>
+                        )}
+                        {/* Edit icon for spouse to toggle ex status */}
+                        {type === 'spouse' && !rel.inLaw && (
+                          <button
+                            type="button"
+                            className={
+                              'ml-2 text-blue-500 hover:text-blue-700' + (isLoading ? ' opacity-50 cursor-not-allowed' : '')
+                            }
+                            title={rel.is_ex ? 'Mark as current spouse' : 'Mark as ex-spouse'}
+                            disabled={isLoading}
+                            onClick={async (event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              setWarning('');
+                              setIsLoading(true);
+                              try {
+                                // Use authenticated API instance with correct path
+                                const resp = await api.patch(`relationships/${rel.relationship_id}/toggle_ex`);
+                                if (resp.status === 200 || resp.status === 204) {
+                                  if (onRelationshipAdded) onRelationshipAdded();
+                                } else {
+                                  setWarning('Failed to toggle ex-spouse status.');
+                                }
+                              } catch (err) {
+                                setWarning(
+                                  err?.response?.data?.errors?.[0] ||
+                                  'Failed to toggle ex-spouse status. Please try again.'
+                                );
+                              } finally {
+                                setIsLoading(false);
+                              }
+                            }}
+                          >
+                            {isLoading ? 'Toggling...' : <FaUserEdit />}
+                          </button>
                         )}
                       </span>
                       <div className="flex gap-2">

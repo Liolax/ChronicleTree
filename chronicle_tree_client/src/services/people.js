@@ -83,3 +83,8 @@ export const useDeletePerson = () => {
     },
   });
 };
+
+export const toggleSpouseEx = async (relationshipId) => {
+  const { data } = await api.patch(`/relationships/${relationshipId}/toggle_ex`);
+  return data;
+};

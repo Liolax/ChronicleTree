@@ -48,7 +48,9 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
       rel.relative.as_json(only: [:id, :first_name, :last_name]).merge({
         full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
         relationship_type: rel.relationship_type,
-        id: rel.relative.id
+        id: rel.relative.id,
+        is_ex: rel.try(:is_ex), # Only present for spouse relationships
+        relationship_id: rel.id
       })
     end
   end

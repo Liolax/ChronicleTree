@@ -65,7 +65,11 @@ Rails.application.routes.draw do
       resources :facts,          only: %i[update destroy]
       resources :timeline_items, only: %i[update destroy]
       resources :media, only: %i[update destroy]
-      resources :relationships,  only: %i[create destroy]
+      resources :relationships,  only: %i[create destroy] do
+        member do
+          patch :toggle_ex
+        end
+      end
       resources :profiles,       only: %i[index show create update destroy]
     end
   end

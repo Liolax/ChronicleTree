@@ -2,7 +2,7 @@
 module Api
   module V1
     class RelationshipsController < BaseController
-      before_action :set_relationship, only: %i[destroy]
+      before_action :set_relationship, only: %i[destroy toggle_ex]
 
       # POST /api/v1/relationships
       # body: { relationship: { person_id:, relative_id:, relationship_type: } }
@@ -37,6 +37,20 @@ module Api
         end
       end
 
+      # PATCH /api/v1/relationships/:id/toggle_ex
+      def toggle_ex
+        if @relationship.relationship_type == 'spouse'
+          @relationship.is_ex = !@relationship.is_ex
+          if @relationship.save
+            render json: { success: true, is_ex: @relationship.is_ex }
+          else
+            render json: { success: false, errors: @relationship.errors.full_messages }, status: :unprocessable_entity
+          end
+        else
+          render json: { success: false, error: 'Only spouse relationships can be toggled.' }, status: :bad_request
+        end
+      end
+
       private
 
       def set_relationship
@@ -46,7 +60,7 @@ module Api
 
       def relationship_params
         params.require(:relationship)
-              .permit(:person_id, :relative_id, :relationship_type)
+              .permit(:person_id, :relative_id, :relationship_type, :is_ex)
       end
     end
   end

@@ -104,6 +104,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
     t.string "relationship_type", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "is_ex", default: false, null: false
     t.index ["person_id"], name: "index_relationships_on_person_id"
     t.index ["relative_id"], name: "index_relationships_on_relative_id"
   end

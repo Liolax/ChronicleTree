@@ -92,10 +92,10 @@ parent_child_pairs.each do |parent, child|
 end
 
 # Spouses
-Relationship.find_or_create_by!(person: p1, relative: p2, relationship_type: 'spouse')
-Relationship.find_or_create_by!(person: p2, relative: p1, relationship_type: 'spouse')
-Relationship.find_or_create_by!(person: alice, relative: david, relationship_type: 'spouse')
-Relationship.find_or_create_by!(person: david, relative: alice, relationship_type: 'spouse')
+Relationship.find_or_create_by!(person: p1, relative: p2, relationship_type: 'spouse', is_ex: false)
+Relationship.find_or_create_by!(person: p2, relative: p1, relationship_type: 'spouse', is_ex: false)
+Relationship.find_or_create_by!(person: alice, relative: david, relationship_type: 'spouse', is_ex: true)
+Relationship.find_or_create_by!(person: david, relative: alice, relationship_type: 'spouse', is_ex: true)
 
 # Siblings
 Relationship.find_or_create_by!(person: bob, relative: emily, relationship_type: 'sibling')
