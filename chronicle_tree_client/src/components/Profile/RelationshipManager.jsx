@@ -219,10 +219,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                       <span className="flex items-center gap-2">
                         {/* Ex-spouse styling */}
                         {type === 'spouse' && rel.is_ex ? (
-                          <span className="font-medium text-red-500 line-through">{rel.full_name} (ex)</span>
+                          <span className="font-medium text-red-500 line-through">
+                            <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (ex)
+                          </span>
                         ) : (
                           <span className="font-medium">
-                            {rel.full_name}
+                            <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
                             {rel.inLaw && <span className="ml-1 text-xs text-blue-500">(in-law)</span>}
                           </span>
                         )}
