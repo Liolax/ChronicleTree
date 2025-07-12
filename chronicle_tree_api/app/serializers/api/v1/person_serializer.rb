@@ -9,7 +9,10 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :date_of_death,
              :avatar_url,
              :note,
-             :relatives
+             :relatives,
+             :parents_in_law,
+             :children_in_law,
+             :siblings_in_law
 
   has_many :facts, key: :key_facts, serializer: Api::V1::FactSerializer
   has_many :timeline_items, key: :timeline_events, serializer: Api::V1::TimelineItemSerializer
@@ -46,6 +49,33 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
         full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
         relationship_type: rel.relationship_type,
         id: rel.relative.id
+      })
+    end
+  end
+
+  def parents_in_law
+    object.parents_in_law.map do |p|
+      p.as_json(only: [:id, :first_name, :last_name]).merge({
+        full_name: "#{p.first_name} #{p.last_name}",
+        id: p.id
+      })
+    end
+  end
+
+  def children_in_law
+    object.children_in_law.map do |c|
+      c.as_json(only: [:id, :first_name, :last_name]).merge({
+        full_name: "#{c.first_name} #{c.last_name}",
+        id: c.id
+      })
+    end
+  end
+
+  def siblings_in_law
+    object.siblings_in_law.map do |s|
+      s.as_json(only: [:id, :first_name, :last_name]).merge({
+        full_name: "#{s.first_name} #{s.last_name}",
+        id: s.id
       })
     end
   end

@@ -18,6 +18,7 @@ Devise.setup do |config|
   config.email_regexp = /\A[^@\s]+@[^@\s]+\z/
   config.reset_password_within = 6.hours
   config.sign_out_via = :delete
+  config.navigational_formats = []
 
   # ==> JWT Configuration
   # Setup for devise-jwt gem (0.12.x)

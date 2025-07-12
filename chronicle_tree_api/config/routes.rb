@@ -6,6 +6,7 @@ Rails.application.routes.draw do
   # Devise routes for JWT authentication
   devise_for :users,
              path: 'api/v1/auth',
+             defaults: { format: :json },
              path_names: {
                sign_in: 'sign_in',
                sign_out: 'sign_out',

@@ -10,6 +10,12 @@ const RELATIONSHIP_LABELS = {
   sibling: 'Siblings',
 };
 
+const IN_LAW_LABELS = {
+  parents_in_law: 'Parents-in-law',
+  children_in_law: 'Children-in-law',
+  siblings_in_law: 'Siblings-in-law',
+};
+
 function groupRelatives(person) {
   const groups = { parent: [], child: [], spouse: [], sibling: [] };
   if (person?.relatives) {
@@ -38,6 +44,15 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const getSelectablePeople = (type) => {
     const excludeIds = [person.id, ...getRelatedIds(type)];
     return people.filter(p => !excludeIds.includes(p.id));
+  };
+
+  // Helper to get in-law relationships
+  const getInLaws = () => {
+    return {
+      parents_in_law: person.parents_in_law || [],
+      children_in_law: person.children_in_law || [],
+      siblings_in_law: person.siblings_in_law || [],
+    };
   };
 
   // Custom handleAdd for each type
@@ -99,6 +114,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   };
 
   const groups = groupRelatives(person);
+  const inLaws = getInLaws();
 
   return (
     <section className="bg-slate-50 rounded-xl p-6 shadow-inner border border-slate-100">
@@ -108,7 +124,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         </h2>
       </div>
       <div>
-        <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, and siblings. Click add, edit, or delete to modify.</p>
+        <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, and in-laws. Click add, edit, or delete to modify.</p>
+        {/* Existing relationships */}
         {Object.entries(groups).map(([type, rels]) => {
           let canAdd = false;
           let forceEx = false;
@@ -182,6 +199,26 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
             </div>
           );
         })}
+        {/* In-law relationships */}
+        <div className="mt-6">
+          <h3 className="text-lg font-semibold text-blue-700 mb-2">In-Laws</h3>
+          {Object.entries(inLaws).map(([type, rels]) => (
+            <div key={type} className="mb-2">
+              <div className="font-medium text-blue-600 mb-1">{IN_LAW_LABELS[type]}</div>
+              {rels.length > 0 ? (
+                <ul className="space-y-1">
+                  {rels.map(rel => (
+                    <li key={rel.id} className="flex items-center gap-2 bg-white rounded px-3 py-1 border border-slate-100">
+                      <span className="font-medium">{rel.full_name || `${rel.first_name} ${rel.last_name}`}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-400 ml-2">No {IN_LAW_LABELS[type].toLowerCase()} found.</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );

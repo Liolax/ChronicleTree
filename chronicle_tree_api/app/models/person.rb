@@ -54,6 +54,18 @@ class Person < ApplicationRecord
           .distinct
   end
 
+  def parents_in_law
+    spouses.flat_map(&:parents).uniq
+  end
+
+  def children_in_law
+    children.flat_map(&:spouses).uniq.reject { |p| p == self || children.include?(p) }
+  end
+
+  def siblings_in_law
+    spouses.flat_map(&:siblings).uniq
+  end
+
   private
 
   def ensure_profile

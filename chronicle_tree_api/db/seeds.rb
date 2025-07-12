@@ -75,13 +75,15 @@ Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person',
 Relationship.find_or_create_by!(person: p1, relative: p2, relationship_type: 'spouse')
 Relationship.find_or_create_by!(person: p2, relative: p1, relationship_type: 'spouse')
 
-# John and Jane are parents of Charlie, Alice, and David
+# John and Jane are parents of Charlie and Alice
 Relationship.find_or_create_by!(person: p1, relative: charlie, relationship_type: 'child')
 Relationship.find_or_create_by!(person: p2, relative: charlie, relationship_type: 'child')
 Relationship.find_or_create_by!(person: p1, relative: alice, relationship_type: 'child')
 Relationship.find_or_create_by!(person: p2, relative: alice, relationship_type: 'child')
-Relationship.find_or_create_by!(person: p1, relative: david, relationship_type: 'child')
-Relationship.find_or_create_by!(person: p2, relative: david, relationship_type: 'child')
+
+# Remove illogical parent-child relationships
+Relationship.where(person: p1, relative: david, relationship_type: 'child').destroy_all
+Relationship.where(person: p2, relative: david, relationship_type: 'child').destroy_all
 
 # Alice and David are spouses
 Relationship.find_or_create_by!(person: alice, relative: david, relationship_type: 'spouse')
