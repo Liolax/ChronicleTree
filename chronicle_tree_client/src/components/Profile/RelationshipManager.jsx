@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import RelationshipForm from '../Forms/RelationshipForm';
 import { createRelationship, deletePerson } from '../../services/people';
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
+import DeletePersonModal from '../UI/DeletePersonModal';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -57,6 +58,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const [addType, setAddType] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [warning, setWarning] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Helper to get IDs of already-related people for a given type
   const getRelatedIds = (type) => {
@@ -131,9 +135,33 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
   };
 
-  const handleDelete = async (relId) => {
-    if (!window.confirm('Delete this relationship?')) return;
-    await deletePerson(relId); // This should be deleteRelationship if available
+  // Helper to get all relationships for a person
+  const getAllRelationships = () => {
+    const rels = groupRelatives(person);
+    const inLaws = getInLaws();
+    return {
+      Parents: rels.parent,
+      Children: rels.child,
+      Spouses: rels.spouse,
+      Siblings: rels.sibling,
+      'Parents-in-law': inLaws.parents_in_law,
+      'Children-in-law': inLaws.children_in_law,
+      'Siblings-in-law': inLaws.siblings_in_law,
+    };
+  };
+
+  const handleDelete = (relId) => {
+    const rel = people.find(p => p.id === relId);
+    setDeleteTarget(rel);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    setIsDeleting(true);
+    await deletePerson(deleteTarget.id);
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
     if (onRelationshipDeleted) onRelationshipDeleted();
   };
 
@@ -228,6 +256,15 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           );
         })}
       </div>
+      {showDeleteModal && deleteTarget && (
+        <DeletePersonModal
+          person={deleteTarget}
+          relationships={getAllRelationships()}
+          onConfirm={confirmDelete}
+          onCancel={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+          isLoading={isDeleting}
+        />
+      )}
     </section>
   );
 };
