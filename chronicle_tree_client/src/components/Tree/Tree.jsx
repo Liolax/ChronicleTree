@@ -23,6 +23,7 @@ import AddPersonModal from "./modals/AddPersonModal";
 import EditPersonModal from "./modals/EditPersonModal";
 import ConfirmDeleteModal from "./modals/ConfirmDeleteModal";
 import PersonCard from "./PersonCard";
+import DeletePersonModal from '../UI/DeletePersonModal';
 import './tree-animations.css';
 
 const nodeWidth = 172;
@@ -188,6 +189,9 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
   const [interactivity, setInteractivity] = useState(false);
   const [transform, setTransform] = useState({ x: 0, y: 0, zoom: 1 });
   const [layoutDirection, setLayoutDirection] = useState('TB');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const reactFlowWrapper = useRef(null);
   const { fitView } = useReactFlow();
 
@@ -203,13 +207,22 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
 
   // Handler to open delete modal
   const handleDeletePerson = useCallback((person) => {
-    setDeletePerson(person);
+    setDeleteTarget(person);
+    setShowDeleteModal(true);
   }, []);
 
-  // Handler to close delete modal
-  const handleCloseDeleteModal = useCallback(() => {
-    setDeletePerson(null);
-  }, []);
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    await deletePerson(deleteTarget.id);
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setDeleteTarget(null);
+  };
 
   // Listen for pan/zoom changes
   const handleMove = useCallback(
@@ -571,6 +584,15 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
             handleCloseDeleteModal();
             // Optionally, refetch or update local data
           }}
+        />
+      )}
+      {showDeleteModal && deleteTarget && (
+        <DeletePersonModal
+          person={deleteTarget}
+          relationships={{}}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          isLoading={isDeleting}
         />
       )}
     </div>

@@ -1,6 +1,7 @@
 import React, { useRef, useLayoutEffect, useState } from 'react';
 import Avatar from 'react-avatar';
 import { FaPen, FaTrash, FaEye, FaTimes, FaMars, FaVenus } from 'react-icons/fa';
+import DeletePersonModal from '../UI/DeletePersonModal';
 
 const getInitials = (first, last) => {
   if (!first && !last) return '?';
@@ -15,6 +16,8 @@ const fadeInCard = {
 const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
   const cardRef = useRef(null);
   const [clamped, setClamped] = useState({ left: 0, top: 0 });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   if (!person) return null;
   const birthDate = person.date_of_birth ? new Date(person.date_of_birth).toLocaleDateString() : '';
@@ -65,6 +68,21 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
       }
     : { fontFamily: 'Inter, sans-serif', minWidth: '180px', maxWidth: '220px', ...fadeInCard };
 
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    await onDelete && onDelete(person);
+    setIsDeleting(false);
+    setShowDeleteModal(false);
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
   return (
     <div
       ref={cardRef}
@@ -100,10 +118,19 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
         <button className="w-full bg-gray-100 text-app-primary px-2 py-1 rounded font-semibold shadow hover:bg-gray-200 transition-colors flex items-center justify-center gap-1 text-xs" onClick={() => onEdit && onEdit(person)}>
           <FaPen />Edit
         </button>
-        <button className="w-full bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-semibold shadow transition-colors flex items-center justify-center gap-1 text-xs" onClick={() => onDelete && onDelete(person)}>
+        <button className="w-full bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded font-semibold shadow transition-colors flex items-center justify-center gap-1 text-xs" onClick={handleDeleteClick}>
           <FaTrash />Delete
         </button>
       </div>
+      {showDeleteModal && (
+        <DeletePersonModal
+          person={person}
+          relationships={{}}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          isLoading={isDeleting}
+        />
+      )}
       <style>{`
         @keyframes fadeInCard {
           from { opacity: 0; transform: scale(0.95); }
