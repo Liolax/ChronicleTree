@@ -101,6 +101,19 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 - Profile pages are now only accessible by clicking a person node or person card in the tree view, matching the intended user flow and mockups.
 - This change reduces navigation clutter and ensures users always access profiles in the context of the family tree.
 
+### [2025-07-12] API Authentication & Protection (Devise JWT)
+
+- Enabled JWT authentication for all API endpoints using Devise and devise-jwt in API-only Rails mode.
+- Configured Devise to use `navigational_formats = []` and default all routes to JSON for proper API behavior.
+- Implemented a custom `SessionsController` with `respond_to :json` to resolve format/406 errors.
+- All API endpoints (except sign-in, sign-up, password reset) are protected by `before_action :authenticate_user!` via `Api::V1::BaseController`.
+- Confirmed that login at `/api/v1/auth/sign_in` returns a JWT token in the `Authorization` header, and authenticated requests succeed with a valid token.
+- Documented the authentication flow for frontend integration:
+  - Sign in: POST `/api/v1/auth/sign_in` with `{ user: { email, password } }` → receive JWT in `Authorization` header.
+  - Use `Authorization: Bearer <token>` for all protected API requests.
+  - Sign out: DELETE `/api/v1/auth/sign_out` (JWT is revoked).
+- All changes tested and verified with curl and frontend client.
+
 ---
 
 ## Profile Picture (Avatar) Data Flow Diagram

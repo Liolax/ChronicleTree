@@ -28,6 +28,30 @@ function groupRelatives(person) {
   return groups;
 }
 
+// Merge in-laws into main relationship groups with inLaw flag
+function mergeInLaws(groups, inLaws) {
+  const merged = { ...groups };
+  if (inLaws.parents_in_law) {
+    merged.parent = [
+      ...merged.parent,
+      ...inLaws.parents_in_law.map(p => ({ ...p, inLaw: true }))
+    ];
+  }
+  if (inLaws.children_in_law) {
+    merged.child = [
+      ...merged.child,
+      ...inLaws.children_in_law.map(p => ({ ...p, inLaw: true }))
+    ];
+  }
+  if (inLaws.siblings_in_law) {
+    merged.sibling = [
+      ...merged.sibling,
+      ...inLaws.siblings_in_law.map(p => ({ ...p, inLaw: true }))
+    ];
+  }
+  return merged;
+}
+
 const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelationshipDeleted }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [addType, setAddType] = useState(null);
@@ -115,6 +139,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
 
   const groups = groupRelatives(person);
   const inLaws = getInLaws();
+  const mergedGroups = mergeInLaws(groups, inLaws);
 
   return (
     <section className="bg-slate-50 rounded-xl p-6 shadow-inner border border-slate-100">
@@ -126,7 +151,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       <div>
         <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, and in-laws. Click add, edit, or delete to modify.</p>
         {/* Existing relationships */}
-        {Object.entries(groups).map(([type, rels]) => {
+        {Object.entries(mergedGroups).map(([type, rels]) => {
           let canAdd = false;
           let forceEx = false;
           if (type === 'parent') {
@@ -162,13 +187,16 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
               {rels.length > 0 ? (
                 <ul className="space-y-1">
                   {rels.map(rel => (
-                    <li key={rel.id} className="flex items-center justify-between bg-white rounded px-3 py-2 border border-slate-100">
+                    <li key={rel.id + (rel.inLaw ? '-inlaw' : '')} className="flex items-center justify-between bg-white rounded px-3 py-2 border border-slate-100">
                       <span className="flex items-center gap-2">
                         {/* Ex-spouse styling */}
                         {type === 'spouse' && rel.is_ex ? (
                           <span className="font-medium text-red-500 line-through">{rel.full_name} (ex)</span>
                         ) : (
-                          <span className="font-medium">{rel.full_name}</span>
+                          <span className="font-medium">
+                            {rel.full_name}
+                            {rel.inLaw && <span className="ml-1 text-xs text-blue-500">(in-law)</span>}
+                          </span>
                         )}
                       </span>
                       <div className="flex gap-2">
@@ -199,26 +227,6 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
             </div>
           );
         })}
-        {/* In-law relationships */}
-        <div className="mt-6">
-          <h3 className="text-lg font-semibold text-blue-700 mb-2">In-Laws</h3>
-          {Object.entries(inLaws).map(([type, rels]) => (
-            <div key={type} className="mb-2">
-              <div className="font-medium text-blue-600 mb-1">{IN_LAW_LABELS[type]}</div>
-              {rels.length > 0 ? (
-                <ul className="space-y-1">
-                  {rels.map(rel => (
-                    <li key={rel.id} className="flex items-center gap-2 bg-white rounded px-3 py-1 border border-slate-100">
-                      <span className="font-medium">{rel.full_name || `${rel.first_name} ${rel.last_name}`}</span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-gray-400 ml-2">No {IN_LAW_LABELS[type].toLowerCase()} found.</p>
-              )}
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );
