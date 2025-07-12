@@ -29,7 +29,7 @@ const DeletePersonModal = ({ person, relationships = {}, onConfirm, onCancel, is
             {directGroups.map(group =>
               group.rels.length > 0 && (
                 <li key={group.label}>
-                  {group.rels.map(r => r.full_name || `${r.first_name} ${r.last_name}`).join(', ')}
+                  <span className="font-semibold">{group.label}:</span> {group.rels.map(r => r.full_name || `${r.first_name} ${r.last_name}`).join(', ')}
                 </li>
               )
             )}

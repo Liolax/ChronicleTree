@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { usePeople } from '../services/people';
+import { usePeople, getPerson, deletePerson } from '../services/people';
 import FactList from '../components/Profile/FactList';
 import Timeline from '../components/Profile/Timeline';
 import MediaGallery from '../components/Profile/MediaGallery';
@@ -11,7 +11,8 @@ import MediaForm from '../components/Profile/MediaForm';
 import api from '../api/api';
 import Notes from '../components/Profile/Notes';
 import ProfileDetails from '../components/Profile/ProfileDetails';
-import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare } from 'react-icons/fa';
+import DeletePersonModal from '../components/UI/DeletePersonModal';
+import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
 
 export default function Profile() {
   const { id } = useParams();
@@ -25,6 +26,10 @@ export default function Profile() {
   const [editingTimeline, setEditingTimeline] = useState(null);
   const [editingMedia, setEditingMedia] = useState(null);
   const [editingDetails, setEditingDetails] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePersonData, setDeletePersonData] = useState(null);
+  const [deleteRelationships, setDeleteRelationships] = useState({});
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Find person after people are loaded
   const person = people?.find(p => String(p.id) === String(id));
@@ -154,6 +159,42 @@ export default function Profile() {
   const handlePersonUpdated = updated => {
     Object.assign(person, updated); // update local person object
     setEditingDetails(false);
+  };
+
+  // Group relationships for DeletePersonModal
+  function groupRelationships(person) {
+    const groups = { Parents: [], Children: [], Spouses: [], Siblings: [] };
+    if (person?.relatives) {
+      person.relatives.forEach(rel => {
+        if (rel.relationship_type === 'parent') groups.Parents.push(rel);
+        if (rel.relationship_type === 'child') groups.Children.push(rel);
+        if (rel.relationship_type === 'spouse') groups.Spouses.push(rel);
+        if (rel.relationship_type === 'sibling') groups.Siblings.push(rel);
+      });
+    }
+    return groups;
+  }
+
+  // Handler to open DeletePersonModal
+  const handleOpenDeleteModal = async () => {
+    // Fetch full person with relationships
+    const data = await getPerson(person.id);
+    setDeletePersonData(data);
+    setDeleteRelationships(groupRelationships(data));
+    setShowDeleteModal(true);
+  };
+
+  // Handler to confirm deletion
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      await deletePerson(person.id);
+      window.location.href = '/'; // Redirect to home/tree after deletion
+    } catch (err) {
+      alert('Failed to delete person.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -434,6 +475,15 @@ export default function Profile() {
             </div>
           </div>
         </div>
+      )}
+      {showDeleteModal && deletePersonData && (
+        <DeletePersonModal
+          person={deletePersonData}
+          relationships={deleteRelationships}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setShowDeleteModal(false)}
+          isLoading={isDeleting}
+        />
       )}
     </main>
   );

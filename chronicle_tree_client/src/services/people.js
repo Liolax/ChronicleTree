@@ -46,6 +46,11 @@ export const updatePerson = (id, person) => api.put(`/people/${id}`, { person })
 
 export const deletePerson = (id) => api.delete(`/people/${id}`);
 
+export const getPerson = async (id) => {
+  const { data } = await api.get(`/people/${id}`);
+  return data;
+};
+
 export const useAddPerson = () => {
   const queryClient = useQueryClient();
   return useMutation({

@@ -83,6 +83,20 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
     setShowDeleteModal(false);
   };
 
+  // Helper to group relationships for modal
+  const groupRelatives = (person) => {
+    const groups = { Parents: [], Children: [], Spouses: [], Siblings: [] };
+    if (person?.relatives) {
+      person.relatives.forEach(rel => {
+        if (rel.relationship_type === 'parent') groups.Parents.push(rel);
+        if (rel.relationship_type === 'child') groups.Children.push(rel);
+        if (rel.relationship_type === 'spouse') groups.Spouses.push(rel);
+        if (rel.relationship_type === 'sibling') groups.Siblings.push(rel);
+      });
+    }
+    return groups;
+  };
+
   return (
     <div
       ref={cardRef}
@@ -125,7 +139,7 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
       {showDeleteModal && (
         <DeletePersonModal
           person={person}
-          relationships={{}}
+          relationships={groupRelatives(person)}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
           isLoading={isDeleting}

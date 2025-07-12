@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import RelationshipForm from '../Forms/RelationshipForm';
-import { createRelationship, deletePerson } from '../../services/people';
+import { createRelationship, deletePerson, getPerson } from '../../services/people';
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
+import { useQuery } from '@tanstack/react-query';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -61,6 +62,15 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
+  const [pendingDeletePerson, setPendingDeletePerson] = useState(null);
+  const [pendingDeleteRelationships, setPendingDeleteRelationships] = useState({});
+
+  // Fetch full person by ID
+  const fetchPersonById = async (id) => {
+    const res = await getPerson(id);
+    return res.data;
+  };
 
   // Helper to get IDs of already-related people for a given type
   const getRelatedIds = (type) => {
@@ -136,8 +146,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   };
 
   // Helper to get all relationships for a person
-  const getAllRelationships = () => {
-    const rels = groupRelatives(person);
+  const getAllRelationships = (targetPerson) => {
+    const rels = groupRelatives(targetPerson);
     const inLaws = getInLaws();
     return {
       Parents: rels.parent,
@@ -150,19 +160,34 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     };
   };
 
-  const handleDelete = (relId) => {
-    const rel = people.find(p => p.id === relId);
-    setDeleteTarget(rel);
-    setShowDeleteModal(true);
+  // Show DeletePersonModal before deleting a person from relationships
+  const handleDelete = async (relId) => {
+    setIsLoading(true);
+    try {
+      // Fetch full person for modal
+      const data = await getPerson(relId);
+      setPendingDeleteId(relId);
+      setPendingDeletePerson(data);
+      setPendingDeleteRelationships(getAllRelationships(data));
+      setShowDeleteModal(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // Confirm delete from modal
   const confirmDelete = async () => {
     setIsDeleting(true);
-    await deletePerson(deleteTarget.id);
-    setIsDeleting(false);
-    setShowDeleteModal(false);
-    setDeleteTarget(null);
-    if (onRelationshipDeleted) onRelationshipDeleted();
+    try {
+      await deletePerson(pendingDeleteId);
+      setShowDeleteModal(false);
+      setPendingDeleteId(null);
+      setPendingDeletePerson(null);
+      setPendingDeleteRelationships({});
+      if (onRelationshipDeleted) onRelationshipDeleted();
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const groups = groupRelatives(person);
@@ -178,7 +203,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       </div>
       <div>
         <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, and in-laws. Click add, edit, or delete to modify.</p>
-        {/* Existing relationships */}
+        {/* Existing relationships (detailed, editable) */}
         {Object.entries(mergedGroups).map(([type, rels]) => {
           let canAdd = false;
           let forceEx = false;
@@ -258,12 +283,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           );
         })}
       </div>
-      {showDeleteModal && deleteTarget && (
+      {showDeleteModal && pendingDeletePerson && (
         <DeletePersonModal
-          person={deleteTarget}
-          relationships={getAllRelationships()}
+          person={pendingDeletePerson}
+          relationships={pendingDeleteRelationships}
           onConfirm={confirmDelete}
-          onCancel={() => { setShowDeleteModal(false); setDeleteTarget(null); }}
+          onCancel={() => { setShowDeleteModal(false); setPendingDeleteId(null); setPendingDeletePerson(null); setPendingDeleteRelationships({}); }}
           isLoading={isDeleting}
         />
       )}

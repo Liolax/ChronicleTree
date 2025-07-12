@@ -525,6 +525,20 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
   // Instead of custom cards, show all nodes (including unconnected) in ReactFlow
   // Remove the separate unconnected people cards near Add Person button
 
+  // Helper to group relationships for modal
+  const groupRelatives = (person) => {
+    const groups = { Parents: [], Children: [], Spouses: [], Siblings: [] };
+    if (person?.relatives) {
+      person.relatives.forEach(rel => {
+        if (rel.relationship_type === 'parent') groups.Parents.push(rel);
+        if (rel.relationship_type === 'child') groups.Children.push(rel);
+        if (rel.relationship_type === 'spouse') groups.Spouses.push(rel);
+        if (rel.relationship_type === 'sibling') groups.Siblings.push(rel);
+      });
+    }
+    return groups;
+  };
+
   return (
     <div className="reactflow-wrapper" ref={reactFlowWrapper} style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
       {/* Add Person Button at the top center of the tree area */}
@@ -589,7 +603,7 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
       {showDeleteModal && deleteTarget && (
         <DeletePersonModal
           person={deleteTarget}
-          relationships={{}}
+          relationships={groupRelatives(deleteTarget)}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
           isLoading={isDeleting}

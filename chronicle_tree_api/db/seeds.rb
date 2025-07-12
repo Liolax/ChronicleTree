@@ -71,35 +71,35 @@ Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person',
 Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane graduation photo', title: 'Jane Graduation Photo')
 Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David at work', title: 'David at Work')
 # --- RELATIONSHIPS ---
-# John and Jane are spouses
+# Define all parent-child pairs in the tree
+parent_child_pairs = [
+  [p1, charlie], [p2, charlie],
+  [p1, alice],   [p2, alice],
+  [alice, bob],  [david, bob],
+  [alice, emily],[david, emily]
+]
+
+# For each parent-child pair, create both directions
+parent_child_pairs.each do |parent, child|
+  Relationship.find_or_create_by!(person: parent, relative: child, relationship_type: 'child')
+  Relationship.find_or_create_by!(person: child, relative: parent, relationship_type: 'parent')
+end
+
+# Remove any old single-direction parent-child relationships for these pairs
+parent_child_pairs.each do |parent, child|
+  Relationship.where(person: child, relative: parent, relationship_type: 'child').destroy_all
+  Relationship.where(person: parent, relative: child, relationship_type: 'parent').destroy_all
+end
+
+# Spouses
 Relationship.find_or_create_by!(person: p1, relative: p2, relationship_type: 'spouse')
 Relationship.find_or_create_by!(person: p2, relative: p1, relationship_type: 'spouse')
-
-# John and Jane are parents of Charlie and Alice
-Relationship.find_or_create_by!(person: p1, relative: charlie, relationship_type: 'child')
-Relationship.find_or_create_by!(person: p2, relative: charlie, relationship_type: 'child')
-Relationship.find_or_create_by!(person: p1, relative: alice, relationship_type: 'child')
-Relationship.find_or_create_by!(person: p2, relative: alice, relationship_type: 'child')
-
-# Remove illogical parent-child relationships
-Relationship.where(person: p1, relative: david, relationship_type: 'child').destroy_all
-Relationship.where(person: p2, relative: david, relationship_type: 'child').destroy_all
-
-# Alice and David are spouses
 Relationship.find_or_create_by!(person: alice, relative: david, relationship_type: 'spouse')
 Relationship.find_or_create_by!(person: david, relative: alice, relationship_type: 'spouse')
 
-# Alice and David are parents of Bob and Emily
-Relationship.find_or_create_by!(person: alice, relative: bob, relationship_type: 'child')
-Relationship.find_or_create_by!(person: david, relative: bob, relationship_type: 'child')
-Relationship.find_or_create_by!(person: alice, relative: emily, relationship_type: 'child')
-Relationship.find_or_create_by!(person: david, relative: emily, relationship_type: 'child')
-
-# Bob and Emily are siblings
+# Siblings
 Relationship.find_or_create_by!(person: bob, relative: emily, relationship_type: 'sibling')
 Relationship.find_or_create_by!(person: emily, relative: bob, relationship_type: 'sibling')
-
-# Charlie is sibling to Alice
 Relationship.find_or_create_by!(person: charlie, relative: alice, relationship_type: 'sibling')
 Relationship.find_or_create_by!(person: alice, relative: charlie, relationship_type: 'sibling')
 
