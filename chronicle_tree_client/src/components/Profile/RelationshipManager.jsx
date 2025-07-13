@@ -210,13 +210,14 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           if (type === 'parent') {
             canAdd = rels.length < 2;
           } else if (type === 'spouse') {
-            // If a current spouse exists, only allow adding ex-spouse
-            const hasCurrentSpouse = rels.some(rel => !rel.is_ex);
-            canAdd = true; // Always show add button for spouse
-            forceEx = hasCurrentSpouse;
+            // Always show add button for spouse, but force ex if a current spouse exists
+            canAdd = true;
+            forceEx = rels.some(rel => !rel.is_ex);
           } else {
             canAdd = true;
           }
+          // Always show add button for spouse, but RelationshipForm will force ex if needed
+          const showAddButton = canAdd;
           return (
             <div key={type} className="mb-4">
               <div className="flex items-center gap-2 mb-1">
@@ -227,10 +228,10 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                   {type === 'sibling' && <FaUserFriends />} 
                   {RELATIONSHIP_LABELS[type]}
                 </h4>
-                {canAdd && (
+                {showAddButton && (
                   <button
                     className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-blue-100 text-blue-600 text-xs"
-                    title={`Add ${RELATIONSHIP_LABELS[type].toLowerCase().slice(0, -1)}`}
+                    title={`Add ${RELATIONSHIP_LABELS[type].toLowerCase().slice(0, -1)}${type === 'spouse' && forceEx ? ' (ex only)' : ''}`}
                     onClick={() => { setShowAdd(true); setAddType(type); }}
                   >
                     <FaPlus />
@@ -306,7 +307,13 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                     type={type}
                     people={getSelectablePeople(type)}
                     person={person}
-                    onSubmit={handleAdd}
+                    onSubmit={async (data) => {
+                      // If adding a spouse and a current spouse exists, force ex
+                      if (type === 'spouse' && forceEx) {
+                        data.forceEx = true;
+                      }
+                      await handleAdd(data);
+                    }}
                     onCancel={() => { setShowAdd(false); setAddType(null); setWarning(''); }}
                     isLoading={isLoading}
                     forceEx={forceEx}

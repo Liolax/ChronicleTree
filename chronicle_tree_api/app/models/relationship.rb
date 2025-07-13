@@ -13,6 +13,7 @@ class Relationship < ApplicationRecord
   validates :relationship_type, presence: true
   validate  :person_is_not_relative
   validate  :valid_relationship_type
+  validate  :only_one_current_spouse, if: -> { relationship_type == 'spouse' && !is_ex }
 
   # Add a scope for ex-spouses
   scope :ex_spouses, -> { where(relationship_type: 'spouse', is_ex: true) }
@@ -41,6 +42,18 @@ class Relationship < ApplicationRecord
       if shared_parents.empty?
         errors.add(:base, 'Siblings must share at least one parent.')
       end
+    end
+  end
+
+  def only_one_current_spouse
+    # Check if this is a new record or is being updated to current spouse
+    # Only allow one current spouse per person (per direction)
+    existing = Relationship.where(relationship_type: 'spouse', is_ex: false)
+                          .where(person_id: person_id)
+    # Exclude self if updating
+    existing = existing.where.not(id: id) if persisted?
+    if existing.exists?
+      errors.add(:base, 'A person can only have one current spouse at a time.')
     end
   end
 end
