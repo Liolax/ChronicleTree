@@ -258,11 +258,15 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                           <button
                             type="button"
                             className={
-                              'ml-2 text-blue-500 hover:text-blue-700' + (isLoading ? ' opacity-50 cursor-not-allowed' : '')
+                              'ml-2 text-blue-500' +
+                              (isLoading || isDeleting || showDeleteModal
+                                ? ' opacity-50 cursor-not-allowed'
+                                : ' hover:text-blue-700')
                             }
                             title={rel.is_ex ? 'Mark as current spouse' : 'Mark as ex-spouse'}
-                            disabled={isLoading}
+                            disabled={isLoading || isDeleting || showDeleteModal}
                             onClick={async (event) => {
+                              if (isLoading || isDeleting || showDeleteModal) return;
                               event.preventDefault();
                               event.stopPropagation();
                               setWarning('');
@@ -285,12 +289,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                               }
                             }}
                           >
-                            {isLoading ? 'Toggling...' : <FaUserEdit />}
+                            <FaUserEdit />
                           </button>
                         )}
                       </span>
                       <div className="flex gap-2">
-                        <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={() => handleDelete(rel.id)} title="Delete Relationship">
+                        <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleDelete(rel.id); }} title="Delete Relationship">
                           <FaTrash />
                         </button>
                       </div>
