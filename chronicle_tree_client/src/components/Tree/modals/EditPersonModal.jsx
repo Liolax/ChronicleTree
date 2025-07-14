@@ -1,7 +1,7 @@
 import React from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Modal from '../../UI/Modal';
-import PersonForm from '../../Forms/PersonForm';
+import EditPersonForm from '../../Forms/EditPersonForm';
 import { updatePerson, usePeople } from '../../../services/people';
 
 const EditPersonModal = ({ person, isOpen = true, onClose }) => {
@@ -33,7 +33,7 @@ const EditPersonModal = ({ person, isOpen = true, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Edit Person">
-      <PersonForm person={person} onSubmit={handleSubmit} onCancel={onClose} isLoading={isLoading} people={people} cancelVariant="grey" />
+      <EditPersonForm person={person} onSave={handleSubmit} onCancel={onClose} />
     </Modal>
   );
 };

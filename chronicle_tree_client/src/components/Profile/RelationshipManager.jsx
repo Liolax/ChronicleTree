@@ -65,6 +65,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [pendingDeletePerson, setPendingDeletePerson] = useState(null);
   const [pendingDeleteRelationships, setPendingDeleteRelationships] = useState({});
+  const [toggleLoadingId, setToggleLoadingId] = useState(null);
 
   // Fetch full person by ID
   const fetchPersonById = async (id) => {
@@ -259,18 +260,18 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                             type="button"
                             className={
                               'ml-2 text-blue-500' +
-                              (isLoading || isDeleting || showDeleteModal
+                              (toggleLoadingId === rel.relationship_id || isDeleting || showDeleteModal
                                 ? ' opacity-50 cursor-not-allowed'
                                 : ' hover:text-blue-700')
                             }
                             title={rel.is_ex ? 'Mark as current spouse' : 'Mark as ex-spouse'}
-                            disabled={isLoading || isDeleting || showDeleteModal}
+                            disabled={toggleLoadingId === rel.relationship_id || isDeleting || showDeleteModal}
                             onClick={async (event) => {
-                              if (isLoading || isDeleting || showDeleteModal) return;
+                              if (toggleLoadingId === rel.relationship_id || isDeleting || showDeleteModal) return;
                               event.preventDefault();
                               event.stopPropagation();
                               setWarning('');
-                              setIsLoading(true);
+                              setToggleLoadingId(rel.relationship_id);
                               try {
                                 // Use authenticated API instance with correct path
                                 const resp = await api.patch(`relationships/${rel.relationship_id}/toggle_ex`);
@@ -285,7 +286,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                                   'Failed to toggle ex-spouse status. Please try again.'
                                 );
                               } finally {
-                                setIsLoading(false);
+                                setToggleLoadingId(null);
                               }
                             }}
                           >
