@@ -277,7 +277,7 @@ GEM
       rubocop-performance (>= 1.24)
       rubocop-rails (>= 2.30)
     ruby-progressbar (1.13.0)
-    rubyzip (2.3.2)
+    rubyzip (2.4.1)
     securerandom (0.4.1)
     selenium-webdriver (4.10.0)
       rexml (~> 3.2, >= 3.2.5)
@@ -339,7 +339,7 @@ DEPENDENCIES
   rack-mini-profiler
   rails (~> 8.0.2)
   rubocop-rails-omakase
-  rubyzip (~> 2.3.0)
+  rubyzip (~> 2.4.1)
   selenium-webdriver
   tzinfo-data
   web-console
