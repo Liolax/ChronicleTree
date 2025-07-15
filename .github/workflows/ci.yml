@@ -15,7 +15,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.0
+          ruby-version: 3.3.7
           bundler-cache: true
           working-directory: 'chronicle_tree_api'
       - name: Lint Ruby code
@@ -31,7 +31,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.0
+          ruby-version: 3.3.7
           bundler-cache: true
           working-directory: 'chronicle_tree_api'
       - name: Scan for vulnerabilities
@@ -61,7 +61,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: 3.3.0
+          ruby-version: 3.3.7
           bundler-cache: true
           working-directory: 'chronicle_tree_api'
       - name: Setup DB & run Rails tests

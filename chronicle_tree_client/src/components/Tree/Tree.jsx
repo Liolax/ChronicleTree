@@ -544,16 +544,17 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
       {/* Add Person Button at the top center of the tree area */}
       <div className="w-full flex flex-col items-center" style={{ marginTop: 24, marginBottom: 8, zIndex: 10, position: 'relative', top: '0' }}>
         <div className="flex flex-row items-center gap-6">
-          <button
+          <Button
             onClick={openAddPersonModal}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition ml-4"
+            variant="primary"
+            icon={<span className="text-2xl leading-none">+</span>}
             aria-label="Add Person"
             title="Add Person"
             type="button"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition"
           >
-            <span className="text-2xl leading-none">+</span>
             <span className="hidden sm:inline">Add Person</span>
-          </button>
+          </Button>
         </div>
       </div>
       <ReactFlow
