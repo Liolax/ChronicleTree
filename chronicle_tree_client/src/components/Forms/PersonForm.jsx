@@ -169,10 +169,10 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
         </>
       )}
       <div className="flex justify-end gap-4 mt-4">
-        <button type="button" onClick={onCancel} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md font-semibold shadow hover:bg-gray-300 transition-colors">Cancel</button>
-        <button type="submit" disabled={isSubmitting || isLoading} className="bg-button-primary text-white px-4 py-2 rounded-md font-semibold shadow hover:bg-button-primary-hover transition-colors">
+        <Button type="button" onClick={onCancel} variant="grey" disabled={isSubmitting || isLoading}>Cancel</Button>
+        <Button type="submit" variant="primary" disabled={isSubmitting || isLoading}>
           {isSubmitting || isLoading ? 'Saving...' : 'Save'}
-        </button>
+        </Button>
       </div>
     </form>
   );

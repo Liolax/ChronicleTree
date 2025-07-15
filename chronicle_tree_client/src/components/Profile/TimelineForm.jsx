@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../api/api';
 import { FaFlag, FaBirthdayCake, FaGraduationCap, FaBriefcase, FaHome, FaHeart, FaStar, FaPlane, FaTrophy } from 'react-icons/fa';
+import Button from '../UI/Button'; // Adjust the import path as necessary
 
 const ICONS = [
   { name: 'Flag', icon: <FaFlag /> },
@@ -76,8 +77,8 @@ export default function TimelineForm({ personId, event, onEventAdded, onEventUpd
         </div>
       </div>
       <div className="flex justify-end gap-2">
-        <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={onCancel} disabled={submitting}>Cancel</button>
-        <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded" disabled={submitting}>{submitting ? 'Saving...' : (isEdit ? 'Save' : 'Add')}</button>
+        <Button type="button" onClick={onCancel} variant="grey" disabled={submitting}>Cancel</Button>
+        <Button type="submit" variant="primary" disabled={submitting}>{submitting ? 'Saving...' : (isEdit ? 'Save' : 'Add')}</Button>
       </div>
     </form>
   );

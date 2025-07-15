@@ -546,7 +546,7 @@ const Tree = ({ headerHeight = 72, headerHorizontalPadding = 24, modalMaxWidth }
         <div className="flex flex-row items-center gap-6">
           <button
             onClick={openAddPersonModal}
-            className="bg-button-primary text-white rounded-full shadow-lg flex items-center justify-center gap-2 px-5 py-3 text-base font-semibold hover:bg-button-primary-hover focus:outline-none focus:ring-2 focus:ring-button-primary"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition ml-4"
             aria-label="Add Person"
             title="Add Person"
             type="button"

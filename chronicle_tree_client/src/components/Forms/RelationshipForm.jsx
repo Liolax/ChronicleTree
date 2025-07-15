@@ -36,10 +36,10 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
         </div>
       )}
       <div className="flex justify-end space-x-2">
-        <Button type="button" onClick={onCancel} disabled={isLoading} variant="secondary">
+        <Button type="button" onClick={onCancel} disabled={isLoading} variant="grey">
           Cancel
         </Button>
-        <Button type="submit" disabled={isLoading}>
+        <Button type="submit" disabled={isLoading} variant="primary">
           {isLoading ? 'Saving...' : 'Add'}
         </Button>
       </div>

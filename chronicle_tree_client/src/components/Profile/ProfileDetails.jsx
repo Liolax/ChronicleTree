@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FaUser, FaVenusMars, FaBirthdayCake, FaSkullCrossbones, FaSave, FaTimes } from 'react-icons/fa';
 import api from '../../api/api';
+import Button from '../UI/Button'; // Adjust the import path as necessary
 
 export default function ProfileDetails({ person, editing, onPersonUpdated }) {
   const [form, setForm] = useState({
@@ -151,12 +152,12 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
       </div>
       {error && <div className="text-red-500 md:col-span-2">{error}</div>}
       <div className="md:col-span-2 flex gap-2 justify-end mt-2">
-        <button type="button" className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-1 px-3 rounded-md flex items-center gap-2" onClick={() => onPersonUpdated(person)} disabled={saving}>
+        <Button type="button" onClick={() => onPersonUpdated(person)} variant="grey" disabled={saving}>
           <FaTimes /> Cancel
-        </button>
-        <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded-md flex items-center gap-2" disabled={saving}>
+        </Button>
+        <Button type="submit" variant="primary" disabled={saving}>
           <FaSave /> Save
-        </button>
+        </Button>
       </div>
     </form>
   );

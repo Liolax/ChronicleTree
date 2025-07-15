@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../../api/api';
 import { FaBookOpen, FaPen, FaSave, FaTimes } from 'react-icons/fa';
+import Button from '../UI/Button';
 
 export default function Notes({ person, onNotesUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -58,12 +59,12 @@ export default function Notes({ person, onNotesUpdated }) {
           />
           {error && <div className="text-red-500 text-sm mb-2">{error}</div>}
           <div className="flex gap-2 justify-end">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-1 px-3 rounded-md flex items-center gap-2" onClick={handleSave} disabled={saving}>
-              <FaSave /> Save
-            </button>
-            <button className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-1 px-3 rounded-md flex items-center gap-2" onClick={handleCancel} disabled={saving}>
+            <Button type="button" onClick={handleCancel} variant="grey" disabled={saving}>
               <FaTimes /> Cancel
-            </button>
+            </Button>
+            <Button type="button" onClick={handleSave} variant="primary" disabled={saving}>
+              <FaSave /> Save
+            </Button>
           </div>
         </div>
       ) : (
