@@ -12,7 +12,7 @@ module Api
           if resource.persisted?
             # devise-jwt will dispatch a token on successful registration
             render json: {
-              status: { code: 200, message: 'Signed up successfully.' },
+              status: { code: 200, message: "Signed up successfully." },
               data: Api::V1::UserSerializer.new(resource).as_json
             }
           else

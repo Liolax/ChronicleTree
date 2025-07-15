@@ -32,8 +32,3 @@ module Api
     end
   end
 end
-    end
-
-    assert_response :no_content
-  end
-end

@@ -2,15 +2,15 @@
 
 Devise.setup do |config|
   # ==> Mailer Configuration
-  config.mailer_sender = 'please-change-me@example.com'
+  config.mailer_sender = "please-change-me@example.com"
 
   # ==> ORM configuration
-  require 'devise/orm/active_record'
+  require "devise/orm/active_record"
 
   # ==> Configuration for any authentication mechanism
-  config.case_insensitive_keys = [:email]
-  config.strip_whitespace_keys = [:email]
-  config.skip_session_storage = [:http_auth]
+  config.case_insensitive_keys = [ :email ]
+  config.strip_whitespace_keys = [ :email ]
+  config.skip_session_storage = [ :http_auth ]
   config.stretches = Rails.env.test? ? 1 : 12
   config.reconfirmable = true
   config.expire_all_remember_me_on_sign_out = true
@@ -25,11 +25,11 @@ Devise.setup do |config|
   config.jwt do |jwt|
     jwt.secret = Rails.application.credentials.devise_jwt_secret_key
     jwt.dispatch_requests = [
-      ['POST',   %r{^/api/v1/auth/sign_in$}],
-      ['POST',   %r{^/api/v1/auth$}]
+      [ "POST",   %r{^/api/v1/auth/sign_in$} ],
+      [ "POST",   %r{^/api/v1/auth$} ]
     ]
     jwt.revocation_requests = [
-      ['DELETE', %r{^/api/v1/auth/sign_out$}]
+      [ "DELETE", %r{^/api/v1/auth/sign_out$} ]
     ]
     jwt.expiration_time = 1.day.to_i
     # Note: revocation strategy is set in the User model, NOT here.

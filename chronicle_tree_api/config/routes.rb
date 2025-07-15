@@ -1,21 +1,21 @@
 Rails.application.routes.draw do
   # health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
-  get '/ping', to: 'application#ping'
+  get "/ping", to: "application#ping"
 
   # Devise routes for JWT authentication
   devise_for :users,
-             path: 'api/v1/auth',
+             path: "api/v1/auth",
              defaults: { format: :json },
              path_names: {
-               sign_in: 'sign_in',
-               sign_out: 'sign_out',
-               registration: '' # POST to /api/v1/auth
+               sign_in: "sign_in",
+               sign_out: "sign_out",
+               registration: "" # POST to /api/v1/auth
              },
              controllers: {
-               sessions:      'api/v1/auth/sessions',
-               registrations: 'api/v1/auth/registrations',
-               passwords:     'api/v1/auth/passwords'
+               sessions:      "api/v1/auth/sessions",
+               registrations: "api/v1/auth/registrations",
+               passwords:     "api/v1/auth/passwords"
              }
 
   namespace :api, defaults: { format: :json } do
@@ -40,14 +40,14 @@ Rails.application.routes.draw do
       # =====================
 
       # Current user endpoints
-      get    'users/me',       to: 'users#show'
-      patch  'users/me',       to: 'users#update'
-      put    'users/me',       to: 'users#update'
-      delete 'users/me',       to: 'users#destroy'
-      patch  'users/password', to: 'users#update_password'
+      get    "users/me",       to: "users#show"
+      patch  "users/me",       to: "users#update"
+      put    "users/me",       to: "users#update"
+      delete "users/me",       to: "users#destroy"
+      patch  "users/password", to: "users#update_password"
 
       # Family‐tree resources
-      get 'people/tree', to: 'people#full_tree'
+      get "people/tree", to: "people#full_tree"
 
       resources :people, only: %i[index show create update destroy] do
         member do

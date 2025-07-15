@@ -29,7 +29,7 @@ module Api
             render json: { errors: current_user.errors.full_messages }, status: :unprocessable_entity
           end
         else
-          render json: { errors: ["Current password is incorrect."] }, status: :unauthorized
+          render json: { errors: [ "Current password is incorrect." ] }, status: :unauthorized
         end
       end
 

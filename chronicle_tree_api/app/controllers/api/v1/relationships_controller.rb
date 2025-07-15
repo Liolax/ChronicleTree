@@ -22,7 +22,7 @@ module Api
                    status: :unprocessable_entity
           end
         else
-          render json: { errors: ["One or both persons not found in your records."] },
+          render json: { errors: [ "One or both persons not found in your records." ] },
                  status: :not_found
         end
       end
@@ -39,7 +39,7 @@ module Api
 
       # PATCH /api/v1/relationships/:id/toggle_ex
       def toggle_ex
-        if @relationship.relationship_type == 'spouse'
+        if @relationship.relationship_type == "spouse"
           @relationship.is_ex = !@relationship.is_ex
           if @relationship.save
             render json: { success: true, is_ex: @relationship.is_ex }
@@ -47,7 +47,7 @@ module Api
             render json: { success: false, errors: @relationship.errors.full_messages }, status: :unprocessable_entity
           end
         else
-          render json: { success: false, error: 'Only spouse relationships can be toggled.' }, status: :bad_request
+          render json: { success: false, error: "Only spouse relationships can be toggled." }, status: :bad_request
         end
       end
 

@@ -13,12 +13,12 @@ module Api
       end
 
       test "should create relationship for own people" do
-        assert_difference('Relationship.count') do
+        assert_difference("Relationship.count") do
           post api_v1_relationships_url, params: {
             relationship: {
               person_id: @person.id,
               relative_id: @relative.id,
-              relationship_type: 'spouse'
+              relationship_type: "spouse"
             }
           }, as: :json
         end
@@ -26,12 +26,12 @@ module Api
       end
 
       test "should not create relationship for other user's person" do
-        assert_no_difference('Relationship.count') do
+        assert_no_difference("Relationship.count") do
           post api_v1_relationships_url, params: {
             relationship: {
               person_id: @person.id,
               relative_id: @other_user_person.id,
-              relationship_type: 'friend'
+              relationship_type: "friend"
             }
           }, as: :json
         end
@@ -39,7 +39,7 @@ module Api
       end
 
       test "should destroy relationship" do
-        assert_difference('Relationship.count', -1) do
+        assert_difference("Relationship.count", -1) do
           delete api_v1_relationship_url(@relationship), as: :json
         end
         assert_response :no_content
@@ -47,7 +47,7 @@ module Api
 
       test "should not destroy other user's relationship" do
         other_relationship = relationships(:three) # Belongs to users(:two)
-        assert_no_difference('Relationship.count') do
+        assert_no_difference("Relationship.count") do
           delete api_v1_relationship_url(other_relationship), as: :json
         end
         assert_response :forbidden

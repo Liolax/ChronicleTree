@@ -10,7 +10,7 @@ module Api
 
         test "should log in with valid credentials" do
           post api_v1_user_session_url, params: {
-            user: { email: @user.email, password: 'Password123!' }
+            user: { email: @user.email, password: "Password123!" }
           }, as: :json
           assert_response :ok
           assert response.parsed_body["token"].present?
@@ -18,14 +18,14 @@ module Api
 
         test "should not log in with invalid credentials" do
           post api_v1_user_session_url, params: {
-            user: { email: @user.email, password: 'wrongpassword' }
+            user: { email: @user.email, password: "wrongpassword" }
           }, as: :json
           assert_response :unauthorized
         end
 
         test "should log out" do
           auth_token = sign_in_as(@user)
-          delete destroy_api_v1_user_session_url, headers: { 'Authorization' => "Bearer #{auth_token}" }
+          delete destroy_api_v1_user_session_url, headers: { "Authorization" => "Bearer #{auth_token}" }
           assert_response :no_content
         end
       end

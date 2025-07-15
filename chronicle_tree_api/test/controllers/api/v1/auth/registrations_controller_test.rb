@@ -5,13 +5,13 @@ module Api
     module Auth
       class RegistrationsControllerTest < ActionDispatch::IntegrationTest
         test "should register user with valid data" do
-          assert_difference('User.count') do
+          assert_difference("User.count") do
             post api_v1_user_registration_url, params: {
               user: {
-                name: 'New User',
-                email: 'new@example.com',
-                password: 'Password123!',
-                password_confirmation: 'Password123!'
+                name: "New User",
+                email: "new@example.com",
+                password: "Password123!",
+                password_confirmation: "Password123!"
               }
             }, as: :json
           end
@@ -20,13 +20,13 @@ module Api
         end
 
         test "should not register user with invalid data" do
-          assert_no_difference('User.count') do
+          assert_no_difference("User.count") do
             post api_v1_user_registration_url, params: {
               user: {
-                name: 'New User',
-                email: 'new@example.com',
-                password: 'short',
-                password_confirmation: 'short'
+                name: "New User",
+                email: "new@example.com",
+                password: "short",
+                password_confirmation: "short"
               }
             }, as: :json
           end

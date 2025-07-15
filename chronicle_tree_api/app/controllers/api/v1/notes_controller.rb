@@ -29,7 +29,7 @@ module Api
         if note&.update(note_params)
           render json: note, serializer: Api::V1::NoteSerializer
         else
-          render json: { errors: note ? note.errors.full_messages : ["Note not found"] }, status: :unprocessable_entity
+          render json: { errors: note ? note.errors.full_messages : [ "Note not found" ] }, status: :unprocessable_entity
         end
       end
 

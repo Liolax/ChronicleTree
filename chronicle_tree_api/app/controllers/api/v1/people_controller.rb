@@ -25,7 +25,7 @@ module Api
           rel_person_id = params[:person][:related_person_id]
           # Require relationship fields unless first person
           if !is_first_person && (rel_type.blank? || rel_person_id.blank?)
-            render json: { errors: ['Relationship Type and Related Person are required'] }, status: :unprocessable_entity
+            render json: { errors: [ "Relationship Type and Related Person are required" ] }, status: :unprocessable_entity
             raise ActiveRecord::Rollback
           end
           if person.save

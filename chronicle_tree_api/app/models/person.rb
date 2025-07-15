@@ -3,14 +3,14 @@ class Person < ApplicationRecord
   belongs_to :user
 
   has_many :relationships,
-           class_name: 'Relationship',
-           foreign_key: 'person_id',
+           class_name: "Relationship",
+           foreign_key: "person_id",
            inverse_of: :person,
            dependent: :destroy
 
   has_many :related_by_relationships,
-           class_name: 'Relationship',
-           foreign_key: 'relative_id',
+           class_name: "Relationship",
+           foreign_key: "relative_id",
            inverse_of: :relative,
            dependent: :destroy
 
@@ -31,11 +31,11 @@ class Person < ApplicationRecord
   # Methods to query relationships
   def parents
     Person.joins(:relationships)
-          .where(relationships: { relative_id: id, relationship_type: 'child' })
+          .where(relationships: { relative_id: id, relationship_type: "child" })
   end
 
   def children
-    relatives.where(relationships: { relationship_type: 'child' })
+    relatives.where(relationships: { relationship_type: "child" })
   end
 
   def spouses
@@ -54,7 +54,7 @@ class Person < ApplicationRecord
     return Person.none if parent_ids.empty?
 
     Person.joins(:relationships)
-          .where(relationships: { relationship_type: 'child', relative_id: parent_ids })
+          .where(relationships: { relationship_type: "child", relative_id: parent_ids })
           .where.not(id: id)
           .distinct
   end

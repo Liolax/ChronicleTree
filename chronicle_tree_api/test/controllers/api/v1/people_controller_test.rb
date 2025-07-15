@@ -16,7 +16,7 @@ module Api
 
       test "should create person" do
         assert_difference("Person.count") do
-          post api_v1_people_url, params: { person: { first_name: 'New', last_name: 'Person', user_id: @user.id } }, as: :json
+          post api_v1_people_url, params: { person: { first_name: "New", last_name: "Person", user_id: @user.id } }, as: :json
         end
         assert_response :created
       end
@@ -27,7 +27,7 @@ module Api
       end
 
       test "should update person" do
-        patch api_v1_person_url(@person), params: { person: { first_name: 'Updated' } }, as: :json
+        patch api_v1_person_url(@person), params: { person: { first_name: "Updated" } }, as: :json
         assert_response :success
       end
 

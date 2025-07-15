@@ -26,17 +26,17 @@ emily = Person.find_or_create_by!(id: 5, first_name: 'Emily', last_name: 'A', us
 charlie = Person.find_or_create_by!(id: 6, first_name: 'Charlie', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(2015, 12, 5))
 
 # --- NOTES ---
-[p1, p2, alice, david, bob, emily, charlie].each do |person|
+[ p1, p2, alice, david, bob, emily, charlie ].each do |person|
   Note.find_or_create_by!(person: person) do |note|
     note.content = "Add a note about this person. You can use this space to record stories, memories, or important details."
   end
 end
 # --- PROFILES ---
-[p1, p2, alice, david, bob, emily, charlie].each do |person|
+[ p1, p2, alice, david, bob, emily, charlie ].each do |person|
   Profile.find_or_create_by!(person: person)
 end
 # Ensure avatars are nil
-[p1, p2, alice, david, bob, emily, charlie].each do |person|
+[ p1, p2, alice, david, bob, emily, charlie ].each do |person|
   profile = person.profile
   profile.avatar.purge if profile.avatar.attached?
 end
@@ -73,10 +73,10 @@ Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person',
 # --- RELATIONSHIPS ---
 # Define all parent-child pairs in the tree
 parent_child_pairs = [
-  [p1, charlie], [p2, charlie],
-  [p1, alice],   [p2, alice],
-  [alice, bob],  [david, bob],
-  [alice, emily],[david, emily]
+  [ p1, charlie ], [ p2, charlie ],
+  [ p1, alice ],   [ p2, alice ],
+  [ alice, bob ],  [ david, bob ],
+  [ alice, emily ], [ david, emily ]
 ]
 
 # For each parent-child pair, create both directions

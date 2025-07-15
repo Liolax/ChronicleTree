@@ -51,7 +51,7 @@ module Api
         # Find the media record directly first
         media = Medium.find(params[:id])
         # Then, authorize that it belongs to the current user
-        if media.attachable_type == 'Person' && media.attachable.user == current_user
+        if media.attachable_type == "Person" && media.attachable.user == current_user
           @media = media
         else
           head :not_found

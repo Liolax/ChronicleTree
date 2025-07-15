@@ -2,8 +2,8 @@ module Api
   module V1
     class FactsController < ApplicationController
       before_action :authenticate_user!
-      before_action :set_person, only: [:index, :create]
-      before_action :set_fact, only: [:update, :destroy]
+      before_action :set_person, only: [ :index, :create ]
+      before_action :set_fact, only: [ :update, :destroy ]
 
       # GET /api/v1/people/:person_id/facts
       def index

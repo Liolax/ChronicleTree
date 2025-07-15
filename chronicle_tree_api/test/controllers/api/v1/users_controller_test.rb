@@ -6,7 +6,7 @@ module Api
       setup do
         @user = users(:default_user)
         @auth_token = sign_in_as(@user)
-        @headers = { 'Authorization' => "Bearer #{@auth_token}" }
+        @headers = { "Authorization" => "Bearer #{@auth_token}" }
       end
 
       test "should show current user's profile" do
@@ -36,7 +36,7 @@ module Api
       end
 
       test "should destroy user account" do
-        assert_difference('User.count', -1) do
+        assert_difference("User.count", -1) do
           delete api_v1_users_me_url, headers: @headers, as: :json
         end
         assert_response :no_content

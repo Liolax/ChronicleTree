@@ -45,7 +45,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   # Custom relatives array with relationship_type
   def relatives
     object.relationships.includes(:relative).map do |rel|
-      rel.relative.as_json(only: [:id, :first_name, :last_name]).merge({
+      rel.relative.as_json(only: [ :id, :first_name, :last_name ]).merge({
         full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
         relationship_type: rel.relationship_type,
         id: rel.relative.id,
@@ -57,7 +57,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
 
   def parents_in_law
     object.parents_in_law.map do |p|
-      p.as_json(only: [:id, :first_name, :last_name]).merge({
+      p.as_json(only: [ :id, :first_name, :last_name ]).merge({
         full_name: "#{p.first_name} #{p.last_name}",
         id: p.id
       })
@@ -66,7 +66,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
 
   def children_in_law
     object.children_in_law.map do |c|
-      c.as_json(only: [:id, :first_name, :last_name]).merge({
+      c.as_json(only: [ :id, :first_name, :last_name ]).merge({
         full_name: "#{c.first_name} #{c.last_name}",
         id: c.id
       })
@@ -75,7 +75,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
 
   def siblings_in_law
     object.siblings_in_law.map do |s|
-      s.as_json(only: [:id, :first_name, :last_name]).merge({
+      s.as_json(only: [ :id, :first_name, :last_name ]).merge({
         full_name: "#{s.first_name} #{s.last_name}",
         id: s.id
       })
