@@ -64,6 +64,10 @@ jobs:
           ruby-version: 3.3.7
           bundler-cache: true
           working-directory: 'chronicle_tree_api'
+      - name: Add Linux platform to Gemfile.lock
+        run: |
+          cd chronicle_tree_api
+          bundle lock --add-platform x86_64-linux
       - name: Setup DB & run Rails tests
         env:
           RAILS_ENV: test
