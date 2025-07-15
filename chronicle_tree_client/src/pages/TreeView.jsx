@@ -1,18 +1,8 @@
 import React from 'react';
-import { TreeProvider, useTreeState } from '../context/TreeStateContext';
-import { ReactFlowProvider } from 'reactflow';
 import PageHeader from '../components/Layout/PageHeader';
 import Tree from '../components/Tree/Tree';
-import { usePeople } from '../services/people';
 
-const TreeViewContent = () => {
-  const {
-    isAddPersonModalOpen,
-    closeAddPersonModal,
-  } = useTreeState();
-
-  const { data: people, isLoading, isError } = usePeople();
-
+export default function TreeView() {
   return (
     <div className="flex flex-col w-full min-h-screen h-screen max-h-screen overflow-hidden">
       <PageHeader title="Family Tree" subtitle="Visualize and manage your family connections." />
@@ -20,15 +10,5 @@ const TreeViewContent = () => {
         <Tree />
       </div>
     </div>
-  );
-}
-
-export default function TreeView() {
-  return (
-    <TreeProvider>
-      <ReactFlowProvider>
-        <TreeViewContent />
-      </ReactFlowProvider>
-    </TreeProvider>
   );
 }

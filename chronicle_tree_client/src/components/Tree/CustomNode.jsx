@@ -1,11 +1,10 @@
-import { Handle, Position } from 'reactflow';
 import React, { memo } from 'react';
 import Avatar from 'react-avatar';
 import { FaPen, FaBullseye, FaTrash, FaMars, FaVenus, FaCheckCircle } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
 
 const CustomNode = ({ data, id, selected }) => {
-  const { person, onEdit, onDelete, onCenter, onPersonCardOpen } = data;
+  const { person, onEdit, onDelete, onSetAsRoot, onPersonCardOpen, setOpenCardId, openCardId } = data;
   const avatarUrl = person.avatar_url;
   const birthYear = person.date_of_birth ? new Date(person.date_of_birth).getFullYear() : '';
   const deathYear = person.date_of_death ? new Date(person.date_of_death).getFullYear() : '';
@@ -24,12 +23,13 @@ const CustomNode = ({ data, id, selected }) => {
   };
   const age = getAge(person.date_of_birth, person.date_of_death);
 
+  // Node click: open card or toggle openCardId if provided
   const handleNodeClick = (e) => {
-    // Prevent action button clicks from triggering card open
     if (e.target.closest('button')) return;
     if (typeof onPersonCardOpen === 'function') {
-      console.debug('CustomNode: Node clicked, opening person card for', person);
       onPersonCardOpen(person);
+    } else if (typeof setOpenCardId === 'function') {
+      setOpenCardId(openCardId === id ? null : id);
     }
   };
 
@@ -67,15 +67,17 @@ const CustomNode = ({ data, id, selected }) => {
         {age !== null && (
           <div className="text-xs text-gray-700 mt-1">{age} y.o.</div>
         )}
+        {/* Show year of birth if available */}
+        {birthYear && (
+          <div className="text-xs text-black font-semibold mt-1">{birthYear}</div>
+        )}
       </div>
       {/* Action buttons (edit, delete, center) */}
       <div className="flex justify-center gap-2 mt-2">
+        {onSetAsRoot && <button onClick={e => { e.stopPropagation(); onSetAsRoot(person.id); }} title="Center" aria-label={`Center on ${person.first_name} ${person.last_name}`} className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded" tabIndex={0}><FaBullseye /><Tooltip anchorSelect="[aria-label^='Center']" place="top">Center</Tooltip></button>}
         {onEdit && <button onClick={e => { e.stopPropagation(); onEdit(person); }} title="Edit" aria-label={`Edit ${person.first_name} ${person.last_name}`} className="text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded" tabIndex={0}><FaPen /><Tooltip anchorSelect="[aria-label^='Edit']" place="top">Edit</Tooltip></button>}
         {onDelete && <button onClick={e => { e.stopPropagation(); onDelete(person); }} title="Delete" aria-label={`Delete ${person.first_name} ${person.last_name}`} className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 rounded" tabIndex={0}><FaTrash /><Tooltip anchorSelect="[aria-label^='Delete']" place="top">Delete</Tooltip></button>}
-        {onCenter && <button onClick={e => { e.stopPropagation(); onCenter(person); }} title="Center on this person" aria-label={`Center on ${person.first_name} ${person.last_name}`} className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded" tabIndex={0}><FaBullseye /><Tooltip anchorSelect="[aria-label^='Center']" place="top">Center</Tooltip></button>}
       </div>
-      <Handle type="target" position={Position.Top} style={{ background: '#4F868E' }} />
-      <Handle type="source" position={Position.Bottom} style={{ background: '#4F868E' }} />
     </div>
   );
 };
