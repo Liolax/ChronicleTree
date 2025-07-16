@@ -119,6 +119,12 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
         <div className="text-base font-bold text-app-primary text-center mt-1 truncate w-full flex items-center justify-center gap-1">
           {person.first_name} {person.last_name} {genderIcon}
         </div>
+        {/* Show relation to root if available */}
+        {person.relation && (
+          <div className="text-xs text-[#4F868E] font-semibold bg-[#edf8f5] px-2 py-1 rounded-md mt-1">
+            {person.relation}
+          </div>
+        )}
         {/* Show full date of birth and death if available, only if deceased for death */}
         <div className="text-xs text-app-secondary mt-1 text-center w-full">
           {birthDate}

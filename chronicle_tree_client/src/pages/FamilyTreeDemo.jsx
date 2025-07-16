@@ -15,6 +15,7 @@ import '@xyflow/react/dist/style.css';
 import PersonCardNode from '../components/Tree/PersonCardNode';
 import PersonCard from '../components/Tree/PersonCard';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../utils/familyTreeHierarchicalLayout';
+import { getAllRelationshipsToRoot } from '../utils/relationshipCalculator';
 import { mockFamilyData } from '../data/mockData';
 
 // Node types for react-flow
@@ -45,7 +46,7 @@ const FamilyTreeDemo = () => {
   }, []);
 
   const handleRestructureTree = useCallback((personId) => {
-    console.log('Restructure tree with root:', personId);
+    console.log('Set new root person:', personId);
     setRootPersonId(personId);
   }, []);
 
@@ -69,18 +70,28 @@ const FamilyTreeDemo = () => {
     setPersonCardPosition(null);
   }, []);
 
-  // Filter data based on root person
-  const filteredData = useMemo(() => {
-    if (!rootPersonId) return mockFamilyData;
+  // Filter data based on root person and add relationship information
+  const processedData = useMemo(() => {
+    const rootPerson = rootPersonId 
+      ? mockFamilyData.nodes.find(n => n.id === rootPersonId)
+      : null;
     
-    // For demo purposes, we'll just return all data
-    // In real implementation, this would filter based on the root person
-    return mockFamilyData;
+    // Add relationship information to all people
+    const peopleWithRelations = getAllRelationshipsToRoot(
+      rootPerson,
+      mockFamilyData.nodes,
+      mockFamilyData.edges
+    );
+    
+    return {
+      nodes: peopleWithRelations,
+      edges: mockFamilyData.edges
+    };
   }, [rootPersonId]);
 
   // Transform mock data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const { nodes, edges } = createFamilyTreeLayout(filteredData.nodes, filteredData.edges, {
+    const { nodes, edges } = createFamilyTreeLayout(processedData.nodes, processedData.edges, {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
@@ -89,16 +100,16 @@ const FamilyTreeDemo = () => {
     });
 
     return { nodes, edges };
-  }, [filteredData, handleEditPerson, handleDeletePerson, openPersonCard, handleCenterPerson, handleRestructureTree]);
+  }, [processedData, handleEditPerson, handleDeletePerson, openPersonCard, handleCenterPerson, handleRestructureTree]);
 
   // Apply final positioning adjustments
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!initialNodes.length) return { nodes: [], edges: [] };
     
     // Center children between their parents for better visual hierarchy
-    const adjustedNodes = centerChildrenBetweenParents(initialNodes, filteredData.edges);
+    const adjustedNodes = centerChildrenBetweenParents(initialNodes, processedData.edges);
     return { nodes: adjustedNodes, edges: initialEdges };
-  }, [initialNodes, initialEdges, filteredData.edges]);
+  }, [initialNodes, initialEdges, processedData.edges]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
@@ -135,23 +146,24 @@ const FamilyTreeDemo = () => {
       <div className="w-full h-screen bg-gray-50">
         {/* Header */}
         <div className="flex justify-between items-center p-4 bg-white border-b">
-          <div className="flex gap-3">
+          <div className="flex gap-4 items-center">
             <h1 className="text-2xl font-bold text-gray-800">Family Tree Demo</h1>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
-              <span>People: {nodes.length}</span>
-              <span>•</span>
-              <span>Relationships: {edges.length}</span>
-            </div>
+            <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+              Add Person
+            </button>
+            <button className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors">
+              Full Tree
+            </button>
             {rootPersonId && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-600">
-                  Root: {filteredData.nodes.find(n => n.id === rootPersonId)?.first_name} {filteredData.nodes.find(n => n.id === rootPersonId)?.last_name}
+              <div className="flex items-center gap-2 text-sm bg-[#edf8f5] px-3 py-1 rounded-md">
+                <span className="text-[#4F868E] font-medium">
+                  Root: {processedData.nodes.find(n => n.id === rootPersonId)?.first_name} {processedData.nodes.find(n => n.id === rootPersonId)?.last_name}
                 </span>
                 <button
                   onClick={handleResetTree}
-                  className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition-colors"
+                  className="px-2 py-1 bg-[#4F868E] text-white rounded text-xs hover:bg-[#3d6b73] transition-colors"
                 >
-                  Show All
+                  Reset
                 </button>
               </div>
             )}
@@ -210,15 +222,29 @@ const FamilyTreeDemo = () => {
             {/* Info Panel */}
             <Panel position="top-right" className="bg-white p-3 rounded-lg shadow-lg">
               <div className="text-sm">
-                <div className="font-semibold text-gray-700 mb-2">Enhanced Family Tree</div>
-                <div className="space-y-1 text-gray-600">
-                  <div>👥 {nodes.length} people</div>
-                  <div>🔗 {edges.length} relationships</div>
-                  <div>📊 Top-down hierarchical layout</div>
-                  <div>🎨 Custom person cards</div>
-                  <div>💕 Pink lines: Current spouses</div>
-                  <div>💔 Grey lines: Ex-spouses</div>
-                  <div>🏠 Click home icon to restructure</div>
+                <div className="font-semibold text-gray-700 mb-3">Connection Legend</div>
+                <div className="space-y-2 text-gray-600">
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-[#6366f1]"></div>
+                    <span>Parent-Child</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-[#ec4899] border-dashed" style={{ borderTop: '2px dashed #ec4899', background: 'none' }}></div>
+                    <span>Current Spouse</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-[#9ca3af] border-dashed" style={{ borderTop: '2px dashed #9ca3af', background: 'none' }}></div>
+                    <span>Ex-Spouse</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-[#10b981] border-dashed" style={{ borderTop: '2px dashed #10b981', background: 'none' }}></div>
+                    <span>Sibling</span>
+                  </div>
+                  <div className="mt-3 pt-2 border-t border-gray-200">
+                    <div className="text-xs text-gray-500">
+                      🏠 Click home icon to change root person
+                    </div>
+                  </div>
                 </div>
               </div>
             </Panel>

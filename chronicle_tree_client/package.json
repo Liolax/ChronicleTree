@@ -18,6 +18,7 @@
     "@tanstack/react-query": "^5.51.1",
     "@xyflow/react": "^12.8.2",
     "axios": "^1.7.2",
+    "core-js-pure": "^3.44.0",
     "dagre": "^0.8.5",
     "glob": "^11.0.3",
     "react": "^19.1.0",
