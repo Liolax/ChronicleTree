@@ -252,6 +252,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                         ) : (
                           <span className="font-medium">
                             <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
+                            {rel.inLaw && ' (in-law)'}
                           </span>
                         )}
                         {/* Edit icon for spouse to toggle ex status */}
