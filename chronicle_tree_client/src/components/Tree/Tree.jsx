@@ -218,7 +218,8 @@ const FamilyTree = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [personCardPosition, setPersonCardPosition] = useState(null);
   const [layoutType, setLayoutType] = useState(LAYOUT_TYPES.ENHANCED);
-  const { data, isLoading, isError } = useFullTree();
+  const [rootPersonId, setRootPersonId] = useState(null);
+  const { data, isLoading, isError } = useFullTree(rootPersonId);
 
   // --- Handlers must be defined before useMemo below ---
   const reactFlowInstance = React.useRef(null);
@@ -246,6 +247,16 @@ const FamilyTree = () => {
     }
   };
 
+  // Restructure tree with a new root person
+  const handleRestructureTree = (personId) => {
+    setRootPersonId(personId);
+  };
+
+  // Reset tree to show all people
+  const handleResetTree = () => {
+    setRootPersonId(null);
+  };
+
   // React Flow state
   const { flowNodes, flowEdges } = useMemo(() => {
     if (!data) return { flowNodes: [], flowEdges: [] };
@@ -255,6 +266,7 @@ const FamilyTree = () => {
       onDelete: person => setDeleteTarget(person),
       onPersonCardOpen: openPersonCard,
       onCenter: handleCenterPerson,
+      onRestructure: handleRestructureTree,
     }, layoutType);
   }, [data, layoutType]);
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
@@ -298,6 +310,14 @@ const FamilyTree = () => {
                 <option value={LAYOUT_TYPES.DAGRE}>Automatic (Dagre)</option>
               </select>
             </div>
+            {rootPersonId && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">
+                  Root: {data?.nodes?.find(n => n.id === rootPersonId)?.first_name} {data?.nodes?.find(n => n.id === rootPersonId)?.last_name}
+                </span>
+                <Button onClick={handleResetTree} className="text-xs">Show All</Button>
+              </div>
+            )}
           </div>
           <FitViewButton />
         </div>
@@ -309,6 +329,7 @@ const FamilyTree = () => {
           <div>Nodes: {nodes.length}</div>
           <div>Edges: {edges.length}</div>
           <div>Layout: {layoutType}</div>
+          <div>Root: {rootPersonId || 'All'}</div>
         </div>
         <ReactFlow
           nodes={nodes}

@@ -31,10 +31,16 @@ const getFullTree = async () => {
   return data;
 };
 
-export function useFullTree() {
+export function useFullTree(rootPersonId = null) {
   return useQuery({
-    queryKey: ['full-tree'],
-    queryFn: getFullTree,
+    queryKey: ['full-tree', rootPersonId],
+    queryFn: () => {
+      if (rootPersonId) {
+        return getTree(rootPersonId);
+      } else {
+        return getFullTree();
+      }
+    },
   });
 }
 

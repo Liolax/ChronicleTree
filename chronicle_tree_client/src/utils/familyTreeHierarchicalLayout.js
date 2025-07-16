@@ -308,6 +308,9 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
     const connectionKey = `spouse-${Math.min(source, target)}-${Math.max(source, target)}`;
 
     if (!processedConnections.has(connectionKey)) {
+      // Determine if this is an ex-spouse relationship
+      const isEx = relationship.is_ex === true;
+      
       edges.push({
         id: connectionKey,
         source,
@@ -315,7 +318,7 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
         type: 'straight',
         animated: false,
         style: {
-          stroke: '#f59e42',
+          stroke: isEx ? '#9ca3af' : '#ec4899', // Grey for ex-spouse, pink for current spouse
           strokeWidth: 3,
           strokeDasharray: '5 5'
         }
