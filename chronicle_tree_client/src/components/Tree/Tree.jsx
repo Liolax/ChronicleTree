@@ -479,9 +479,13 @@ const FamilyTree = () => {
   }, [data, layoutRootId]);
 
   // --- Handlers ---
-  const handleEditPerson = (person) => setEditPerson(person);
+  const handleEditPerson = (person) => {
+    closePersonCard();
+    setEditPerson(person);
+  };
   const handleCloseEditModal = () => setEditPerson(null);
   const handleDeletePerson = (person) => {
+    closePersonCard();
     setDeleteTarget(person);
     setShowDeleteModal(true);
   };
