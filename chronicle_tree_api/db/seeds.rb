@@ -17,13 +17,13 @@ user.save!
 
 puts "Adding fixture-style test people and their data for UI testing..."
 # --- PEOPLE ---
-p1 = Person.find_or_create_by!(id: 1, first_name: 'John', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1980, 1, 1))
-p2 = Person.find_or_create_by!(id: 2, first_name: 'Jane', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1982, 2, 2), date_of_death: Date.new(2022, 6, 15))
-alice = Person.find_or_create_by!(id: 44, first_name: 'Alice', last_name: 'A', user: user, gender: 'Female', date_of_birth: Date.new(1990, 7, 1))
-david = Person.find_or_create_by!(id: 3, first_name: 'David', last_name: 'A', user: user, gender: 'Male', date_of_birth: Date.new(1988, 5, 15))
-bob = Person.find_or_create_by!(id: 4, first_name: 'Bob', last_name: 'B', user: user, gender: 'Male', date_of_birth: Date.new(2010, 3, 10))
-emily = Person.find_or_create_by!(id: 5, first_name: 'Emily', last_name: 'A', user: user, gender: 'Female', date_of_birth: Date.new(2012, 8, 20))
-charlie = Person.find_or_create_by!(id: 6, first_name: 'Charlie', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(2015, 12, 5))
+p1 = Person.find_or_create_by!(first_name: 'John', last_name: 'Doe', user: user, gender: 'male', date_of_birth: Date.new(1980,1,1))
+p2 = Person.find_or_create_by!(first_name: 'Jane', last_name: 'Doe', user: user, gender: 'female', date_of_birth: Date.new(1982,1,1), date_of_death: Date.new(2022,1,1))
+alice = Person.find_or_create_by!(first_name: 'Alice', last_name: 'A', user: user, gender: 'female', date_of_birth: Date.new(1990,1,1))
+david = Person.find_or_create_by!(first_name: 'David', last_name: 'A', user: user, gender: 'male', date_of_birth: Date.new(1988,1,1))
+bob = Person.find_or_create_by!(first_name: 'Bob', last_name: 'B', user: user, gender: 'male', date_of_birth: Date.new(2010,1,1))
+emily = Person.find_or_create_by!(first_name: 'Emily', last_name: 'E', user: user, gender: 'female', date_of_birth: Date.new(2012,1,1))
+charlie = Person.find_or_create_by!(first_name: 'Charlie', last_name: 'C', user: user, gender: 'male', date_of_birth: Date.new(2014,1,1))
 
 # --- NOTES ---
 [ p1, p2, alice, david, bob, emily, charlie ].each do |person|
@@ -73,34 +73,39 @@ Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person',
 # --- RELATIONSHIPS ---
 # Define all parent-child pairs in the tree
 parent_child_pairs = [
-  [ p1, charlie ], [ p2, charlie ],
   [ p1, alice ],   [ p2, alice ],
+  [ p1, charlie ], [ p2, charlie ],
   [ alice, bob ],  [ david, bob ],
   [ alice, emily ], [ david, emily ]
 ]
 
-# For each parent-child pair, create both directions
+# Create parent-child relationships (both directions)
 parent_child_pairs.each do |parent, child|
   Relationship.find_or_create_by!(person: parent, relative: child, relationship_type: 'child')
   Relationship.find_or_create_by!(person: child, relative: parent, relationship_type: 'parent')
 end
 
-# Remove any old single-direction parent-child relationships for these pairs
-parent_child_pairs.each do |parent, child|
-  Relationship.where(person: child, relative: parent, relationship_type: 'child').destroy_all
-  Relationship.where(person: parent, relative: child, relationship_type: 'parent').destroy_all
-end
-
-# Spouses
+# Spouses (ensure only one current spouse per person)
 Relationship.find_or_create_by!(person: p1, relative: p2, relationship_type: 'spouse', is_ex: false)
 Relationship.find_or_create_by!(person: p2, relative: p1, relationship_type: 'spouse', is_ex: false)
 Relationship.find_or_create_by!(person: alice, relative: david, relationship_type: 'spouse', is_ex: true)
 Relationship.find_or_create_by!(person: david, relative: alice, relationship_type: 'spouse', is_ex: true)
 
-# Siblings
-Relationship.find_or_create_by!(person: bob, relative: emily, relationship_type: 'sibling')
-Relationship.find_or_create_by!(person: emily, relative: bob, relationship_type: 'sibling')
-Relationship.find_or_create_by!(person: charlie, relative: alice, relationship_type: 'sibling')
-Relationship.find_or_create_by!(person: alice, relative: charlie, relationship_type: 'sibling')
+# Siblings (only create sibling relationships for those who share at least one parent)
+def shared_parent?(a, b, parent_child_pairs)
+  a_parents = parent_child_pairs.select { |pair| pair[1] == a }.map(&:first)
+  b_parents = parent_child_pairs.select { |pair| pair[1] == b }.map(&:first)
+  (a_parents & b_parents).any?
+end
+
+sibling_pairs = [
+  [bob, emily], [charlie, alice]
+]
+sibling_pairs.each do |a, b|
+  if shared_parent?(a, b, parent_child_pairs)
+    Relationship.find_or_create_by!(person: a, relative: b, relationship_type: 'sibling')
+    Relationship.find_or_create_by!(person: b, relative: a, relationship_type: 'sibling')
+  end
+end
 
 puts 'Fixture-style test people and their data added.'

@@ -4,11 +4,11 @@ import { FaPen, FaBullseye, FaTrash, FaMars, FaVenus, FaCheckCircle } from 'reac
 import { Tooltip } from 'react-tooltip';
 
 const CustomNode = ({ data, id, selected }) => {
-  const { person, onEdit, onDelete, onSetAsRoot, onPersonCardOpen, setOpenCardId, openCardId } = data;
+  const { person, onEdit, onDelete, onCenter, onPersonCardOpen, setOpenCardId, openCardId } = data;
   const avatarUrl = person.avatar_url;
   const birthYear = person.date_of_birth ? new Date(person.date_of_birth).getFullYear() : '';
   const deathYear = person.date_of_death ? new Date(person.date_of_death).getFullYear() : '';
-  const genderIcon = person.gender === 'Female' ? <FaVenus className="text-pink-500 ml-1" /> : person.gender === 'Male' ? <FaMars className="text-blue-500 ml-1" /> : null;
+  const genderIcon = person.gender?.toLowerCase() === 'female' ? <FaVenus className="text-pink-500 ml-1" /> : person.gender?.toLowerCase() === 'male' ? <FaMars className="text-blue-500 ml-1" /> : null;
   const status = person.is_alive === false || person.date_of_death ? 'Deceased' : 'Alive';
   const statusColor = status === 'Alive' ? 'text-green-600' : 'text-gray-400';
   // Calculate age for node display
@@ -26,12 +26,17 @@ const CustomNode = ({ data, id, selected }) => {
   // Node click: open card or toggle openCardId if provided
   const handleNodeClick = (e) => {
     if (e.target.closest('button')) return;
+    // Defensive: skip undefined/empty nodes
+    if (!person.first_name && !person.last_name && !person.date_of_birth && !person.avatar_url) return;
     if (typeof onPersonCardOpen === 'function') {
       onPersonCardOpen(person);
     } else if (typeof setOpenCardId === 'function') {
       setOpenCardId(openCardId === id ? null : id);
     }
   };
+
+  // Defensive: skip rendering for undefined/empty nodes
+  if (!person.first_name && !person.last_name && !person.date_of_birth && !person.avatar_url) return null;
 
   return (
     <div
@@ -74,7 +79,7 @@ const CustomNode = ({ data, id, selected }) => {
       </div>
       {/* Action buttons (edit, delete, center) */}
       <div className="flex justify-center gap-2 mt-2">
-        {onSetAsRoot && <button onClick={e => { e.stopPropagation(); onSetAsRoot(person.id); }} title="Center" aria-label={`Center on ${person.first_name} ${person.last_name}`} className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded" tabIndex={0}><FaBullseye /><Tooltip anchorSelect="[aria-label^='Center']" place="top">Center</Tooltip></button>}
+        {onCenter && <button onClick={e => { e.stopPropagation(); onCenter(person.id); }} title="Center" aria-label={`Center on ${person.first_name} ${person.last_name}`} className="text-gray-500 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 rounded" tabIndex={0}><FaBullseye /><Tooltip anchorSelect="[aria-label^='Center']" place="top">Center</Tooltip></button>}
         {onEdit && <button onClick={e => { e.stopPropagation(); onEdit(person); }} title="Edit" aria-label={`Edit ${person.first_name} ${person.last_name}`} className="text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded" tabIndex={0}><FaPen /><Tooltip anchorSelect="[aria-label^='Edit']" place="top">Edit</Tooltip></button>}
         {onDelete && <button onClick={e => { e.stopPropagation(); onDelete(person); }} title="Delete" aria-label={`Delete ${person.first_name} ${person.last_name}`} className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 rounded" tabIndex={0}><FaTrash /><Tooltip anchorSelect="[aria-label^='Delete']" place="top">Delete</Tooltip></button>}
       </div>

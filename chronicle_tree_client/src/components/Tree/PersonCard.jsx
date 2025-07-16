@@ -24,7 +24,7 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
   const deathDate = person.date_of_death ? new Date(person.date_of_death).toLocaleDateString() : '';
   const initials = getInitials(person.first_name, person.last_name);
   const avatarUrl = person.avatar_url;
-  const genderIcon = person.gender === 'Female' ? <FaVenus className="text-pink-500 ml-1" title="Female" /> : person.gender === 'Male' ? <FaMars className="text-blue-500 ml-1" title="Male" /> : null;
+  const genderIcon = person.gender?.toLowerCase() === 'female' ? <FaVenus className="text-pink-500 ml-1" title="Female" /> : person.gender?.toLowerCase() === 'male' ? <FaMars className="text-blue-500 ml-1" title="Male" /> : null;
 
   // If fixed, use screen coordinates and clamp to viewport
   let left = position ? position.x : 0;
