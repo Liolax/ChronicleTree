@@ -19,6 +19,7 @@ import CustomNode from './CustomNode';
 import PersonCard from "./PersonCard";
 import { familyTreeLayout } from '../../utils/familyTreeLayout';
 import { dagreLayout } from '../../utils/dagreLayout';
+import { getAllRelationshipsToRoot } from '../../utils/relationshipCalculator';
 
 // --- React Flow Node Types ---
 const nodeTypes = {
@@ -249,26 +250,49 @@ const FamilyTree = () => {
 
   // Restructure tree with a new root person
   const handleRestructureTree = (personId) => {
+    console.log('Set new root person:', personId);
     setRootPersonId(personId);
   };
 
   // Reset tree to show all people
   const handleResetTree = () => {
+    console.log('Reset tree to show all people');
     setRootPersonId(null);
   };
 
+  // Process data based on root person and add relationship information
+  const processedData = useMemo(() => {
+    if (!data) return { nodes: [], edges: [] };
+    
+    const rootPerson = rootPersonId 
+      ? data.nodes.find(n => n.id === rootPersonId)
+      : null;
+    
+    // Add relationship information to all people
+    const peopleWithRelations = getAllRelationshipsToRoot(
+      rootPerson,
+      data.nodes,
+      data.edges
+    );
+    
+    return {
+      nodes: peopleWithRelations,
+      edges: data.edges
+    };
+  }, [data, rootPersonId]);
+
   // React Flow state
   const { flowNodes, flowEdges } = useMemo(() => {
-    if (!data) return { flowNodes: [], flowEdges: [] };
+    if (!processedData.nodes.length) return { flowNodes: [], flowEdges: [] };
     // Pass handlers for detailed CustomNode
-    return buildFlowElements(data.nodes, data.edges, {
+    return buildFlowElements(processedData.nodes, processedData.edges, {
       onEdit: handleEditPerson,
       onDelete: person => setDeleteTarget(person),
       onPersonCardOpen: openPersonCard,
       onCenter: handleCenterPerson,
       onRestructure: handleRestructureTree,
     }, layoutType);
-  }, [data, layoutType]);
+  }, [processedData, layoutType]);
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
 
@@ -297,8 +321,9 @@ const FamilyTree = () => {
     <ReactFlowProvider>
       <div className="w-full h-[80vh] relative">
         <div className="flex justify-between items-center mb-2">
-          <div className="flex gap-2">
+          <div className="flex gap-4 items-center">
             <Button onClick={openAddPersonModal}>Add Person</Button>
+            <Button onClick={handleResetTree}>Full Tree</Button>
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium">Layout:</label>
               <select
@@ -311,11 +336,16 @@ const FamilyTree = () => {
               </select>
             </div>
             {rootPersonId && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">
-                  Root: {data?.nodes?.find(n => n.id === rootPersonId)?.first_name} {data?.nodes?.find(n => n.id === rootPersonId)?.last_name}
+              <div className="flex items-center gap-2 text-sm bg-[#edf8f5] px-3 py-1 rounded-md">
+                <span className="text-[#4F868E] font-medium">
+                  Root: {processedData.nodes.find(n => n.id === rootPersonId)?.first_name} {processedData.nodes.find(n => n.id === rootPersonId)?.last_name}
                 </span>
-                <Button onClick={handleResetTree} className="text-xs">Show All</Button>
+                <button
+                  onClick={handleResetTree}
+                  className="px-2 py-1 bg-[#4F868E] text-white rounded text-xs hover:bg-[#3d6b73] transition-colors"
+                >
+                  Reset
+                </button>
               </div>
             )}
           </div>
