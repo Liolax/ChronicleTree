@@ -246,17 +246,26 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Get all spouses and ex-spouses of root
   const rootSpouses = new Set();
+  const rootExSpouses = new Set();
+  
   if (spouseMap.has(rootId)) {
     rootSpouses.add(spouseMap.get(rootId));
   }
   if (exSpouseMap.has(rootId)) {
-    rootSpouses.add(exSpouseMap.get(rootId));
+    rootExSpouses.add(exSpouseMap.get(rootId));
   }
   
   // Check if person is parent of root's spouse (parent-in-law)
   for (const spouse of rootSpouses) {
     if (childToParents.has(spouse) && childToParents.get(spouse).has(personId)) {
       return getGenderSpecificRelation(personId, 'Father-in-law', 'Mother-in-law', allPeople);
+    }
+  }
+  
+  // Check if person is parent of root's ex-spouse (ex-parent-in-law)
+  for (const exSpouse of rootExSpouses) {
+    if (childToParents.has(exSpouse) && childToParents.get(exSpouse).has(personId)) {
+      return getGenderSpecificRelation(personId, 'Ex-Father-in-law', 'Ex-Mother-in-law', allPeople);
     }
   }
   
@@ -267,10 +276,24 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     }
   }
   
+  // Check if person is child of root's ex-spouse (ex-child-in-law)
+  for (const exSpouse of rootExSpouses) {
+    if (parentToChildren.has(exSpouse) && parentToChildren.get(exSpouse).has(personId)) {
+      return getGenderSpecificRelation(personId, 'Ex-Son-in-law', 'Ex-Daughter-in-law', allPeople);
+    }
+  }
+  
   // Check if person is sibling of root's spouse (sibling-in-law)
   for (const spouse of rootSpouses) {
     if (siblingMap.has(spouse) && siblingMap.get(spouse).has(personId)) {
       return getGenderSpecificRelation(personId, 'Brother-in-law', 'Sister-in-law', allPeople);
+    }
+  }
+  
+  // Check if person is sibling of root's ex-spouse (ex-sibling-in-law)
+  for (const exSpouse of rootExSpouses) {
+    if (siblingMap.has(exSpouse) && siblingMap.get(exSpouse).has(personId)) {
+      return getGenderSpecificRelation(personId, 'Ex-Brother-in-law', 'Ex-Sister-in-law', allPeople);
     }
   }
   
@@ -281,7 +304,7 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       return getGenderSpecificRelation(personId, 'Brother-in-law', 'Sister-in-law', allPeople);
     }
     if (exSpouseMap.has(sibling) && exSpouseMap.get(sibling) === personId) {
-      return getGenderSpecificRelation(personId, 'Brother-in-law', 'Sister-in-law', allPeople);
+      return getGenderSpecificRelation(personId, 'Ex-Brother-in-law', 'Ex-Sister-in-law', allPeople);
     }
   }
   
@@ -291,8 +314,9 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     if (spouseMap.has(child) && spouseMap.get(child) === personId) {
       return getGenderSpecificRelation(personId, 'Son-in-law', 'Daughter-in-law', allPeople);
     }
+    // IMPORTANT: Handle divorced relationships - ex-spouse of child should be ex-son/daughter-in-law
     if (exSpouseMap.has(child) && exSpouseMap.get(child) === personId) {
-      return getGenderSpecificRelation(personId, 'Son-in-law', 'Daughter-in-law', allPeople);
+      return getGenderSpecificRelation(personId, 'Ex-Son-in-law', 'Ex-Daughter-in-law', allPeople);
     }
   }
   

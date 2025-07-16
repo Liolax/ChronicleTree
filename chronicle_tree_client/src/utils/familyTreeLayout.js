@@ -3,7 +3,7 @@
  * This file provides the familyTreeLayout function expected by Tree.jsx
  */
 
-import { createFamilyTreeLayout } from './familyTreeHierarchicalLayout';
+import { createImprovedTreeLayout } from './improvedTreeLayout';
 
 /**
  * Main family tree layout function
@@ -13,6 +13,6 @@ import { createFamilyTreeLayout } from './familyTreeHierarchicalLayout';
  * @returns {Object} - { flowNodes, flowEdges } for react-flow
  */
 export const familyTreeLayout = (persons, relationships, handlers = {}) => {
-  const { nodes, edges } = createFamilyTreeLayout(persons, relationships, handlers);
-  return { flowNodes: nodes, flowEdges: edges };
+  const { flowNodes, flowEdges } = createImprovedTreeLayout(persons, relationships, handlers);
+  return { flowNodes, flowEdges };
 };

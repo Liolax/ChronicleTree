@@ -10,6 +10,7 @@ import TreeView from './pages/TreeView';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import FamilyTreeDemo from './pages/FamilyTreeDemo';
+import DebugPage from './pages/DebugPage';
 import PrivateRoute from './components/Auth/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
 
@@ -24,6 +25,7 @@ function App() {
             <Routes>
               {/* Demo route without navbar */}
               <Route path="/demo" element={<FamilyTreeDemo />} />
+              <Route path="/debug" element={<DebugPage />} />
               
               {/* Other routes with navbar */}
               <Route path="/*" element={
