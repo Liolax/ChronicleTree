@@ -19,7 +19,7 @@ import CustomNode from './CustomNode';
 import PersonCard from "./PersonCard";
 import { familyTreeLayout } from '../../utils/familyTreeLayout';
 import { dagreLayout } from '../../utils/dagreLayout';
-import { getAllRelationshipsToRoot } from '../../utils/relationshipCalculator';
+import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 
 // --- React Flow Node Types ---
 const nodeTypes = {
@@ -162,13 +162,29 @@ function buildFlowElementsLegacy(nodes, edges, handlers = {}) {
     const count = edgeCount[key];
     let label = e.type;
     let style = {
-      stroke: e.type === 'spouse' ? '#f59e42' : '#6366f1',
+      stroke: '#6366f1',
       strokeWidth: 2,
     };
+    
+    // Different styles based on edge type
+    if (e.type === 'spouse') {
+      style.stroke = e.is_ex ? '#9ca3af' : '#ec4899'; // Grey for ex-spouse, pink for current spouse
+      style.strokeWidth = 3;
+      style.strokeDasharray = '5 5';
+    } else if (e.type === 'sibling') {
+      style.stroke = '#10b981'; // Green for siblings
+      style.strokeWidth = 2;
+      style.strokeDasharray = '3 3';
+    } else if (e.type === 'parent') {
+      style.stroke = '#6366f1'; // Blue for parent-child
+      style.strokeWidth = 2;
+    }
+    
     if (count > 1) {
       style = { ...style, strokeDasharray: '4 2' };
       label += ` (${count})`;
     }
+    
     return {
       id: `e${e.source}-${e.target}`,
       source: String(e.source),
@@ -220,6 +236,7 @@ const FamilyTree = () => {
   const [personCardPosition, setPersonCardPosition] = useState(null);
   const [layoutType, setLayoutType] = useState(LAYOUT_TYPES.ENHANCED);
   const [rootPersonId, setRootPersonId] = useState(null);
+  const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
   // --- Handlers must be defined before useMemo below ---
@@ -258,11 +275,18 @@ const FamilyTree = () => {
   const handleResetTree = () => {
     console.log('Reset tree to show all people');
     setRootPersonId(null);
+    setHasSetDefaultRoot(false);
   };
 
   // Process data based on root person and add relationship information
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
+    
+    // Auto-set oldest person as root if no root is selected and we haven't set default root yet
+    if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
+      setRootPersonId(data.oldest_person_id);
+      setHasSetDefaultRoot(true);
+    }
     
     const rootPerson = rootPersonId 
       ? data.nodes.find(n => n.id === rootPersonId)
@@ -279,7 +303,7 @@ const FamilyTree = () => {
       nodes: peopleWithRelations,
       edges: data.edges
     };
-  }, [data, rootPersonId]);
+  }, [data, rootPersonId, hasSetDefaultRoot]);
 
   // React Flow state
   const { flowNodes, flowEdges } = useMemo(() => {
