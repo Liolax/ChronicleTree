@@ -17,15 +17,23 @@ import DeletePersonModal from '../UI/DeletePersonModal';
 import { useFullTree } from "../../services/people";
 import CustomNode from './CustomNode';
 import PersonCard from "./PersonCard";
+import { familyTreeLayout } from '../../utils/familyTreeLayout';
+import { dagreLayout } from '../../utils/dagreLayout';
 
 // --- React Flow Node Types ---
 const nodeTypes = {
   custom: CustomNode,
 };
 
-// --- Helper: Transform API data to React Flow nodes/edges ---
-// Refactored: All legacy visx/d3-hierarchy code and references removed. Now only React Flow logic remains.
-function buildFlowElements(nodes, edges, handlers = {}) {
+// --- Layout Types ---
+const LAYOUT_TYPES = {
+  ENHANCED: 'enhanced',
+  DAGRE: 'dagre',
+};
+
+// --- Legacy Layout Function (kept for fallback) ---
+// This is the original buildFlowElements function, kept as a fallback
+function buildFlowElementsLegacy(nodes, edges, handlers = {}) {
   if (!nodes || !edges) return { flowNodes: [], flowEdges: [] };
 
   // --- Map backend edge keys {from,to} to {source,target} for React Flow ---
@@ -173,6 +181,34 @@ function buildFlowElements(nodes, edges, handlers = {}) {
   return { flowNodes, flowEdges };
 }
 
+// --- Enhanced Layout Function ---
+function buildFlowElements(nodes, edges, handlers = {}, layoutType = LAYOUT_TYPES.ENHANCED) {
+  if (!nodes || !edges) return { flowNodes: [], flowEdges: [] };
+
+  // Normalize edges to ensure consistent source/target properties
+  const normalizedEdges = edges.map(e => {
+    if (e.from !== undefined && e.to !== undefined) {
+      return { ...e, source: e.from, target: e.to };
+    }
+    return e;
+  });
+
+  try {
+    // Use the selected layout algorithm
+    switch (layoutType) {
+      case LAYOUT_TYPES.ENHANCED:
+        return familyTreeLayout(nodes, normalizedEdges, handlers);
+      case LAYOUT_TYPES.DAGRE:
+        return dagreLayout(nodes, normalizedEdges, handlers);
+      default:
+        return buildFlowElementsLegacy(nodes, normalizedEdges, handlers);
+    }
+  } catch (error) {
+    console.error('Layout error, falling back to legacy layout:', error);
+    return buildFlowElementsLegacy(nodes, normalizedEdges, handlers);
+  }
+}
+
 const FamilyTree = () => {
   const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
@@ -181,6 +217,7 @@ const FamilyTree = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [personCardPosition, setPersonCardPosition] = useState(null);
+  const [layoutType, setLayoutType] = useState(LAYOUT_TYPES.ENHANCED);
   const { data, isLoading, isError } = useFullTree();
 
   // --- Handlers must be defined before useMemo below ---
@@ -218,8 +255,8 @@ const FamilyTree = () => {
       onDelete: person => setDeleteTarget(person),
       onPersonCardOpen: openPersonCard,
       onCenter: handleCenterPerson,
-    });
-  }, [data]);
+    }, layoutType);
+  }, [data, layoutType]);
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
 
@@ -247,8 +284,22 @@ const FamilyTree = () => {
   return (
     <ReactFlowProvider>
       <div className="w-full h-[80vh] relative">
-        <div className="flex justify-between mb-2">
-          <Button onClick={openAddPersonModal}>Add Person</Button>
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex gap-2">
+            <Button onClick={openAddPersonModal}>Add Person</Button>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Layout:</label>
+              <select
+                value={layoutType}
+                onChange={(e) => setLayoutType(e.target.value)}
+                className="px-3 py-1 border rounded text-sm"
+              >
+                <option value={LAYOUT_TYPES.ENHANCED}>Enhanced Family Tree</option>
+                <option value={LAYOUT_TYPES.DAGRE}>Automatic (Dagre)</option>
+              </select>
+            </div>
+          </div>
+          <FitViewButton />
         </div>
         {/* Debug panel for data status */}
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 20, background: '#fff', padding: 8, borderRadius: 4, boxShadow: '0 2px 8px #0001', fontSize: 12 }}>
@@ -257,6 +308,7 @@ const FamilyTree = () => {
           <div>Error: {String(isError)}</div>
           <div>Nodes: {nodes.length}</div>
           <div>Edges: {edges.length}</div>
+          <div>Layout: {layoutType}</div>
         </div>
         <ReactFlow
           nodes={nodes}
@@ -284,9 +336,6 @@ const FamilyTree = () => {
           <Background gap={16} color="#e5e7eb" />
           <MiniMap nodeColor={n => n.data?.person?.gender?.toLowerCase() === 'female' ? '#f472b6' : '#60a5fa'} />
           <Controls />
-          <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10 }}>
-            <FitViewButton />
-          </div>
         </ReactFlow>
         {selectedPerson && (
           <PersonCard
