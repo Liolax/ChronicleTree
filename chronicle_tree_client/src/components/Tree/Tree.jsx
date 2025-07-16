@@ -162,13 +162,29 @@ function buildFlowElementsLegacy(nodes, edges, handlers = {}) {
     const count = edgeCount[key];
     let label = e.type;
     let style = {
-      stroke: e.type === 'spouse' ? '#f59e42' : '#6366f1',
+      stroke: '#6366f1',
       strokeWidth: 2,
     };
+    
+    // Different styles based on edge type
+    if (e.type === 'spouse') {
+      style.stroke = e.is_ex ? '#9ca3af' : '#ec4899'; // Grey for ex-spouse, pink for current spouse
+      style.strokeWidth = 3;
+      style.strokeDasharray = '5 5';
+    } else if (e.type === 'sibling') {
+      style.stroke = '#10b981'; // Green for siblings
+      style.strokeWidth = 2;
+      style.strokeDasharray = '3 3';
+    } else if (e.type === 'parent') {
+      style.stroke = '#6366f1'; // Blue for parent-child
+      style.strokeWidth = 2;
+    }
+    
     if (count > 1) {
       style = { ...style, strokeDasharray: '4 2' };
       label += ` (${count})`;
     }
+    
     return {
       id: `e${e.source}-${e.target}`,
       source: String(e.source),
