@@ -62,6 +62,14 @@ const PersonCard = ({ data, selected }) => {
 
       {/* Card Body with Details */}
       <div className="card-body">
+        {/* Relationship to Root */}
+        {person.relation && (
+          <div className="relation-indicator">
+            <span className="relation-label">Relation:</span>
+            <span className="relation-value">{person.relation}</span>
+          </div>
+        )}
+        
         {/* Birth/Death Info */}
         <div className="card-info">
           <div className="info-row">
