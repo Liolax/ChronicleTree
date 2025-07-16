@@ -36,8 +36,9 @@ const FamilyTree = () => {
   const [editPerson, setEditPerson] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [personCardPosition, setPersonCardPosition] = useState(null);
+  const [rootPersonId, setRootPersonId] = useState(null);
   
-  const { data, isLoading, isError } = useFullTree();
+  const { data, isLoading, isError } = useFullTree(rootPersonId);
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
@@ -75,6 +76,10 @@ const FamilyTree = () => {
     setDeleteTarget(person);
   }, []);
 
+  const handleRestructureTree = useCallback((personId) => {
+    setRootPersonId(personId);
+  }, []);
+
   // Transform data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
@@ -83,10 +88,11 @@ const FamilyTree = () => {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
+      onRestructure: handleRestructureTree,
     });
 
     return { nodes, edges };
-  }, [data, handleEditPerson, handleDeletePerson, openPersonCard]);
+  }, [data, handleEditPerson, handleDeletePerson, openPersonCard, handleRestructureTree]);
 
   // Apply final positioning adjustments
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
@@ -150,10 +156,25 @@ const FamilyTree = () => {
             <Button onClick={openAddPersonModal} variant="primary">
               Add Person
             </Button>
+            {rootPersonId && (
+              <Button 
+                onClick={() => setRootPersonId(null)} 
+                variant="secondary"
+                title="Show Full Tree"
+              >
+                🌳 Full Tree
+              </Button>
+            )}
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>People: {nodes.length}</span>
               <span>•</span>
               <span>Relationships: {edges.length}</span>
+              {rootPersonId && (
+                <>
+                  <span>•</span>
+                  <span>Root: {data?.nodes?.find(n => n.id == rootPersonId)?.first_name || 'Unknown'}</span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex gap-3">

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   createFamilyTreeLayout,
   centerChildrenBetweenParents,
@@ -66,6 +66,7 @@ describe('familyTreeHierarchicalLayout', () => {
         onEdit: () => {},
         onDelete: () => {},
         onPersonCardOpen: () => {},
+        onRestructure: () => {},
       };
       
       const result = createFamilyTreeLayout(sampleNodes, sampleEdges, mockHandlers);
@@ -75,6 +76,7 @@ describe('familyTreeHierarchicalLayout', () => {
         expect(node.data).toHaveProperty('onEdit');
         expect(node.data).toHaveProperty('onDelete');
         expect(node.data).toHaveProperty('onPersonCardOpen');
+        expect(node.data).toHaveProperty('onRestructure');
       });
     });
 
@@ -199,6 +201,40 @@ describe('familyTreeHierarchicalLayout', () => {
       // Should have only one spouse edge, not two
       const spouseEdges = result.edges.filter(e => e.id.includes('spouse'));
       expect(spouseEdges).toHaveLength(1);
+    });
+  });
+
+  describe('tree restructuring functionality', () => {
+    it('should include onRestructure handler in node data when provided', () => {
+      const mockRestructureHandler = vi.fn();
+      const mockHandlers = {
+        onEdit: () => {},
+        onDelete: () => {},
+        onPersonCardOpen: () => {},
+        onRestructure: mockRestructureHandler,
+      };
+      
+      const result = createFamilyTreeLayout(sampleNodes, sampleEdges, mockHandlers);
+      
+      result.nodes.forEach(node => {
+        expect(node.data).toHaveProperty('onRestructure');
+        expect(node.data.onRestructure).toBe(mockRestructureHandler);
+      });
+    });
+
+    it('should handle missing onRestructure handler gracefully', () => {
+      const mockHandlers = {
+        onEdit: () => {},
+        onDelete: () => {},
+        onPersonCardOpen: () => {},
+      };
+      
+      const result = createFamilyTreeLayout(sampleNodes, sampleEdges, mockHandlers);
+      
+      result.nodes.forEach(node => {
+        // When onRestructure is not provided, it should not exist in the data
+        expect(node.data.onRestructure).toBeUndefined();
+      });
     });
   });
 });
