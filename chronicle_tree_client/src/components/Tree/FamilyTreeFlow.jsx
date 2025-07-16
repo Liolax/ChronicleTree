@@ -20,7 +20,7 @@ import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
 import { useFullTree } from '../../services/people';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../../utils/familyTreeHierarchicalLayout';
-import { getAllRelationshipsToRoot } from '../../utils/relationshipCalculator';
+import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -38,6 +38,7 @@ const FamilyTree = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [personCardPosition, setPersonCardPosition] = useState(null);
   const [rootPersonId, setRootPersonId] = useState(null);
+  const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
@@ -85,11 +86,18 @@ const FamilyTree = () => {
   const handleResetTree = useCallback(() => {
     console.log('Reset tree to show all people');
     setRootPersonId(null);
+    setHasSetDefaultRoot(false);
   }, []);
 
   // Process data based on root person and add relationship information
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
+    
+    // Auto-set oldest person as root if no root is selected and we haven't set default root yet
+    if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
+      setRootPersonId(data.oldest_person_id);
+      setHasSetDefaultRoot(true);
+    }
     
     const rootPerson = rootPersonId 
       ? data.nodes.find(n => n.id === rootPersonId)
@@ -106,7 +114,7 @@ const FamilyTree = () => {
       nodes: peopleWithRelations,
       edges: data.edges
     };
-  }, [data, rootPersonId]);
+  }, [data, rootPersonId, hasSetDefaultRoot]);
 
   // Transform data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
