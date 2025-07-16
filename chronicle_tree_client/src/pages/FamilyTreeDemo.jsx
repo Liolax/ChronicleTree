@@ -12,14 +12,10 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 
-import Button from '../UI/Button';
-import AddPersonModal from './modals/AddPersonModal';
-import EditPersonModal from './modals/EditPersonModal';
-import DeletePersonModal from '../UI/DeletePersonModal';
-import PersonCard from './PersonCard';
-import PersonCardNode from './PersonCardNode';
-import { useFullTree } from '../../services/people';
-import { transformFamilyData, applyHierarchicalLayout } from '../../utils/reactFlowLayout';
+import PersonCardNode from '../components/Tree/PersonCardNode';
+import PersonCard from '../components/Tree/PersonCard';
+import { transformFamilyData, applyHierarchicalLayout } from '../utils/reactFlowLayout';
+import { mockFamilyData } from '../data/mockData';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -27,33 +23,20 @@ const nodeTypes = {
 };
 
 /**
- * Enhanced Family Tree Component
- * Uses react-flow with simplified, intuitive layout
+ * Demo Family Tree Component
+ * Uses mock data to showcase the new react-flow implementation
  */
-const FamilyTree = () => {
-  const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
+const FamilyTreeDemo = () => {
   const [selectedPerson, setSelectedPerson] = useState(null);
-  const [editPerson, setEditPerson] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [personCardPosition, setPersonCardPosition] = useState(null);
-  
-  const { data, isLoading, isError } = useFullTree();
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
-    setEditPerson(person);
+    console.log('Edit person:', person);
   }, []);
 
-  const handleCloseEditModal = useCallback(() => {
-    setEditPerson(null);
-  }, []);
-
-  const openAddPersonModal = useCallback(() => {
-    setAddPersonModalOpen(true);
-  }, []);
-
-  const closeAddPersonModal = useCallback(() => {
-    setAddPersonModalOpen(false);
+  const handleDeletePerson = useCallback((person) => {
+    console.log('Delete person:', person);
   }, []);
 
   const openPersonCard = useCallback((person, event) => {
@@ -71,28 +54,21 @@ const FamilyTree = () => {
     setPersonCardPosition(null);
   }, []);
 
-  const handleDeletePerson = useCallback((person) => {
-    setDeleteTarget(person);
-  }, []);
-
-  // Transform data for react-flow
+  // Transform mock data for react-flow
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    if (!data) return { nodes: [], edges: [] };
-    
-    const { nodes, edges } = transformFamilyData(data.nodes, data.edges, {
+    const { nodes, edges } = transformFamilyData(mockFamilyData.nodes, mockFamilyData.edges, {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
     });
 
     return { nodes, edges };
-  }, [data, handleEditPerson, handleDeletePerson, openPersonCard]);
+  }, [handleEditPerson, handleDeletePerson, openPersonCard]);
 
   // Apply hierarchical layout
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!initialNodes.length) return { nodes: [], edges: [] };
     
-    // Apply layout synchronously
     const layoutedNodes = applyHierarchicalLayout([...initialNodes], initialEdges);
     return { nodes: layoutedNodes, edges: initialEdges };
   }, [initialNodes, initialEdges]);
@@ -118,38 +94,22 @@ const FamilyTree = () => {
     }, [fitView]);
 
     return (
-      <Button onClick={handleFitView} variant="secondary">
+      <button
+        onClick={handleFitView}
+        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+      >
         Fit View
-      </Button>
+      </button>
     );
   };
-
-  // Loading and error states
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-lg">Loading family tree...</div>
-      </div>
-    );
-  }
-
-  if (isError) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-red-600">Error loading family tree</div>
-      </div>
-    );
-  }
 
   return (
     <ReactFlowProvider>
       <div className="w-full h-screen bg-gray-50">
-        {/* Header Controls */}
+        {/* Header */}
         <div className="flex justify-between items-center p-4 bg-white border-b">
           <div className="flex gap-3">
-            <Button onClick={openAddPersonModal} variant="primary">
-              Add Person
-            </Button>
+            <h1 className="text-2xl font-bold text-gray-800">Family Tree Demo</h1>
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span>People: {nodes.length}</span>
               <span>•</span>
@@ -210,10 +170,12 @@ const FamilyTree = () => {
             {/* Info Panel */}
             <Panel position="top-right" className="bg-white p-3 rounded-lg shadow-lg">
               <div className="text-sm">
-                <div className="font-semibold text-gray-700 mb-2">Family Tree</div>
+                <div className="font-semibold text-gray-700 mb-2">Enhanced Family Tree</div>
                 <div className="space-y-1 text-gray-600">
                   <div>👥 {nodes.length} people</div>
                   <div>🔗 {edges.length} relationships</div>
+                  <div>📊 Top-down hierarchical layout</div>
+                  <div>🎨 Custom person cards</div>
                 </div>
               </div>
             </Panel>
@@ -231,38 +193,9 @@ const FamilyTree = () => {
             fixed={!!personCardPosition}
           />
         )}
-
-        {/* Modals */}
-        {isAddPersonModalOpen && (
-          <AddPersonModal 
-            isOpen={isAddPersonModalOpen} 
-            onClose={closeAddPersonModal} 
-          />
-        )}
-        
-        {editPerson && (
-          <EditPersonModal 
-            person={editPerson} 
-            isOpen={!!editPerson} 
-            onClose={handleCloseEditModal} 
-          />
-        )}
-        
-        {deleteTarget && (
-          <DeletePersonModal 
-            person={deleteTarget} 
-            onConfirm={() => {
-              // Handle delete logic
-              console.log('Delete person:', deleteTarget);
-              setDeleteTarget(null);
-            }} 
-            onCancel={() => setDeleteTarget(null)} 
-            isLoading={false} 
-          />
-        )}
       </div>
     </ReactFlowProvider>
   );
 };
 
-export default FamilyTree;
+export default FamilyTreeDemo;

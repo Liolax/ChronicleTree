@@ -143,11 +143,11 @@ const getMarkerEnd = (type) => {
  * @param {Array} edges - Array of edges
  * @returns {Array} - Positioned nodes
  */
-export const applyHierarchicalLayout = async (nodes, edges) => {
-  // This will be used with react-flow's built-in layout features
-  // For now, apply a simple generational layout
+export const applyHierarchicalLayout = (nodes, edges) => {
+  if (!nodes.length) return nodes;
   
   const generationMap = calculateGenerations(nodes, edges);
+  const spouseMap = createSpouseMap(edges);
   const generations = {};
   
   // Group nodes by generation
@@ -157,21 +157,109 @@ export const applyHierarchicalLayout = async (nodes, edges) => {
     generations[gen].push(node);
   });
   
-  // Position nodes
-  const GENERATION_HEIGHT = 300;
-  const NODE_WIDTH = 250;
+  // Position nodes with better spacing
+  const GENERATION_HEIGHT = 280;
+  const NODE_WIDTH = 280;
+  const SPOUSE_OFFSET = 140;
   
   Object.entries(generations).forEach(([gen, genNodes]) => {
     const generation = parseInt(gen);
+    const processedNodes = new Set();
+    let currentX = 0;
+    
+    // Calculate starting position to center the generation
     const totalWidth = genNodes.length * NODE_WIDTH;
     const startX = -totalWidth / 2;
+    let xOffset = startX;
     
-    genNodes.forEach((node, index) => {
-      node.position = {
-        x: startX + (index * NODE_WIDTH),
-        y: generation * GENERATION_HEIGHT
-      };
+    genNodes.forEach((node) => {
+      if (processedNodes.has(node.id)) return;
+      
+      const spouseId = spouseMap[node.id];
+      if (spouseId && genNodes.find(n => n.id === spouseId)) {
+        // Position spouse pair
+        const spouse = genNodes.find(n => n.id === spouseId);
+        
+        node.position = {
+          x: xOffset,
+          y: generation * GENERATION_HEIGHT
+        };
+        
+        spouse.position = {
+          x: xOffset + SPOUSE_OFFSET,
+          y: generation * GENERATION_HEIGHT
+        };
+        
+        processedNodes.add(node.id);
+        processedNodes.add(spouseId);
+        xOffset += NODE_WIDTH;
+      } else {
+        // Position single node
+        node.position = {
+          x: xOffset,
+          y: generation * GENERATION_HEIGHT
+        };
+        
+        processedNodes.add(node.id);
+        xOffset += NODE_WIDTH;
+      }
     });
+  });
+  
+  // Center children between their parents
+  return centerChildrenBetweenParents(nodes, edges);
+};
+
+/**
+ * Create a map of spouse relationships
+ * @param {Array} edges - Array of edges
+ * @returns {Object} - Map of person id to spouse id
+ */
+const createSpouseMap = (edges) => {
+  const spouseMap = {};
+  edges.forEach(edge => {
+    if (edge.type === 'spouse') {
+      spouseMap[edge.source] = edge.target;
+      spouseMap[edge.target] = edge.source;
+    }
+  });
+  return spouseMap;
+};
+
+/**
+ * Center children between their parents
+ * @param {Array} nodes - Array of nodes
+ * @param {Array} edges - Array of edges
+ * @returns {Array} - Updated nodes
+ */
+const centerChildrenBetweenParents = (nodes, edges) => {
+  const nodeMap = {};
+  nodes.forEach(node => {
+    nodeMap[node.id] = node;
+  });
+  
+  const childToParents = {};
+  edges.forEach(edge => {
+    if (edge.type === 'parent') {
+      const childId = edge.target;
+      const parentId = edge.source;
+      
+      if (!childToParents[childId]) childToParents[childId] = [];
+      childToParents[childId].push(parentId);
+    }
+  });
+  
+  // Adjust child positions to be centered between parents
+  Object.entries(childToParents).forEach(([childId, parentIds]) => {
+    if (parentIds.length > 1) {
+      const child = nodeMap[childId];
+      const parents = parentIds.map(id => nodeMap[id]).filter(Boolean);
+      
+      if (parents.length > 1) {
+        const avgX = parents.reduce((sum, parent) => sum + parent.position.x, 0) / parents.length;
+        child.position.x = avgX;
+      }
+    }
   });
   
   return nodes;
