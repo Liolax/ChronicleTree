@@ -3,11 +3,11 @@ import Avatar from 'react-avatar';
 import { FaPen, FaTrash, FaEye, FaTimes, FaMars, FaVenus } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
 
-const getInitials = (first, last) => {
-  if (!first && !last) return '?';
-  if (first && last) return `${first[0]}${last[0]}`.toUpperCase();
-  return (first || last)[0].toUpperCase();
-};
+// const getInitials = (first, last) => {
+//   if (!first && !last) return '?';
+//   if (first && last) return `${first[0]}${last[0]}`.toUpperCase();
+//   return (first || last)[0].toUpperCase();
+// };
 
 const fadeInCard = {
   animation: 'fadeInCard 0.3s cubic-bezier(0.4,0,0.2,1)',
@@ -19,18 +19,12 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  if (!person) return null;
-  const birthDate = person.date_of_birth ? new Date(person.date_of_birth).toLocaleDateString() : '';
-  const deathDate = person.date_of_death ? new Date(person.date_of_death).toLocaleDateString() : '';
-  const initials = getInitials(person.first_name, person.last_name);
-  const avatarUrl = person.avatar_url;
-  const genderIcon = person.gender?.toLowerCase() === 'female' ? <FaVenus className="text-pink-500 ml-1" title="Female" /> : person.gender?.toLowerCase() === 'male' ? <FaMars className="text-blue-500 ml-1" title="Male" /> : null;
-
   // If fixed, use screen coordinates and clamp to viewport
   let left = position ? position.x : 0;
   let top = position ? position.y : 0;
+  
   useLayoutEffect(() => {
-    if (!cardRef.current || !fixed) return;
+    if (!cardRef.current || !fixed || !person) return;
     const card = cardRef.current;
     const cardRect = card.getBoundingClientRect();
     const padding = 8;
@@ -40,7 +34,14 @@ const PersonCard = ({ person, onEdit, onDelete, onClose, position, fixed }) => {
       left: Math.max(padding, Math.min(left, maxLeft)),
       top: Math.max(padding, Math.min(top, maxTop)),
     });
-  }, [left, top, fixed]);
+  }, [left, top, fixed, person]);
+
+  if (!person) return null;
+  const birthDate = person.date_of_birth ? new Date(person.date_of_birth).toLocaleDateString() : '';
+  const deathDate = person.date_of_death ? new Date(person.date_of_death).toLocaleDateString() : '';
+  // const initials = getInitials(person.first_name, person.last_name);
+  const avatarUrl = person.avatar_url;
+  const genderIcon = person.gender?.toLowerCase() === 'female' ? <FaVenus className="text-pink-500 ml-1" title="Female" /> : person.gender?.toLowerCase() === 'male' ? <FaMars className="text-blue-500 ml-1" title="Male" /> : null;
 
   const style = fixed
     ? {
