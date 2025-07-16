@@ -188,11 +188,11 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
     generationGroups.get(generation).push(person);
   });
 
-  // Layout constants - increased spacing to prevent node overlap
-  const GENERATION_HEIGHT = 400;  // Increased vertical spacing between generations
+  // Layout constants - enhanced spacing for better visual hierarchy
+  const GENERATION_HEIGHT = 450;  // Increased vertical spacing between generations
   const NODE_WIDTH = 280;
-  const SPOUSE_SPACING = 320;     // Increased spacing between spouses (280 + 40px gap)
-  const SIBLING_SPACING = 400;    // Increased spacing between siblings (280 + 120px gap)
+  const SPOUSE_SPACING = 300;     // Optimal spacing between spouses
+  const SIBLING_SPACING = 420;    // Increased spacing between siblings for better clarity
 
   // Position nodes generation by generation
   for (const [generation, generationPersons] of generationGroups) {
@@ -327,28 +327,8 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
     }
   });
 
-  // Process sibling relationships
-  siblingRelationships.forEach(relationship => {
-    const source = String(relationship.source || relationship.from);
-    const target = String(relationship.target || relationship.to);
-    const connectionKey = `sibling-${Math.min(source, target)}-${Math.max(source, target)}`;
-
-    if (!processedConnections.has(connectionKey)) {
-      edges.push({
-        id: connectionKey,
-        source,
-        target,
-        type: 'smoothstep',
-        animated: false,
-        style: {
-          stroke: '#10b981',
-          strokeWidth: 2,
-          strokeDasharray: '3 3'
-        }
-      });
-      processedConnections.add(connectionKey);
-    }
-  });
+  // Note: Sibling relationships are not visually connected with edges
+  // Sibling relationships are inferred from the hierarchical layout positioning
 
   return edges;
 };

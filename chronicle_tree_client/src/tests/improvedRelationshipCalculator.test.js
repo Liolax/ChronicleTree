@@ -47,28 +47,28 @@ describe('Improved Relationship Calculator', () => {
     const john = testPeople[0];
     const alice = testPeople[2];
     const result = calculateRelationshipToRoot(john, alice, testPeople, testRelationships);
-    expect(result).toBe('Parent');
+    expect(result).toBe('Father');
   });
 
   it('should identify direct child relationship', () => {
     const alice = testPeople[2];
     const john = testPeople[0];
     const result = calculateRelationshipToRoot(alice, john, testPeople, testRelationships);
-    expect(result).toBe('Child');
+    expect(result).toBe('Daughter');
   });
 
   it('should identify spouse relationship', () => {
     const john = testPeople[0];
     const jane = testPeople[1];
     const result = calculateRelationshipToRoot(jane, john, testPeople, testRelationships);
-    expect(result).toBe('Spouse');
+    expect(result).toBe('Wife');
   });
 
   it('should identify sibling relationship', () => {
     const alice = testPeople[2];
     const charlie = testPeople[6];
     const result = calculateRelationshipToRoot(alice, charlie, testPeople, testRelationships);
-    expect(result).toBe('Sibling');
+    expect(result).toBe('Sister');
   });
 
   it('should identify brother-in-law relationship (Charlie root, David person)', () => {
@@ -96,14 +96,14 @@ describe('Improved Relationship Calculator', () => {
     const bob = testPeople[4];
     const john = testPeople[0];
     const result = calculateRelationshipToRoot(bob, john, testPeople, testRelationships);
-    expect(result).toBe('Grandchild');
+    expect(result).toBe('Grandson');
   });
 
   it('should identify ex-spouse relationship', () => {
     const alice = testPeople[2];
     const david = testPeople[3];
     const result = calculateRelationshipToRoot(david, alice, testPeople, testRelationships);
-    expect(result).toBe('Ex-Spouse');
+    expect(result).toBe('Ex-Husband');
   });
 
   it('should process all relationships correctly with Charlie as root', () => {
@@ -116,11 +116,11 @@ describe('Improved Relationship Calculator', () => {
     }, {});
 
     expect(resultMap['Charlie']).toBe('Root');
-    expect(resultMap['Alice']).toBe('Sibling');
+    expect(resultMap['Alice']).toBe('Sister');
     expect(resultMap['David']).toBe('Brother-in-law');
     expect(resultMap['Bob']).toBe('Nephew');
     expect(resultMap['Emily']).toBe('Niece');
-    expect(resultMap['John']).toBe('Parent');
-    expect(resultMap['Jane']).toBe('Parent');
+    expect(resultMap['John']).toBe('Father');
+    expect(resultMap['Jane']).toBe('Mother');
   });
 });
