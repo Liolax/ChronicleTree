@@ -65,6 +65,10 @@ const CustomNode = ({ data, id, selected }) => {
         <div className="flex items-center justify-center gap-1 text-base font-semibold">
           {person.first_name} {person.last_name} {genderIcon}
         </div>
+        {/* Status indicator for deceased/alive */}
+        <div className={`text-xs font-semibold mt-1 ${statusColor}`}>
+          {status}
+        </div>
         {age !== null && (
           <div className="text-xs text-gray-700 mt-1">{age} y.o.</div>
         )}
