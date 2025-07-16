@@ -6,8 +6,14 @@ This document outlines the current state, recent progress, and future plans for 
 
 ## Visualization Library Update
 
-- The family tree visualization is now implemented using [visx](https://airbnb.io/visx/) (with d3-hierarchy and @visx/zoom), not React Flow. All tree layouts, zooming, and node rendering are handled with visx for better flexibility and customizability.
-- All references to React Flow in this document are deprecated and should be considered historical. The codebase no longer uses React Flow for tree rendering.
+- The family tree visualization is now implemented using [React Flow (xyflow)](https://xyflow.com/) for advanced support of complex family structures, generational layouts, and interactive features.
+- All legacy visx/d3-hierarchy code and dependencies have been removed. The codebase no longer uses visx for tree rendering.
+- The new React Flow-based tree supports:
+  - Generational/family layout (in progress)
+  - Grouping of couples and shared children
+  - Support for multiple parents, divorces, and complex relationships
+  - Advanced features such as drag-and-drop, edge editing, and re-centering (planned)
+- See [xyflow/xyflow GitHub](https://github.com/xyflow/xyflow) and [example family tree](https://reactjsexample.com/a-family-tree-project-built-with-react-flow/) for reference.
 
 ---
 
@@ -195,9 +201,9 @@ This section outlines the current and planned development for the ChronicleTree 
 - `@tanstack/react-query` manages server state, caching, and optimistic updates.
 - All profile and tree data is fetched live from the backend and kept in sync.
 
-### 3. Tree Visualization with visx
+### 3. Tree Visualization with React Flow
 
-- The family tree is rendered with `visx`, using data from `/api/v1/people/:id/tree`.
+- The family tree is rendered with `React Flow`, using data from `/api/v1/people/:id/tree`.
 - `TreeStateContext` manages UI state for the tree, including selected node and modal/card visibility.
 - Nodes use a custom `CustomNode` component showing name, avatar, gender, age, and deceased status (with year if applicable).
 - Person cards show full birth/death dates and all profile data.

@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import { Handle, Position } from '@xyflow/react';
 import Avatar from 'react-avatar';
 import { FaPen, FaBullseye, FaTrash, FaMars, FaVenus, FaCheckCircle } from 'react-icons/fa';
 import { Tooltip } from 'react-tooltip';
@@ -51,24 +52,19 @@ const CustomNode = ({ data, id, selected }) => {
       role="button"
       onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleNodeClick(e); }}
     >
+      {/* React Flow handles for edge connections */}
+      <Handle type="target" position={Position.Top} style={{ background: '#6366f1' }} />
       <div className="flex flex-col items-center mb-2">
         <Avatar
           name={`${person.first_name} ${person.last_name}`}
           src={avatarUrl}
           size="48"
           round
-          className="mb-1"
+          className="mb-1 shadow"
         />
         <div className="flex items-center justify-center gap-1 text-base font-semibold">
           {person.first_name} {person.last_name} {genderIcon}
         </div>
-        <div className={`text-xs font-medium ${statusColor} flex items-center gap-1`}>
-          <FaCheckCircle />
-          {status === 'Deceased' && deathYear
-            ? `Deceased (${deathYear})`
-            : status}
-        </div>
-        {/* Show age at node if available, as "{age} y.o." */}
         {age !== null && (
           <div className="text-xs text-gray-700 mt-1">{age} y.o.</div>
         )}
@@ -83,6 +79,8 @@ const CustomNode = ({ data, id, selected }) => {
         {onEdit && <button onClick={e => { e.stopPropagation(); onEdit(person); }} title="Edit" aria-label={`Edit ${person.first_name} ${person.last_name}`} className="text-blue-500 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded" tabIndex={0}><FaPen /><Tooltip anchorSelect="[aria-label^='Edit']" place="top">Edit</Tooltip></button>}
         {onDelete && <button onClick={e => { e.stopPropagation(); onDelete(person); }} title="Delete" aria-label={`Delete ${person.first_name} ${person.last_name}`} className="text-red-500 hover:text-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 rounded" tabIndex={0}><FaTrash /><Tooltip anchorSelect="[aria-label^='Delete']" place="top">Delete</Tooltip></button>}
       </div>
+      {/* React Flow handle for outgoing edges */}
+      <Handle type="source" position={Position.Bottom} style={{ background: '#6366f1' }} />
     </div>
   );
 };

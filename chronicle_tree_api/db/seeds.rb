@@ -17,13 +17,13 @@ user.save!
 
 puts "Adding fixture-style test people and their data for UI testing..."
 # --- PEOPLE ---
-p1 = Person.find_or_create_by!(first_name: 'John', last_name: 'Doe', user: user, gender: 'male', date_of_birth: Date.new(1980,1,1))
-p2 = Person.find_or_create_by!(first_name: 'Jane', last_name: 'Doe', user: user, gender: 'female', date_of_birth: Date.new(1982,1,1), date_of_death: Date.new(2022,1,1))
-alice = Person.find_or_create_by!(first_name: 'Alice', last_name: 'A', user: user, gender: 'female', date_of_birth: Date.new(1990,1,1))
-david = Person.find_or_create_by!(first_name: 'David', last_name: 'A', user: user, gender: 'male', date_of_birth: Date.new(1988,1,1))
-bob = Person.find_or_create_by!(first_name: 'Bob', last_name: 'B', user: user, gender: 'male', date_of_birth: Date.new(2010,1,1))
-emily = Person.find_or_create_by!(first_name: 'Emily', last_name: 'E', user: user, gender: 'female', date_of_birth: Date.new(2012,1,1))
-charlie = Person.find_or_create_by!(first_name: 'Charlie', last_name: 'C', user: user, gender: 'male', date_of_birth: Date.new(2014,1,1))
+p1 = Person.find_or_create_by!(first_name: 'John', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1980,1,1))
+p2 = Person.find_or_create_by!(first_name: 'Jane', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1982,1,1), date_of_death: Date.new(2022,1,1))
+alice = Person.find_or_create_by!(first_name: 'Alice', last_name: 'A', user: user, gender: 'Female', date_of_birth: Date.new(1990,1,1))
+david = Person.find_or_create_by!(first_name: 'David', last_name: 'A', user: user, gender: 'Male', date_of_birth: Date.new(1988,1,1))
+bob = Person.find_or_create_by!(first_name: 'Bob', last_name: 'B', user: user, gender: 'Male', date_of_birth: Date.new(2010,1,1))
+emily = Person.find_or_create_by!(first_name: 'Emily', last_name: 'E', user: user, gender: 'Female', date_of_birth: Date.new(2012,1,1))
+charlie = Person.find_or_create_by!(first_name: 'Charlie', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(2014,1,1))
 
 # --- NOTES ---
 [ p1, p2, alice, david, bob, emily, charlie ].each do |person|

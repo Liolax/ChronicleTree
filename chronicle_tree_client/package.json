@@ -11,22 +11,23 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@eslint/config-array": "^0.21.0",
+    "@eslint/object-schema": "^2.1.6",
     "@fortawesome/fontawesome-free": "^6.7.2",
     "@heroicons/react": "^2.2.0",
     "@tanstack/react-query": "^5.51.1",
-    "@visx/group": "^3.12.0",
-    "@visx/hierarchy": "^3.12.0",
-    "@visx/shape": "^3.12.0",
-    "@visx/zoom": "^3.12.0",
+    "@xyflow/react": "^12.8.2",
     "axios": "^1.7.2",
     "dagre": "^0.8.5",
+    "glob": "^11.0.3",
     "react": "^18.3.1",
     "react-avatar": "^5.0.3",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.52.1",
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.25.0",
-    "reactflow": "^11.11.4"
+    "reactflow": "^11.11.4",
+    "rimraf": "^6.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.4.8",
@@ -37,14 +38,14 @@
     "@vitejs/plugin-react": "^4.6.0",
     "autoprefixer": "^10.4.19",
     "esbuild": "^0.25.5",
-    "eslint": "^8.57.1",
-    "eslint-plugin-react": "^7.34.4",
-    "eslint-plugin-react-hooks": "^4.6.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "jsdom": "^24.1.1",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.6",
     "vite": "^7.0.0",
-    "vitest": "^2.0.4"
+    "vitest": "^3.2.4"
   }
 }

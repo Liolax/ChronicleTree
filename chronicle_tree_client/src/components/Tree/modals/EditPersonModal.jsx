@@ -24,8 +24,8 @@ const EditPersonModal = ({ person, isOpen = true, onClose }) => {
     const personData = {
       first_name: data.firstName,
       last_name: data.lastName,
-      date_of_birth: data.date_of_birth,
-      date_of_death: data.date_of_death,
+      date_of_birth: data.birthDate,
+      date_of_death: data.deathDate,
       gender: data.gender,
     };
     mutate(personData);
