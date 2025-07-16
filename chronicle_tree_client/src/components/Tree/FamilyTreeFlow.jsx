@@ -19,7 +19,7 @@ import DeletePersonModal from '../UI/DeletePersonModal';
 import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
 import { useFullTree } from '../../services/people';
-import { transformFamilyData, applyHierarchicalLayout } from '../../utils/reactFlowLayout';
+import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../../utils/familyTreeHierarchicalLayout';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -75,11 +75,11 @@ const FamilyTree = () => {
     setDeleteTarget(person);
   }, []);
 
-  // Transform data for react-flow
+  // Transform data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
     
-    const { nodes, edges } = transformFamilyData(data.nodes, data.edges, {
+    const { nodes, edges } = createFamilyTreeLayout(data.nodes, data.edges, {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
@@ -88,14 +88,14 @@ const FamilyTree = () => {
     return { nodes, edges };
   }, [data, handleEditPerson, handleDeletePerson, openPersonCard]);
 
-  // Apply hierarchical layout
+  // Apply final positioning adjustments
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!initialNodes.length) return { nodes: [], edges: [] };
     
-    // Apply layout synchronously
-    const layoutedNodes = applyHierarchicalLayout([...initialNodes], initialEdges);
-    return { nodes: layoutedNodes, edges: initialEdges };
-  }, [initialNodes, initialEdges]);
+    // Center children between their parents for better visual hierarchy
+    const adjustedNodes = centerChildrenBetweenParents(initialNodes, data?.edges || []);
+    return { nodes: adjustedNodes, edges: initialEdges };
+  }, [initialNodes, initialEdges, data?.edges]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
