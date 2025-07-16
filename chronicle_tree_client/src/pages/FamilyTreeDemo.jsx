@@ -14,7 +14,7 @@ import '@xyflow/react/dist/style.css';
 
 import PersonCardNode from '../components/Tree/PersonCardNode';
 import PersonCard from '../components/Tree/PersonCard';
-import { transformFamilyData, applyHierarchicalLayout } from '../utils/reactFlowLayout';
+import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../utils/familyTreeHierarchicalLayout';
 import { mockFamilyData } from '../data/mockData';
 
 // Node types for react-flow
@@ -54,9 +54,9 @@ const FamilyTreeDemo = () => {
     setPersonCardPosition(null);
   }, []);
 
-  // Transform mock data for react-flow
+  // Transform mock data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const { nodes, edges } = transformFamilyData(mockFamilyData.nodes, mockFamilyData.edges, {
+    const { nodes, edges } = createFamilyTreeLayout(mockFamilyData.nodes, mockFamilyData.edges, {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
@@ -65,12 +65,13 @@ const FamilyTreeDemo = () => {
     return { nodes, edges };
   }, [handleEditPerson, handleDeletePerson, openPersonCard]);
 
-  // Apply hierarchical layout
+  // Apply final positioning adjustments
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!initialNodes.length) return { nodes: [], edges: [] };
     
-    const layoutedNodes = applyHierarchicalLayout([...initialNodes], initialEdges);
-    return { nodes: layoutedNodes, edges: initialEdges };
+    // Center children between their parents for better visual hierarchy
+    const adjustedNodes = centerChildrenBetweenParents(initialNodes, mockFamilyData.edges);
+    return { nodes: adjustedNodes, edges: initialEdges };
   }, [initialNodes, initialEdges]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
