@@ -8,7 +8,7 @@ const CustomNode = ({ data, id, selected }) => {
   const { person, onEdit, onDelete, onCenter, onPersonCardOpen, onRestructure, setOpenCardId, openCardId } = data;
   const avatarUrl = person.avatar_url;
   const birthYear = person.date_of_birth ? new Date(person.date_of_birth).getFullYear() : '';
-  const deathYear = person.date_of_death ? new Date(person.date_of_death).getFullYear() : '';
+  // const deathYear = person.date_of_death ? new Date(person.date_of_death).getFullYear() : '';
   const genderIcon = person.gender?.toLowerCase() === 'female' ? <FaVenus className="text-pink-500 ml-1" /> : person.gender?.toLowerCase() === 'male' ? <FaMars className="text-blue-500 ml-1" /> : null;
   const status = person.is_alive === false || person.date_of_death ? 'Deceased' : 'Alive';
   const statusColor = status === 'Alive' ? 'text-green-600' : 'text-gray-400';
