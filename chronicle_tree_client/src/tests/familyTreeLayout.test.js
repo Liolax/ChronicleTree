@@ -125,6 +125,67 @@ describe('familyTreeHierarchicalLayout', () => {
     });
   });
 
+  describe('spouse relationship styling', () => {
+    it('should style current spouse relationships with pink dashed lines', () => {
+      const sampleEdgesWithSpouse = [
+        { source: 1, target: 2, type: 'spouse', is_ex: false },
+        { source: 1, target: 3, type: 'parent' },
+      ];
+
+      const result = createFamilyTreeLayout(sampleNodes, sampleEdgesWithSpouse);
+      
+      // Find spouse edge
+      const spouseEdge = result.edges.find(e => e.id.includes('spouse'));
+      expect(spouseEdge).toBeTruthy();
+      expect(spouseEdge.style.stroke).toBe('#ec4899'); // Pink color
+      expect(spouseEdge.style.strokeDasharray).toBe('5 5');
+    });
+
+    it('should style ex-spouse relationships with grey dashed lines', () => {
+      const sampleEdgesWithExSpouse = [
+        { source: 1, target: 2, type: 'spouse', is_ex: true },
+        { source: 1, target: 3, type: 'parent' },
+      ];
+
+      const result = createFamilyTreeLayout(sampleNodes, sampleEdgesWithExSpouse);
+      
+      // Find spouse edge
+      const spouseEdge = result.edges.find(e => e.id.includes('spouse'));
+      expect(spouseEdge).toBeTruthy();
+      expect(spouseEdge.style.stroke).toBe('#9ca3af'); // Grey color
+      expect(spouseEdge.style.strokeDasharray).toBe('5 5');
+    });
+
+    it('should default to pink styling when is_ex is undefined', () => {
+      const sampleEdgesWithSpouse = [
+        { source: 1, target: 2, type: 'spouse' }, // No is_ex property
+        { source: 1, target: 3, type: 'parent' },
+      ];
+
+      const result = createFamilyTreeLayout(sampleNodes, sampleEdgesWithSpouse);
+      
+      // Find spouse edge
+      const spouseEdge = result.edges.find(e => e.id.includes('spouse'));
+      expect(spouseEdge).toBeTruthy();
+      expect(spouseEdge.style.stroke).toBe('#ec4899'); // Pink color (default)
+      expect(spouseEdge.style.strokeDasharray).toBe('5 5');
+    });
+  });
+
+  describe('parent-child relationship styling', () => {
+    it('should style parent-child relationships with solid blue lines and arrows', () => {
+      const result = createFamilyTreeLayout(sampleNodes, sampleEdges);
+      
+      // Find parent edge
+      const parentEdge = result.edges.find(e => e.id.includes('parent'));
+      expect(parentEdge).toBeTruthy();
+      expect(parentEdge.style.stroke).toBe('#6366f1'); // Blue color
+      expect(parentEdge.style.strokeWidth).toBe(2);
+      expect(parentEdge.markerEnd).toBeTruthy();
+      expect(parentEdge.markerEnd.type).toBe('arrowclosed');
+    });
+  });
+
   describe('edge deduplication', () => {
     it('should not create duplicate edges for same relationship', () => {
       const duplicateEdges = [

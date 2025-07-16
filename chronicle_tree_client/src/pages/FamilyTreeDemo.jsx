@@ -29,6 +29,7 @@ const nodeTypes = {
 const FamilyTreeDemo = () => {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [personCardPosition, setPersonCardPosition] = useState(null);
+  const [rootPersonId, setRootPersonId] = useState(null);
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
@@ -37,6 +38,20 @@ const FamilyTreeDemo = () => {
 
   const handleDeletePerson = useCallback((person) => {
     console.log('Delete person:', person);
+  }, []);
+
+  const handleCenterPerson = useCallback((personId) => {
+    console.log('Center on person:', personId);
+  }, []);
+
+  const handleRestructureTree = useCallback((personId) => {
+    console.log('Restructure tree with root:', personId);
+    setRootPersonId(personId);
+  }, []);
+
+  const handleResetTree = useCallback(() => {
+    console.log('Reset tree to show all people');
+    setRootPersonId(null);
   }, []);
 
   const openPersonCard = useCallback((person, event) => {
@@ -54,25 +69,36 @@ const FamilyTreeDemo = () => {
     setPersonCardPosition(null);
   }, []);
 
+  // Filter data based on root person
+  const filteredData = useMemo(() => {
+    if (!rootPersonId) return mockFamilyData;
+    
+    // For demo purposes, we'll just return all data
+    // In real implementation, this would filter based on the root person
+    return mockFamilyData;
+  }, [rootPersonId]);
+
   // Transform mock data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
-    const { nodes, edges } = createFamilyTreeLayout(mockFamilyData.nodes, mockFamilyData.edges, {
+    const { nodes, edges } = createFamilyTreeLayout(filteredData.nodes, filteredData.edges, {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
+      onCenter: handleCenterPerson,
+      onRestructure: handleRestructureTree,
     });
 
     return { nodes, edges };
-  }, [handleEditPerson, handleDeletePerson, openPersonCard]);
+  }, [filteredData, handleEditPerson, handleDeletePerson, openPersonCard, handleCenterPerson, handleRestructureTree]);
 
   // Apply final positioning adjustments
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!initialNodes.length) return { nodes: [], edges: [] };
     
     // Center children between their parents for better visual hierarchy
-    const adjustedNodes = centerChildrenBetweenParents(initialNodes, mockFamilyData.edges);
+    const adjustedNodes = centerChildrenBetweenParents(initialNodes, filteredData.edges);
     return { nodes: adjustedNodes, edges: initialEdges };
-  }, [initialNodes, initialEdges]);
+  }, [initialNodes, initialEdges, filteredData.edges]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
@@ -116,6 +142,19 @@ const FamilyTreeDemo = () => {
               <span>•</span>
               <span>Relationships: {edges.length}</span>
             </div>
+            {rootPersonId && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-gray-600">
+                  Root: {filteredData.nodes.find(n => n.id === rootPersonId)?.first_name} {filteredData.nodes.find(n => n.id === rootPersonId)?.last_name}
+                </span>
+                <button
+                  onClick={handleResetTree}
+                  className="px-2 py-1 bg-gray-200 text-gray-700 rounded text-xs hover:bg-gray-300 transition-colors"
+                >
+                  Show All
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex gap-3">
             <FitViewButton />
@@ -177,6 +216,9 @@ const FamilyTreeDemo = () => {
                   <div>🔗 {edges.length} relationships</div>
                   <div>📊 Top-down hierarchical layout</div>
                   <div>🎨 Custom person cards</div>
+                  <div>💕 Pink lines: Current spouses</div>
+                  <div>💔 Grey lines: Ex-spouses</div>
+                  <div>🏠 Click home icon to restructure</div>
                 </div>
               </div>
             </Panel>

@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import Avatar from 'react-avatar';
-import { FaPen, FaTrash, FaEye, FaMars, FaVenus } from 'react-icons/fa';
+import { FaPen, FaTrash, FaEye, FaMars, FaVenus, FaHome, FaBullseye } from 'react-icons/fa';
 import './PersonCardNode.css';
 
 /**
@@ -9,7 +9,7 @@ import './PersonCardNode.css';
  * Designed to be more card-like with detailed information display
  */
 const PersonCard = ({ data, selected }) => {
-  const { person, onEdit, onDelete, onPersonCardOpen } = data;
+  const { person, onEdit, onDelete, onPersonCardOpen, onCenter, onRestructure } = data;
 
   if (!person) return null;
 
@@ -105,6 +105,30 @@ const PersonCard = ({ data, selected }) => {
 
       {/* Action Buttons */}
       <div className="card-actions">
+        {onRestructure && (
+          <button
+            className="action-btn restructure-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onRestructure(person.id);
+            }}
+            title="Make Root"
+          >
+            <FaHome />
+          </button>
+        )}
+        {onCenter && (
+          <button
+            className="action-btn center-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              onCenter(person.id);
+            }}
+            title="Center"
+          >
+            <FaBullseye />
+          </button>
+        )}
         <button
           className="action-btn view-btn"
           onClick={(e) => {

@@ -72,6 +72,18 @@ export const mockFamilyData = {
       company: null,
       zodiac: "Sagittarius",
       is_alive: true
+    },
+    {
+      id: 7,
+      first_name: "David",
+      last_name: "Johnson",
+      date_of_birth: "1973-08-12",
+      date_of_death: null,
+      gender: "male",
+      avatar_url: null,
+      company: "Finance Corp",
+      zodiac: "Leo",
+      is_alive: true
     }
   ],
   edges: [
@@ -79,6 +91,12 @@ export const mockFamilyData = {
       from: 1,
       to: 2,
       type: "spouse"
+    },
+    {
+      from: 7,
+      to: 4,
+      type: "spouse",
+      is_ex: true
     },
     {
       from: 1,
