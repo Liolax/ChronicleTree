@@ -203,7 +203,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         </h2>
       </div>
       <div>
-        <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, and in-laws. Click add, edit, or delete to modify.</p>
+        <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, and in-laws. Click add or delete to modify.</p>
         {/* Existing relationships (detailed, editable) */}
         {Object.entries(mergedGroups).map(([type, rels]) => {
           let canAdd = false;
