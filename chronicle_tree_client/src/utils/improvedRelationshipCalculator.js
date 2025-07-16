@@ -111,7 +111,7 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
   const rootIdStr = String(rootId);
   
   // Direct relationships first
-  const directRelationship = getDirectRelationship(personIdStr, rootIdStr, relationshipMaps);
+  const directRelationship = getDirectRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (directRelationship) {
     return directRelationship;
   }
@@ -136,34 +136,35 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
  * @param {string} personId - The person's ID
  * @param {string} rootId - The root person's ID
  * @param {Object} relationshipMaps - Relationship maps
+ * @param {Array} allPeople - Array of all people
  * @returns {string|null} - Direct relationship or null
  */
-const getDirectRelationship = (personId, rootId, relationshipMaps) => {
+const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) => {
   const { parentToChildren, childToParents, spouseMap, exSpouseMap, siblingMap } = relationshipMaps;
   
   // Check if person is root's parent
   if (childToParents.has(rootId) && childToParents.get(rootId).has(personId)) {
-    return 'Parent';
+    return getGenderSpecificRelation(personId, 'Father', 'Mother', allPeople);
   }
   
   // Check if person is root's child
   if (parentToChildren.has(rootId) && parentToChildren.get(rootId).has(personId)) {
-    return 'Child';
+    return getGenderSpecificRelation(personId, 'Son', 'Daughter', allPeople);
   }
   
   // Check if person is root's spouse
   if (spouseMap.has(rootId) && spouseMap.get(rootId) === personId) {
-    return 'Spouse';
+    return getGenderSpecificRelation(personId, 'Husband', 'Wife', allPeople);
   }
   
   // Check if person is root's ex-spouse
   if (exSpouseMap.has(rootId) && exSpouseMap.get(rootId) === personId) {
-    return 'Ex-Spouse';
+    return getGenderSpecificRelation(personId, 'Ex-Husband', 'Ex-Wife', allPeople);
   }
   
   // Check if person is root's sibling
   if (siblingMap.has(rootId) && siblingMap.get(rootId).has(personId)) {
-    return 'Sibling';
+    return getGenderSpecificRelation(personId, 'Brother', 'Sister', allPeople);
   }
   
   return null;
@@ -184,7 +185,7 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   const rootParents = childToParents.get(rootId) || new Set();
   for (const parent of rootParents) {
     if (childToParents.has(parent) && childToParents.get(parent).has(personId)) {
-      return 'Grandparent';
+      return getGenderSpecificRelation(personId, 'Grandfather', 'Grandmother', allPeople);
     }
   }
   
@@ -192,7 +193,7 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   const rootChildren = parentToChildren.get(rootId) || new Set();
   for (const child of rootChildren) {
     if (parentToChildren.has(child) && parentToChildren.get(child).has(personId)) {
-      return 'Grandchild';
+      return getGenderSpecificRelation(personId, 'Grandson', 'Granddaughter', allPeople);
     }
   }
   

@@ -57,13 +57,13 @@ describe('Problem Statement Verification Tests', () => {
 
     it('should identify Bob B as Grandchild, not Same Generation', () => {
       const result = calculateRelationshipToRoot(bob, john, testPeople, testRelationships);
-      expect(result).toBe('Grandchild');
+      expect(result).toBe('Grandson');
       expect(result).not.toBe('Same Generation');
     });
 
     it('should identify Emily E as Grandchild, not Same Generation', () => {
       const result = calculateRelationshipToRoot(emily, john, testPeople, testRelationships);
-      expect(result).toBe('Grandchild');
+      expect(result).toBe('Granddaughter');
       expect(result).not.toBe('Same Generation');
     });
 
@@ -81,7 +81,7 @@ describe('Problem Statement Verification Tests', () => {
 
     it('should identify Bob B as Sibling (Brother), not Grandparent', () => {
       const result = calculateRelationshipToRoot(bob, emily, testPeople, testRelationships);
-      expect(result).toBe('Sibling');
+      expect(result).toBe('Brother');
       expect(result).not.toBe('Grandparent');
     });
 
@@ -98,7 +98,7 @@ describe('Problem Statement Verification Tests', () => {
 
     it('should identify Charlie C as Sibling (Brother), not Grandparent', () => {
       const result = calculateRelationshipToRoot(charlie, alice, testPeople, testRelationships);
-      expect(result).toBe('Sibling');
+      expect(result).toBe('Brother');
       expect(result).not.toBe('Grandparent');
     });
   });
@@ -109,9 +109,9 @@ describe('Problem Statement Verification Tests', () => {
       const jane = testPeople[1];
       const alice = testPeople[2];
       
-      expect(calculateRelationshipToRoot(jane, john, testPeople, testRelationships)).toBe('Spouse');
-      expect(calculateRelationshipToRoot(alice, john, testPeople, testRelationships)).toBe('Child');
-      expect(calculateRelationshipToRoot(john, alice, testPeople, testRelationships)).toBe('Parent');
+      expect(calculateRelationshipToRoot(jane, john, testPeople, testRelationships)).toBe('Wife');
+      expect(calculateRelationshipToRoot(alice, john, testPeople, testRelationships)).toBe('Daughter');
+      expect(calculateRelationshipToRoot(john, alice, testPeople, testRelationships)).toBe('Father');
     });
 
     it('should correctly model collateral relationships', () => {
@@ -120,8 +120,8 @@ describe('Problem Statement Verification Tests', () => {
       const bob = testPeople[4];
       const emily = testPeople[5];
       
-      expect(calculateRelationshipToRoot(charlie, alice, testPeople, testRelationships)).toBe('Sibling');
-      expect(calculateRelationshipToRoot(emily, bob, testPeople, testRelationships)).toBe('Sibling');
+      expect(calculateRelationshipToRoot(charlie, alice, testPeople, testRelationships)).toBe('Brother');
+      expect(calculateRelationshipToRoot(emily, bob, testPeople, testRelationships)).toBe('Sister');
     });
 
     it('should correctly model in-law relationships', () => {
@@ -130,7 +130,7 @@ describe('Problem Statement Verification Tests', () => {
       const alice = testPeople[2];
       
       expect(calculateRelationshipToRoot(david, john, testPeople, testRelationships)).toBe('Son-in-law');
-      expect(calculateRelationshipToRoot(david, alice, testPeople, testRelationships)).toBe('Ex-Spouse');
+      expect(calculateRelationshipToRoot(david, alice, testPeople, testRelationships)).toBe('Ex-Husband');
     });
 
     it('should correctly model generational relationships', () => {
@@ -138,9 +138,9 @@ describe('Problem Statement Verification Tests', () => {
       const bob = testPeople[4];
       const emily = testPeople[5];
       
-      expect(calculateRelationshipToRoot(bob, john, testPeople, testRelationships)).toBe('Grandchild');
-      expect(calculateRelationshipToRoot(emily, john, testPeople, testRelationships)).toBe('Grandchild');
-      expect(calculateRelationshipToRoot(john, bob, testPeople, testRelationships)).toBe('Grandparent');
+      expect(calculateRelationshipToRoot(bob, john, testPeople, testRelationships)).toBe('Grandson');
+      expect(calculateRelationshipToRoot(emily, john, testPeople, testRelationships)).toBe('Granddaughter');
+      expect(calculateRelationshipToRoot(john, bob, testPeople, testRelationships)).toBe('Grandfather');
     });
   });
 
@@ -161,8 +161,8 @@ describe('Problem Statement Verification Tests', () => {
       const emily = testPeople[5];
       
       // Bob and Emily are nephew and niece to Charlie
-      expect(calculateRelationshipToRoot(bob, alice, testPeople, testRelationships)).toBe('Child');
-      expect(calculateRelationshipToRoot(emily, alice, testPeople, testRelationships)).toBe('Child');
+      expect(calculateRelationshipToRoot(bob, alice, testPeople, testRelationships)).toBe('Son');
+      expect(calculateRelationshipToRoot(emily, alice, testPeople, testRelationships)).toBe('Daughter');
     });
 
     it('should correctly identify the root person', () => {
