@@ -99,9 +99,14 @@ module Api
             end
           end
         end
+        
+        # Find the oldest person to use as default root
+        oldest_person = people.where.not(date_of_birth: nil).order(:date_of_birth).first
+        
         render json: {
           nodes: ActiveModelSerializers::SerializableResource.new(nodes, each_serializer: Api::V1::PersonSerializer),
-          edges: edges
+          edges: edges,
+          oldest_person_id: oldest_person&.id
         }, status: :ok
       end
 

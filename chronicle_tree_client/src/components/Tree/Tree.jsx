@@ -19,7 +19,7 @@ import CustomNode from './CustomNode';
 import PersonCard from "./PersonCard";
 import { familyTreeLayout } from '../../utils/familyTreeLayout';
 import { dagreLayout } from '../../utils/dagreLayout';
-import { getAllRelationshipsToRoot } from '../../utils/relationshipCalculator';
+import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 
 // --- React Flow Node Types ---
 const nodeTypes = {
@@ -220,6 +220,7 @@ const FamilyTree = () => {
   const [personCardPosition, setPersonCardPosition] = useState(null);
   const [layoutType, setLayoutType] = useState(LAYOUT_TYPES.ENHANCED);
   const [rootPersonId, setRootPersonId] = useState(null);
+  const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
   // --- Handlers must be defined before useMemo below ---
@@ -258,11 +259,18 @@ const FamilyTree = () => {
   const handleResetTree = () => {
     console.log('Reset tree to show all people');
     setRootPersonId(null);
+    setHasSetDefaultRoot(false);
   };
 
   // Process data based on root person and add relationship information
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
+    
+    // Auto-set oldest person as root if no root is selected and we haven't set default root yet
+    if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
+      setRootPersonId(data.oldest_person_id);
+      setHasSetDefaultRoot(true);
+    }
     
     const rootPerson = rootPersonId 
       ? data.nodes.find(n => n.id === rootPersonId)
@@ -279,7 +287,7 @@ const FamilyTree = () => {
       nodes: peopleWithRelations,
       edges: data.edges
     };
-  }, [data, rootPersonId]);
+  }, [data, rootPersonId, hasSetDefaultRoot]);
 
   // React Flow state
   const { flowNodes, flowEdges } = useMemo(() => {
