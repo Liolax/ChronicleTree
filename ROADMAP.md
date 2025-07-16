@@ -4,6 +4,13 @@ This document outlines the current state, recent progress, and future plans for 
 
 ---
 
+## Visualization Library Update
+
+- The family tree visualization is now implemented using [visx](https://airbnb.io/visx/) (with d3-hierarchy and @visx/zoom), not React Flow. All tree layouts, zooming, and node rendering are handled with visx for better flexibility and customizability.
+- All references to React Flow in this document are deprecated and should be considered historical. The codebase no longer uses React Flow for tree rendering.
+
+---
+
 ## MiniMap Viewport Rectangle Improvements
 
 - Refined the MiniMap viewport rectangle logic for the Family Tree page to ensure a visually clear, responsive, and user-friendly experience.
@@ -188,9 +195,9 @@ This section outlines the current and planned development for the ChronicleTree 
 - `@tanstack/react-query` manages server state, caching, and optimistic updates.
 - All profile and tree data is fetched live from the backend and kept in sync.
 
-### 3. Tree Visualization with React Flow
+### 3. Tree Visualization with visx
 
-- The family tree is rendered with `reactflow`, using data from `/api/v1/people/:id/tree`.
+- The family tree is rendered with `visx`, using data from `/api/v1/people/:id/tree`.
 - `TreeStateContext` manages UI state for the tree, including selected node and modal/card visibility.
 - Nodes use a custom `CustomNode` component showing name, avatar, gender, age, and deceased status (with year if applicable).
 - Person cards show full birth/death dates and all profile data.
