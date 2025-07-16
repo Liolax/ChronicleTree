@@ -216,10 +216,16 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
   
   // Check for cousin relationship
-  for (const sibling of rootSiblings) {
-    const siblingChildren = parentToChildren.get(sibling) || new Set();
-    if (siblingChildren.has(personId)) {
-      return 'Cousin';
+  // Cousins are children of siblings
+  // Person and root are cousins if their parents are siblings
+  const personParents = childToParents.get(personId) || new Set();
+  for (const personParent of personParents) {
+    const personParentSiblings = siblingMap.get(personParent) || new Set();
+    for (const rootParent of rootParents) {
+      if (personParentSiblings.has(rootParent)) {
+        // Person's parent is sibling of root's parent, so person and root are cousins
+        return 'Cousin';
+      }
     }
   }
   
