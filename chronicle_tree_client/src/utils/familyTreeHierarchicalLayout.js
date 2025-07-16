@@ -188,22 +188,23 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
     generationGroups.get(generation).push(person);
   });
 
-  // Layout constants
-  const GENERATION_HEIGHT = 350;
+  // Layout constants - increased spacing to prevent node overlap
+  const GENERATION_HEIGHT = 400;  // Increased vertical spacing between generations
   const NODE_WIDTH = 280;
-  const SPOUSE_SPACING = 150;
-  const SIBLING_SPACING = 320;
+  const SPOUSE_SPACING = 320;     // Increased spacing between spouses (280 + 40px gap)
+  const SIBLING_SPACING = 400;    // Increased spacing between siblings (280 + 120px gap)
 
   // Position nodes generation by generation
   for (const [generation, generationPersons] of generationGroups) {
     const y = generation * GENERATION_HEIGHT;
     const processedPersons = new Set();
-    let xOffset = 0;
 
-    // Calculate total width needed for this generation
-    const totalNodes = generationPersons.length;
-    const totalWidth = totalNodes * NODE_WIDTH;
+    // Calculate total width needed for this generation with proper spacing
+    const coupleCount = Math.floor(generationPersons.length / 2);
+    const singleCount = generationPersons.length % 2;
+    const totalWidth = (coupleCount * (NODE_WIDTH + SPOUSE_SPACING)) + (singleCount * NODE_WIDTH) + ((coupleCount + singleCount - 1) * (SIBLING_SPACING - NODE_WIDTH));
     const startX = -totalWidth / 2;
+    let xOffset = startX;
 
     generationPersons.forEach(person => {
       const personId = String(person.id);
@@ -215,19 +216,15 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
 
       if (spouse && !processedPersons.has(spouseId)) {
         // Position spouse pair
-        const coupleX = startX + xOffset;
-        
-        // Create nodes for both spouses
-        nodes.push(createPersonNode(person, coupleX, y, handlers));
-        nodes.push(createPersonNode(spouse, coupleX + SPOUSE_SPACING, y, handlers));
+        nodes.push(createPersonNode(person, xOffset, y, handlers));
+        nodes.push(createPersonNode(spouse, xOffset + SPOUSE_SPACING, y, handlers));
         
         processedPersons.add(personId);
         processedPersons.add(spouseId);
         xOffset += SIBLING_SPACING;
       } else {
         // Position single person
-        const singleX = startX + xOffset;
-        nodes.push(createPersonNode(person, singleX, y, handlers));
+        nodes.push(createPersonNode(person, xOffset, y, handlers));
         
         processedPersons.add(personId);
         xOffset += SIBLING_SPACING;
