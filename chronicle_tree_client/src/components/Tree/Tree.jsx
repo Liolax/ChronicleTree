@@ -17,15 +17,16 @@ import DeletePersonModal from '../UI/DeletePersonModal';
 import { useFullTree } from "../../services/people";
 import CustomNode from './CustomNode';
 import PersonCard from "./PersonCard";
+import { createFamilyTreeLayout, centerTree } from "../../utils/familyTreeLayout";
+import { createDagreBasedLayout, postProcessDagreLayout } from "../../utils/dagreLayout";
 
 // --- React Flow Node Types ---
 const nodeTypes = {
   custom: CustomNode,
 };
 
-// --- Helper: Transform API data to React Flow nodes/edges ---
-// Refactored: All legacy visx/d3-hierarchy code and references removed. Now only React Flow logic remains.
-function buildFlowElements(nodes, edges, handlers = {}) {
+// --- Helper: Transform API data to React Flow nodes/edges using improved layout ---
+function buildFlowElements(nodes, edges, handlers = {}, algorithm = 'enhanced') {
   if (!nodes || !edges) return { flowNodes: [], flowEdges: [] };
 
   // --- Map backend edge keys {from,to} to {source,target} for React Flow ---
@@ -47,130 +48,16 @@ function buildFlowElements(nodes, edges, handlers = {}) {
     );
   });
 
-  // --- GENERATIONAL LAYOUT: Compute generation for each person ---
-  const nodeMap = Object.fromEntries(nodes.map(n => [n.id, n]));
-  const childToParents = {};
-  const parentToChildren = {};
-  validEdges.forEach(e => {
-    if (e.type === 'parent' || e.type === 'child') {
-      const parentId = e.type === 'parent' ? e.source : e.target;
-      const childId = e.type === 'parent' ? e.target : e.source;
-      if (!childToParents[childId]) childToParents[childId] = [];
-      if (!parentToChildren[parentId]) parentToChildren[parentId] = [];
-      childToParents[childId].push(parentId);
-      parentToChildren[parentId].push(childId);
-    }
-  });
-  const rootIds = nodes.filter(n => !childToParents[n.id] || childToParents[n.id].length === 0).map(n => n.id);
-  const generationMap = {};
-  const visited = new Set();
-  let queue = rootIds.map(id => ({ id, gen: 0 }));
-  while (queue.length > 0) {
-    const { id, gen } = queue.shift();
-    if (visited.has(id)) continue;
-    visited.add(id);
-    generationMap[id] = gen;
-    (parentToChildren[id] || []).forEach(childId => {
-      queue.push({ id: childId, gen: gen + 1 });
-    });
+  // Choose layout algorithm
+  let result;
+  if (algorithm === 'dagre') {
+    result = createDagreBasedLayout(nodes, validEdges, handlers);
+    result = postProcessDagreLayout(result.flowNodes, result.flowEdges);
+  } else {
+    result = createFamilyTreeLayout(nodes, validEdges, handlers);
   }
-  const genGroups = {};
-  nodes.forEach(n => {
-    const g = generationMap[n.id] ?? 0;
-    if (!genGroups[g]) genGroups[g] = [];
-    genGroups[g].push(n);
-  });
 
-  // --- COUPLE GROUPING: Place couples together horizontally ---
-  const spouseEdges = validEdges.filter(e => e.type === 'spouse');
-  const coupleGroups = [];
-  const coupled = new Set();
-  spouseEdges.forEach(e => {
-    const a = String(e.source), b = String(e.target);
-    if (!coupled.has(a) && !coupled.has(b)) {
-      coupleGroups.push([a, b]);
-      coupled.add(a); coupled.add(b);
-    }
-  });
-  const nodeToCoupleIdx = {};
-  coupleGroups.forEach((group, idx) => {
-    group.forEach(id => { nodeToCoupleIdx[id] = idx; });
-  });
-
-  // 6. Place nodes: each generation is a row, couples grouped, singles spaced
-  const flowNodes = [];
-  const xSpacing = 300, ySpacing = 250;
-  Object.entries(genGroups).forEach(([gen, group]) => {
-    const couples = [], singles = [];
-    group.forEach(n => {
-      if (nodeToCoupleIdx[n.id] !== undefined) {
-        if (!couples[nodeToCoupleIdx[n.id]]) couples[nodeToCoupleIdx[n.id]] = [];
-        couples[nodeToCoupleIdx[n.id]].push(n);
-      } else {
-        singles.push(n);
-      }
-    });
-    let x = 0;
-    couples.forEach(pair => {
-      pair.forEach((n, i) => {
-        flowNodes.push({
-          id: String(n.id),
-          type: 'custom',
-          data: { person: n, ...handlers },
-          position: { x: x + i * 120, y: gen * ySpacing },
-          draggable: true,
-        });
-      });
-      x += 240;
-    });
-    singles.forEach(n => {
-      flowNodes.push({
-        id: String(n.id),
-        type: 'custom',
-        data: { person: n, ...handlers },
-        position: { x, y: gen * ySpacing },
-        draggable: true,
-      });
-      x += xSpacing;
-    });
-  });
-  const idToNode = Object.fromEntries(flowNodes.map(n => [n.id, n]));
-  flowNodes.forEach(n => {
-    const parents = (childToParents[n.id] || []).map(pid => idToNode[pid]).filter(Boolean);
-    if (parents.length > 1) {
-      const avgX = parents.reduce((sum, p) => sum + p.position.x, 0) / parents.length;
-      n.position.x = avgX;
-    }
-  });
-
-  const edgeCount = {};
-  validEdges.forEach(e => {
-    const key = `${e.source}-${e.target}`;
-    edgeCount[key] = (edgeCount[key] || 0) + 1;
-  });
-  const flowEdges = validEdges.map((e, i) => {
-    const key = `${e.source}-${e.target}`;
-    const count = edgeCount[key];
-    let label = e.type;
-    let style = {
-      stroke: e.type === 'spouse' ? '#f59e42' : '#6366f1',
-      strokeWidth: 2,
-    };
-    if (count > 1) {
-      style = { ...style, strokeDasharray: '4 2' };
-      label += ` (${count})`;
-    }
-    return {
-      id: `e${e.source}-${e.target}`,
-      source: String(e.source),
-      target: String(e.target),
-      type: 'smoothstep',
-      animated: false,
-      style,
-      label,
-    };
-  });
-  return { flowNodes, flowEdges };
+  return result;
 }
 
 const FamilyTree = () => {
@@ -181,6 +68,7 @@ const FamilyTree = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [personCardPosition, setPersonCardPosition] = useState(null);
+  const [layoutAlgorithm, setLayoutAlgorithm] = useState('enhanced'); // 'enhanced' or 'dagre'
   const { data, isLoading, isError } = useFullTree();
 
   // --- Handlers must be defined before useMemo below ---
@@ -208,24 +96,43 @@ const FamilyTree = () => {
       reactFlowInstance.current.setCenter(node.position.x + 85, node.position.y + 60, { zoom: 1.1, duration: 600 });
     }
   };
+  
+  // Auto-center and fit the entire tree
+  const handleFitAndCenterTree = () => {
+    if (!reactFlowInstance.current) return;
+    
+    setTimeout(() => {
+      const centeredNodes = centerTree(nodes, 1200, 800); // Approximate viewport size
+      setNodes(centeredNodes);
+      
+      setTimeout(() => {
+        reactFlowInstance.current.fitView({ padding: 0.1, duration: 800 });
+      }, 100);
+    }, 100);
+  };
 
   // React Flow state
   const { flowNodes, flowEdges } = useMemo(() => {
     if (!data) return { flowNodes: [], flowEdges: [] };
     // Pass handlers for detailed CustomNode
-    return buildFlowElements(data.nodes, data.edges, {
+    const handlers = {
       onEdit: handleEditPerson,
       onDelete: person => setDeleteTarget(person),
       onPersonCardOpen: openPersonCard,
       onCenter: handleCenterPerson,
-    });
-  }, [data]);
+    };
+    return buildFlowElements(data.nodes, data.edges, handlers, layoutAlgorithm);
+  }, [data, layoutAlgorithm]);
   const [nodes, setNodes, onNodesChange] = useNodesState(flowNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(flowEdges);
 
   // --- Keep nodes/edges in sync with API data ---
   React.useEffect(() => {
     setNodes(flowNodes);
+    // Auto-center tree when data changes
+    if (flowNodes.length > 0) {
+      setTimeout(() => handleFitAndCenterTree(), 200);
+    }
   }, [setNodes, flowNodes]);
   React.useEffect(() => {
     setEdges(flowEdges);
@@ -237,18 +144,36 @@ const FamilyTree = () => {
     const reactFlowInstance = useReactFlow();
     const handleFitView = () => {
       if (reactFlowInstance && reactFlowInstance.fitView) {
-        reactFlowInstance.fitView();
+        reactFlowInstance.fitView({ padding: 0.1, duration: 800 });
       }
     };
-    return <Button onClick={handleFitView}>Re-center Tree</Button>;
+    return (
+      <div className="flex gap-2">
+        <Button onClick={handleFitView}>Fit View</Button>
+        <Button onClick={handleFitAndCenterTree}>Center Tree</Button>
+      </div>
+    );
   }
 
   // --- Render ---
   return (
     <ReactFlowProvider>
       <div className="w-full h-[80vh] relative">
-        <div className="flex justify-between mb-2">
-          <Button onClick={openAddPersonModal}>Add Person</Button>
+        <div className="flex justify-between items-center mb-2">
+          <div className="flex gap-2">
+            <Button onClick={openAddPersonModal}>Add Person</Button>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Layout:</label>
+              <select 
+                value={layoutAlgorithm} 
+                onChange={(e) => setLayoutAlgorithm(e.target.value)}
+                className="px-2 py-1 border rounded text-sm"
+              >
+                <option value="enhanced">Enhanced Family Tree</option>
+                <option value="dagre">Automatic (Dagre)</option>
+              </select>
+            </div>
+          </div>
         </div>
         {/* Debug panel for data status */}
         <div style={{ position: 'absolute', top: 10, left: 10, zIndex: 20, background: '#fff', padding: 8, borderRadius: 4, boxShadow: '0 2px 8px #0001', fontSize: 12 }}>
