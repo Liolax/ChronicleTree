@@ -10,7 +10,18 @@ import Login from '../pages/Auth/Login'
 import api from '../api/api'
 
 // Mock the api module
-vi.mock('../../api/api')
+vi.mock('../api/api', () => ({
+  default: {
+    post: vi.fn(),
+    get: vi.fn(),
+    delete: vi.fn(),
+    defaults: {
+      headers: {
+        common: {}
+      }
+    }
+  },
+}))
 
 // Mock react-router-dom
 const mockNavigate = vi.fn()
@@ -31,10 +42,13 @@ describe('Login Component', () => {
     // Arrange: Mock a successful API response
     const mockUser = { id: 1, name: 'Test User', email: 'test@example.com' }
     const mockResponse = {
-      data: { token: 'fake-jwt-token', user: mockUser },
-      headers: { }
+      data: { data: mockUser },
+      headers: { authorization: 'Bearer fake-jwt-token' }
     }
     api.post.mockResolvedValue(mockResponse)
+    
+    // Also mock the get call for user me
+    api.get.mockResolvedValue({ data: mockUser })
 
     render(
       <BrowserRouter>
@@ -48,7 +62,7 @@ describe('Login Component', () => {
     fireEvent.change(screen.getByLabelText(/email/i), {
       target: { value: 'test@example.com' },
     })
-    fireEvent.change(screen.getByLabelText(/password/i), {
+    fireEvent.change(screen.getByPlaceholderText('••••••••'), {
       target: { value: 'Password123!' },
     })
     fireEvent.click(screen.getByRole('button', { name: /log in/i }))
