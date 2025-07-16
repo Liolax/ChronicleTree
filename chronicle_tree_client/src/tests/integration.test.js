@@ -58,7 +58,7 @@ describe('Integration Test - Seed Data Relationships', () => {
     expect(relationshipMap['Jane']).toBe('Wife');
     expect(relationshipMap['Alice']).toBe('Daughter');
     expect(relationshipMap['Charlie']).toBe('Son');
-    expect(relationshipMap['David']).toBe('Son-in-law'); // Alice's ex-husband
+    expect(relationshipMap['David']).toBe('Ex-Son-in-law'); // Alice's ex-husband
     expect(relationshipMap['Bob']).toBe('Grandson');
     expect(relationshipMap['Emily']).toBe('Granddaughter');
   });
@@ -75,7 +75,7 @@ describe('Integration Test - Seed Data Relationships', () => {
     // These were the specific issues mentioned in the problem statement
     expect(relationshipMap['Charlie']).toBe('Root');
     expect(relationshipMap['Alice']).toBe('Sister'); // Was "Grandparent", now correct
-    expect(relationshipMap['David']).toBe('Brother-in-law'); // Was "Spouse", now correct
+    expect(relationshipMap['David']).toBe('Ex-Brother-in-law'); // Was "Spouse", now correct
     expect(relationshipMap['Bob']).toBe('Nephew'); // Was not identified, now correct
     expect(relationshipMap['Emily']).toBe('Niece'); // Was not identified, now correct
     expect(relationshipMap['John']).toBe('Father');
@@ -113,9 +113,9 @@ describe('Integration Test - Seed Data Relationships', () => {
     expect(relationshipMap['Alice']).toBe('Ex-Wife');
     expect(relationshipMap['Bob']).toBe('Son');
     expect(relationshipMap['Emily']).toBe('Daughter');
-    expect(relationshipMap['John']).toBe('Father-in-law');
-    expect(relationshipMap['Jane']).toBe('Mother-in-law');
-    expect(relationshipMap['Charlie']).toBe('Brother-in-law');
+    expect(relationshipMap['John']).toBe('Ex-Father-in-law');
+    expect(relationshipMap['Jane']).toBe('Ex-Mother-in-law');
+    expect(relationshipMap['Charlie']).toBe('Ex-Brother-in-law');
   });
 
   it('should handle all relationship types correctly', () => {
@@ -138,8 +138,8 @@ describe('Integration Test - Seed Data Relationships', () => {
       { root: 'Bob', person: 'John', expected: 'Grandfather' },
       
       // Test in-law relationships
-      { root: 'Charlie', person: 'David', expected: 'Brother-in-law' },
-      { root: 'David', person: 'Charlie', expected: 'Brother-in-law' },
+      { root: 'Charlie', person: 'David', expected: 'Ex-Brother-in-law' },
+      { root: 'David', person: 'Charlie', expected: 'Ex-Brother-in-law' },
       
       // Test nephew/niece relationships
       { root: 'Charlie', person: 'Bob', expected: 'Nephew' },
