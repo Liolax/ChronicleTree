@@ -109,6 +109,22 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
     t.index ["relative_id"], name: "index_relationships_on_relative_id"
   end
 
+  create_table "shares", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "content_type", null: false
+    t.integer "content_id"
+    t.string "platform", null: false
+    t.text "caption"
+    t.string "share_token", null: false
+    t.datetime "shared_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["content_type", "content_id"], name: "index_shares_on_content_type_and_content_id"
+    t.index ["platform"], name: "index_shares_on_platform"
+    t.index ["share_token"], name: "index_shares_on_share_token", unique: true
+    t.index ["user_id"], name: "index_shares_on_user_id"
+  end
+
   create_table "timeline_items", force: :cascade do |t|
     t.bigint "person_id", null: false
     t.string "title"
@@ -141,5 +157,6 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
   add_foreign_key "profiles", "people"
   add_foreign_key "relationships", "people"
   add_foreign_key "relationships", "people", column: "relative_id"
+  add_foreign_key "shares", "users"
   add_foreign_key "timeline_items", "people"
 end
