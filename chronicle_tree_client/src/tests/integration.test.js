@@ -113,9 +113,12 @@ describe('Integration Test - Seed Data Relationships', () => {
     expect(relationshipMap['Alice']).toBe('Ex-Wife');
     expect(relationshipMap['Bob']).toBe('Son');
     expect(relationshipMap['Emily']).toBe('Daughter');
-    expect(relationshipMap['John']).toBe('Ex-Father-in-law');
-    expect(relationshipMap['Jane']).toBe('Ex-Mother-in-law');
-    expect(relationshipMap['Charlie']).toBe('Ex-Brother-in-law');
+    // According to problem statement: "relatives of spouse (because after divorce they are not official yet) are not showing"
+    // John and Jane (Alice's parents) should NOT be shown as ex-in-laws to David
+    expect(relationshipMap['John']).toBe('Unrelated');
+    expect(relationshipMap['Jane']).toBe('Unrelated');
+    // Charlie (Alice's brother) should NOT be shown as ex-brother-in-law to David
+    expect(relationshipMap['Charlie']).toBe('Unrelated');
   });
 
   it('should handle all relationship types correctly', () => {
@@ -139,7 +142,9 @@ describe('Integration Test - Seed Data Relationships', () => {
       
       // Test in-law relationships
       { root: 'Charlie', person: 'David', expected: 'Ex-Brother-in-law' },
-      { root: 'David', person: 'Charlie', expected: 'Ex-Brother-in-law' },
+      // According to problem statement: "relatives of spouse (because after divorce they are not official yet) are not showing"
+      // When viewing David's relationships, Charlie (ex-spouse's sibling) should NOT be shown as ex-brother-in-law
+      { root: 'David', person: 'Charlie', expected: 'Unrelated' },
       
       // Test nephew/niece relationships
       { root: 'Charlie', person: 'Bob', expected: 'Nephew' },
