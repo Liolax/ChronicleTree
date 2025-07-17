@@ -164,7 +164,7 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Check if person is root's sibling
   if (siblingMap.has(rootId) && siblingMap.get(rootId).has(personId)) {
-    return getGenderSpecificRelation(personId, 'Brother', 'Sister', allPeople);
+    return getGenderSpecificRelation(personId, 'Brother', 'Sister', allPeople, 'Sibling');
   }
   
   return null;
@@ -204,7 +204,7 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   for (const parent of rootParents) {
     if (siblingMap.has(parent) && siblingMap.get(parent).has(personId)) {
       // Person is sibling of root's parent, so person is root's aunt/uncle
-      return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople);
+      return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, 'Parent\'s sibling');
     }
   }
   
@@ -212,7 +212,7 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   for (const sibling of rootSiblings) {
     if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
       // Person is child of root's sibling, so person is root's niece/nephew
-      return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople);
+      return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, 'Sibling\'s child');
     }
   }
   
@@ -329,14 +329,19 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
  * @param {string} maleRelation - Male relationship term
  * @param {string} femaleRelation - Female relationship term
  * @param {Array} allPeople - Array of all people
+ * @param {string} neutralRelation - Neutral relationship term for when gender is not available
  * @returns {string} - Gender-specific relationship term
  */
-const getGenderSpecificRelation = (personId, maleRelation, femaleRelation, allPeople) => {
+const getGenderSpecificRelation = (personId, maleRelation, femaleRelation, allPeople, neutralRelation = null) => {
   const person = allPeople.find(p => String(p.id) === String(personId));
   if (person && person.gender) {
     return person.gender.toLowerCase() === 'female' ? femaleRelation : maleRelation;
   }
-  return maleRelation; // Default to male if gender not found
+  // If neutralRelation is provided and gender is not available, use neutral term
+  if (neutralRelation) {
+    return neutralRelation;
+  }
+  return maleRelation; // Default to male if gender not found and no neutral term provided
 };
 
 /**
