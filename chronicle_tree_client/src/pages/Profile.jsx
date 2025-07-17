@@ -13,6 +13,7 @@ import Notes from '../components/Profile/Notes';
 import ProfileDetails from '../components/Profile/ProfileDetails';
 import DeletePersonModal from '../components/UI/DeletePersonModal';
 import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
+import { generateProfileShareContent, handleSocialShare } from '../services/sharing';
 
 export default function Profile() {
   const { id } = useParams();
@@ -22,6 +23,7 @@ export default function Profile() {
   const [showAddTimeline, setShowAddTimeline] = useState(false);
   const [showAddMedia, setShowAddMedia] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [shareCaption, setShareCaption] = useState('');
   const [editingFact, setEditingFact] = useState(null);
   const [editingTimeline, setEditingTimeline] = useState(null);
   const [editingMedia, setEditingMedia] = useState(null);
@@ -208,6 +210,27 @@ export default function Profile() {
     console.log('[Profile] Refreshed person data:', data);
     setDeletePersonData(data);
     setDeleteRelationships(groupRelationships(data));
+  };
+
+  // Sharing functions
+  const handleCloseShareModal = () => {
+    setShowShare(false);
+    setShareCaption('');
+  };
+
+  const handleSocialShareClick = async (platform) => {
+    try {
+      const shareContent = generateProfileShareContent(person.id, shareCaption);
+      await handleSocialShare(platform, shareContent);
+      
+      if (platform === 'copy') {
+        // Show success message for copy
+        alert('Profile link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      alert('Share failed: ' + error.message);
+    }
   };
 
   return (
@@ -475,16 +498,56 @@ export default function Profile() {
               <FaUserCircle className="text-6xl text-gray-300 mx-auto" />
               <p className="mt-2 font-semibold">Snapshot of {person.full_name || person.name}'s Profile</p>
             </div>
-            <textarea className="w-full p-2 border rounded-md mb-4" placeholder="Add an optional caption..."></textarea>
+            <textarea 
+              className="w-full p-2 border rounded-md mb-4" 
+              placeholder="Add an optional caption..."
+              value={shareCaption}
+              onChange={(e) => setShareCaption(e.target.value)}
+            />
             <div className="flex justify-center space-x-4 mt-4">
-              <button className="text-2xl text-blue-600 hover:text-blue-800" title="Share on Facebook"><FaFacebookSquare /></button>
-              <button className="text-2xl text-black hover:text-gray-700" title="Share on X"><FaTwitter /></button>
-              <button className="text-2xl text-green-500 hover:text-green-700" title="Share on WhatsApp"><FaWhatsappSquare /></button>
-              <button className="text-2xl text-red-500 hover:text-red-700" title="Share via Email"><FaEnvelopeSquare /></button>
-              <button className="text-2xl text-gray-600 hover:text-gray-800" title="Copy Link"><FaLink /></button>
+              <button 
+                className="text-2xl text-blue-600 hover:text-blue-800" 
+                title="Share on Facebook"
+                onClick={() => handleSocialShareClick('facebook')}
+              >
+                <FaFacebookSquare />
+              </button>
+              <button 
+                className="text-2xl text-black hover:text-gray-700" 
+                title="Share on X"
+                onClick={() => handleSocialShareClick('x')}
+              >
+                <FaTwitter />
+              </button>
+              <button 
+                className="text-2xl text-green-500 hover:text-green-700" 
+                title="Share on WhatsApp"
+                onClick={() => handleSocialShareClick('whatsapp')}
+              >
+                <FaWhatsappSquare />
+              </button>
+              <button 
+                className="text-2xl text-red-500 hover:text-red-700" 
+                title="Share via Email"
+                onClick={() => handleSocialShareClick('email')}
+              >
+                <FaEnvelopeSquare />
+              </button>
+              <button 
+                className="text-2xl text-gray-600 hover:text-gray-800" 
+                title="Copy Link"
+                onClick={() => handleSocialShareClick('copy')}
+              >
+                <FaLink />
+              </button>
             </div>
             <div className="flex justify-end mt-6">
-              <button className="px-4 py-2 bg-gray-200 rounded" onClick={() => setShowShare(false)}>Close</button>
+              <button 
+                className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors" 
+                onClick={handleCloseShareModal}
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
