@@ -199,37 +199,33 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Check for aunt/uncle relationship (person is aunt/uncle of root)
   const rootSiblings = siblingMap.get(rootId) || new Set();
-  
+
   // Check if person is root's parent's sibling (person is root's aunt/uncle)
   for (const parent of rootParents) {
     if (siblingMap.has(parent) && siblingMap.get(parent).has(personId)) {
-      // Person is sibling of root's parent, so person is root's aunt/uncle
-      return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, 'Parent\'s sibling');
+      return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, "Parent's sibling");
     }
   }
-  
+
   // Check for niece/nephew relationship (person is niece/nephew of root)
   for (const sibling of rootSiblings) {
     if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
-      // Person is child of root's sibling, so person is root's niece/nephew
-      return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, 'Sibling\'s child');
+      return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
     }
   }
-  
-  // Check for cousin relationship
-  // Cousins are children of siblings
-  // Person and root are cousins if their parents are siblings
+
+  // Check for cousin relationship (person and root are cousins if their parents are siblings)
   const personParents = childToParents.get(personId) || new Set();
   for (const personParent of personParents) {
     const personParentSiblings = siblingMap.get(personParent) || new Set();
     for (const rootParent of rootParents) {
       if (personParentSiblings.has(rootParent)) {
-        // Person's parent is sibling of root's parent, so person and root are cousins
         return 'Cousin';
       }
     }
   }
-  
+
+  // No fallback to 'Distant Relative' for key relations. If not found, return null.
   return null;
 };
 

@@ -36,7 +36,26 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 
 ---
 
+
 ## Recent Updates
+
+### [2025-07-17] Ex-Spouse In-Law Exclusion, Gender-Neutral Naming, and Relationship Logic Overhaul
+- **Ex-Spouse In-Law Exclusion:**
+  - Backend and frontend now strictly exclude ex-spouse relatives (parents, siblings, children) from in-law calculations, matching the problem statement: “relatives of spouse (because after divorce they are not official yet) are not showing.”
+  - `Person` model now has `current_spouses` and `ex_spouses` for precise relationship queries.
+  - Relationship model keeps reciprocal `is_ex` status in sync for spouse relationships.
+  - All API endpoints and serializers updated to reflect these relationship changes.
+- **Gender-Specific & Gender-Neutral Naming:**
+  - Relationship calculator and UI now use gender-specific terms when gender is defined (e.g., “Father”, “Mother”, “Son”, “Daughter”) and neutral terms when not (e.g., “Child”, “Spouse”, “Parent’s sibling”).
+  - Ex-spouse and in-law relationships use correct neutral or gendered terms as appropriate.
+- **Deceased/Alive Status UI:**
+  - Person cards and tree nodes now show deceased/alive status with clear UI, including year of death if applicable.
+- **Social Sharing:**
+  - Improved logic for sharing tree links and content across platforms.
+- **Testing:**
+  - Added and updated Vitest tests for ex-spouse handling, gender-neutral naming, and integration.
+  - Integration tests confirm that ex-in-laws are not shown after divorce.
+
 
 ### [2025-07-01] Unified Notes, Profile Data, and Tree Node Display
 - **Single Note per Person:** The backend now enforces a single, unique note per person (not per profile), with a dedicated model, migration, serializer, and API endpoints. This simplifies note management and aligns with real-world use.

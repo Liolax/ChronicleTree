@@ -43,11 +43,26 @@ export const getShare = async (shareToken) => {
  * @param {string} caption - Optional caption
  * @returns {Object} - Share content object
  */
-export const generateTreeShareContent = (rootPersonId, caption = '') => {
+
+// Helper to get the current site origin
+const getSiteOrigin = () => window?.location?.origin || 'https://chronicle-tree.app';
+
+// Helper to get person name from DOM or pass as param if available
+const getPersonName = (person) => {
+  if (!person) return 'this family';
+  return `${person.first_name || ''} ${person.last_name || ''}`.trim() || 'this family';
+};
+
+export const generateTreeShareContent = (rootPersonId, caption = '', person = null) => {
+  const name = getPersonName(person);
+  const url = rootPersonId
+    ? `${getSiteOrigin()}/tree?root=${rootPersonId}`
+    : `${getSiteOrigin()}/tree`;
   return {
     content_type: 'tree',
     content_id: rootPersonId,
-    caption: caption
+    caption: caption || `Explore the family tree of ${name}: ${url}`,
+    share_url: url
   };
 };
 
@@ -57,11 +72,14 @@ export const generateTreeShareContent = (rootPersonId, caption = '') => {
  * @param {string} caption - Optional caption
  * @returns {Object} - Share content object
  */
-export const generateProfileShareContent = (personId, caption = '') => {
+export const generateProfileShareContent = (personId, caption = '', person = null) => {
+  const name = getPersonName(person);
+  const url = `${getSiteOrigin()}/profile/${personId}`;
   return {
     content_type: 'profile',
     content_id: personId,
-    caption: caption
+    caption: caption || `See the profile of ${name}: ${url}`,
+    share_url: url
   };
 };
 

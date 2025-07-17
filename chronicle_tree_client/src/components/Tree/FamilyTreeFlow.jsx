@@ -19,13 +19,15 @@ import EditPersonModal from './modals/EditPersonModal';
 import DeletePersonModal from '../UI/DeletePersonModal';
 import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
+import CustomNode from './CustomNode';
 import { useFullTree } from '../../services/people';
-import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../../utils/familyTreeHierarchicalLayout';
+import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 import { generateTreeShareContent, handleSocialShare } from '../../services/sharing';
 
 // Node types for react-flow
 const nodeTypes = {
+  custom: CustomNode,
   personCard: PersonCardNode,
 };
 
@@ -72,6 +74,11 @@ const FamilyTree = () => {
       edges: data.edges
     };
   }, [data, rootPersonId, hasSetDefaultRoot]);
+
+  // Debug: Log processed data
+  React.useEffect(() => {
+    console.log('processedData:', processedData);
+  }, [processedData]);
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
@@ -173,28 +180,23 @@ const FamilyTree = () => {
     }
   }, [rootPersonId, processedData.nodes]);
 
-  // Transform data for react-flow using improved hierarchical layout
-  const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
+
+  // Transform data for react-flow using improved grid-based layout
+  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!processedData.nodes.length) return { nodes: [], edges: [] };
-    
-    const { nodes, edges } = createFamilyTreeLayout(processedData.nodes, processedData.edges, {
+    return createFamilyTreeLayout(processedData.nodes, processedData.edges, {
       onEdit: handleEditPerson,
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
       onRestructure: handleRestructureTree,
     });
-
-    return { nodes, edges };
   }, [processedData, handleEditPerson, handleDeletePerson, openPersonCard, handleRestructureTree]);
 
-  // Apply final positioning adjustments
-  const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
-    if (!initialNodes.length) return { nodes: [], edges: [] };
-    
-    // Center children between their parents for better visual hierarchy
-    const adjustedNodes = centerChildrenBetweenParents(initialNodes, processedData.edges || []);
-    return { nodes: adjustedNodes, edges: initialEdges };
-  }, [initialNodes, initialEdges, processedData.edges]);
+  // Debug: Log layouted nodes and edges
+  React.useEffect(() => {
+    console.log('layoutedNodes:', layoutedNodes);
+    console.log('layoutedEdges:', layoutedEdges);
+  }, [layoutedNodes, layoutedEdges]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);

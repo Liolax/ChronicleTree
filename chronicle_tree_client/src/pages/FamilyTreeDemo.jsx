@@ -16,7 +16,7 @@ import { FaShareAlt } from 'react-icons/fa';
 import PersonCardNode from '../components/Tree/PersonCardNode';
 import PersonCard from '../components/Tree/PersonCard';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../utils/familyTreeHierarchicalLayout';
-import { getAllRelationshipsToRoot } from '../utils/relationshipCalculator';
+import { getAllRelationshipsToRoot } from '../utils/improvedRelationshipCalculator';
 import { mockFamilyData } from '../data/mockData';
 
 // Node types for react-flow
