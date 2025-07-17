@@ -11,6 +11,7 @@ import {
   Panel,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { FaShareAlt } from 'react-icons/fa';
 
 import PersonCardNode from '../components/Tree/PersonCardNode';
 import PersonCard from '../components/Tree/PersonCard';
@@ -31,6 +32,7 @@ const FamilyTreeDemo = () => {
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [personCardPosition, setPersonCardPosition] = useState(null);
   const [rootPersonId, setRootPersonId] = useState(null);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
@@ -54,6 +56,46 @@ const FamilyTreeDemo = () => {
     console.log('Reset tree to show all people');
     setRootPersonId(null);
   }, []);
+
+  const handleShareTree = useCallback(() => {
+    setShowShareModal(true);
+  }, []);
+
+  const handleCloseShareModal = useCallback(() => {
+    setShowShareModal(false);
+  }, []);
+
+  const handleSocialShare = useCallback((platform) => {
+    // Get the current tree info
+    const treeTitle = rootPersonId 
+      ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
+      : 'Complete Family Tree';
+    
+    const treeDescription = `Check out this family tree with ${processedData.nodes.length} family members!`;
+    const shareUrl = window.location.href;
+    
+    switch (platform) {
+      case 'facebook':
+        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(treeDescription)}`, '_blank');
+        break;
+      case 'twitter':
+        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(treeDescription)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+        break;
+      case 'whatsapp':
+        window.open(`https://wa.me/?text=${encodeURIComponent(treeDescription + ' ' + shareUrl)}`, '_blank');
+        break;
+      case 'email':
+        window.open(`mailto:?subject=${encodeURIComponent(treeTitle)}&body=${encodeURIComponent(treeDescription + '\n\n' + shareUrl)}`, '_blank');
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          alert('Link copied to clipboard!');
+        });
+        break;
+      default:
+        break;
+    }
+  }, [rootPersonId, processedData.nodes]);
 
   const openPersonCard = useCallback((person, event) => {
     setSelectedPerson(person);
@@ -169,6 +211,13 @@ const FamilyTreeDemo = () => {
             )}
           </div>
           <div className="flex gap-3">
+            <button
+              onClick={handleShareTree}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+            >
+              <FaShareAlt />
+              Share Tree
+            </button>
             <FitViewButton />
           </div>
         </div>
@@ -260,6 +309,89 @@ const FamilyTreeDemo = () => {
             position={personCardPosition}
             fixed={!!personCardPosition}
           />
+        )}
+
+        {/* Share Modal */}
+        {showShareModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg p-6 shadow-xl w-full max-w-md">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Share Family Tree</h3>
+                <button
+                  onClick={handleCloseShareModal}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="bg-gray-100 p-4 rounded-lg text-center mb-4">
+                <div className="text-4xl mb-2">🌳</div>
+                <p className="font-semibold">
+                  {rootPersonId 
+                    ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
+                    : 'Complete Family Tree'
+                  }
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  {processedData.nodes.length} family members
+                </p>
+              </div>
+              
+              <textarea 
+                className="w-full p-2 border rounded-md mb-4" 
+                placeholder="Add an optional caption..."
+                rows="3"
+              />
+              
+              <div className="flex justify-center space-x-4 mt-4">
+                <button 
+                  className="text-2xl text-blue-600 hover:text-blue-800" 
+                  title="Share on Facebook"
+                  onClick={() => handleSocialShare('facebook')}
+                >
+                  📘
+                </button>
+                <button 
+                  className="text-2xl text-black hover:text-gray-700" 
+                  title="Share on X"
+                  onClick={() => handleSocialShare('twitter')}
+                >
+                  ✖️
+                </button>
+                <button 
+                  className="text-2xl text-green-500 hover:text-green-700" 
+                  title="Share on WhatsApp"
+                  onClick={() => handleSocialShare('whatsapp')}
+                >
+                  📱
+                </button>
+                <button 
+                  className="text-2xl text-red-500 hover:text-red-700" 
+                  title="Share via Email"
+                  onClick={() => handleSocialShare('email')}
+                >
+                  📧
+                </button>
+                <button 
+                  className="text-2xl text-gray-600 hover:text-gray-800" 
+                  title="Copy Link"
+                  onClick={() => handleSocialShare('copy')}
+                >
+                  🔗
+                </button>
+              </div>
+              
+              <div className="flex justify-end mt-6">
+                <button 
+                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors" 
+                  onClick={handleCloseShareModal}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </ReactFlowProvider>
