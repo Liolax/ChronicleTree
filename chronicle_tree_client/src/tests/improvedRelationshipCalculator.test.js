@@ -72,6 +72,8 @@ describe('Improved Relationship Calculator', () => {
   });
 
   it('should identify brother-in-law relationship (Charlie root, David person)', () => {
+    // Charlie is root, David is ex-spouse of Charlie's sibling Alice
+    // This should be shown as Ex-Brother-in-law
     const david = testPeople[3];
     const charlie = testPeople[6];
     const result = calculateRelationshipToRoot(david, charlie, testPeople, testRelationships);
