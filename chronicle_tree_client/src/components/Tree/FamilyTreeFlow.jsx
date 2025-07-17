@@ -22,7 +22,7 @@ import PersonCardNode from './PersonCardNode';
 import { useFullTree } from '../../services/people';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
-import { generateTreeShareContent } from '../../services/sharing';
+import { generateTreeShareContent, handleSocialShare } from '../../services/sharing';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -131,9 +131,16 @@ const FamilyTree = () => {
 
   const handleSocialShareClick = useCallback(async (platform, caption = '') => {
     try {
-      generateTreeShareContent(rootPersonId, caption);
+      const shareContent = generateTreeShareContent(rootPersonId, caption);
+      await handleSocialShare(platform, shareContent);
       
-      // Handle different platforms
+      if (platform === 'copy') {
+        // Show success message for copy
+        alert('Tree link copied to clipboard!');
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      // Fallback to simple sharing if API fails
       const treeTitle = rootPersonId 
         ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
         : 'Complete Family Tree';
@@ -163,12 +170,6 @@ const FamilyTree = () => {
         default:
           break;
       }
-      
-      console.log('Share successful');
-    } catch (error) {
-      console.error('Share failed:', error);
-      // You could show an error toast here
-      alert('Share failed: ' + error.message);
     }
   }, [rootPersonId, processedData.nodes]);
 

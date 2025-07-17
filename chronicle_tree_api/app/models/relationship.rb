@@ -18,6 +18,9 @@ class Relationship < ApplicationRecord
   # Add a scope for ex-spouses
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
 
+  # After updating a spouse relationship's is_ex status, update the reciprocal relationship
+  after_update :sync_reciprocal_spouse_status, if: -> { relationship_type == "spouse" && saved_change_to_is_ex? }
+
   private
 
   def person_is_not_relative
@@ -54,6 +57,20 @@ class Relationship < ApplicationRecord
     existing = existing.where.not(id: id) if persisted?
     if existing.exists?
       errors.add(:base, "A person can only have one current spouse at a time.")
+    end
+  end
+
+  def sync_reciprocal_spouse_status
+    # Find the reciprocal spouse relationship
+    reciprocal = Relationship.find_by(
+      person_id: relative_id,
+      relative_id: person_id,
+      relationship_type: "spouse"
+    )
+    
+    if reciprocal && reciprocal.is_ex != is_ex
+      # Update without triggering callbacks to avoid infinite loop
+      reciprocal.update_column(:is_ex, is_ex)
     end
   end
 end
