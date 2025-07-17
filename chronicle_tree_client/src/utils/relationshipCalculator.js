@@ -86,12 +86,47 @@ const buildRelationshipMaps = (relationships) => {
     }
   });
 
+  // After processing all relationships, infer sibling relationships from shared parents
+  inferSiblingRelationships(parentToChildren, childToParents, siblingMap);
+
   return {
     parentToChildren,
     childToParents,
     spouseMap,
     siblingMap
   };
+};
+
+/**
+ * Infer sibling relationships from shared parents
+ * @param {Map} parentToChildren - Map of parent to their children
+ * @param {Map} childToParents - Map of child to their parents
+ * @param {Map} siblingMap - Map to update with inferred sibling relationships
+ */
+const inferSiblingRelationships = (parentToChildren, childToParents, siblingMap) => {
+  // For each parent, find all their children and mark them as siblings
+  for (const [parent, children] of parentToChildren) {
+    const childArray = Array.from(children);
+    
+    // Each child is a sibling of every other child of the same parent
+    for (let i = 0; i < childArray.length; i++) {
+      for (let j = i + 1; j < childArray.length; j++) {
+        const child1 = childArray[i];
+        const child2 = childArray[j];
+        
+        // Add sibling relationship if not already present
+        if (!siblingMap.has(child1)) {
+          siblingMap.set(child1, new Set());
+        }
+        if (!siblingMap.has(child2)) {
+          siblingMap.set(child2, new Set());
+        }
+        
+        siblingMap.get(child1).add(child2);
+        siblingMap.get(child2).add(child1);
+      }
+    }
+  }
 };
 
 /**
@@ -118,27 +153,27 @@ const findRelationshipPath = (fromId, toId, relationshipMaps, allPeople) => {
       return path;
     }
     
-    // Check parent relationships
+    // Check parent relationships (going UP the tree)
     const parents = childToParents.get(id);
     if (parents) {
       for (const parentId of parents) {
         if (!visited.has(parentId)) {
           queue.push({
             id: parentId,
-            path: [...path, { type: 'parent', from: id, to: parentId }]
+            path: [...path, { type: 'child_to_parent', from: id, to: parentId }]
           });
         }
       }
     }
     
-    // Check child relationships
+    // Check child relationships (going DOWN the tree)
     const children = parentToChildren.get(id);
     if (children) {
       for (const childId of children) {
         if (!visited.has(childId)) {
           queue.push({
             id: childId,
-            path: [...path, { type: 'child', from: id, to: childId }]
+            path: [...path, { type: 'parent_to_child', from: id, to: childId }]
           });
         }
       }
@@ -181,43 +216,39 @@ const findRelationshipPath = (fromId, toId, relationshipMaps, allPeople) => {
 const interpretRelationshipPath = (path, person, rootPerson, allPeople) => {
   if (!path || path.length === 0) return 'Unrelated';
   
+  // Helper function to get gender-specific relationship term
+  const getGenderSpecificTerm = (maleTitle, femaleTitle) => {
+    const personGender = person.gender?.toLowerCase();
+    return personGender === 'female' ? femaleTitle : maleTitle;
+  };
+  
   // Direct relationships
   if (path.length === 1) {
     const rel = path[0];
     switch (rel.type) {
-      case 'parent':
-        // If path goes from person to root via parent relationship,
-        // it means person is the parent of someone who leads to root
-        return rel.from === String(person.id) ? 'Child' : 'Parent';
-      case 'child':
-        // If path goes from person to root via child relationship,
-        // it means person is the child of someone who leads to root
-        return rel.from === String(person.id) ? 'Parent' : 'Child';
+      case 'child_to_parent':
+        // Person went up to root, so person is child of root
+        return getGenderSpecificTerm('Son', 'Daughter');
+      case 'parent_to_child':
+        // Person went down to root, so person is parent of root
+        return getGenderSpecificTerm('Father', 'Mother');
       case 'spouse':
-        return 'Spouse';
+        return getGenderSpecificTerm('Husband', 'Wife');
       case 'sibling':
-        return 'Sibling';
+        return getGenderSpecificTerm('Brother', 'Sister');
     }
   }
   
-  // Multi-step relationships - analyze the path more carefully
-  let generationsFromRoot = 0;
+  // For multi-step relationships, count the generational steps
+  let generationSteps = 0;
   let hasSpouse = false;
   let hasSibling = false;
   
-  // Walk through the path from person to root
-  for (let i = 0; i < path.length; i++) {
-    const step = path[i];
-    const isPersonTheSource = step.from === String(person.id);
-    
-    if (step.type === 'parent') {
-      // If person is the source of a parent relationship, they are going up the tree
-      // If person is the target of a parent relationship, they are going down the tree
-      generationsFromRoot += isPersonTheSource ? 1 : -1;
-    } else if (step.type === 'child') {
-      // If person is the source of a child relationship, they are going down the tree
-      // If person is the target of a child relationship, they are going up the tree
-      generationsFromRoot += isPersonTheSource ? -1 : 1;
+  for (const step of path) {
+    if (step.type === 'child_to_parent') {
+      generationSteps++; // Going up generations
+    } else if (step.type === 'parent_to_child') {
+      generationSteps--; // Going down generations
     } else if (step.type === 'spouse') {
       hasSpouse = true;
     } else if (step.type === 'sibling') {
@@ -225,34 +256,42 @@ const interpretRelationshipPath = (path, person, rootPerson, allPeople) => {
     }
   }
   
-  // Generate relationship description based on generational difference
-  if (generationsFromRoot > 0) {
-    // Person is generations above root (older generation)
-    if (generationsFromRoot === 1) {
-      return hasSibling ? 'Parent\'s Sibling' : 'Parent';
-    } else if (generationsFromRoot === 2) {
-      return hasSibling ? 'Grandparent\'s Sibling' : 'Grandparent';
+  // Generate relationship description
+  if (generationSteps > 0) {
+    // Person is in older generation (ancestor)
+    if (generationSteps === 1) {
+      return hasSibling ? 
+        getGenderSpecificTerm('Uncle', 'Aunt') : 
+        getGenderSpecificTerm('Father', 'Mother');
+    } else if (generationSteps === 2) {
+      return hasSibling ? 
+        'Great ' + getGenderSpecificTerm('Uncle', 'Aunt') : 
+        getGenderSpecificTerm('Grandfather', 'Grandmother');
     } else {
-      return `${generationsFromRoot} generations up`;
+      return `${generationSteps} generations older`;
     }
-  } else if (generationsFromRoot < 0) {
-    // Person is generations below root (younger generation)
-    const absGenerations = Math.abs(generationsFromRoot);
+  } else if (generationSteps < 0) {
+    // Person is in younger generation (descendant)
+    const absGenerations = Math.abs(generationSteps);
     if (absGenerations === 1) {
-      return hasSibling ? 'Child\'s Sibling' : 'Child';
+      return hasSibling ? 
+        getGenderSpecificTerm('Nephew', 'Niece') : 
+        getGenderSpecificTerm('Son', 'Daughter');
     } else if (absGenerations === 2) {
-      return hasSibling ? 'Grandchild\'s Sibling' : 'Grandchild';
+      return hasSibling ? 
+        'Grand ' + getGenderSpecificTerm('Nephew', 'Niece') : 
+        getGenderSpecificTerm('Grandson', 'Granddaughter');
     } else {
-      return `${absGenerations} generations down`;
+      return `${absGenerations} generations younger`;
     }
   } else {
     // Same generation
     if (hasSibling) {
-      return 'Sibling';
+      return getGenderSpecificTerm('Brother', 'Sister');
     } else if (hasSpouse) {
-      return 'Spouse';
+      return getGenderSpecificTerm('Husband', 'Wife');
     } else {
-      return 'Same Generation';
+      return 'Cousin'; // Default for same generation
     }
   }
 };

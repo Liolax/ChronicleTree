@@ -71,6 +71,9 @@ Rails.application.routes.draw do
         end
       end
       resources :profiles,       only: %i[index show create update destroy]
+      
+      # Sharing functionality
+      resources :shares, only: %i[create show]
     end
   end
 end
