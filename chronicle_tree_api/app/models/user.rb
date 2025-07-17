@@ -20,6 +20,7 @@ class User < ApplicationRecord
 
   # Associations
   has_many :people, dependent: :destroy
+  has_many :shares, dependent: :destroy
 
   # Validations
   validates :email, presence: true, uniqueness: true

@@ -22,6 +22,7 @@ import PersonCardNode from './PersonCardNode';
 import { useFullTree } from '../../services/people';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
+import { handleSocialShare, generateTreeShareContent } from '../../services/sharing';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -41,6 +42,7 @@ const FamilyTree = () => {
   const [rootPersonId, setRootPersonId] = useState(null);
   const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
+  const [shareCaption, setShareCaption] = useState('');
   
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
@@ -97,7 +99,24 @@ const FamilyTree = () => {
 
   const handleCloseShareModal = useCallback(() => {
     setShowShareModal(false);
+    setShareCaption('');
   }, []);
+
+  const handleSocialShareClick = useCallback(async (platform, caption = '') => {
+    try {
+      const shareContent = generateTreeShareContent(rootPersonId, caption);
+      const result = await handleSocialShare(platform, shareContent);
+      
+      if (result.success) {
+        console.log('Share successful:', result.message);
+        // You could show a toast notification here
+      }
+    } catch (error) {
+      console.error('Share failed:', error);
+      // You could show an error toast here
+      alert('Share failed: ' + error.message);
+    }
+  }, [rootPersonId]);
 
   const handleSocialShare = useCallback((platform) => {
     // Get the current tree info
@@ -198,12 +217,26 @@ const FamilyTree = () => {
     const { fitView } = useReactFlow();
     
     const handleFitView = useCallback(() => {
-      fitView({ padding: 0.2, duration: 800 });
+      fitView({ padding: 0.15, duration: 800 });
     }, [fitView]);
 
     return (
       <Button onClick={handleFitView} variant="secondary">
         Fit View
+      </Button>
+    );
+  };
+
+  const CenterViewButton = () => {
+    const { setCenter } = useReactFlow();
+    
+    const handleCenterView = useCallback(() => {
+      setCenter(0, 0, { zoom: 0.8, duration: 800 });
+    }, [setCenter]);
+
+    return (
+      <Button onClick={handleCenterView} variant="secondary">
+        Center View
       </Button>
     );
   };
@@ -260,12 +293,13 @@ const FamilyTree = () => {
               <FaShareAlt className="mr-2" />
               Share Tree
             </Button>
+            <CenterViewButton />
             <FitViewButton />
           </div>
         </div>
 
         {/* React Flow Container */}
-        <div className="h-full">
+        <div className="h-[calc(100vh-80px)]">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -274,12 +308,12 @@ const FamilyTree = () => {
             nodeTypes={nodeTypes}
             fitView
             fitViewOptions={{
-              padding: 0.2,
+              padding: 0.15,
               minZoom: 0.1,
-              maxZoom: 1.5,
+              maxZoom: 2,
             }}
-            minZoom={0.1}
-            maxZoom={2}
+            minZoom={0.05}
+            maxZoom={3}
             defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
             attributionPosition="bottom-left"
           >
@@ -384,41 +418,43 @@ const FamilyTree = () => {
                 className="w-full p-2 border rounded-md mb-4" 
                 placeholder="Add an optional caption..."
                 rows="3"
+                value={shareCaption}
+                onChange={(e) => setShareCaption(e.target.value)}
               />
               
               <div className="flex justify-center space-x-4 mt-4">
                 <button 
                   className="text-2xl text-blue-600 hover:text-blue-800" 
                   title="Share on Facebook"
-                  onClick={() => handleSocialShare('facebook')}
+                  onClick={() => handleSocialShareClick('facebook', shareCaption)}
                 >
                   📘
                 </button>
                 <button 
                   className="text-2xl text-black hover:text-gray-700" 
                   title="Share on X"
-                  onClick={() => handleSocialShare('twitter')}
+                  onClick={() => handleSocialShareClick('twitter', shareCaption)}
                 >
                   ✖️
                 </button>
                 <button 
                   className="text-2xl text-green-500 hover:text-green-700" 
                   title="Share on WhatsApp"
-                  onClick={() => handleSocialShare('whatsapp')}
+                  onClick={() => handleSocialShareClick('whatsapp', shareCaption)}
                 >
                   📱
                 </button>
                 <button 
                   className="text-2xl text-red-500 hover:text-red-700" 
                   title="Share via Email"
-                  onClick={() => handleSocialShare('email')}
+                  onClick={() => handleSocialShareClick('email', shareCaption)}
                 >
                   📧
                 </button>
                 <button 
                   className="text-2xl text-gray-600 hover:text-gray-800" 
                   title="Copy Link"
-                  onClick={() => handleSocialShare('copy')}
+                  onClick={() => handleSocialShareClick('copy', shareCaption)}
                 >
                   🔗
                 </button>

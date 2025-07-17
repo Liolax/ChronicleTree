@@ -170,7 +170,7 @@ const FamilyTreeDemo = () => {
     const { fitView } = useReactFlow();
     
     const handleFitView = useCallback(() => {
-      fitView({ padding: 0.2, duration: 800 });
+      fitView({ padding: 0.15, duration: 800 });
     }, [fitView]);
 
     return (
@@ -179,6 +179,24 @@ const FamilyTreeDemo = () => {
         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
       >
         Fit View
+      </button>
+    );
+  };
+
+  // Center view button component
+  const CenterViewButton = () => {
+    const { setCenter } = useReactFlow();
+    
+    const handleCenterView = useCallback(() => {
+      setCenter(0, 0, { zoom: 0.8, duration: 800 });
+    }, [setCenter]);
+
+    return (
+      <button
+        onClick={handleCenterView}
+        className="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
+      >
+        Center View
       </button>
     );
   };
@@ -218,12 +236,13 @@ const FamilyTreeDemo = () => {
               <FaShareAlt />
               Share Tree
             </button>
+            <CenterViewButton />
             <FitViewButton />
           </div>
         </div>
 
         {/* React Flow Container */}
-        <div className="h-full">
+        <div className="h-[calc(100vh-80px)]">
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -232,12 +251,12 @@ const FamilyTreeDemo = () => {
             nodeTypes={nodeTypes}
             fitView
             fitViewOptions={{
-              padding: 0.2,
+              padding: 0.15,
               minZoom: 0.1,
-              maxZoom: 1.5,
+              maxZoom: 2,
             }}
-            minZoom={0.1}
-            maxZoom={2}
+            minZoom={0.05}
+            maxZoom={3}
             defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
             attributionPosition="bottom-left"
           >
