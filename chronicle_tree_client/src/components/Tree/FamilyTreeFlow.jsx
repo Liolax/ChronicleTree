@@ -11,7 +11,7 @@ import {
   Panel,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
-import { FaShareAlt } from 'react-icons/fa';
+import { FaShareAlt, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaEnvelopeSquare, FaLink } from 'react-icons/fa';
 
 import Button from '../UI/Button';
 import AddPersonModal from './modals/AddPersonModal';
@@ -146,6 +146,7 @@ const FamilyTree = () => {
           window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(treeDescription)}`, '_blank');
           break;
         case 'twitter':
+        case 'x':
           window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(treeDescription)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
           break;
         case 'whatsapp':
@@ -422,35 +423,35 @@ const FamilyTree = () => {
                   title="Share on Facebook"
                   onClick={() => handleSocialShareClick('facebook', shareCaption)}
                 >
-                  📘
+                  <FaFacebookSquare />
                 </button>
                 <button 
                   className="text-2xl text-black hover:text-gray-700" 
                   title="Share on X"
-                  onClick={() => handleSocialShareClick('twitter', shareCaption)}
+                  onClick={() => handleSocialShareClick('x', shareCaption)}
                 >
-                  ✖️
+                  <FaTwitter />
                 </button>
                 <button 
                   className="text-2xl text-green-500 hover:text-green-700" 
                   title="Share on WhatsApp"
                   onClick={() => handleSocialShareClick('whatsapp', shareCaption)}
                 >
-                  📱
+                  <FaWhatsappSquare />
                 </button>
                 <button 
                   className="text-2xl text-red-500 hover:text-red-700" 
                   title="Share via Email"
                   onClick={() => handleSocialShareClick('email', shareCaption)}
                 >
-                  📧
+                  <FaEnvelopeSquare />
                 </button>
                 <button 
                   className="text-2xl text-gray-600 hover:text-gray-800" 
                   title="Copy Link"
                   onClick={() => handleSocialShareClick('copy', shareCaption)}
                 >
-                  🔗
+                  <FaLink />
                 </button>
               </div>
               
