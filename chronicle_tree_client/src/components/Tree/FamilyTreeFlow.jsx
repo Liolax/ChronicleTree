@@ -22,7 +22,7 @@ import PersonCardNode from './PersonCardNode';
 import { useFullTree } from '../../services/people';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
-import { handleSocialShare, generateTreeShareContent } from '../../services/sharing';
+import { generateTreeShareContent } from '../../services/sharing';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -45,6 +45,33 @@ const FamilyTree = () => {
   const [shareCaption, setShareCaption] = useState('');
   
   const { data, isLoading, isError } = useFullTree(rootPersonId);
+
+  // Process data based on root person and add relationship information
+  const processedData = useMemo(() => {
+    if (!data) return { nodes: [], edges: [] };
+    
+    // Auto-set oldest person as root if no root is selected and we haven't set default root yet
+    if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
+      setRootPersonId(data.oldest_person_id);
+      setHasSetDefaultRoot(true);
+    }
+    
+    const rootPerson = rootPersonId 
+      ? data.nodes.find(n => n.id === rootPersonId)
+      : null;
+    
+    // Add relationship information to all people
+    const peopleWithRelations = getAllRelationshipsToRoot(
+      rootPerson,
+      data.nodes,
+      data.edges
+    );
+    
+    return {
+      nodes: peopleWithRelations,
+      edges: data.edges
+    };
+  }, [data, rootPersonId, hasSetDefaultRoot]);
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
@@ -104,78 +131,45 @@ const FamilyTree = () => {
 
   const handleSocialShareClick = useCallback(async (platform, caption = '') => {
     try {
-      const shareContent = generateTreeShareContent(rootPersonId, caption);
-      const result = await handleSocialShare(platform, shareContent);
+      generateTreeShareContent(rootPersonId, caption);
       
-      if (result.success) {
-        console.log('Share successful:', result.message);
-        // You could show a toast notification here
+      // Handle different platforms
+      const treeTitle = rootPersonId 
+        ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
+        : 'Complete Family Tree';
+      
+      const treeDescription = caption || `Check out this family tree with ${processedData.nodes.length} family members!`;
+      const shareUrl = window.location.href;
+      
+      switch (platform) {
+        case 'facebook':
+          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(treeDescription)}`, '_blank');
+          break;
+        case 'twitter':
+          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(treeDescription)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+          break;
+        case 'whatsapp':
+          window.open(`https://wa.me/?text=${encodeURIComponent(treeDescription + ' ' + shareUrl)}`, '_blank');
+          break;
+        case 'email':
+          window.open(`mailto:?subject=${encodeURIComponent(treeTitle)}&body=${encodeURIComponent(treeDescription + '\n\n' + shareUrl)}`, '_blank');
+          break;
+        case 'copy':
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            alert('Link copied to clipboard!');
+          });
+          break;
+        default:
+          break;
       }
+      
+      console.log('Share successful');
     } catch (error) {
       console.error('Share failed:', error);
       // You could show an error toast here
       alert('Share failed: ' + error.message);
     }
-  }, [rootPersonId]);
-
-  const handleSocialShare = useCallback((platform) => {
-    // Get the current tree info
-    const treeTitle = rootPersonId 
-      ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
-      : 'Complete Family Tree';
-    
-    const treeDescription = `Check out this family tree with ${processedData.nodes.length} family members!`;
-    const shareUrl = window.location.href;
-    
-    switch (platform) {
-      case 'facebook':
-        window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(treeDescription)}`, '_blank');
-        break;
-      case 'twitter':
-        window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(treeDescription)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-        break;
-      case 'whatsapp':
-        window.open(`https://wa.me/?text=${encodeURIComponent(treeDescription + ' ' + shareUrl)}`, '_blank');
-        break;
-      case 'email':
-        window.open(`mailto:?subject=${encodeURIComponent(treeTitle)}&body=${encodeURIComponent(treeDescription + '\n\n' + shareUrl)}`, '_blank');
-        break;
-      case 'copy':
-        navigator.clipboard.writeText(shareUrl).then(() => {
-          alert('Link copied to clipboard!');
-        });
-        break;
-      default:
-        break;
-    }
   }, [rootPersonId, processedData.nodes]);
-
-  // Process data based on root person and add relationship information
-  const processedData = useMemo(() => {
-    if (!data) return { nodes: [], edges: [] };
-    
-    // Auto-set oldest person as root if no root is selected and we haven't set default root yet
-    if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
-      setRootPersonId(data.oldest_person_id);
-      setHasSetDefaultRoot(true);
-    }
-    
-    const rootPerson = rootPersonId 
-      ? data.nodes.find(n => n.id === rootPersonId)
-      : null;
-    
-    // Add relationship information to all people
-    const peopleWithRelations = getAllRelationshipsToRoot(
-      rootPerson,
-      data.nodes,
-      data.edges
-    );
-    
-    return {
-      nodes: peopleWithRelations,
-      edges: data.edges
-    };
-  }, [data, rootPersonId, hasSetDefaultRoot]);
 
   // Transform data for react-flow using improved hierarchical layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
