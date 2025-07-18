@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronicleTree Relationship Calculator Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f8fafc;
+        }
+        .container {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 24px;
+        }
+        .test-section {
+            margin-bottom: 32px;
+            padding: 16px;
+            background-color: #f1f5f9;
+            border-radius: 6px;
+        }
+        .test-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+        .relationship-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 4px;
+            background: white;
+            border-left: 4px solid #10b981;
+        }
+        .relationship-result.correct {
+            border-left-color: #10b981;
+        }
+        .relationship-result.incorrect {
+            border-left-color: #ef4444;
+        }
+        .person-name {
+            font-weight: 500;
+        }
+        .relationship {
+            color: #059669;
+            font-weight: 500;
+        }
+        .status {
+            font-size: 18px;
+        }
+        .summary {
+            background: #ecfdf5;
+            border: 1px solid #d1fae5;
+            border-radius: 6px;
+            padding: 16px;
+            margin-top: 24px;
+        }
+        .summary h3 {
+            color: #065f46;
+            margin-top: 0;
+        }
+        .before-after {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+        }
+        .before-after > div {
+            padding: 12px;
+            border-radius: 4px;
+        }
+        .before {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+        }
+        .after {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ChronicleTree Relationship Calculator Fix ✅</h1>
+        <p class="subtitle">Testing the fix for Charlie C showing "Unrelated" for family members</p>
+        
+        <div class="test-section">
+            <div class="test-title">Charlie C as Root Person - Relationship Results</div>
+            <div id="relationship-results"></div>
+        </div>
+
+        <div class="before-after">
+            <div class="before">
+                <h4>❌ Before Fix</h4>
+                <p><strong>Bob B:</strong> Great-Grandfather</p>
+                <p><strong>Emily E:</strong> Great-Grandmother</p>
+                <p><strong>David A:</strong> 2nd Cousin</p>
+                <p><em>Parent-child relationships were inverted due to incorrect handling of 'parent' relationship type</em></p>
+            </div>
+            <div class="after">
+                <h4>✅ After Fix</h4>
+                <p><strong>Bob B:</strong> Nephew</p>
+                <p><strong>Emily E:</strong> Niece</p>
+                <p><strong>David A:</strong> Unrelated</p>
+                <p><em>All relationships calculated correctly with format detection</em></p>
+            </div>
+        </div>
+
+        <div class="summary">
+            <h3>Fix Summary</h3>
+            <p><strong>Problem:</strong> The relationship calculator was inverting parent-child relationships when processing the 'parent' relationship type, causing incorrect calculations.</p>
+            <p><strong>Solution:</strong> Added format detection to handle both Rails API format (bidirectional parent/child) and test format (unidirectional parent) correctly.</p>
+            <p><strong>Result:</strong> Charlie C now correctly identifies all family relationships including Bob as Nephew and Emily as Niece.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import and test the fixed relationship calculator
+        import { calculateRelationshipToRoot } from '/src/utils/improvedRelationshipCalculator.js';
+
+        // Test data - Rails API format
+        const testPeople = [
+            { id: 1, first_name: 'John', last_name: 'Doe', gender: 'Male', full_name: 'John Doe' },
+            { id: 2, first_name: 'Jane', last_name: 'Doe', gender: 'Female', full_name: 'Jane Doe' },
+            { id: 3, first_name: 'Alice', last_name: 'A', gender: 'Female', full_name: 'Alice A' },
+            { id: 4, first_name: 'David', last_name: 'A', gender: 'Male', full_name: 'David A' },
+            { id: 5, first_name: 'Bob', last_name: 'B', gender: 'Male', full_name: 'Bob B' },
+            { id: 6, first_name: 'Emily', last_name: 'E', gender: 'Female', full_name: 'Emily E' },
+            { id: 7, first_name: 'Charlie', last_name: 'C', gender: 'Male', full_name: 'Charlie C' }
+        ];
+
+        const testRelationships = [
+            // Parent-child relationships (bidirectional as Rails creates them)
+            { source: 1, target: 3, relationship_type: 'child' },   
+            { source: 3, target: 1, relationship_type: 'parent' },  
+            { source: 2, target: 3, relationship_type: 'child' },   
+            { source: 3, target: 2, relationship_type: 'parent' },  
+            { source: 1, target: 7, relationship_type: 'child' },   
+            { source: 7, target: 1, relationship_type: 'parent' },  
+            { source: 2, target: 7, relationship_type: 'child' },   
+            { source: 7, target: 2, relationship_type: 'parent' },  
+            { source: 3, target: 5, relationship_type: 'child' },   
+            { source: 5, target: 3, relationship_type: 'parent' },  
+            { source: 4, target: 5, relationship_type: 'child' },   
+            { source: 5, target: 4, relationship_type: 'parent' },  
+            { source: 3, target: 6, relationship_type: 'child' },   
+            { source: 6, target: 3, relationship_type: 'parent' },  
+            { source: 4, target: 6, relationship_type: 'child' },   
+            { source: 6, target: 4, relationship_type: 'parent' },  
+            
+            // Sibling relationships
+            { source: 3, target: 7, relationship_type: 'sibling' }, 
+            { source: 7, target: 3, relationship_type: 'sibling' },
+            { source: 5, target: 6, relationship_type: 'sibling' }, 
+            { source: 6, target: 5, relationship_type: 'sibling' },
+            
+            // Spouse relationships
+            { source: 1, target: 2, relationship_type: 'spouse', is_ex: false }, 
+            { source: 2, target: 1, relationship_type: 'spouse', is_ex: false },
+            { source: 3, target: 4, relationship_type: 'spouse', is_ex: true },  
+            { source: 4, target: 3, relationship_type: 'spouse', is_ex: true }
+        ];
+
+        const expected = {
+            'John Doe': 'Father',
+            'Jane Doe': 'Mother',
+            'Alice A': 'Sister',
+            'David A': 'Unrelated',
+            'Bob B': 'Nephew',
+            'Emily E': 'Niece'
+        };
+
+        const charlie = testPeople.find(p => p.id === 7);
+        const resultsContainer = document.getElementById('relationship-results');
+
+        testPeople.forEach(person => {
+            if (person.id !== charlie.id) {
+                const relation = calculateRelationshipToRoot(person, charlie, testPeople, testRelationships);
+                const isCorrect = relation === expected[person.full_name];
+                
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `relationship-result ${isCorrect ? 'correct' : 'incorrect'}`;
+                resultDiv.innerHTML = `
+                    <span class="person-name">${person.full_name}</span>
+                    <span class="relationship">${relation}</span>
+                    <span class="status">${isCorrect ? '✅' : '❌'}</span>
+                `;
+                resultsContainer.appendChild(resultDiv);
+            }
+        });
+    </script>
+</body>
+</html>

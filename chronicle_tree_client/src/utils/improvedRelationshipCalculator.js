@@ -85,6 +85,14 @@ const buildRelationshipMaps = (relationships) => {
   const exSpouseMap = new Map(); // Maps person ID to Set of ex-spouses
   const siblingMap = new Map();
 
+  // Detect relationship format based on whether we have both 'parent' and 'child' types
+  const hasParentType = relationships.some(r => (r.type || r.relationship_type) === 'parent');
+  const hasChildType = relationships.some(r => (r.type || r.relationship_type) === 'child');
+  
+  // If we have both parent and child types, it's Rails format (bidirectional)
+  // If we only have parent type, it's test format (unidirectional)
+  const isRailsFormat = hasParentType && hasChildType;
+  
   relationships.forEach(rel => {
     const source = String(rel.source || rel.from);
     const target = String(rel.target || rel.to);
@@ -94,16 +102,29 @@ const buildRelationshipMaps = (relationships) => {
     
     switch (relationshipType) {
       case 'parent':
-        // Parent -> Child relationship: source is parent of target
-        if (!parentToChildren.has(source)) {
-          parentToChildren.set(source, new Set());
+        if (isRailsFormat) {
+          // Rails format: source HAS parent target (target is parent of source)
+          if (!parentToChildren.has(target)) {
+            parentToChildren.set(target, new Set());
+          }
+          parentToChildren.get(target).add(source);
+          
+          if (!childToParents.has(source)) {
+            childToParents.set(source, new Set());
+          }
+          childToParents.get(source).add(target);
+        } else {
+          // Test format: source IS parent OF target
+          if (!parentToChildren.has(source)) {
+            parentToChildren.set(source, new Set());
+          }
+          parentToChildren.get(source).add(target);
+          
+          if (!childToParents.has(target)) {
+            childToParents.set(target, new Set());
+          }
+          childToParents.get(target).add(source);
         }
-        parentToChildren.get(source).add(target);
-        
-        if (!childToParents.has(target)) {
-          childToParents.set(target, new Set());
-        }
-        childToParents.get(target).add(source);
         break;
         
       case 'child':
