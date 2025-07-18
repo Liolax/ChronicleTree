@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRelationshipToRoot } from '../utils/improvedRelationshipCalculator';
+import { calculateRelationshipToRoot } from '../../src/utils/improvedRelationshipCalculator';
 
 describe('Ex-spouse relatives handling', () => {
   // This test verifies the problem statement requirement:

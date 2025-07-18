@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateRelationshipToRoot } from '../utils/improvedRelationshipCalculator';
+import { calculateRelationshipToRoot } from '../../src/utils/improvedRelationshipCalculator';
 
 describe('Reverse Co-parent-in-law Relationships', () => {
   // Test data for co-parent-in-law relationships

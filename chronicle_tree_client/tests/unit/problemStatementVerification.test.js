@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from '../utils/improvedRelationshipCalculator';
+import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from '../../src/utils/improvedRelationshipCalculator';
 
 describe('Problem Statement Verification Tests', () => {
   // Test data matching the exact seed data structure

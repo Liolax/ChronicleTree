@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRelationshipToRoot } from '../utils/improvedRelationshipCalculator';
+import { calculateRelationshipToRoot } from '../../src/utils/improvedRelationshipCalculator';
 
 describe('Comprehensive Relationship Testing - Problem Statement Requirements', () => {
   // Test data representing a typical family tree
