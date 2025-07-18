@@ -6,9 +6,9 @@ import { useCurrentUser } from '../../services/users';
 
 const RELATIONSHIP_TYPES = [
   { value: '', label: 'Relationship Type' },
-  { value: 'parent', label: 'Parent' },
-  { value: 'child', label: 'Child' },
-  { value: 'spouse', label: 'Spouse' },
+  { value: 'parent', label: 'Parent of selected person' },
+  { value: 'child', label: 'Child of selected person' },
+  { value: 'spouse', label: 'Spouse of selected person' },
 ];
 
 const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirstPerson = false }) => {

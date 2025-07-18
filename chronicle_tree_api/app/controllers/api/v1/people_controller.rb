@@ -31,7 +31,27 @@ module Api
           if person.save
             # If relationship_type and related_person_id are provided, create relationship
             if rel_type.present? && rel_person_id.present?
-              Relationship.create!(person: person, relative_id: rel_person_id, relationship_type: rel_type)
+              # Create the correct relationship based on what the user selected
+              case rel_type
+              when 'child'
+                # New person is a child of the selected person
+                # So the selected person is the parent of the new person
+                Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'child')
+                Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'parent')
+              when 'parent'
+                # New person is a parent of the selected person
+                # So the new person is the parent of the selected person
+                Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'child')
+                Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'parent')
+              when 'spouse'
+                # Bidirectional spouse relationship
+                Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'spouse')
+                Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'spouse')
+              when 'sibling'
+                # Bidirectional sibling relationship
+                Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'sibling')
+                Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'sibling')
+              end
             end
             Rails.logger.info "[PeopleController#create] Person created: \n#{person.inspect}"
             render json: person, serializer: Api::V1::PersonSerializer, status: :created

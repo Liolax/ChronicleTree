@@ -10,6 +10,7 @@ import {
   useReactFlow,
   Panel,
 } from '@xyflow/react';
+import { useQueryClient } from '@tanstack/react-query';
 import '@xyflow/react/dist/style.css';
 import { FaShareAlt, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaEnvelopeSquare, FaLink } from 'react-icons/fa';
 
@@ -20,7 +21,7 @@ import DeletePersonModal from '../UI/DeletePersonModal';
 import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
 import CustomNode from './CustomNode';
-import { useFullTree } from '../../services/people';
+import { useFullTree, useDeletePerson } from '../../services/people';
 import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
@@ -46,6 +47,9 @@ const FamilyTree = () => {
   const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCaption, setShareCaption] = useState('');
+  
+  const queryClient = useQueryClient();
+  const deletePerson = useDeletePerson();
   
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
@@ -88,6 +92,20 @@ const FamilyTree = () => {
   React.useEffect(() => {
     console.log('processedData:', processedData);
   }, [processedData]);
+
+  // Helper to group relationships for delete modal
+  const groupRelatives = useCallback((person) => {
+    const groups = { Parents: [], Children: [], Spouses: [], Siblings: [] };
+    if (person?.relatives) {
+      person.relatives.forEach(rel => {
+        if (rel.relationship_type === 'parent') groups.Parents.push(rel);
+        if (rel.relationship_type === 'child') groups.Children.push(rel);
+        if (rel.relationship_type === 'spouse') groups.Spouses.push(rel);
+        if (rel.relationship_type === 'sibling') groups.Siblings.push(rel);
+      });
+    }
+    return groups;
+  }, []);
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
@@ -498,13 +516,24 @@ const FamilyTree = () => {
         {deleteTarget && (
           <DeletePersonModal 
             person={deleteTarget} 
+            relationships={groupRelatives(deleteTarget)}
             onConfirm={() => {
-              // Handle delete logic
-              console.log('Delete person:', deleteTarget);
-              setDeleteTarget(null);
+              // Handle delete logic with proper API call
+              deletePerson.mutate(deleteTarget.id, {
+                onSuccess: () => {
+                  queryClient.invalidateQueries({ queryKey: ['tree'] });
+                  queryClient.invalidateQueries({ queryKey: ['people'] });
+                  setDeleteTarget(null);
+                  setSelectedPerson(null); // Close person card if open
+                },
+                onError: (error) => {
+                  console.error('Failed to delete person:', error);
+                  // Keep modal open on error so user can retry
+                }
+              });
             }} 
             onCancel={() => setDeleteTarget(null)} 
-            isLoading={false} 
+            isLoading={deletePerson.isPending} 
           />
         )}
       </div>

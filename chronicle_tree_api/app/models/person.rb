@@ -69,12 +69,12 @@ class Person < ApplicationRecord
   end
 
   def siblings
-    # Get explicitly defined sibling relationships
+    # Siblings share at least one parent
+    parent_ids = parents.pluck(:id)
+    return Person.none if parent_ids.empty?
+
     Person.joins(:relationships)
-          .where(
-            "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'sibling'",
-            id: id
-          )
+          .where(relationships: { relationship_type: "child", relative_id: parent_ids })
           .where.not(id: id)
           .distinct
   end
