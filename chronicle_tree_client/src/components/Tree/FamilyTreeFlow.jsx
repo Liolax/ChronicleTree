@@ -22,6 +22,7 @@ import PersonCardNode from './PersonCardNode';
 import CustomNode from './CustomNode';
 import { useFullTree } from '../../services/people';
 import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
+import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 import { generateTreeShareContent, handleSocialShare } from '../../services/sharing';
 
@@ -51,27 +52,35 @@ const FamilyTree = () => {
   // Process data based on root person and add relationship information
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
-    
+
     // Auto-set oldest person as root if no root is selected and we haven't set default root yet
     if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
       setRootPersonId(data.oldest_person_id);
       setHasSetDefaultRoot(true);
     }
-    
-    const rootPerson = rootPersonId 
-      ? data.nodes.find(n => n.id === rootPersonId)
+
+    // Use collectConnectedFamily to get all connected persons and relationships for the root
+    let filteredNodes = data.nodes;
+    let filteredEdges = data.edges;
+    if (rootPersonId) {
+      const result = collectConnectedFamily(rootPersonId, data.nodes, data.edges);
+      filteredNodes = result.persons;
+      filteredEdges = result.relationships;
+    }
+
+    // Add relationship information to all people (if needed)
+    const rootPerson = rootPersonId
+      ? filteredNodes.find(n => n.id === rootPersonId)
       : null;
-    
-    // Add relationship information to all people
     const peopleWithRelations = getAllRelationshipsToRoot(
       rootPerson,
-      data.nodes,
-      data.edges
+      filteredNodes,
+      filteredEdges
     );
-    
+
     return {
       nodes: peopleWithRelations,
-      edges: data.edges
+      edges: filteredEdges
     };
   }, [data, rootPersonId, hasSetDefaultRoot]);
 

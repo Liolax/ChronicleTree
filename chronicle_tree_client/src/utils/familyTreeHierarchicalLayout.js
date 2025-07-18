@@ -1,19 +1,101 @@
-/**
- * Enhanced Family Tree Hierarchical Layout
- * Creates a clean, top-down hierarchical family tree structure
- * Reduces visual clutter and improves user experience
- */
-
 import { Position } from '@xyflow/react';
-
 /**
- * Transform family data into a hierarchical tree structure
- * @param {Array} persons - Array of person objects
- * @param {Array} relationships - Array of relationship objects  
- * @param {Object} handlers - Event handlers for nodes
- * @returns {Object} - { nodes, edges } for react-flow
+ * Collect all connected persons and relationships for a given root
+ * Ensures siblings, spouses, and all relevant connections are included
+ * @param {string|number} rootId - The root person ID
+ * @param {Array} allPersons - All person objects
+ * @param {Array} allRelationships - All relationship objects
+ * @returns {Object} - { persons, relationships }
  */
+export function collectConnectedFamily(rootId, allPersons, allRelationships) {
+  // Build a map from person ID to relationships
+  const relMap = new Map();
+  allRelationships.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    
+    if (!relMap.has(source)) {
+      relMap.set(source, []);
+    }
+    if (!relMap.has(target)) {
+      relMap.set(target, []);
+    }
+    relMap.get(source).push(rel);
+    relMap.get(target).push(rel);
+  });
+
+  // Enhanced logic: BFS to collect all connected persons
+  const visited = new Set();
+  const queue = [String(rootId)];
+  const connectedPersons = [];
+  
+  while (queue.length > 0) {
+    const currentId = queue.shift();
+    if (visited.has(currentId)) continue;
+    visited.add(currentId);
+    const person = allPersons.find(p => String(p.id) === currentId);
+    if (person) connectedPersons.push(person);
+    
+    // Find relationships for currentId and add connected persons to queue
+    if (typeof relMap !== 'undefined' && relMap.get) {
+      (relMap.get(currentId) || []).forEach(rel => {
+        const source = String(rel.source || rel.from);
+        const target = String(rel.target || rel.to);
+        if (!visited.has(source)) queue.push(source);
+        if (!visited.has(target)) queue.push(target);
+      });
+    } else {
+      allRelationships.forEach(rel => {
+        const source = String(rel.source || rel.from);
+        const target = String(rel.target || rel.to);
+        if (source === currentId && !visited.has(target)) {
+          queue.push(target);
+        } else if (target === currentId && !visited.has(source)) {
+          queue.push(source);
+        }
+      });
+    }
+  }
+
+  // Always include sibling relationships for the root
+  const rootPerson = allPersons.find(p => String(p.id) === String(rootId));
+  if (rootPerson) {
+    // Find all persons with the same parents as rootPerson
+    const parentIds = [rootPerson.father_id, rootPerson.mother_id].filter(Boolean);
+    if (parentIds.length) {
+      // Siblings: persons with same parents, not the root
+      const siblings = allPersons.filter(p =>
+        String(p.id) !== String(rootId) &&
+        parentIds.includes(p.father_id) &&
+        parentIds.includes(p.mother_id)
+      );
+      siblings.forEach(sibling => {
+        // Add sibling if not already present
+        if (!connectedPersons.some(p => String(p.id) === String(sibling.id))) {
+          connectedPersons.push(sibling);
+        }
+      });
+    }
+  }
+
+  // Now collect ALL relationships between the connected persons
+  const connectedPersonIds = new Set(connectedPersons.map(p => String(p.id)));
+  const connectedRelationships = allRelationships.filter(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    return connectedPersonIds.has(source) && connectedPersonIds.has(target);
+  });
+
+  // Return only connected persons and relationships
+  return {
+    persons: connectedPersons,
+    relationships: connectedRelationships,
+  };
+}
 export const createFamilyTreeLayout = (persons, relationships, handlers = {}) => {
+  // Debug: Print incoming persons and relationships
+  console.log('createFamilyTreeLayout: persons:', persons);
+  console.log('createFamilyTreeLayout: relationships:', relationships);
   if (!persons || !relationships) {
     return { nodes: [], edges: [] };
   }
@@ -23,6 +105,7 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}) =>
   
   // Step 2: Find root nodes (people with no parents)
   const rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
+  console.log('createFamilyTreeLayout: computed rootNodes:', rootNodes);
   
   // Step 3: Calculate generations for each person
   const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes);
@@ -273,6 +356,21 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
   const spouseRelationships = relationships.filter(rel => rel.type === 'spouse');
   const siblingRelationships = relationships.filter(rel => rel.type === 'sibling');
 
+  // Enhanced Debug: Print all sibling relationships and sibling map for verification
+  if (siblingRelationships.length > 0) {
+    console.log('Sibling relationships:');
+    siblingRelationships.forEach(rel => {
+      console.log(`Sibling: ${rel.source || rel.from} <-> ${rel.target || rel.to}`);
+    });
+    // Print sibling map for each person
+    if (relationshipMaps && relationshipMaps.siblingMap) {
+      console.log('SiblingMap breakdown:');
+      for (const [personId, siblingsSet] of relationshipMaps.siblingMap.entries()) {
+        console.log(`Person ${personId} has siblings: [${Array.from(siblingsSet).join(', ')}]`);
+      }
+    }
+  }
+
   // Process parent relationships - only create one edge per parent-child pair
   parentRelationships.forEach(relationship => {
     const source = String(relationship.source || relationship.from);
@@ -377,4 +475,4 @@ export const centerChildrenBetweenParents = (nodes, relationships) => {
   }
 
   return nodes;
-};
+}

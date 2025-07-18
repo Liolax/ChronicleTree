@@ -23,7 +23,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
 
   // Build comprehensive relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships);
-  
+
   // Find the relationship using improved algorithm
   const relationship = findRelationship(
     person.id,
@@ -31,6 +31,18 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     relationshipMaps,
     allPeople
   );
+
+  // If sibling relationship exists in either direction, always prefer it over 'Unrelated'
+  if (
+    relationship === 'Unrelated' && (
+      (relationshipMaps.siblingMap.has(String(person.id)) && relationshipMaps.siblingMap.get(String(person.id)).has(String(rootPerson.id))) ||
+      (relationshipMaps.siblingMap.has(String(rootPerson.id)) && relationshipMaps.siblingMap.get(String(rootPerson.id)).has(String(person.id)))
+    )
+  ) {
+    const siblingLabel = getGenderSpecificRelation(person.id, 'Brother', 'Sister', allPeople, 'Sibling');
+    console.log(`Sibling relationship detected: ${person.full_name} <-> ${rootPerson.full_name} | Label: ${siblingLabel}`);
+    return siblingLabel;
+  }
 
   return relationship || 'Unrelated';
 };
