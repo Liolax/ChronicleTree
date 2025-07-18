@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import api from '../../api/api';
-import Input from '../UI/Input';
 import Button from '../UI/Button';
 
 const FACT_TYPE_OPTIONS = [
-  'Birth',
-  'Death',
-  'Marriage',
-  'Residence',
   'Occupation',
+  'Hobby',
+  'Residence',
+  'School',
+  'Award',
+  'Exhibition',
+  'Military Service',
   'Custom',
 ];
 
@@ -18,7 +19,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
   // Determine if the label is custom
   const isLabelCustom = fact && fact.label && !FACT_TYPE_OPTIONS.includes(fact.label);
   // State for select and custom label
-  const [factType, setFactType] = useState(isLabelCustom ? 'Custom' : (fact?.label || 'Birth'));
+  const [factType, setFactType] = useState(isLabelCustom ? 'Custom' : (fact?.label || 'Occupation'));
   const [customLabel, setCustomLabel] = useState(isLabelCustom ? fact.label : '');
   const [value, setValue] = useState(fact?.value || '');
   const [date, setDate] = useState(fact?.date || '');
@@ -60,7 +61,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
           fact: { label: labelToSend, value, date, location }
         });
         onFactAdded && onFactAdded(response.data);
-        setFactType('Birth');
+        setFactType('Occupation');
         setCustomLabel('');
         setValue('');
         setDate('');

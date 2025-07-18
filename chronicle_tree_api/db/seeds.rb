@@ -42,17 +42,17 @@ end
 end
 
 # --- FACTS ---
-Fact.find_or_create_by!(id: 101, person: p1, label: 'Birth', value: 'Born in City A Hospital', date: Date.new(1980, 1, 1), location: 'City A')
-Fact.find_or_create_by!(id: 102, person: p2, label: 'Graduation', value: 'Graduated with honors from School B', date: Date.new(2000, 6, 15), location: 'School B')
-Fact.find_or_create_by!(id: 103, person: alice, label: 'Hobby', value: 'Started painting landscapes', date: Date.new(2010, 5, 20), location: 'Studio 21')
-Fact.find_or_create_by!(id: 104, person: david, label: 'Occupation', value: 'Became a Senior Engineer at Company X', date: Date.new(2015, 9, 1), location: 'Company X HQ')
-Fact.find_or_create_by!(id: 105, person: bob, label: 'Sports Achievement', value: 'Won city soccer championship', date: Date.new(2022, 4, 10), location: 'Field Y')
-Fact.find_or_create_by!(id: 106, person: emily, label: 'Favorite Book', value: 'Read "Pride and Prejudice" for the first time', date: Date.new(2023, 2, 14), location: 'Library Z')
-Fact.find_or_create_by!(id: 107, person: charlie, label: 'Music', value: 'Started learning guitar', date: Date.new(2021, 9, 1), location: 'Music School')
+Fact.find_or_create_by!(id: 101, person: p1, label: 'Current Occupation', value: 'Software Architect at TechCorp', date: Date.new(2023, 1, 1), location: 'TechCorp HQ')
+Fact.find_or_create_by!(id: 102, person: p2, label: 'Current Residence', value: 'Lived in City B', date: Date.new(2021, 6, 1), location: 'City B')
+Fact.find_or_create_by!(id: 103, person: alice, label: 'Current Hobby', value: 'Painting landscapes', date: Date.new(2023, 3, 1), location: 'Home Studio')
+Fact.find_or_create_by!(id: 104, person: david, label: 'Current Occupation', value: 'Senior Engineer at Company X', date: Date.new(2023, 1, 1), location: 'Company X HQ')
+Fact.find_or_create_by!(id: 105, person: bob, label: 'Current School', value: 'Attends Central High School', date: Date.new(2023, 9, 1), location: 'Central High')
+Fact.find_or_create_by!(id: 106, person: emily, label: 'Current Hobby', value: 'Reading classic novels', date: Date.new(2023, 2, 14), location: 'Library Z')
+Fact.find_or_create_by!(id: 107, person: charlie, label: 'Current Hobby', value: 'Learning guitar', date: Date.new(2023, 9, 1), location: 'Music School')
 # Extra facts for better testing
 Fact.find_or_create_by!(id: 108, person: p1, label: 'Military Service', value: 'Served in the Army for 2 years', date: Date.new(2002, 7, 1), location: 'Base Q')
-Fact.find_or_create_by!(id: 109, person: p2, label: 'First Job', value: 'Worked as a teacher', date: Date.new(2003, 9, 1), location: 'School C')
-Fact.find_or_create_by!(id: 110, person: alice, label: 'Award', value: 'Won Art Prize at City Gallery', date: Date.new(2018, 11, 5), location: 'Gallery')
+Fact.find_or_create_by!(id: 109, person: p2, label: 'Recent Award', value: 'Community Service Award', date: Date.new(2022, 5, 1), location: 'City Hall')
+Fact.find_or_create_by!(id: 110, person: alice, label: 'Recent Exhibition', value: 'Art show at City Gallery', date: Date.new(2023, 11, 5), location: 'Gallery')
 # --- TIMELINE ITEMS ---
 TimelineItem.find_or_create_by!(id: 201, person: p1, title: 'Born', date: Date.today - 30.years, place: 'City A', icon: 'baby')
 TimelineItem.find_or_create_by!(id: 202, person: p2, title: 'Graduated', date: Date.today - 12.years, place: 'School B', icon: 'graduation-cap')
