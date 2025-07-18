@@ -30,9 +30,9 @@ export function AuthProvider({ children }) {
     const jwt = res.headers.authorization.split(' ')[1]
     localStorage.setItem('token', jwt)
     setToken(jwt)
-    setUser(res.data.data)
+    setUser(res.data)
     navigate('/')
-    return res.data.data
+    return res.data
   }
 
   // async/await implementation for register
@@ -41,9 +41,9 @@ export function AuthProvider({ children }) {
     const jwt = res.headers.authorization.split(' ')[1]
     localStorage.setItem('token', jwt)
     setToken(jwt)
-    setUser(res.data.data)
+    setUser(res.data)
     navigate('/')
-    return res.data.data
+    return res.data
   }
 
   // async/await implementation for forgot password

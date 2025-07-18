@@ -2,7 +2,7 @@
  * Comprehensive test of all relationship calculation improvements
  */
 
-import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+import { calculateRelationshipToRoot } from '../utils/improvedRelationshipCalculator.js';
 
 // Extended test data including Michael A (David's father) for co-parent-in-law testing
 const testPeople = [

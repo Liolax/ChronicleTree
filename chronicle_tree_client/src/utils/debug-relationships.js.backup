@@ -1,4 +1,4 @@
-import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from './improvedRelationshipCalculator';
+import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from './utils/improvedRelationshipCalculator';
 
 // Test data matching the seed data structure
 const testPeople = [

@@ -2,7 +2,7 @@
  * Test reverse co-parent-in-law relationships
  */
 
-import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+import { calculateRelationshipToRoot } from '../utils/improvedRelationshipCalculator.js';
 
 // Same test data as before
 const testPeople = [

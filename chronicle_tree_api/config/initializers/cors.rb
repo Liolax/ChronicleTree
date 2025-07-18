@@ -10,7 +10,7 @@ Rails.application.config.middleware.insert_before 0, Rack::Cors do
     # In development, you can use '*' to allow any origin.
     # For production, you should restrict this to your frontend's domain.
     # e.g., origins 'https://www.your-app.com'
-    origins "http://localhost:5173", "http://127.0.0.1:5173"
+    origins "http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://localhost:5175"
 
     resource "*",
       headers: :any,

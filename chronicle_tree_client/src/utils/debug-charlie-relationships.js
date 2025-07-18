@@ -3,7 +3,7 @@
  * This will help identify if the fix for the relationship_type vs type issue worked
  */
 
-import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+import { calculateRelationshipToRoot } from './improvedRelationshipCalculator.js';
 
 // Mock data based on seeds.rb
 const testPeople = [
