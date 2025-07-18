@@ -94,7 +94,21 @@ const buildRelationshipMaps = (relationships) => {
     
     switch (relationshipType) {
       case 'parent':
-        // Parent -> Child relationship
+        // Parent -> Child relationship: source is parent of target
+        if (!parentToChildren.has(source)) {
+          parentToChildren.set(source, new Set());
+        }
+        parentToChildren.get(source).add(target);
+        
+        if (!childToParents.has(target)) {
+          childToParents.set(target, new Set());
+        }
+        childToParents.get(target).add(source);
+        break;
+        
+      case 'child':
+        // Child relationship: source has a child named target
+        // This means source is the parent of target
         if (!parentToChildren.has(source)) {
           parentToChildren.set(source, new Set());
         }
