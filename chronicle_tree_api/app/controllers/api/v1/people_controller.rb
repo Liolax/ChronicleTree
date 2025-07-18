@@ -38,11 +38,13 @@ module Api
                 # So the selected person is the parent of the new person
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'child')
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'parent')
+                # Sibling relationships will be automatically created via the Relationship model callback
               when 'parent'
                 # New person is a parent of the selected person
                 # So the new person is the parent of the selected person
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'child')
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'parent')
+                # Sibling relationships will be automatically created via the Relationship model callback
               when 'spouse'
                 # Bidirectional spouse relationship
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'spouse')

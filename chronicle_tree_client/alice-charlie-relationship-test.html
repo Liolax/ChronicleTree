@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alice Charlie Relationship Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; }
+        .failure { background: #f8d7da; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>Alice ↔ Charlie Relationship Test</h1>
+    <div id="results">Loading...</div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        import { mockFamilyData } from './src/data/mockData.js';
+        
+        const { nodes, edges } = mockFamilyData;
+        
+        // Find Alice and Charlie
+        const alice = nodes.find(n => n.id === 4);
+        const charlie = nodes.find(n => n.id === 5);
+        
+        console.log('=== ALICE CHARLIE RELATIONSHIP TEST ===');
+        console.log('Alice:', alice);
+        console.log('Charlie:', charlie);
+        console.log('All relationships:', edges);
+        
+        // Test Alice -> Charlie relationship
+        const aliceToCharlie = calculateRelationshipToRoot(alice, charlie, nodes, edges);
+        console.log('Alice to Charlie result:', aliceToCharlie);
+        
+        // Test Charlie -> Alice relationship
+        const charlieToAlice = calculateRelationshipToRoot(charlie, alice, nodes, edges);
+        console.log('Charlie to Alice result:', charlieToAlice);
+        
+        // Check if sibling relationships are detected
+        const isSuccess = (aliceToCharlie === 'Sister' || aliceToCharlie === 'Sibling') && 
+                         (charlieToAlice === 'Brother' || charlieToAlice === 'Sibling');
+        
+        // Display results
+        const results = document.getElementById('results');
+        results.innerHTML = `
+            <div class="result ${isSuccess ? 'success' : 'failure'}">
+                <h2>Test Results:</h2>
+                <p><strong>Alice to Charlie:</strong> ${aliceToCharlie}</p>
+                <p><strong>Charlie to Alice:</strong> ${charlieToAlice}</p>
+                <p><strong>Status:</strong> ${isSuccess ? '✅ SUCCESS' : '❌ FAILURE'}</p>
+            </div>
+            <div class="result">
+                <h3>Expected:</h3>
+                <p>Alice to Charlie: "Sister" or "Sibling"</p>
+                <p>Charlie to Alice: "Brother" or "Sibling"</p>
+            </div>
+            <div class="result">
+                <h3>Family Structure:</h3>
+                <p>John (1) and Jane (2) are parents of Bob (3), Alice (4), and Charlie (5)</p>
+                <p>Therefore, Alice and Charlie should be siblings</p>
+            </div>
+        `;
+    </script>
+</body>
+</html>

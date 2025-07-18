@@ -22,40 +22,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     return 'Root';
   }
 
-  // COMPREHENSIVE DEBUG LOGGING for Alice and Charlie (the actual bug case)
-  // Using mock data IDs: Alice is 4, Charlie is 5
-  if ((person.id === 4 || person.id === '4') && (rootPerson.id === 5 || rootPerson.id === '5')) {
-    console.log('🔍 [DEBUG] calculateRelationshipToRoot: Alice (4) → Charlie (5)');
-    console.log('Person (Alice):', person);
-    console.log('Root Person (Charlie):', rootPerson);
-    console.log('Total relationships:', relationships.length);
-    console.log('All relationships:', relationships);
-  }
-  
-  if ((person.id === 5 || person.id === '5') && (rootPerson.id === 4 || rootPerson.id === '4')) {
-    console.log('🔍 [DEBUG] calculateRelationshipToRoot: Charlie (5) → Alice (4)');
-    console.log('Person (Charlie):', person);
-    console.log('Root Person (Alice):', rootPerson);
-    console.log('Total relationships:', relationships.length);
-    console.log('All relationships:', relationships);
-  }
-
-  // DEBUG LOGGING: Log when Charlie or David relationships are being calculated
-  if ((person.id === 4 || person.id === '4') && (rootPerson.id === 5 || rootPerson.id === '5')) {
-    console.log('[DEBUG] calculateRelationshipToRoot: David (4) → Charlie (5)');
-    console.log('Person (David):', person);
-    console.log('Root Person (Charlie):', rootPerson);
-    console.log('Total relationships:', relationships.length);
-    console.log('All relationships:', relationships);
-  }
-  
-  if ((person.id === 5 || person.id === '5') && (rootPerson.id === 4 || rootPerson.id === '4')) {
-    console.log('[DEBUG] calculateRelationshipToRoot: Charlie (5) → David (4)');
-    console.log('Person (Charlie):', person);
-    console.log('Root Person (David):', rootPerson);
-    console.log('Total relationships:', relationships.length);
-    console.log('All relationships:', relationships);
-  }
+  // Enhanced sibling detection - automatically finds siblings through shared parents
 
   // Build comprehensive relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships);
@@ -68,37 +35,14 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     allPeople
   );
 
-  // If sibling relationship exists in either direction, always prefer it over 'Unrelated'
+  // Enhanced sibling detection: if primary algorithm shows "Unrelated" but sibling relationship exists, use it
   if (
     relationship === 'Unrelated' && (
       (relationshipMaps.siblingMap.has(String(person.id)) && relationshipMaps.siblingMap.get(String(person.id)).has(String(rootPerson.id))) ||
       (relationshipMaps.siblingMap.has(String(rootPerson.id)) && relationshipMaps.siblingMap.get(String(rootPerson.id)).has(String(person.id)))
     )
   ) {
-    console.log(`🔍 [SIBLING FALLBACK] Sibling relationship detected: ${person.full_name || person.first_name} <-> ${rootPerson.full_name || rootPerson.first_name}`);
-    console.log(`🔍 [SIBLING FALLBACK] Sibling map for ${person.id}:`, relationshipMaps.siblingMap.get(String(person.id)));
-    console.log(`🔍 [SIBLING FALLBACK] Sibling map for ${rootPerson.id}:`, relationshipMaps.siblingMap.get(String(rootPerson.id)));
-    const siblingLabel = getGenderSpecificRelation(person.id, 'Brother', 'Sister', allPeople, 'Sibling');
-    console.log(`🔍 [SIBLING FALLBACK] Sibling label: ${siblingLabel}`);
-    return siblingLabel;
-  }
-
-  // DEBUG LOGGING: Log final result for Alice/Charlie relationships
-  if ((person.id === 4 || person.id === '4') && (rootPerson.id === 5 || rootPerson.id === '5')) {
-    console.log(`🔍 [DEBUG] FINAL RESULT: Alice (4) → Charlie (5) = "${relationship || 'Unrelated'}"`);
-  }
-  
-  if ((person.id === 5 || person.id === '5') && (rootPerson.id === 4 || rootPerson.id === '4')) {
-    console.log(`🔍 [DEBUG] FINAL RESULT: Charlie (5) → Alice (4) = "${relationship || 'Unrelated'}"`);
-  }
-
-  // DEBUG LOGGING: Log final result for Charlie/David relationships
-  if ((person.id === 4 || person.id === '4') && (rootPerson.id === 5 || rootPerson.id === '5')) {
-    console.log(`[DEBUG] FINAL RESULT: David (4) → Charlie (5) = "${relationship || 'Unrelated'}"`);
-  }
-  
-  if ((person.id === 5 || person.id === '5') && (rootPerson.id === 4 || rootPerson.id === '4')) {
-    console.log(`[DEBUG] FINAL RESULT: Charlie (5) → David (4) = "${relationship || 'Unrelated'}"`);
+    return getGenderSpecificRelation(person.id, 'Brother', 'Sister', allPeople, 'Sibling');
   }
 
   return relationship || 'Unrelated';
@@ -208,6 +152,42 @@ const buildRelationshipMaps = (relationships) => {
         break;
     }
   });
+
+  // CRITICAL FIX: After building parent-child relationships, automatically detect siblings through shared parents
+  const allPersonIds = new Set();
+  relationships.forEach(rel => {
+    allPersonIds.add(String(rel.source || rel.from));
+    allPersonIds.add(String(rel.target || rel.to));
+  });
+
+  // For each person, find their siblings by looking for other people with the same parents
+  for (const personId of allPersonIds) {
+    const personParents = childToParents.get(personId) || new Set();
+    
+    if (personParents.size > 0) {
+      // Find all other people who share at least one parent with this person
+      for (const otherPersonId of allPersonIds) {
+        if (personId !== otherPersonId) {
+          const otherParents = childToParents.get(otherPersonId) || new Set();
+          
+          // Check if they share any parents
+          const sharedParents = [...personParents].filter(parent => otherParents.has(parent));
+          
+          if (sharedParents.length > 0) {
+            // They are siblings - add to siblingMap
+            if (!siblingMap.has(personId)) {
+              siblingMap.set(personId, new Set());
+            }
+            if (!siblingMap.has(otherPersonId)) {
+              siblingMap.set(otherPersonId, new Set());
+            }
+            siblingMap.get(personId).add(otherPersonId);
+            siblingMap.get(otherPersonId).add(personId);
+          }
+        }
+      }
+    }
+  }
 
   return {
     parentToChildren,
@@ -428,23 +408,10 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Check if person is current spouse of root's sibling (sibling-in-law)
   const rootSiblings = siblingMap.get(rootId) || new Set();
   
-  if ((personId === '4' && rootId === '5') || (personId === '5' && rootId === '4')) {
-    console.log(`[DEBUG] Brother-in-law check - person ${personId} → root ${rootId}:`);
-    console.log(`  Root's siblings: [${Array.from(rootSiblings).join(', ')}]`);
-  }
-  
   for (const sibling of rootSiblings) {
     const siblingCurrentSpouses = spouseMap.get(sibling) || new Set();
     
-    if ((personId === '4' && rootId === '5') || (personId === '5' && rootId === '4')) {
-      console.log(`  Sibling ${sibling}'s current spouses: [${Array.from(siblingCurrentSpouses).join(', ')}]`);
-      console.log(`  Is person ${personId} a current spouse of sibling ${sibling}? ${siblingCurrentSpouses.has(personId)}`);
-    }
-    
     if (siblingCurrentSpouses.has(personId)) {
-      if ((personId === '4' && rootId === '5') || (personId === '5' && rootId === '4')) {
-        console.log(`  [DEBUG] ✅ FOUND BROTHER-IN-LAW: ${personId} is current spouse of ${rootId}'s sibling ${sibling}`);
-      }
       return getGenderSpecificRelation(personId, 'Brother-in-law', 'Sister-in-law', allPeople, 'Sibling-in-law');
     }
   }
@@ -493,40 +460,14 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Example: Michael A (David's father) ↔ John/Jane Doe (Alice's parents) when David ↔ Alice are/were married
   // Note: Co-parent-in-law relationships persist even after divorce due to shared grandchildren
   
-  // DEBUG LOGGING for co-parent-in-law calculation
-  const coParentPersonChildren = parentToChildren.get(personId) || new Set();
-  const coParentRootChildren = parentToChildren.get(rootId) || new Set();
-  
-  if (personId === '4' && rootId === '5') { // David → Charlie
-    console.log('[DEBUG] Co-parent-in-law check for David (4) → Charlie (5):');
-    console.log(`  David's children: [${Array.from(coParentPersonChildren).join(', ')}]`);
-    console.log(`  Charlie's children: [${Array.from(coParentRootChildren).join(', ')}]`);
-  }
-  
-  if (personId === '5' && rootId === '4') { // Charlie → David  
-    console.log('[DEBUG] Co-parent-in-law check for Charlie (5) → David (4):');
-    console.log(`  Charlie's children: [${Array.from(coParentPersonChildren).join(', ')}]`);
-    console.log(`  David's children: [${Array.from(coParentRootChildren).join(', ')}]`);
-  }
-  
   for (const personChild of (parentToChildren.get(personId) || new Set())) {
     for (const rootChild of (parentToChildren.get(rootId) || new Set())) {
       // Check if person's child is/was married to root's child (current or ex-spouse)
       const personChildCurrentSpouses = spouseMap.get(personChild) || new Set();
       const personChildExSpouses = relationshipMaps.exSpouseMap.get(personChild) || new Set();
       
-      if ((personId === '4' && rootId === '5') || (personId === '5' && rootId === '4')) {
-        console.log(`  [DEBUG] Checking ${personChild} (person's child) ↔ ${rootChild} (root's child):`);
-        console.log(`    ${personChild}'s current spouses: [${Array.from(personChildCurrentSpouses).join(', ')}]`);
-        console.log(`    ${personChild}'s ex-spouses: [${Array.from(personChildExSpouses).join(', ')}]`);
-        console.log(`    Is ${rootChild} a spouse? ${personChildCurrentSpouses.has(rootChild) || personChildExSpouses.has(rootChild)}`);
-      }
-      
       if (personChildCurrentSpouses.has(rootChild) || personChildExSpouses.has(rootChild)) {
         // They are co-parents-in-law (parents of current or former spouses)
-        if ((personId === '4' && rootId === '5') || (personId === '5' && rootId === '4')) {
-          console.log(`  [DEBUG] ✅ FOUND CO-PARENT-IN-LAW: ${personChild} ↔ ${rootChild} were/are married`);
-        }
         return getGenderSpecificRelation(personId, 'Co-Father-in-law', 'Co-Mother-in-law', allPeople, 'Co-Parent-in-law');
       }
     }

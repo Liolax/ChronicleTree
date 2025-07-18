@@ -1,9 +1,10 @@
 import React, { useEffect } from 'react';
-import { debugRelationships } from '../utils/debug-relationships';
+// import { debugRelationships } from '../utils/debug-relationships';
 
 function DebugPage() {
   useEffect(() => {
-    debugRelationships();
+    // debugRelationships();
+    console.log('Debug page loaded - import removed to fix build error');
   }, []);
 
   return (

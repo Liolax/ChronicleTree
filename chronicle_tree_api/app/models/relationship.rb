@@ -18,7 +18,8 @@ class Relationship < ApplicationRecord
   # Add a scope for ex-spouses
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
 
-  # After updating a spouse relationship's is_ex status, update the reciprocal relationship
+  # After creating/updating parent-child relationships, update sibling relationships
+  after_create :update_sibling_relationships, if: -> { relationship_type == "child" || relationship_type == "parent" }
   after_update :sync_reciprocal_spouse_status, if: -> { relationship_type == "spouse" && saved_change_to_is_ex? }
 
   private
@@ -71,6 +72,20 @@ class Relationship < ApplicationRecord
     if reciprocal && reciprocal.is_ex != is_ex
       # Update without triggering callbacks to avoid infinite loop
       reciprocal.update_column(:is_ex, is_ex)
+    end
+  end
+
+  def update_sibling_relationships
+    # Update sibling relationships for both the person and the relative
+    # when a parent-child relationship is created
+    if relationship_type == "child"
+      # person_id is the parent, relative_id is the child
+      # Update siblings for the child
+      SiblingRelationshipManager.update_sibling_relationships_for_person(relative_id)
+    elsif relationship_type == "parent"
+      # person_id is the child, relative_id is the parent
+      # Update siblings for the child
+      SiblingRelationshipManager.update_sibling_relationships_for_person(person_id)
     end
   end
 end

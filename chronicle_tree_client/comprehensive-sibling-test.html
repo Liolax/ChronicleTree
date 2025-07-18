@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Sibling Detection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .failure { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .partial { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .test-group { margin: 20px 0; }
+        .test-case { margin: 10px 0; padding: 10px; border-left: 4px solid #ddd; }
+        .test-case.success { border-left-color: #28a745; }
+        .test-case.failure { border-left-color: #dc3545; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Comprehensive Sibling Detection Test</h1>
+    <div id="results">Loading...</div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        import { mockFamilyData } from './src/data/mockData.js';
+        
+        const { nodes, edges } = mockFamilyData;
+        
+        // Test all sibling combinations
+        const testCases = [
+            { person1: 3, person2: 4, name1: 'Bob', name2: 'Alice', expected: ['Brother', 'Sister', 'Sibling'] },
+            { person1: 3, person2: 5, name1: 'Bob', name2: 'Charlie', expected: ['Brother', 'Brother', 'Sibling'] },
+            { person1: 4, person2: 5, name1: 'Alice', name2: 'Charlie', expected: ['Sister', 'Brother', 'Sibling'] },
+            { person1: 4, person2: 3, name1: 'Alice', name2: 'Bob', expected: ['Sister', 'Brother', 'Sibling'] },
+            { person1: 5, person2: 3, name1: 'Charlie', name2: 'Bob', expected: ['Brother', 'Brother', 'Sibling'] },
+            { person1: 5, person2: 4, name1: 'Charlie', name2: 'Alice', expected: ['Brother', 'Sister', 'Sibling'] },
+        ];
+        
+        console.log('=== COMPREHENSIVE SIBLING DETECTION TEST ===');
+        
+        let successCount = 0;
+        let totalTests = testCases.length * 2; // Each test case has 2 directions
+        
+        const results = [];
+        
+        testCases.forEach(testCase => {
+            const person1 = nodes.find(n => n.id === testCase.person1);
+            const person2 = nodes.find(n => n.id === testCase.person2);
+            
+            const relation1to2 = calculateRelationshipToRoot(person1, person2, nodes, edges);
+            const relation2to1 = calculateRelationshipToRoot(person2, person1, nodes, edges);
+            
+            const success1 = testCase.expected.includes(relation1to2);
+            const success2 = testCase.expected.includes(relation2to1);
+            
+            if (success1) successCount++;
+            if (success2) successCount++;
+            
+            results.push({
+                ...testCase,
+                relation1to2,
+                relation2to1,
+                success1,
+                success2
+            });
+            
+            console.log(`${testCase.name1} → ${testCase.name2}: "${relation1to2}" ${success1 ? '✅' : '❌'}`);
+            console.log(`${testCase.name2} → ${testCase.name1}: "${relation2to1}" ${success2 ? '✅' : '❌'}`);
+        });
+        
+        const overallSuccess = successCount === totalTests;
+        const successRate = (successCount / totalTests * 100).toFixed(1);
+        
+        console.log(`\n=== SUMMARY ===`);
+        console.log(`Success Rate: ${successCount}/${totalTests} (${successRate}%)`);
+        console.log(`Overall Status: ${overallSuccess ? 'SUCCESS' : 'PARTIAL SUCCESS'}`);
+        
+        // Display results
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+            <div class="result ${overallSuccess ? 'success' : (successCount > 0 ? 'partial' : 'failure')}">
+                <h2>🎯 Test Summary</h2>
+                <p><strong>Success Rate:</strong> ${successCount}/${totalTests} (${successRate}%)</p>
+                <p><strong>Status:</strong> ${overallSuccess ? '✅ ALL TESTS PASSED' : `⚠️ ${successCount} out of ${totalTests} tests passed`}</p>
+            </div>
+            
+            <div class="test-group">
+                <h3>📋 Individual Test Results</h3>
+                ${results.map(result => `
+                    <div class="test-case ${result.success1 && result.success2 ? 'success' : 'failure'}">
+                        <strong>${result.name1} ↔ ${result.name2}</strong><br>
+                        ${result.name1} → ${result.name2}: "${result.relation1to2}" ${result.success1 ? '✅' : '❌'}<br>
+                        ${result.name2} → ${result.name1}: "${result.relation2to1}" ${result.success2 ? '✅' : '❌'}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="result">
+                <h3>🏗️ Family Structure</h3>
+                <p><strong>Parents:</strong> John (1) and Jane (2)</p>
+                <p><strong>Children:</strong> Bob (3), Alice (4), and Charlie (5)</p>
+                <p><strong>Expected:</strong> All combinations should show sibling relationships</p>
+            </div>
+        `;
+    </script>
+</body>
+</html>

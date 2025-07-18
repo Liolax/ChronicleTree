@@ -26,7 +26,7 @@ import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 import { generateTreeShareContent, handleSocialShare } from '../../services/sharing';
-import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
+// import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
 // Node types for react-flow
 const nodeTypes = {

@@ -129,52 +129,16 @@ export const mockFamilyData = {
       to: 5,
       type: "parent"
     },
-    // Bob and Alice are spouses and parents of Emma
-    {
-      from: 3,
-      to: 4,
-      type: "spouse"
-    },
-    {
-      from: 3,
-      to: 6,
-      type: "parent"
-    },
+    // Alice and David are parents of Emma (Alice's child, not Bob's)
     {
       from: 4,
       to: 6,
       type: "parent"
     },
-    // Add explicit sibling relationships
     {
-      from: 3,
-      to: 4,
-      type: "sibling"
-    },
-    {
-      from: 4,
-      to: 3,
-      type: "sibling"
-    },
-    {
-      from: 3,
-      to: 5,
-      type: "sibling"
-    },
-    {
-      from: 5,
-      to: 3,
-      type: "sibling"
-    },
-    {
-      from: 4,
-      to: 5,
-      type: "sibling"
-    },
-    {
-      from: 5,
-      to: 4,
-      type: "sibling"
+      from: 7,
+      to: 6,
+      type: "parent"
     }
   ]
 };

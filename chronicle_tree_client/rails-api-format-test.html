@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rails API Format Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .failure { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .partial { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .test-group { margin: 20px 0; }
+        .test-case { margin: 10px 0; padding: 10px; border-left: 4px solid #ddd; }
+        .test-case.success { border-left-color: #28a745; }
+        .test-case.failure { border-left-color: #dc3545; }
+        .debug { background: #e2e3e5; border: 1px solid #d6d8db; color: #383d41; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Rails API Format Test</h1>
+    <p>Testing relationship calculator with exact Rails API response format (bidirectional relationships)</p>
+    <div id="results">Loading...</div>
+    <div id="debug-output"></div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        
+        // Simulate exact Rails API response format based on seeds.rb
+        const railsAPIResponse = {
+            nodes: [
+                { id: 1, first_name: 'John', last_name: 'Doe', gender: 'Male', date_of_birth: '1970-01-01', full_name: 'John Doe', is_alive: true },
+                { id: 2, first_name: 'Jane', last_name: 'Doe', gender: 'Female', date_of_birth: '1972-01-01', date_of_death: '2022-01-01', full_name: 'Jane Doe', is_alive: false },
+                { id: 3, first_name: 'Alice', last_name: 'A', gender: 'Female', date_of_birth: '1995-01-01', full_name: 'Alice A', is_alive: true },
+                { id: 4, first_name: 'David', last_name: 'A', gender: 'Male', date_of_birth: '1993-01-01', full_name: 'David A', is_alive: true },
+                { id: 5, first_name: 'Bob', last_name: 'B', gender: 'Male', date_of_birth: '2017-01-01', full_name: 'Bob B', is_alive: true },
+                { id: 6, first_name: 'Emily', last_name: 'E', gender: 'Female', date_of_birth: '2019-01-01', full_name: 'Emily E', is_alive: true },
+                { id: 7, first_name: 'Charlie', last_name: 'C', gender: 'Male', date_of_birth: '1997-01-01', full_name: 'Charlie C', is_alive: true }
+            ],
+            edges: [
+                // Parent-child relationships (bidirectional as per Rails API)
+                { source: 1, target: 3, relationship_type: 'child' },   // John has child Alice
+                { source: 3, target: 1, relationship_type: 'parent' },  // Alice has parent John
+                { source: 2, target: 3, relationship_type: 'child' },   // Jane has child Alice
+                { source: 3, target: 2, relationship_type: 'parent' },  // Alice has parent Jane
+                { source: 1, target: 7, relationship_type: 'child' },   // John has child Charlie
+                { source: 7, target: 1, relationship_type: 'parent' },  // Charlie has parent John
+                { source: 2, target: 7, relationship_type: 'child' },   // Jane has child Charlie
+                { source: 7, target: 2, relationship_type: 'parent' },  // Charlie has parent Jane
+                { source: 3, target: 5, relationship_type: 'child' },   // Alice has child Bob
+                { source: 5, target: 3, relationship_type: 'parent' },  // Bob has parent Alice
+                { source: 4, target: 5, relationship_type: 'child' },   // David has child Bob
+                { source: 5, target: 4, relationship_type: 'parent' },  // Bob has parent David
+                { source: 3, target: 6, relationship_type: 'child' },   // Alice has child Emily
+                { source: 6, target: 3, relationship_type: 'parent' },  // Emily has parent Alice
+                { source: 4, target: 6, relationship_type: 'child' },   // David has child Emily
+                { source: 6, target: 4, relationship_type: 'parent' },  // Emily has parent David
+                
+                // Spouse relationships
+                { source: 1, target: 2, relationship_type: 'spouse', is_ex: false },
+                { source: 2, target: 1, relationship_type: 'spouse', is_ex: false },
+                { source: 3, target: 4, relationship_type: 'spouse', is_ex: true },
+                { source: 4, target: 3, relationship_type: 'spouse', is_ex: true },
+                
+                // Explicit sibling relationships (as created in seeds.rb)
+                { source: 5, target: 6, relationship_type: 'sibling' },  // Bob <-> Emily
+                { source: 6, target: 5, relationship_type: 'sibling' },
+                { source: 7, target: 3, relationship_type: 'sibling' },  // Charlie <-> Alice
+                { source: 3, target: 7, relationship_type: 'sibling' },
+            ]
+        };
+        
+        // Override console.log to capture debug output
+        const originalLog = console.log;
+        const debugOutput = [];
+        console.log = (...args) => {
+            debugOutput.push(args.join(' '));
+            originalLog(...args);
+        };
+        
+        console.log('=== RAILS API FORMAT TEST ===');
+        console.log('Testing with exact Rails API response format (bidirectional relationships)...');
+        
+        // Test comprehensive relationship scenarios
+        const testCases = [
+            // Sibling relationships (the main bug we fixed)
+            {
+                person: 3, root: 7, personName: 'Alice A', rootName: 'Charlie C',
+                expected: ['Sister', 'Sibling'], 
+                description: 'Alice and Charlie are siblings - both children of John & Jane',
+                category: 'Sibling'
+            },
+            {
+                person: 7, root: 3, personName: 'Charlie C', rootName: 'Alice A',
+                expected: ['Brother', 'Sibling'], 
+                description: 'Charlie and Alice are siblings - both children of John & Jane',
+                category: 'Sibling'
+            },
+            {
+                person: 5, root: 6, personName: 'Bob B', rootName: 'Emily E',
+                expected: ['Brother', 'Sibling'], 
+                description: 'Bob and Emily are siblings - both children of Alice & David',
+                category: 'Sibling'
+            },
+            {
+                person: 6, root: 5, personName: 'Emily E', rootName: 'Bob B',
+                expected: ['Sister', 'Sibling'], 
+                description: 'Emily and Bob are siblings - both children of Alice & David',
+                category: 'Sibling'
+            },
+            
+            // Parent-child relationships
+            {
+                person: 1, root: 3, personName: 'John Doe', rootName: 'Alice A',
+                expected: ['Father', 'Parent'], 
+                description: 'John is father of Alice',
+                category: 'Parent-Child'
+            },
+            {
+                person: 3, root: 1, personName: 'Alice A', rootName: 'John Doe',
+                expected: ['Daughter', 'Child'], 
+                description: 'Alice is daughter of John',
+                category: 'Parent-Child'
+            },
+            {
+                person: 2, root: 7, personName: 'Jane Doe', rootName: 'Charlie C',
+                expected: ['Mother', 'Parent'], 
+                description: 'Jane is mother of Charlie',
+                category: 'Parent-Child'
+            },
+            {
+                person: 5, root: 3, personName: 'Bob B', rootName: 'Alice A',
+                expected: ['Son', 'Child'], 
+                description: 'Bob is son of Alice',
+                category: 'Parent-Child'
+            },
+            
+            // Spouse relationships
+            {
+                person: 1, root: 2, personName: 'John Doe', rootName: 'Jane Doe',
+                expected: ['Husband', 'Spouse'], 
+                description: 'John is husband of Jane',
+                category: 'Spouse'
+            },
+            {
+                person: 3, root: 4, personName: 'Alice A', rootName: 'David A',
+                expected: ['Ex-Wife', 'Ex-Spouse'], 
+                description: 'Alice is ex-wife of David (divorced)',
+                category: 'Ex-Spouse'
+            },
+            
+            // Extended family relationships
+            {
+                person: 7, root: 5, personName: 'Charlie C', rootName: 'Bob B',
+                expected: ['Uncle'], 
+                description: 'Charlie is uncle of Bob (brother of Alice)',
+                category: 'Extended'
+            },
+            {
+                person: 7, root: 6, personName: 'Charlie C', rootName: 'Emily E',
+                expected: ['Uncle'], 
+                description: 'Charlie is uncle of Emily (brother of Alice)',
+                category: 'Extended'
+            },
+            {
+                person: 5, root: 7, personName: 'Bob B', rootName: 'Charlie C',
+                expected: ['Nephew'], 
+                description: 'Bob is nephew of Charlie (son of Alice)',
+                category: 'Extended'
+            },
+            {
+                person: 6, root: 7, personName: 'Emily E', rootName: 'Charlie C',
+                expected: ['Niece'], 
+                description: 'Emily is niece of Charlie (daughter of Alice)',
+                category: 'Extended'
+            },
+            
+            // In-law relationships
+            {
+                person: 4, root: 1, personName: 'David A', rootName: 'John Doe',
+                expected: ['Ex-Son-in-law'], 
+                description: 'David is ex-son-in-law of John (ex-husband of Alice)',
+                category: 'In-Law'
+            },
+            {
+                person: 1, root: 4, personName: 'John Doe', rootName: 'David A',
+                expected: ['Ex-Father-in-law'], 
+                description: 'John is ex-father-in-law of David (father of Alice)',
+                category: 'In-Law'
+            },
+            
+            // Grandparent-grandchild relationships
+            {
+                person: 1, root: 5, personName: 'John Doe', rootName: 'Bob B',
+                expected: ['Grandfather', 'Grandparent'], 
+                description: 'John is grandfather of Bob (father of Alice)',
+                category: 'Grandparent-Grandchild'
+            },
+            {
+                person: 5, root: 1, personName: 'Bob B', rootName: 'John Doe',
+                expected: ['Grandson', 'Grandchild'], 
+                description: 'Bob is grandson of John (son of Alice)',
+                category: 'Grandparent-Grandchild'
+            },
+            {
+                person: 2, root: 6, personName: 'Jane Doe', rootName: 'Emily E',
+                expected: ['Grandmother', 'Grandparent'], 
+                description: 'Jane is grandmother of Emily (mother of Alice)',
+                category: 'Grandparent-Grandchild'
+            },
+        ];
+        
+        let successCount = 0;
+        let totalTests = testCases.length;
+        const results = [];
+        const resultsByCategory = {};
+        
+        testCases.forEach(testCase => {
+            const person = railsAPIResponse.nodes.find(n => n.id === testCase.person);
+            const root = railsAPIResponse.nodes.find(n => n.id === testCase.root);
+            
+            const relationship = calculateRelationshipToRoot(person, root, railsAPIResponse.nodes, railsAPIResponse.edges);
+            const success = testCase.expected.includes(relationship);
+            
+            if (success) successCount++;
+            
+            const result = {
+                ...testCase,
+                actualRelationship: relationship,
+                success
+            };
+            
+            results.push(result);
+            
+            // Group by category
+            if (!resultsByCategory[testCase.category]) {
+                resultsByCategory[testCase.category] = [];
+            }
+            resultsByCategory[testCase.category].push(result);
+            
+            console.log(`${testCase.personName} → ${testCase.rootName}: "${relationship}" ${success ? '✅' : '❌'}`);
+            console.log(`  Expected: [${testCase.expected.join(', ')}]`);
+            console.log(`  Category: ${testCase.category}`);
+        });
+        
+        // Test full family tree with multiple roots
+        console.log('\n=== FULL FAMILY TREE TESTS ===');
+        const rootTestCases = [
+            { person: 7, name: 'Charlie C' },
+            { person: 3, name: 'Alice A' },
+            { person: 1, name: 'John Doe' }
+        ];
+        
+        const fullTreeResults = {};
+        
+        rootTestCases.forEach(rootCase => {
+            const root = railsAPIResponse.nodes.find(n => n.id === rootCase.person);
+            const allRelations = getAllRelationshipsToRoot(root, railsAPIResponse.nodes, railsAPIResponse.edges);
+            
+            fullTreeResults[rootCase.name] = allRelations.filter(p => p.id !== root.id);
+            
+            console.log(`\\n--- Family Tree with ${rootCase.name} as Root ---`);
+            allRelations.forEach(person => {
+                if (person.id !== root.id) {
+                    console.log(`  ${person.full_name}: ${person.relation}`);
+                }
+            });
+        });
+        
+        const overallSuccess = successCount === totalTests;
+        const successRate = (successCount / totalTests * 100).toFixed(1);
+        
+        console.log(`\\n=== SUMMARY ===`);
+        console.log(`Success Rate: ${successCount}/${totalTests} (${successRate}%)`);
+        console.log(`Overall Status: ${overallSuccess ? 'SUCCESS' : 'PARTIAL SUCCESS'}`);
+        
+        // Display results
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML = `
+            <div class="result ${overallSuccess ? 'success' : (successCount > 0 ? 'partial' : 'failure')}">
+                <h2>🎯 Comprehensive Test Summary</h2>
+                <p><strong>Success Rate:</strong> ${successCount}/${totalTests} (${successRate}%)</p>
+                <p><strong>Status:</strong> ${overallSuccess ? '✅ ALL TESTS PASSED' : `⚠️ ${successCount} out of ${totalTests} tests passed`}</p>
+                <p><strong>Data Format:</strong> Rails API (bidirectional relationships)</p>
+            </div>
+            
+            <div class="test-group">
+                <h3>📊 Results by Category</h3>
+                ${Object.entries(resultsByCategory).map(([category, categoryResults]) => {
+                    const categorySuccessCount = categoryResults.filter(r => r.success).length;
+                    const categoryTotal = categoryResults.length;
+                    const categoryRate = (categorySuccessCount / categoryTotal * 100).toFixed(1);
+                    
+                    return `
+                        <div class="result ${categorySuccessCount === categoryTotal ? 'success' : 'partial'}">
+                            <h4>${category} (${categorySuccessCount}/${categoryTotal} - ${categoryRate}%)</h4>
+                            ${categoryResults.map(result => `
+                                <div class="test-case ${result.success ? 'success' : 'failure'}">
+                                    <strong>${result.personName} → ${result.rootName}</strong><br>
+                                    <strong>Result:</strong> "${result.actualRelationship}" ${result.success ? '✅' : '❌'}<br>
+                                    <strong>Expected:</strong> [${result.expected.join(', ')}]<br>
+                                    <em>${result.description}</em>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            
+            <div class="result">
+                <h3>👥 Full Family Tree Tests</h3>
+                ${Object.entries(fullTreeResults).map(([rootName, relations]) => `
+                    <div style="margin-bottom: 15px;">
+                        <h4>${rootName} as Root</h4>
+                        ${relations.map(person => `
+                            <p style="margin: 2px 0;"><strong>${person.full_name}:</strong> ${person.relation}</p>
+                        `).join('')}
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="result">
+                <h3>🏗️ Rails API Family Structure</h3>
+                <p><strong>Generation 1:</strong> John Doe (1970) ↔ Jane Doe (1972, †2022)</p>
+                <p><strong>Generation 2:</strong> Alice A (1995), Charlie C (1997)</p>
+                <p><strong>Generation 2.5:</strong> David A (1993) [Ex-spouse of Alice]</p>
+                <p><strong>Generation 3:</strong> Bob B (2017), Emily E (2019)</p>
+                <p><strong>Relationships:</strong> Bidirectional as per Rails API format</p>
+            </div>
+        `;
+        
+        // Display debug output
+        const debugDiv = document.getElementById('debug-output');
+        debugDiv.innerHTML = `
+            <div class="result debug">
+                <h3>🔍 Debug Output</h3>
+                <pre>${debugOutput.join('\n')}</pre>
+            </div>
+        `;
+        
+        // Restore console.log
+        console.log = originalLog;
+    </script>
+</body>
+</html>

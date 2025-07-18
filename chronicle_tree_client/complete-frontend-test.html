@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Frontend Integration Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .test-section { background: #f8f9fa; padding: 20px; margin: 20px 0; border-radius: 8px; border-left: 4px solid #007bff; }
+        .result { padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .failure { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .console-instructions { background: #343a40; color: #f8f9fa; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+        .api-button { background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .api-button:hover { background: #0056b3; }
+        .api-button.secondary { background: #6c757d; }
+        .api-button.secondary:hover { background: #545b62; }
+        .relationship-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px; margin: 20px 0; }
+        .relationship-card { background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .relationship-card.success { border-left: 4px solid #28a745; }
+        .relationship-card.failure { border-left: 4px solid #dc3545; }
+        .stats { display: flex; justify-content: space-around; background: #e9ecef; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .stat { text-align: center; }
+        .stat-number { font-size: 2em; font-weight: bold; color: #007bff; }
+        .stat-label { font-size: 0.9em; color: #6c757d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔬 Complete Frontend Integration Test</h1>
+        <p><strong>Testing ChronicleTree relationship calculator with real seed data</strong></p>
+        
+        <div class="test-section">
+            <h2>📋 Instructions</h2>
+            <p>This test validates the relationship calculator with actual seed data from the Rails API.</p>
+            <div class="result info">
+                <h3>🛠️ Rails Console Commands</h3>
+                <p>To extract real data from your Rails console, copy and paste this:</p>
+                <div class="console-instructions">load 'extract_seeds_data.rb'</div>
+                <p>Then copy the generated API data and paste it into the "Real API Data" section below.</p>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧪 Test Controls</h2>
+            <button class="api-button" onclick="runMockDataTest()">Test with Mock Data</button>
+            <button class="api-button secondary" onclick="runRealAPITest()">Test with Real API (if running)</button>
+            <button class="api-button secondary" onclick="runComprehensiveTest()">Run All Tests</button>
+            <button class="api-button secondary" onclick="clearResults()">Clear Results</button>
+        </div>
+
+        <div id="test-results"></div>
+        
+        <div class="test-section">
+            <h2>📊 Test Statistics</h2>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-number" id="total-tests">0</div>
+                    <div class="stat-label">Total Tests</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="passed-tests">0</div>
+                    <div class="stat-label">Passed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="failed-tests">0</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-number" id="success-rate">0%</div>
+                    <div class="stat-label">Success Rate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        
+        // Mock data based on seeds.rb
+        const mockSeedData = {
+            nodes: [
+                { id: 1, first_name: "John", last_name: "Doe", full_name: "John Doe", gender: "Male", date_of_birth: "1970-01-01", is_alive: true },
+                { id: 2, first_name: "Jane", last_name: "Doe", full_name: "Jane Doe", gender: "Female", date_of_birth: "1972-01-01", date_of_death: "2022-01-01", is_alive: false },
+                { id: 3, first_name: "Alice", last_name: "A", full_name: "Alice A", gender: "Female", date_of_birth: "1995-01-01", is_alive: true },
+                { id: 4, first_name: "David", last_name: "A", full_name: "David A", gender: "Male", date_of_birth: "1993-01-01", is_alive: true },
+                { id: 5, first_name: "Bob", last_name: "B", full_name: "Bob B", gender: "Male", date_of_birth: "2017-01-01", is_alive: true },
+                { id: 6, first_name: "Emily", last_name: "E", full_name: "Emily E", gender: "Female", date_of_birth: "2019-01-01", is_alive: true },
+                { id: 7, first_name: "Charlie", last_name: "C", full_name: "Charlie C", gender: "Male", date_of_birth: "1997-01-01", is_alive: true }
+            ],
+            edges: [
+                // Parent-child relationships (bidirectional)
+                { source: 1, target: 3, relationship_type: "child", is_ex: false },
+                { source: 3, target: 1, relationship_type: "parent", is_ex: false },
+                { source: 2, target: 3, relationship_type: "child", is_ex: false },
+                { source: 3, target: 2, relationship_type: "parent", is_ex: false },
+                { source: 1, target: 7, relationship_type: "child", is_ex: false },
+                { source: 7, target: 1, relationship_type: "parent", is_ex: false },
+                { source: 2, target: 7, relationship_type: "child", is_ex: false },
+                { source: 7, target: 2, relationship_type: "parent", is_ex: false },
+                { source: 3, target: 5, relationship_type: "child", is_ex: false },
+                { source: 5, target: 3, relationship_type: "parent", is_ex: false },
+                { source: 4, target: 5, relationship_type: "child", is_ex: false },
+                { source: 5, target: 4, relationship_type: "parent", is_ex: false },
+                { source: 3, target: 6, relationship_type: "child", is_ex: false },
+                { source: 6, target: 3, relationship_type: "parent", is_ex: false },
+                { source: 4, target: 6, relationship_type: "child", is_ex: false },
+                { source: 6, target: 4, relationship_type: "parent", is_ex: false },
+                // Spouse relationships
+                { source: 1, target: 2, relationship_type: "spouse", is_ex: false },
+                { source: 2, target: 1, relationship_type: "spouse", is_ex: false },
+                { source: 3, target: 4, relationship_type: "spouse", is_ex: true },
+                { source: 4, target: 3, relationship_type: "spouse", is_ex: true },
+                // Sibling relationships
+                { source: 5, target: 6, relationship_type: "sibling", is_ex: false },
+                { source: 6, target: 5, relationship_type: "sibling", is_ex: false },
+                { source: 7, target: 3, relationship_type: "sibling", is_ex: false },
+                { source: 3, target: 7, relationship_type: "sibling", is_ex: false }
+            ]
+        };
+
+        let testResults = [];
+        let currentTestStats = { total: 0, passed: 0, failed: 0 };
+
+        // Comprehensive test cases
+        const testCases = [
+            // Core sibling relationships (the original bug)
+            { person: 3, root: 7, personName: 'Alice A', rootName: 'Charlie C', expected: ['Sister', 'Sibling'], category: 'Sibling', priority: 'high' },
+            { person: 7, root: 3, personName: 'Charlie C', rootName: 'Alice A', expected: ['Brother', 'Sibling'], category: 'Sibling', priority: 'high' },
+            { person: 5, root: 6, personName: 'Bob B', rootName: 'Emily E', expected: ['Brother', 'Sibling'], category: 'Sibling', priority: 'high' },
+            { person: 6, root: 5, personName: 'Emily E', rootName: 'Bob B', expected: ['Sister', 'Sibling'], category: 'Sibling', priority: 'high' },
+            
+            // Parent-child relationships
+            { person: 1, root: 3, personName: 'John Doe', rootName: 'Alice A', expected: ['Father', 'Parent'], category: 'Parent-Child', priority: 'high' },
+            { person: 3, root: 1, personName: 'Alice A', rootName: 'John Doe', expected: ['Daughter', 'Child'], category: 'Parent-Child', priority: 'high' },
+            { person: 2, root: 7, personName: 'Jane Doe', rootName: 'Charlie C', expected: ['Mother', 'Parent'], category: 'Parent-Child', priority: 'high' },
+            { person: 5, root: 3, personName: 'Bob B', rootName: 'Alice A', expected: ['Son', 'Child'], category: 'Parent-Child', priority: 'high' },
+            
+            // Spouse relationships
+            { person: 1, root: 2, personName: 'John Doe', rootName: 'Jane Doe', expected: ['Husband', 'Spouse'], category: 'Spouse', priority: 'medium' },
+            { person: 2, root: 1, personName: 'Jane Doe', rootName: 'John Doe', expected: ['Wife', 'Spouse'], category: 'Spouse', priority: 'medium' },
+            { person: 3, root: 4, personName: 'Alice A', rootName: 'David A', expected: ['Ex-Wife', 'Ex-Spouse'], category: 'Ex-Spouse', priority: 'medium' },
+            { person: 4, root: 3, personName: 'David A', rootName: 'Alice A', expected: ['Ex-Husband', 'Ex-Spouse'], category: 'Ex-Spouse', priority: 'medium' },
+            
+            // Extended family relationships
+            { person: 7, root: 5, personName: 'Charlie C', rootName: 'Bob B', expected: ['Uncle'], category: 'Extended', priority: 'medium' },
+            { person: 7, root: 6, personName: 'Charlie C', rootName: 'Emily E', expected: ['Uncle'], category: 'Extended', priority: 'medium' },
+            { person: 5, root: 7, personName: 'Bob B', rootName: 'Charlie C', expected: ['Nephew'], category: 'Extended', priority: 'medium' },
+            { person: 6, root: 7, personName: 'Emily E', rootName: 'Charlie C', expected: ['Niece'], category: 'Extended', priority: 'medium' },
+            
+            // Grandparent-grandchild relationships
+            { person: 1, root: 5, personName: 'John Doe', rootName: 'Bob B', expected: ['Grandfather', 'Grandparent'], category: 'Grandparent-Grandchild', priority: 'low' },
+            { person: 5, root: 1, personName: 'Bob B', rootName: 'John Doe', expected: ['Grandson', 'Grandchild'], category: 'Grandparent-Grandchild', priority: 'low' },
+            { person: 2, root: 6, personName: 'Jane Doe', rootName: 'Emily E', expected: ['Grandmother', 'Grandparent'], category: 'Grandparent-Grandchild', priority: 'low' },
+            { person: 6, root: 2, personName: 'Emily E', rootName: 'Jane Doe', expected: ['Granddaughter', 'Grandchild'], category: 'Grandparent-Grandchild', priority: 'low' },
+            
+            // In-law relationships
+            { person: 4, root: 1, personName: 'David A', rootName: 'John Doe', expected: ['Ex-Son-in-law'], category: 'In-Law', priority: 'low' },
+            { person: 1, root: 4, personName: 'John Doe', rootName: 'David A', expected: ['Ex-Father-in-law'], category: 'In-Law', priority: 'low' }
+        ];
+
+        window.runMockDataTest = function() {
+            console.log('🧪 Running Mock Data Test...');
+            runTestSuite('Mock Data Test', mockSeedData);
+        };
+
+        window.runRealAPITest = async function() {
+            console.log('🌐 Running Real API Test...');
+            try {
+                const response = await fetch('http://localhost:3000/api/v1/people/tree');
+                if (response.ok) {
+                    const data = await response.json();
+                    runTestSuite('Real API Test', data);
+                } else {
+                    displayResult('Real API Test', { error: 'API not available', details: 'Rails server may not be running' }, false);
+                }
+            } catch (error) {
+                displayResult('Real API Test', { error: error.message, details: 'Could not connect to API' }, false);
+            }
+        };
+
+        window.runComprehensiveTest = function() {
+            console.log('🔬 Running Comprehensive Test...');
+            clearResults();
+            runMockDataTest();
+            setTimeout(() => runRealAPITest(), 1000);
+        };
+
+        window.clearResults = function() {
+            document.getElementById('test-results').innerHTML = '';
+            testResults = [];
+            currentTestStats = { total: 0, passed: 0, failed: 0 };
+            updateStats();
+        };
+
+        function runTestSuite(testName, data) {
+            const { nodes, edges } = data;
+            const suiteResults = [];
+            
+            console.log(`=== ${testName} ===`);
+            
+            // Run all test cases
+            testCases.forEach(testCase => {
+                const person = nodes.find(n => n.id === testCase.person);
+                const root = nodes.find(n => n.id === testCase.root);
+                
+                if (!person || !root) {
+                    console.warn(`Skipping test: Could not find person (${testCase.person}) or root (${testCase.root})`);
+                    return;
+                }
+                
+                const relationship = calculateRelationshipToRoot(person, root, nodes, edges);
+                const success = testCase.expected.includes(relationship);
+                
+                const result = {
+                    ...testCase,
+                    actualRelationship: relationship,
+                    success,
+                    testName
+                };
+                
+                suiteResults.push(result);
+                testResults.push(result);
+                
+                currentTestStats.total++;
+                if (success) {
+                    currentTestStats.passed++;
+                } else {
+                    currentTestStats.failed++;
+                }
+                
+                console.log(`${testCase.personName} → ${testCase.rootName}: "${relationship}" ${success ? '✅' : '❌'}`);
+            });
+            
+            // Test full family tree
+            const charlie = nodes.find(n => n.id === 7);
+            if (charlie) {
+                const fullTree = getAllRelationshipsToRoot(charlie, nodes, edges);
+                console.log('\\nFull Family Tree (Charlie as Root):');
+                fullTree.forEach(person => {
+                    if (person.id !== 7) {
+                        console.log(`  ${person.full_name}: ${person.relation}`);
+                    }
+                });
+            }
+            
+            displayTestResults(testName, suiteResults, data);
+            updateStats();
+        }
+
+        function displayTestResults(testName, results, data) {
+            const container = document.getElementById('test-results');
+            const successCount = results.filter(r => r.success).length;
+            const totalCount = results.length;
+            const successRate = totalCount > 0 ? (successCount / totalCount * 100).toFixed(1) : 0;
+            
+            // Group results by category
+            const resultsByCategory = {};
+            results.forEach(result => {
+                if (!resultsByCategory[result.category]) {
+                    resultsByCategory[result.category] = [];
+                }
+                resultsByCategory[result.category].push(result);
+            });
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'test-section';
+            resultDiv.innerHTML = `
+                <h2>${testName}</h2>
+                <div class="result ${successCount === totalCount ? 'success' : (successCount > 0 ? 'warning' : 'failure')}">
+                    <h3>📊 Test Summary</h3>
+                    <p><strong>Success Rate:</strong> ${successCount}/${totalCount} (${successRate}%)</p>
+                    <p><strong>Data Source:</strong> ${data.nodes ? data.nodes.length : 0} people, ${data.edges ? data.edges.length : 0} relationships</p>
+                </div>
+                
+                <div class="relationship-grid">
+                    ${Object.entries(resultsByCategory).map(([category, categoryResults]) => {
+                        const categorySuccess = categoryResults.filter(r => r.success).length;
+                        const categoryTotal = categoryResults.length;
+                        const categoryRate = (categorySuccess / categoryTotal * 100).toFixed(1);
+                        
+                        return `
+                            <div class="relationship-card ${categorySuccess === categoryTotal ? 'success' : 'failure'}">
+                                <h4>${category}</h4>
+                                <p><strong>Success Rate:</strong> ${categorySuccess}/${categoryTotal} (${categoryRate}%)</p>
+                                <div style="font-size: 0.9em;">
+                                    ${categoryResults.map(result => `
+                                        <div style="margin: 5px 0;">
+                                            <strong>${result.personName} → ${result.rootName}:</strong><br>
+                                            "${result.actualRelationship}" ${result.success ? '✅' : '❌'}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+            
+            container.appendChild(resultDiv);
+        }
+
+        function updateStats() {
+            document.getElementById('total-tests').textContent = currentTestStats.total;
+            document.getElementById('passed-tests').textContent = currentTestStats.passed;
+            document.getElementById('failed-tests').textContent = currentTestStats.failed;
+            
+            const rate = currentTestStats.total > 0 ? (currentTestStats.passed / currentTestStats.total * 100).toFixed(1) : 0;
+            document.getElementById('success-rate').textContent = rate + '%';
+        }
+
+        // Auto-run mock data test on page load
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                runMockDataTest();
+            }, 500);
+        });
+    </script>
+</body>
+</html>

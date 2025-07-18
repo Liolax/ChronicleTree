@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Test - Alice and Charlie</title>
+</head>
+<body>
+    <h1>Relationship Test: Alice and Charlie</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        import { mockFamilyData } from './src/data/mockData.js';
+        
+        const { nodes, edges } = mockFamilyData;
+        
+        // Find Alice and Charlie
+        const alice = nodes.find(n => n.id === 4);
+        const charlie = nodes.find(n => n.id === 5);
+        
+        console.log('Alice:', alice);
+        console.log('Charlie:', charlie);
+        console.log('All relationships:', edges);
+        
+        // Test Alice -> Charlie relationship
+        const aliceToCharlie = calculateRelationshipToRoot(alice, charlie, nodes, edges);
+        console.log('Alice to Charlie:', aliceToCharlie);
+        
+        // Test Charlie -> Alice relationship
+        const charlieToAlice = calculateRelationshipToRoot(charlie, alice, nodes, edges);
+        console.log('Charlie to Alice:', charlieToAlice);
+        
+        // Display results
+        const results = document.getElementById('results');
+        results.innerHTML = `
+            <h2>Test Results:</h2>
+            <p><strong>Alice to Charlie:</strong> ${aliceToCharlie}</p>
+            <p><strong>Charlie to Alice:</strong> ${charlieToAlice}</p>
+            <h3>Expected:</h3>
+            <p>Both should show "Sister" or "Brother" respectively</p>
+            <h3>Family Structure:</h3>
+            <p>John (1) and Jane (2) are parents of Bob (3), Alice (4), and Charlie (5)</p>
+            <p>Alice and Charlie should be siblings</p>
+        `;
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relationship Test - Alice and Charlie</title>
+</head>
+<body>
+    <h1>Relationship Test: Alice and Charlie</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        import { mockFamilyData } from './src/data/mockData.js';
+        
+        const { nodes, edges } = mockFamilyData;
+        
+        // Find Alice and Charlie
+        const alice = nodes.find(n => n.id === 4);
+        const charlie = nodes.find(n => n.id === 5);
+        
+        console.log('Alice:', alice);
+        console.log('Charlie:', charlie);
+        console.log('All relationships:', edges);
+        
+        // Test Alice -> Charlie relationship
+        const aliceToCharlie = calculateRelationshipToRoot(alice, charlie, nodes, edges);
+        console.log('Alice to Charlie:', aliceToCharlie);
+        
+        // Test Charlie -> Alice relationship
+        const charlieToAlice = calculateRelationshipToRoot(charlie, alice, nodes, edges);
+        console.log('Charlie to Alice:', charlieToAlice);
+        
+        // Display results
+        const results = document.getElementById('results');
+        results.innerHTML = `
+            <h2>Test Results:</h2>
+            <p><strong>Alice to Charlie:</strong> ${aliceToCharlie}</p>
+            <p><strong>Charlie to Alice:</strong> ${charlieToAlice}</p>
+            <h3>Expected:</h3>
+            <p>Both should show "Sister" or "Brother" respectively</p>
+            <h3>Family Structure:</h3>
+            <p>John (1) and Jane (2) are parents of Bob (3), Alice (4), and Charlie (5)</p>
+            <p>Alice and Charlie should be siblings</p>
+        `;
+    </script>
+</body>
+</html>

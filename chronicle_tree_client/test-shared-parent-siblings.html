@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Shared Parent Sibling Detection</title>
+</head>
+<body>
+    <h1>Test Shared Parent Sibling Detection</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        // Test the shared parent sibling detection fix
+        import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+
+        // Test data - Alice and Charlie share parents John and Jane
+        const testPeople = [
+          { id: 1, first_name: 'John', last_name: 'Doe', gender: 'Male', full_name: 'John Doe' },
+          { id: 2, first_name: 'Jane', last_name: 'Doe', gender: 'Female', full_name: 'Jane Doe' },
+          { id: 4, first_name: 'Alice', last_name: 'Smith', gender: 'Female', full_name: 'Alice Smith' },
+          { id: 5, first_name: 'Charlie', last_name: 'Doe', gender: 'Male', full_name: 'Charlie Doe' }
+        ];
+
+        // Parent-child relationships (using mock data format)
+        const testRelationships = [
+          // John and Jane are parents of Alice and Charlie
+          { from: 1, to: 4, type: 'parent' },  // John -> Alice
+          { from: 2, to: 4, type: 'parent' },  // Jane -> Alice  
+          { from: 1, to: 5, type: 'parent' },  // John -> Charlie
+          { from: 2, to: 5, type: 'parent' },  // Jane -> Charlie
+          
+          // No explicit sibling relationships - should be detected through shared parents
+        ];
+
+        console.log('=== TESTING SHARED PARENT SIBLING DETECTION ===');
+
+        const alice = testPeople.find(p => p.id === 4);
+        const charlie = testPeople.find(p => p.id === 5);
+
+        console.log('Alice:', alice);
+        console.log('Charlie:', charlie);
+
+        // Test Alice -> Charlie relationship
+        const aliceToCharlie = calculateRelationshipToRoot(alice, charlie, testPeople, testRelationships);
+        console.log(`Alice -> Charlie: "${aliceToCharlie}" (expected: "Sister")`);
+
+        // Test Charlie -> Alice relationship  
+        const charlieToAlice = calculateRelationshipToRoot(charlie, alice, testPeople, testRelationships);
+        console.log(`Charlie -> Alice: "${charlieToAlice}" (expected: "Brother")`);
+
+        // Check if both are correct
+        let result = '';
+        if (aliceToCharlie === 'Sister' && charlieToAlice === 'Brother') {
+          result = '✅ SUCCESS: Shared parent sibling detection is working!';
+          console.log(result);
+        } else {
+          result = '❌ FAILED: Shared parent sibling detection is not working';
+          console.log(result);
+          console.log('  Expected: Alice="Sister", Charlie="Brother"');
+          console.log(`  Got: Alice="${aliceToCharlie}", Charlie="${charlieToAlice}"`);
+        }
+
+        document.getElementById('results').innerHTML = `
+          <h2>Test Results</h2>
+          <p>Alice → Charlie: <strong>${aliceToCharlie}</strong> (expected: Sister)</p>
+          <p>Charlie → Alice: <strong>${charlieToAlice}</strong> (expected: Brother)</p>
+          <p style="color: ${result.includes('SUCCESS') ? 'green' : 'red'}"><strong>${result}</strong></p>
+        `;
+
+        console.log('=== END TEST ===');
+    </script>
+</body>
+</html>

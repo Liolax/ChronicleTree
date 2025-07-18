@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .failure { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        .debug { background: #e2e3e5; border: 1px solid #d6d8db; color: #383d41; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🌐 Live API Test</h1>
+    <p>Testing relationship calculator with live Rails API data</p>
+    <div id="results">Loading...</div>
+    <div id="debug-output"></div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        
+        // Function to test with live API data
+        async function testWithLiveAPI() {
+            const debugOutput = [];
+            const originalLog = console.log;
+            console.log = (...args) => {
+                debugOutput.push(args.join(' '));
+                originalLog(...args);
+            };
+            
+            try {
+                console.log('=== LIVE API TEST ===');
+                
+                // Try different potential API endpoints
+                const possibleEndpoints = [
+                    'http://localhost:3000/api/v1/full_tree',
+                    'http://localhost:3000/api/full_tree',
+                    'http://localhost:3000/full_tree',
+                    'http://localhost:3000/api/v1/people',
+                    'http://localhost:3000/api/people',
+                    'http://localhost:3000/people'
+                ];
+                
+                let apiData = null;
+                let successfulEndpoint = null;
+                
+                // Test each endpoint
+                for (const endpoint of possibleEndpoints) {
+                    try {
+                        console.log(`Trying endpoint: ${endpoint}`);
+                        const response = await fetch(endpoint);
+                        
+                        if (response.ok) {
+                            apiData = await response.json();
+                            successfulEndpoint = endpoint;
+                            console.log(`✅ Success with endpoint: ${endpoint}`);
+                            break;
+                        } else {
+                            console.log(`❌ Failed with endpoint: ${endpoint} (${response.status})`);
+                        }
+                    } catch (error) {
+                        console.log(`❌ Error with endpoint: ${endpoint} - ${error.message}`);
+                    }
+                }
+                
+                if (!apiData) {
+                    throw new Error('Could not connect to any API endpoint');
+                }
+                
+                console.log('API Data structure:', apiData);
+                
+                // Test relationships with API data
+                const nodes = apiData.nodes || apiData.people || apiData;
+                const edges = apiData.edges || apiData.relationships || [];
+                
+                console.log(`Found ${nodes.length} people and ${edges.length} relationships`);
+                
+                // Find Alice and Charlie from API data
+                const alice = nodes.find(n => n.first_name === 'Alice' && n.last_name === 'A');
+                const charlie = nodes.find(n => n.first_name === 'Charlie' && n.last_name === 'C');
+                
+                if (!alice || !charlie) {
+                    throw new Error('Could not find Alice A or Charlie C in API data');
+                }
+                
+                console.log('Found Alice:', alice);
+                console.log('Found Charlie:', charlie);
+                
+                // Test the key relationship
+                const aliceToCharlie = calculateRelationshipToRoot(alice, charlie, nodes, edges);
+                const charlieToAlice = calculateRelationshipToRoot(charlie, alice, nodes, edges);
+                
+                console.log(`Alice → Charlie: "${aliceToCharlie}"`);
+                console.log(`Charlie → Alice: "${charlieToAlice}"`);
+                
+                // Test full family tree
+                const allRelationsToCharlie = getAllRelationshipsToRoot(charlie, nodes, edges);
+                
+                console.log('All relationships to Charlie:');
+                allRelationsToCharlie.forEach(person => {
+                    if (person.id !== charlie.id) {
+                        console.log(`  ${person.first_name} ${person.last_name}: ${person.relation}`);
+                    }
+                });
+                
+                const expectedRelations = ['Sister', 'Brother', 'Sibling'];
+                const aliceSuccess = expectedRelations.includes(aliceToCharlie);
+                const charlieSuccess = expectedRelations.includes(charlieToAlice);
+                const overallSuccess = aliceSuccess && charlieSuccess;
+                
+                // Display results
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `
+                    <div class="result info">
+                        <h2>🌐 Live API Connection</h2>
+                        <p><strong>Endpoint:</strong> ${successfulEndpoint}</p>
+                        <p><strong>People found:</strong> ${nodes.length}</p>
+                        <p><strong>Relationships found:</strong> ${edges.length}</p>
+                    </div>
+                    
+                    <div class="result ${overallSuccess ? 'success' : 'failure'}">
+                        <h2>🎯 Relationship Test Results</h2>
+                        <p><strong>Alice → Charlie:</strong> "${aliceToCharlie}" ${aliceSuccess ? '✅' : '❌'}</p>
+                        <p><strong>Charlie → Alice:</strong> "${charlieToAlice}" ${charlieSuccess ? '✅' : '❌'}</p>
+                        <p><strong>Status:</strong> ${overallSuccess ? '✅ SUCCESS - Live API working!' : '❌ FAILURE - Issue with live API'}</p>
+                    </div>
+                    
+                    <div class="result">
+                        <h3>👥 Full Family Tree (Charlie as Root)</h3>
+                        ${allRelationsToCharlie.filter(p => p.id !== charlie.id).map(person => `
+                            <p><strong>${person.first_name} ${person.last_name}:</strong> ${person.relation}</p>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="result">
+                        <h3>📊 API Data Structure</h3>
+                        <pre>${JSON.stringify(apiData, null, 2).substring(0, 1000)}...</pre>
+                    </div>
+                `;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                
+                const resultsDiv = document.getElementById('results');
+                resultsDiv.innerHTML = `
+                    <div class="result failure">
+                        <h2>❌ API Connection Failed</h2>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                        <p><strong>Possible reasons:</strong></p>
+                        <ul>
+                            <li>Rails API server not running</li>
+                            <li>API endpoint changed</li>
+                            <li>CORS issues</li>
+                            <li>Database not seeded</li>
+                        </ul>
+                        <p><strong>To fix:</strong> Start Rails server with <code>rails server</code> and ensure database is seeded</p>
+                    </div>
+                `;
+            }
+            
+            // Display debug output
+            const debugDiv = document.getElementById('debug-output');
+            debugDiv.innerHTML = `
+                <div class="result debug">
+                    <h3>🔍 Debug Output</h3>
+                    <pre>${debugOutput.join('\n')}</pre>
+                </div>
+            `;
+            
+            // Restore console.log
+            console.log = originalLog;
+        }
+        
+        // Run the test
+        testWithLiveAPI();
+    </script>
+</body>
+</html>
