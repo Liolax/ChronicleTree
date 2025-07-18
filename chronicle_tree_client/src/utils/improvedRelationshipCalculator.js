@@ -63,7 +63,10 @@ const buildRelationshipMaps = (relationships) => {
     const source = String(rel.source || rel.from);
     const target = String(rel.target || rel.to);
     
-    switch (rel.type) {
+    // Support both 'type' and 'relationship_type' field names for flexibility
+    const relationshipType = rel.type || rel.relationship_type;
+    
+    switch (relationshipType) {
       case 'parent':
         // Parent -> Child relationship
         if (!parentToChildren.has(source)) {
@@ -223,6 +226,26 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     }
   }
   
+  // Check for great-grandparent relationship
+  for (const parent of rootParents) {
+    const grandparents = childToParents.get(parent) || new Set();
+    for (const grandparent of grandparents) {
+      if (childToParents.has(grandparent) && childToParents.get(grandparent).has(personId)) {
+        return getGenderSpecificRelation(personId, 'Great-Grandfather', 'Great-Grandmother', allPeople, 'Great-Grandparent');
+      }
+    }
+  }
+  
+  // Check for great-grandchild relationship
+  for (const child of rootChildren) {
+    const grandchildren = parentToChildren.get(child) || new Set();
+    for (const grandchild of grandchildren) {
+      if (parentToChildren.has(grandchild) && parentToChildren.get(grandchild).has(personId)) {
+        return getGenderSpecificRelation(personId, 'Great-Grandson', 'Great-Granddaughter', allPeople, 'Great-Grandchild');
+      }
+    }
+  }
+  
   // Check for aunt/uncle relationship (person is aunt/uncle of root)
   const rootSiblings = siblingMap.get(rootId) || new Set();
 
@@ -246,7 +269,23 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     const personParentSiblings = siblingMap.get(personParent) || new Set();
     for (const rootParent of rootParents) {
       if (personParentSiblings.has(rootParent)) {
-        return 'Cousin';
+        return '1st Cousin';
+      }
+    }
+  }
+  
+  // Check for 2nd cousin relationship (person and root share great-grandparents)
+  for (const personParent of personParents) {
+    const personGrandparents = childToParents.get(personParent) || new Set();
+    for (const personGrandparent of personGrandparents) {
+      const personGrandparentSiblings = siblingMap.get(personGrandparent) || new Set();
+      for (const rootParent of rootParents) {
+        const rootGrandparents = childToParents.get(rootParent) || new Set();
+        for (const rootGrandparent of rootGrandparents) {
+          if (personGrandparentSiblings.has(rootGrandparent)) {
+            return '2nd Cousin';
+          }
+        }
       }
     }
   }
@@ -335,6 +374,26 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   for (const spouse of personCurrentSpouses) {
     if (childToParents.has(spouse) && childToParents.get(spouse).has(rootId)) {
       return getGenderSpecificRelation(rootId, 'Father-in-law', 'Mother-in-law', allPeople, 'Parent-in-law');
+    }
+  }
+  
+  // ===========================================
+  // PARENT-OF-SPOUSE TO PARENT-OF-SPOUSE RELATIONSHIPS
+  // ===========================================
+  
+  // Check if person and root are both parents of spouses (co-parents-in-law)
+  // Example: Michael A (David's father) ↔ John/Jane Doe (Alice's parents) when David ↔ Alice are/were married
+  // Note: Co-parent-in-law relationships persist even after divorce due to shared grandchildren
+  for (const personChild of (parentToChildren.get(personId) || new Set())) {
+    for (const rootChild of (parentToChildren.get(rootId) || new Set())) {
+      // Check if person's child is/was married to root's child (current or ex-spouse)
+      const personChildCurrentSpouses = spouseMap.get(personChild) || new Set();
+      const personChildExSpouses = relationshipMaps.exSpouseMap.get(personChild) || new Set();
+      
+      if (personChildCurrentSpouses.has(rootChild) || personChildExSpouses.has(rootChild)) {
+        // They are co-parents-in-law (parents of current or former spouses)
+        return getGenderSpecificRelation(personId, 'Co-Father-in-law', 'Co-Mother-in-law', allPeople, 'Co-Parent-in-law');
+      }
     }
   }
   

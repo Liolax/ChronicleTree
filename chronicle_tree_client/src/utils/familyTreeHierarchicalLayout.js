@@ -134,7 +134,10 @@ const buildRelationshipMaps = (relationships) => {
     const source = String(rel.source || rel.from);
     const target = String(rel.target || rel.to);
     
-    switch (rel.type) {
+    // Support both 'type' and 'relationship_type' field names for flexibility
+    const relationshipType = rel.type || rel.relationship_type;
+    
+    switch (relationshipType) {
       case 'parent':
         // Parent -> Child relationship
         if (!parentToChildren.has(source)) {
@@ -352,9 +355,9 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
   const processedConnections = new Set();
 
   // Group relationships by type for better processing
-  const parentRelationships = relationships.filter(rel => rel.type === 'parent');
-  const spouseRelationships = relationships.filter(rel => rel.type === 'spouse');
-  const siblingRelationships = relationships.filter(rel => rel.type === 'sibling');
+  const parentRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'parent');
+  const spouseRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'spouse');
+  const siblingRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'sibling');
 
   // Enhanced Debug: Print all sibling relationships and sibling map for verification
   if (siblingRelationships.length > 0) {
@@ -446,7 +449,7 @@ export const centerChildrenBetweenParents = (nodes, relationships) => {
   // Build child to parents map
   const childToParents = new Map();
   relationships.forEach(rel => {
-    if (rel.type === 'parent') {
+    if ((rel.type || rel.relationship_type) === 'parent') {
       const parentId = String(rel.source || rel.from);
       const childId = String(rel.target || rel.to);
       

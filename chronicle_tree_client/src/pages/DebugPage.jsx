@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { debugRelationships } from '../debug-relationships';
+import { debugRelationships } from '../utils/debug-relationships';
 
 function DebugPage() {
   useEffect(() => {

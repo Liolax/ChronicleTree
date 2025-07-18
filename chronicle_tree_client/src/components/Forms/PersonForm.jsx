@@ -55,9 +55,20 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
 
   const relationType = watch('relationType');
 
-  // Only show people with the same user_id as the current user
+  // Filter people to show only those belonging to the current user
   // For test/demo data, if user_id is missing, show all except self
-  const filteredPeople = people.filter(p => !person || p.id !== person.id);
+  const filteredPeople = people.filter(p => {
+    // Exclude the person being edited (self)
+    if (person && p.id === person.id) return false;
+    
+    // If we have current user data, only show people belonging to this user
+    if (currentUser?.id) {
+      return p.user_id === currentUser.id;
+    }
+    
+    // Fallback for test/demo data without user_id - show all
+    return true;
+  });
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 max-h-[340px] overflow-y-auto">
