@@ -58,7 +58,7 @@ module Api
 
       def timeline_item_params
         params.require(:timeline_item)
-              .permit(:title, :date, :place, :icon)
+              .permit(:title, :date, :place, :icon, :description)
       end
     end
   end

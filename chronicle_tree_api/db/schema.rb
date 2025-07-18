@@ -133,6 +133,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_06_29_153000) do
     t.string "icon"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "description"
     t.index ["person_id"], name: "index_timeline_items_on_person_id"
   end
 

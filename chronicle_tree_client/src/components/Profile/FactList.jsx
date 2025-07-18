@@ -8,8 +8,6 @@ const FactList = ({ facts, onEdit, onDelete }) => {
     'Current Hobby': 'Hobby',
     'Current Residence': 'Residence',
     'Current School': 'School',
-    'Recent Award': 'Award',
-    'Recent Exhibition': 'Exhibition',
     'Military Service': 'Military Service',
   };
   if (!facts || facts.length === 0) {

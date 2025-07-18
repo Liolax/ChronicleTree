@@ -8,8 +8,6 @@ const FACT_TYPE_OPTIONS = [
   'Hobby',
   'Residence',
   'School',
-  'Award',
-  'Exhibition',
   'Military Service',
   'Custom',
 ];

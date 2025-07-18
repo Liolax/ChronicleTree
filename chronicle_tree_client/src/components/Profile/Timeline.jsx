@@ -17,12 +17,19 @@ export default function Timeline({ events, onEdit, onDelete }) {
   if (!events || events.length === 0) {
     return <div className="text-gray-400 text-center py-6">No timeline events available.</div>;
   }
+  // Sort events by date ascending
+  const sortedEvents = [...events].sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return new Date(a.date) - new Date(b.date);
+  });
   return (
     <div className="relative pl-8 pr-2">
       {/* Timeline vertical bar */}
       <div className="absolute left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-app-accent via-app-secondary/50 to-app-secondary/10 rounded-full" style={{zIndex:0}}></div>
       <ul className="space-y-8">
-        {events.map((event, idx) => {
+        {sortedEvents.map((event, idx) => {
           const Icon = ICON_MAP[event.icon] || FaFlag;
           return (
             <li key={event.id} className="relative flex gap-4 group" style={{zIndex:1}}>
@@ -31,7 +38,7 @@ export default function Timeline({ events, onEdit, onDelete }) {
                 <span className="w-8 h-8 rounded-full bg-white border-2 border-blue-200 shadow flex items-center justify-center text-xl text-blue-500 mb-1">
                   <Icon />
                 </span>
-                {idx !== events.length - 1 && (
+                {idx !== sortedEvents.length - 1 && (
                   <span className="w-1 h-full bg-gradient-to-b from-blue-200 to-transparent"></span>
                 )}
               </div>
