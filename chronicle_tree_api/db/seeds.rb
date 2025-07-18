@@ -41,6 +41,26 @@ end
   profile.avatar.purge if profile.avatar.attached?
 end
 
+# Attach placeholder profile photos to each person's avatar
+profile_photo_urls = {
+  p1: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  alice: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&h=400',
+  p2: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&h=400',
+  david: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&h=400',
+  bob: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=400&h=400',
+  emily: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&h=400',
+  charlie: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&h=400'
+}
+require 'open-uri'
+[ p1, alice, p2, david, bob, emily, charlie ].each do |person|
+  profile = person.profile
+  url = profile_photo_urls[person == p1 ? :p1 : person == alice ? :alice : person == p2 ? :p2 : person == david ? :david : person == bob ? :bob : person == emily ? :emily : :charlie]
+  unless profile.avatar.attached?
+    file = URI.open(url)
+    profile.avatar.attach(io: file, filename: "avatar_#{person.id}.jpg", content_type: 'image/jpeg')
+  end
+end
+
 # --- FACTS ---
 Fact.find_or_create_by!(id: 101, person: p1, label: 'Occupation', value: 'Software Architect at TechCorp', date: Date.new(2005, 1, 1), location: 'TechCorp HQ')
 Fact.find_or_create_by!(id: 102, person: p1, label: 'Military Service', value: 'Served in the Army', date: Date.new(1990, 1, 1), location: 'Base Q')
@@ -99,10 +119,43 @@ TimelineItem.find_or_create_by!(id: 238, person: charlie, title: 'Born', date: D
 TimelineItem.find_or_create_by!(id: 239, person: charlie, title: 'Started School', date: Date.new(2023,9,1), place: 'Central Elementary', icon: 'Graduation', description: 'Started at Central Elementary School.')
 TimelineItem.find_or_create_by!(id: 240, person: charlie, title: 'Learned Guitar', date: Date.new(2024,9,1), place: 'Music School', icon: 'Star', description: 'Started learning guitar.')
 # --- MEDIA ---
-Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Profile photo', title: 'John Doe Profile Photo')
-Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting', title: 'Alice Painting')
-Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane graduation photo', title: 'Jane Graduation Photo')
-Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David at work', title: 'David at Work')
+# Images
+Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Professional portrait of John Doe, used for his profile.', title: 'John Doe Profile Photo')
+Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting a landscape in her studio.', title: 'Alice Painting')
+Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane Doe at her graduation ceremony.', title: 'Jane Graduation Photo')
+Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David working as a senior engineer at Company X.', title: 'David at Work')
+Medium.find_or_create_by!(id: 305, attachable: bob, attachable_type: 'Person', description: 'Bob playing soccer on the city team.', title: 'Bob Soccer Action')
+Medium.find_or_create_by!(id: 306, attachable: emily, attachable_type: 'Person', description: 'Emily reading her favorite novel at the library.', title: 'Emily Reading')
+Medium.find_or_create_by!(id: 307, attachable: charlie, attachable_type: 'Person', description: 'Charlie performing at the school music event.', title: 'Charlie Guitar Performance')
+# PDFs
+Medium.find_or_create_by!(id: 308, attachable: p1, attachable_type: 'Person', description: 'John Doe Resume PDF for professional reference.', title: 'John Doe Resume')
+Medium.find_or_create_by!(id: 309, attachable: alice, attachable_type: 'Person', description: 'Alice Art Portfolio PDF, showcasing her best works.', title: 'Alice Art Portfolio')
+# Attach placeholder images to media records if not already attached
+require 'open-uri'
+
+# Attach files to media records
+require 'open-uri'
+media_files = [
+  # Images
+  {id: 301, url: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'john_doe.jpg', content_type: 'image/jpeg'},
+  {id: 302, url: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&h=400', filename: 'alice_painting.jpg', content_type: 'image/jpeg'},
+  {id: 303, url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&h=400', filename: 'jane_graduation.jpg', content_type: 'image/jpeg'},
+  {id: 304, url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&h=400', filename: 'david_work.jpg', content_type: 'image/jpeg'},
+  {id: 305, url: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&h=400', filename: 'bob_soccer.jpg', content_type: 'image/jpeg'},
+  {id: 306, url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&h=400', filename: 'emily_reading.jpg', content_type: 'image/jpeg'},
+  {id: 307, url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&h=400', filename: 'charlie_guitar.jpg', content_type: 'image/jpeg'},
+  # PDFs
+  {id: 308, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', filename: 'john_doe_resume.pdf', content_type: 'application/pdf'},
+  {id: 309, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', filename: 'alice_portfolio.pdf', content_type: 'application/pdf'}
+]
+media_files.each do |file_info|
+  media = Medium.find_by(id: file_info[:id])
+  next unless media
+  unless media.file.attached?
+    file = URI.open(file_info[:url])
+    media.file.attach(io: file, filename: file_info[:filename], content_type: file_info[:content_type])
+  end
+end
 # --- RELATIONSHIPS ---
 # Define all parent-child pairs in the tree
 parent_child_pairs = [
