@@ -71,7 +71,7 @@ Fact.find_or_create_by!(id: 106, person: alice, label: 'Hobby', value: 'Painting
  # Removed Award from facts; will be timeline event
 Fact.find_or_create_by!(id: 108, person: david, label: 'Occupation', value: 'Senior Engineer at Company X', date: Date.new(2010, 1, 1), location: 'Company X HQ')
 Fact.find_or_create_by!(id: 109, person: david, label: 'Hobby', value: 'Cycling', date: Date.new(2005, 1, 1), location: 'City Park')
-Fact.find_or_create_by!(id: 110, person: bob, label: 'School', value: 'Central High School', date: Date.new(2020, 9, 1), location: 'Central High')
+Fact.find_or_create_by!(id: 110, person: bob, label: 'School', value: 'Central Elementary School', date: Date.new(2023, 9, 1), location: 'City A')
  # Removed Sports Achievement from facts; will be timeline event
 Fact.find_or_create_by!(id: 112, person: emily, label: 'Hobby', value: 'Reading classic novels', date: Date.new(2020, 2, 14), location: 'Library Z')
 Fact.find_or_create_by!(id: 113, person: charlie, label: 'Hobby', value: 'Learning guitar', date: Date.new(2020, 9, 1), location: 'Music School')
@@ -109,14 +109,14 @@ TimelineItem.find_or_create_by!(id: 228, person: david, title: 'Emily Born', dat
 TimelineItem.find_or_create_by!(id: 229, person: david, title: 'Started at Company X', date: Date.new(2010,1,1), place: 'Company X HQ', icon: 'Work', description: 'Started as Senior Engineer at Company X.')
 TimelineItem.find_or_create_by!(id: 230, person: david, title: 'Divorced Alice', date: Date.new(2023,1,1), place: 'City A', icon: 'Flag', description: 'Divorced Alice.')
 TimelineItem.find_or_create_by!(id: 231, person: bob, title: 'Born', date: Date.new(2010,1,1), place: 'City A', icon: 'Birthday', description: 'Bob was born in City A.')
-TimelineItem.find_or_create_by!(id: 232, person: bob, title: 'Started School', date: Date.new(2023,9,1), place: 'Central Elementary', icon: 'Graduation', description: 'Started at Central Elementary School.')
+TimelineItem.find_or_create_by!(id: 232, person: bob, title: 'Started School', date: Date.new(2023,9,1), place: 'City A', icon: 'Graduation', description: 'Started at Central Elementary School.')
 TimelineItem.find_or_create_by!(id: 233, person: bob, title: 'Joined Soccer Team', date: Date.new(2024,4,10), place: 'Field Y', icon: 'Star', description: 'Joined the city soccer team.')
 TimelineItem.find_or_create_by!(id: 234, person: bob, title: 'Became Team Captain', date: Date.new(2024,4,10), place: 'Field Y', icon: 'Trophy', description: 'Became soccer team captain.')
 TimelineItem.find_or_create_by!(id: 235, person: emily, title: 'Born', date: Date.new(2012,1,1), place: 'City A', icon: 'Birthday', description: 'Emily was born in City A.')
-TimelineItem.find_or_create_by!(id: 236, person: emily, title: 'Started School', date: Date.new(2023,9,1), place: 'Central Elementary', icon: 'Graduation', description: 'Started at Central Elementary School.')
+TimelineItem.find_or_create_by!(id: 236, person: emily, title: 'Started School', date: Date.new(2023,9,1), place: 'City A', icon: 'Graduation', description: 'Started at Central Elementary School.')
 TimelineItem.find_or_create_by!(id: 237, person: emily, title: 'Read Favorite Book', date: Date.new(2024,2,14), place: 'Library Z', icon: 'Star', description: 'Read "Pride and Prejudice" for the first time.')
 TimelineItem.find_or_create_by!(id: 238, person: charlie, title: 'Born', date: Date.new(2014,1,1), place: 'City A', icon: 'Birthday', description: 'Charlie was born in City A.')
-TimelineItem.find_or_create_by!(id: 239, person: charlie, title: 'Started School', date: Date.new(2023,9,1), place: 'Central Elementary', icon: 'Graduation', description: 'Started at Central Elementary School.')
+TimelineItem.find_or_create_by!(id: 239, person: charlie, title: 'Started School', date: Date.new(2023,9,1), place: 'City A', icon: 'Graduation', description: 'Started at Central Elementary School.')
 TimelineItem.find_or_create_by!(id: 240, person: charlie, title: 'Learned Guitar', date: Date.new(2024,9,1), place: 'Music School', icon: 'Star', description: 'Started learning guitar.')
 # --- MEDIA ---
 # Images
