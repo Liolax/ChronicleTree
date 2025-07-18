@@ -9,6 +9,7 @@ const RELATIONSHIP_TYPES = [
   { value: 'parent', label: 'Parent of selected person' },
   { value: 'child', label: 'Child of selected person' },
   { value: 'spouse', label: 'Spouse of selected person' },
+  { value: 'sibling', label: 'Sibling of selected person' },
 ];
 
 const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirstPerson = false }) => {
@@ -61,13 +62,19 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
     // Exclude the person being edited (self)
     if (person && p.id === person.id) return false;
     
-    // If we have current user data, only show people belonging to this user
-    if (currentUser?.id) {
-      return p.user_id === currentUser.id;
-    }
-    
-    // Fallback for test/demo data without user_id - show all
+    // Since the API doesn't return user_id field in people data,
+    // and the people endpoint already filters by current user,
+    // we can show all people except self
     return true;
+  });
+
+  // Debug logging to help troubleshoot
+  console.log('PersonForm Debug:', {
+    isFirstPerson,
+    peopleCount: people.length,
+    filteredPeopleCount: filteredPeople.length,
+    currentUser: currentUser?.id,
+    showRelationshipFields: !isFirstPerson && filteredPeople.length > 0
   });
 
   return (

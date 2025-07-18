@@ -502,6 +502,7 @@ const FamilyTree = () => {
           <AddPersonModal 
             isOpen={isAddPersonModalOpen} 
             onClose={closeAddPersonModal} 
+            isFirstPerson={false}
           />
         )}
         
