@@ -44,12 +44,12 @@ end
 # Attach placeholder profile photos to each person's avatar
 profile_photo_urls = {
   p1: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  alice: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&h=400',
-  p2: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&h=400',
-  david: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&h=400',
-  bob: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=400&h=400',
-  emily: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&h=400',
-  charlie: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&h=400'
+  alice: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  p2: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  david: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  bob: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  emily: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  charlie: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=facearea&w=400&h=400&facepad=2'
 }
 require 'open-uri'
 [ p1, alice, p2, david, bob, emily, charlie ].each do |person|
@@ -138,12 +138,12 @@ require 'open-uri'
 media_files = [
   # Images
   {id: 301, url: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'john_doe.jpg', content_type: 'image/jpeg'},
-  {id: 302, url: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=crop&w=400&h=400', filename: 'alice_painting.jpg', content_type: 'image/jpeg'},
-  {id: 303, url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=crop&w=400&h=400', filename: 'jane_graduation.jpg', content_type: 'image/jpeg'},
-  {id: 304, url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=400&h=400', filename: 'david_work.jpg', content_type: 'image/jpeg'},
-  {id: 305, url: 'https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&h=400', filename: 'bob_soccer.jpg', content_type: 'image/jpeg'},
-  {id: 306, url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&h=400', filename: 'emily_reading.jpg', content_type: 'image/jpeg'},
-  {id: 307, url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=400&h=400', filename: 'charlie_guitar.jpg', content_type: 'image/jpeg'},
+  {id: 302, url: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'alice_painting.jpg', content_type: 'image/jpeg'},
+  {id: 303, url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'jane_graduation.jpg', content_type: 'image/jpeg'},
+  {id: 304, url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'david_work.jpg', content_type: 'image/jpeg'},
+  {id: 305, url: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'bob_soccer.jpg', content_type: 'image/jpeg'},
+  {id: 306, url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'emily_reading.jpg', content_type: 'image/jpeg'},
+  {id: 307, url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'charlie_guitar.jpg', content_type: 'image/jpeg'},
   # PDFs
   {id: 308, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', filename: 'john_doe_resume.pdf', content_type: 'application/pdf'},
   {id: 309, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', filename: 'alice_portfolio.pdf', content_type: 'application/pdf'}
