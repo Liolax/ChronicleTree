@@ -1,6 +1,7 @@
 /**
  * Improved Relationship Calculator Utility
  * Handles complex family relationships including in-law relationships
+ * Last updated: Cache bust for relationship fix
  */
 
 /**
@@ -19,6 +20,24 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   // If it's the same person, they are the root
   if (person.id === rootPerson.id) {
     return 'Root';
+  }
+
+  // COMPREHENSIVE DEBUG LOGGING for Alice and Charlie (the actual bug case)
+  // Using mock data IDs: Alice is 4, Charlie is 5
+  if ((person.id === 4 || person.id === '4') && (rootPerson.id === 5 || rootPerson.id === '5')) {
+    console.log('🔍 [DEBUG] calculateRelationshipToRoot: Alice (4) → Charlie (5)');
+    console.log('Person (Alice):', person);
+    console.log('Root Person (Charlie):', rootPerson);
+    console.log('Total relationships:', relationships.length);
+    console.log('All relationships:', relationships);
+  }
+  
+  if ((person.id === 5 || person.id === '5') && (rootPerson.id === 4 || rootPerson.id === '4')) {
+    console.log('🔍 [DEBUG] calculateRelationshipToRoot: Charlie (5) → Alice (4)');
+    console.log('Person (Charlie):', person);
+    console.log('Root Person (Alice):', rootPerson);
+    console.log('Total relationships:', relationships.length);
+    console.log('All relationships:', relationships);
   }
 
   // DEBUG LOGGING: Log when Charlie or David relationships are being calculated
@@ -56,9 +75,21 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       (relationshipMaps.siblingMap.has(String(rootPerson.id)) && relationshipMaps.siblingMap.get(String(rootPerson.id)).has(String(person.id)))
     )
   ) {
+    console.log(`🔍 [SIBLING FALLBACK] Sibling relationship detected: ${person.full_name || person.first_name} <-> ${rootPerson.full_name || rootPerson.first_name}`);
+    console.log(`🔍 [SIBLING FALLBACK] Sibling map for ${person.id}:`, relationshipMaps.siblingMap.get(String(person.id)));
+    console.log(`🔍 [SIBLING FALLBACK] Sibling map for ${rootPerson.id}:`, relationshipMaps.siblingMap.get(String(rootPerson.id)));
     const siblingLabel = getGenderSpecificRelation(person.id, 'Brother', 'Sister', allPeople, 'Sibling');
-    console.log(`Sibling relationship detected: ${person.full_name} <-> ${rootPerson.full_name} | Label: ${siblingLabel}`);
+    console.log(`🔍 [SIBLING FALLBACK] Sibling label: ${siblingLabel}`);
     return siblingLabel;
+  }
+
+  // DEBUG LOGGING: Log final result for Alice/Charlie relationships
+  if ((person.id === 4 || person.id === '4') && (rootPerson.id === 5 || rootPerson.id === '5')) {
+    console.log(`🔍 [DEBUG] FINAL RESULT: Alice (4) → Charlie (5) = "${relationship || 'Unrelated'}"`);
+  }
+  
+  if ((person.id === 5 || person.id === '5') && (rootPerson.id === 4 || rootPerson.id === '4')) {
+    console.log(`🔍 [DEBUG] FINAL RESULT: Charlie (5) → Alice (4) = "${relationship || 'Unrelated'}"`);
   }
 
   // DEBUG LOGGING: Log final result for Charlie/David relationships

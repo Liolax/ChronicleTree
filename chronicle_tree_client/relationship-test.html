@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Relationship Calculator Test</title>
+</head>
+<body>
+    <h1>Relationship Calculator Test</h1>
+    <div id="results"></div>
+    
+    <script type="module">
+        import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+        
+        // Test the exact case that's failing
+        const alice = { id: 3, first_name: 'Alice', last_name: 'A', gender: 'Female', full_name: 'Alice A' };
+        const charlie = { id: 5, first_name: 'Charlie', last_name: 'C', gender: 'Male', full_name: 'Charlie C' };
+        
+        const testPeople = [alice, charlie];
+        
+        // Test with different relationship data formats
+        console.log('=== TESTING WITH DIFFERENT RELATIONSHIP FORMATS ===');
+        
+        // Format 1: Simple sibling relationship
+        const relationships1 = [
+            { source: 3, target: 5, type: 'sibling' },
+            { source: 5, target: 3, type: 'sibling' }
+        ];
+        
+        console.log('Test 1 - Simple sibling format:');
+        const result1 = calculateRelationshipToRoot(alice, charlie, testPeople, relationships1);
+        console.log(`Alice -> Charlie: "${result1}"`);
+        
+        // Format 2: With parents
+        const relationships2 = [
+            { source: 1, target: 3, type: 'parent' },
+            { source: 1, target: 5, type: 'parent' },
+            { source: 3, target: 5, type: 'sibling' },
+            { source: 5, target: 3, type: 'sibling' }
+        ];
+        
+        console.log('Test 2 - With parents:');
+        const result2 = calculateRelationshipToRoot(alice, charlie, testPeople, relationships2);
+        console.log(`Alice -> Charlie: "${result2}"`);
+        
+        // Format 3: Rails API format (bidirectional)
+        const relationships3 = [
+            { source: 1, target: 3, type: 'parent' },
+            { source: 3, target: 1, type: 'child' },
+            { source: 1, target: 5, type: 'parent' },
+            { source: 5, target: 1, type: 'child' },
+            { source: 3, target: 5, type: 'sibling' },
+            { source: 5, target: 3, type: 'sibling' }
+        ];
+        
+        console.log('Test 3 - Rails API format:');
+        const result3 = calculateRelationshipToRoot(alice, charlie, testPeople, relationships3);
+        console.log(`Alice -> Charlie: "${result3}"`);
+        
+        // Display results
+        document.getElementById('results').innerHTML = `
+            <h2>Test Results</h2>
+            <p>Test 1 (Simple): Alice → Charlie = <strong>${result1}</strong></p>
+            <p>Test 2 (With parents): Alice → Charlie = <strong>${result2}</strong></p>
+            <p>Test 3 (Rails format): Alice → Charlie = <strong>${result3}</strong></p>
+            <p>All should show: <strong>Sister</strong></p>
+        `;
+    </script>
+</body>
+</html>
