@@ -64,6 +64,7 @@ export const useAddPerson = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['people'] });
       queryClient.invalidateQueries({ queryKey: ['tree'] });
+      queryClient.invalidateQueries({ queryKey: ['full-tree'] });
     },
   });
 };
@@ -75,6 +76,7 @@ export const useUpdatePerson = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['people'] });
       queryClient.invalidateQueries({ queryKey: ['tree'] });
+      queryClient.invalidateQueries({ queryKey: ['full-tree'] });
     },
   });
 };
@@ -86,6 +88,7 @@ export const useDeletePerson = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['people'] });
       queryClient.invalidateQueries({ queryKey: ['tree'] });
+      queryClient.invalidateQueries({ queryKey: ['full-tree'] });
     },
   });
 };
@@ -93,4 +96,19 @@ export const useDeletePerson = () => {
 export const toggleSpouseEx = async (relationshipId) => {
   const { data } = await api.patch(`/relationships/${relationshipId}/toggle_ex`);
   return data;
+};
+
+// React Query hook for toggling spouse ex status
+export const useToggleSpouseEx = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: toggleSpouseEx,
+    onSuccess: () => {
+      // Invalidate all relevant queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['people'] });
+      queryClient.invalidateQueries({ queryKey: ['tree'] });
+      queryClient.invalidateQueries({ queryKey: ['full-tree'] });
+    },
+  });
 };

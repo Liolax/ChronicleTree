@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useDeleteAccount } from '../../services/users';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 import Modal from '../UI/Modal';

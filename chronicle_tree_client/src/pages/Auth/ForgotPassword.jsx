@@ -1,5 +1,5 @@
 import { useForm } from 'react-hook-form';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import PageHeader from '../../components/Layout/PageHeader';

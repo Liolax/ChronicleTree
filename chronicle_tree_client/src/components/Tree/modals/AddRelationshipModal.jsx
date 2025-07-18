@@ -17,7 +17,9 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
 
   const { mutate, isLoading } = useMutation(createRelationship, {
     onSuccess: () => {
+      queryClient.invalidateQueries(['people']);
       queryClient.invalidateQueries(['tree']);
+      queryClient.invalidateQueries(['full-tree']);
       onClose();
     },
     onError: (error) => {

@@ -1,0 +1,24 @@
+Commands:
+  bin/rails runner [<'Some.ruby(code)'> | <filename.rb> | -]  # Run Ruby code...
+  bin/rails runner:help [COMMAND]                             # Describe avai...
+
+Options:
+  -e, [--environment=ENVIRONMENT]  # The environment to run `runner` in (e.g. test / development / production).
+  -w, [--skip-executor]            # Don't wrap with Rails Executor
+                                   # Default: false
+
+Description:
+    The Rails `runner` allows running Ruby code in the context of your application.
+
+Examples:
+    Run `puts Rails.env` after loading the app:
+
+        bin/rails runner 'puts Rails.env'
+
+    Run the Ruby file located at `path/to/filename.rb` after loading the app:
+
+        bin/rails runner path/to/filename.rb
+
+    Run the Ruby script read from stdin after loading the app:
+
+        bin/rails runner -

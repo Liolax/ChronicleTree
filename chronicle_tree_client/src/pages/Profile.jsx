@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { usePeople, getPerson, deletePerson, toggleSpouseEx } from '../services/people';
+import { usePeople, getPerson, useDeletePerson, useToggleSpouseEx } from '../services/people';
 import FactList from '../components/Profile/FactList';
 import Timeline from '../components/Profile/Timeline';
 import MediaGallery from '../components/Profile/MediaGallery';
@@ -18,6 +18,8 @@ import { generateProfileShareContent, handleSocialShare } from '../services/shar
 export default function Profile() {
   const { id } = useParams();
   const { data: people, isLoading } = usePeople();
+  const deletePersonMutation = useDeletePerson();
+  const toggleSpouseExMutation = useToggleSpouseEx();
   const [showEditPic, setShowEditPic] = useState(false);
   const [showAddFact, setShowAddFact] = useState(false);
   const [showAddTimeline, setShowAddTimeline] = useState(false);
@@ -190,7 +192,7 @@ export default function Profile() {
   const handleConfirmDelete = async () => {
     setIsDeleting(true);
     try {
-      await deletePerson(person.id);
+      await deletePersonMutation.mutateAsync(person.id);
       window.location.href = '/'; // Redirect to home/tree after deletion
     } catch (err) {
       alert('Failed to delete person.');
@@ -203,13 +205,18 @@ export default function Profile() {
   const handleToggleSpouseEx = async (relationshipId) => {
     if (!relationshipId) return;
     console.log('[Profile] Toggling spouse relationshipId:', relationshipId);
-    const resp = await toggleSpouseEx(relationshipId);
-    console.log('[Profile] Toggle API response:', resp);
-    // Refresh the person and relationships for the modal
-    const data = await getPerson(person.id);
-    console.log('[Profile] Refreshed person data:', data);
-    setDeletePersonData(data);
-    setDeleteRelationships(groupRelationships(data));
+    try {
+      const resp = await toggleSpouseExMutation.mutateAsync(relationshipId);
+      console.log('[Profile] Toggle API response:', resp);
+      // Refresh the person and relationships for the modal
+      const data = await getPerson(person.id);
+      console.log('[Profile] Refreshed person data:', data);
+      setDeletePersonData(data);
+      setDeleteRelationships(groupRelationships(data));
+    } catch (err) {
+      console.error('[Profile] Error toggling spouse ex status:', err);
+      alert('Failed to toggle spouse status.');
+    }
   };
 
   // Sharing functions

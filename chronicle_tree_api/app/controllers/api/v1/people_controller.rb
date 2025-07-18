@@ -107,9 +107,9 @@ module Api
             # Only include edges where both people are in the user's tree
             if people.map(&:id).include?(rel.relative_id)
               edge = {
-                from: person.id,
-                to: rel.relative_id,
-                type: rel.relationship_type
+                source: person.id,
+                target: rel.relative_id,
+                relationship_type: rel.relationship_type
               }
               # Include is_ex attribute for spouse relationships
               if rel.relationship_type == 'spouse'

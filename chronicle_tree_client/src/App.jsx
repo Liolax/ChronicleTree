@@ -12,7 +12,7 @@ import Settings from './pages/Settings';
 import FamilyTreeDemo from './pages/FamilyTreeDemo';
 import DebugPage from './pages/DebugPage';
 import PrivateRoute from './components/Auth/PrivateRoute';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext.jsx';
 
 const queryClient = new QueryClient();
 

@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
 import RelationshipForm from '../Forms/RelationshipForm';
-import { createRelationship, deletePerson, getPerson } from '../../services/people';
+import { createRelationship, deletePerson, getPerson, useToggleSpouseEx } from '../../services/people';
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
-import api from '../../api/api';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -60,18 +59,13 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const [isLoading, setIsLoading] = useState(false);
   const [warning, setWarning] = useState('');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState(null);
   const [pendingDeletePerson, setPendingDeletePerson] = useState(null);
   const [pendingDeleteRelationships, setPendingDeleteRelationships] = useState({});
   const [toggleLoadingId, setToggleLoadingId] = useState(null);
 
-  // Fetch full person by ID
-  const fetchPersonById = async (id) => {
-    const res = await getPerson(id);
-    return res.data;
-  };
+  const toggleSpouseExMutation = useToggleSpouseEx();
 
   // Helper to get IDs of already-related people for a given type
   const getRelatedIds = (type) => {
@@ -274,13 +268,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                               setWarning('');
                               setToggleLoadingId(rel.relationship_id);
                               try {
-                                // Use authenticated API instance with correct path
-                                const resp = await api.patch(`relationships/${rel.relationship_id}/toggle_ex`);
-                                if (resp.status === 200 || resp.status === 204) {
-                                  if (onRelationshipAdded) onRelationshipAdded();
-                                } else {
-                                  setWarning('Failed to toggle ex-spouse status.');
-                                }
+                                await toggleSpouseExMutation.mutateAsync(rel.relationship_id);
+                                if (onRelationshipAdded) onRelationshipAdded();
                               } catch (err) {
                                 setWarning(
                                   err?.response?.data?.errors?.[0] ||
