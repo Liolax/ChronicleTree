@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaFlag, FaCalendarAlt, FaAlignLeft, FaPen, FaTrashAlt, FaBirthdayCake, FaGraduationCap, FaBriefcase, FaHome, FaHeart, FaStar, FaPlane, FaTrophy } from 'react-icons/fa';
+import { FaFlag, FaCalendarAlt, FaAlignLeft, FaPen, FaTrashAlt, FaBirthdayCake, FaGraduationCap, FaBriefcase, FaHome, FaHeart, FaStar, FaPlane, FaTrophy, FaMapMarkerAlt } from 'react-icons/fa';
 
 const ICON_MAP = {
   Flag: FaFlag,
@@ -64,6 +64,12 @@ export default function Timeline({ events, onEdit, onDelete }) {
                   {event.date ? new Date(event.date).toLocaleDateString() : ''}
                 </div>
                 {event.description && <p className="text-sm text-slate-500 mt-1 flex items-center gap-2"><FaAlignLeft className="text-slate-300" />{event.description}</p>}
+                {event.place && (
+                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
+                    <FaMapMarkerAlt className="text-slate-300" />
+                    {event.place}
+                  </div>
+                )}
               </div>
             </li>
           );
