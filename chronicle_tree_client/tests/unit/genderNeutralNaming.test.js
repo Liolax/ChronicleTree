@@ -43,9 +43,9 @@ describe('Gender-specific and neutral naming tests', () => {
     expect(calculateRelationshipToRoot(testPeople[4], testPeople[2], testPeople, testRelationships)).toBe('Sibling');
   });
 
-  it('should handle in-law relationships with neutral terms', () => {
-    // Sam (no gender) is ex-spouse of Alex, so Sam is ex-child-in-law to John
-    expect(calculateRelationshipToRoot(testPeople[3], testPeople[0], testPeople, testRelationships)).toBe('Ex-Child-in-law');
+  it('should handle ex-spouse relatives as unrelated', () => {
+    // Sam (no gender) is ex-spouse of Alex, so Sam should be unrelated to John (ex-spouse relatives are unrelated)
+    expect(calculateRelationshipToRoot(testPeople[3], testPeople[0], testPeople, testRelationships)).toBe('Unrelated');
   });
 
   it('should handle uncle/aunt relationships with neutral terms', () => {

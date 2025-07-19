@@ -58,7 +58,7 @@ describe('Integration Test - Seed Data Relationships', () => {
     expect(relationshipMap['Jane']).toBe('Wife');
     expect(relationshipMap['Alice']).toBe('Daughter');
     expect(relationshipMap['Charlie']).toBe('Son');
-    expect(relationshipMap['David']).toBe('Ex-Son-in-law'); // Alice's ex-husband
+    expect(relationshipMap['David']).toBe('Unrelated'); // Alice's ex-husband (ex-spouse relatives are unrelated)
     expect(relationshipMap['Bob']).toBe('Grandson');
     expect(relationshipMap['Emily']).toBe('Granddaughter');
   });
@@ -75,7 +75,7 @@ describe('Integration Test - Seed Data Relationships', () => {
     // These were the specific issues mentioned in the problem statement
     expect(relationshipMap['Charlie']).toBe('Root');
     expect(relationshipMap['Alice']).toBe('Sister'); // Was "Grandparent", now correct
-    expect(relationshipMap['David']).toBe('Ex-Brother-in-law'); // Was "Spouse", now correct
+    expect(relationshipMap['David']).toBe('Unrelated'); // Was "Spouse", ex-spouse relatives are unrelated
     expect(relationshipMap['Bob']).toBe('Nephew'); // Was not identified, now correct
     expect(relationshipMap['Emily']).toBe('Niece'); // Was not identified, now correct
     expect(relationshipMap['John']).toBe('Father');
@@ -140,8 +140,8 @@ describe('Integration Test - Seed Data Relationships', () => {
       { root: 'John', person: 'Bob', expected: 'Grandson' },
       { root: 'Bob', person: 'John', expected: 'Grandfather' },
       
-      // Test in-law relationships
-      { root: 'Charlie', person: 'David', expected: 'Ex-Brother-in-law' },
+      // Test ex-spouse relatives - should be unrelated
+      { root: 'Charlie', person: 'David', expected: 'Unrelated' },
       // According to problem statement: "relatives of spouse (because after divorce they are not official yet) are not showing"
       // When viewing David's relationships, Charlie (ex-spouse's sibling) should NOT be shown as ex-brother-in-law
       { root: 'David', person: 'Charlie', expected: 'Unrelated' },

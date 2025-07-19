@@ -41,20 +41,6 @@ describe('Comprehensive Relationship Calculator Tests', () => {
     { source: '10', target: '1', relationship_type: 'parent', is_ex: false }, // Frank -> John
     { source: '11', target: '1', relationship_type: 'parent', is_ex: false }, // Rose -> John
     
-    // Reverse child relationships
-    { source: '3', target: '1', relationship_type: 'child', is_ex: false },
-    { source: '3', target: '2', relationship_type: 'child', is_ex: false },
-    { source: '5', target: '1', relationship_type: 'child', is_ex: false },
-    { source: '5', target: '2', relationship_type: 'child', is_ex: false },
-    { source: '6', target: '3', relationship_type: 'child', is_ex: false },
-    { source: '6', target: '4', relationship_type: 'child', is_ex: false },
-    { source: '7', target: '3', relationship_type: 'child', is_ex: false },
-    { source: '7', target: '4', relationship_type: 'child', is_ex: false },
-    { source: '4', target: '8', relationship_type: 'child', is_ex: false },
-    { source: '4', target: '9', relationship_type: 'child', is_ex: false },
-    { source: '1', target: '10', relationship_type: 'child', is_ex: false },
-    { source: '1', target: '11', relationship_type: 'child', is_ex: false },
-    
     // Ex-spouse relationship (Alice A and David A were married)
     { source: '3', target: '4', relationship_type: 'spouse', is_ex: true },
     { source: '4', target: '3', relationship_type: 'spouse', is_ex: true },
@@ -74,7 +60,7 @@ describe('Comprehensive Relationship Calculator Tests', () => {
   });
 
   describe('Co-parent-in-law Relationships', () => {
-    it('should correctly identify co-parent-in-law relationships', () => {
+    it('should correctly handle ex-spouse co-parent relationships', () => {
       const janeDoe = testPeople.find(p => p.full_name === 'Jane Doe');
       const michaelA = testPeople.find(p => p.full_name === 'Michael A');
       const susanA = testPeople.find(p => p.full_name === 'Susan A');
@@ -82,8 +68,9 @@ describe('Comprehensive Relationship Calculator Tests', () => {
       const michaelToJane = calculateRelationshipToRoot(michaelA, janeDoe, testPeople, testRelationships);
       const susanToJane = calculateRelationshipToRoot(susanA, janeDoe, testPeople, testRelationships);
       
-      expect(michaelToJane).toBe('Co-Father-in-law');
-      expect(susanToJane).toBe('Co-Mother-in-law');
+      // Since Alice and David are ex-spouses, their parents should be unrelated
+      expect(michaelToJane).toBe('Unrelated');
+      expect(susanToJane).toBe('Unrelated');
     });
   });
 

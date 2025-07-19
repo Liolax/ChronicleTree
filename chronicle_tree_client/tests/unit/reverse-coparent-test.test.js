@@ -21,12 +21,8 @@ describe('Reverse Co-parent-in-law Relationships', () => {
     { source: '2', target: '3', relationship_type: 'parent', is_ex: false },
     { source: '8', target: '4', relationship_type: 'parent', is_ex: false },
     { source: '9', target: '4', relationship_type: 'parent', is_ex: false },
-    { source: '3', target: '1', relationship_type: 'child', is_ex: false },
-    { source: '3', target: '2', relationship_type: 'child', is_ex: false },
-    { source: '4', target: '8', relationship_type: 'child', is_ex: false },
-    { source: '4', target: '9', relationship_type: 'child', is_ex: false },
-    { source: '3', target: '4', relationship_type: 'spouse', is_ex: true },
-    { source: '4', target: '3', relationship_type: 'spouse', is_ex: true },
+    { source: '3', target: '4', relationship_type: 'spouse', is_ex: false },
+    { source: '4', target: '3', relationship_type: 'spouse', is_ex: false },
   ];
 
   it('should calculate co-parent-in-law relationships correctly in both directions', () => {

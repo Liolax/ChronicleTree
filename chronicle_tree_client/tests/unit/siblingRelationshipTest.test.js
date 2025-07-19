@@ -89,19 +89,19 @@ describe('Sibling Relationship Gender Tests', () => {
   });
 
   describe('Cousin Relationships with Gender', () => {
-    it('should identify male cousin as Cousin (gender neutral)', () => {
+    it('should identify male cousin as 1st Cousin (gender neutral)', () => {
       const result = calculateRelationshipToRoot(testPeople[10], testPeople[0], testPeople, testRelationships); // Cousin1 to John
-      expect(result).toBe('Cousin');
+      expect(result).toBe('1st Cousin');
     });
 
-    it('should identify female cousin as Cousin (gender neutral)', () => {
+    it('should identify female cousin as 1st Cousin (gender neutral)', () => {
       const result = calculateRelationshipToRoot(testPeople[11], testPeople[0], testPeople, testRelationships); // Cousin2 to John
-      expect(result).toBe('Cousin');
+      expect(result).toBe('1st Cousin');
     });
 
-    it('should identify cousin without gender as Cousin', () => {
+    it('should identify cousin without gender as 1st Cousin', () => {
       const result = calculateRelationshipToRoot(testPeople[12], testPeople[0], testPeople, testRelationships); // Cousin3 to John
-      expect(result).toBe('Cousin');
+      expect(result).toBe('1st Cousin');
     });
   });
 });

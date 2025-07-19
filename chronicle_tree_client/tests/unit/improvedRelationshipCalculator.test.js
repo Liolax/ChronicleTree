@@ -71,13 +71,13 @@ describe('Improved Relationship Calculator', () => {
     expect(result).toBe('Sister');
   });
 
-  it('should identify brother-in-law relationship (Charlie root, David person)', () => {
+  it('should identify ex-spouse relatives as unrelated (Charlie root, David person)', () => {
     // Charlie is root, David is ex-spouse of Charlie's sibling Alice
-    // This should be shown as Ex-Brother-in-law
+    // Ex-spouse relatives should be unrelated
     const david = testPeople[3];
     const charlie = testPeople[6];
     const result = calculateRelationshipToRoot(david, charlie, testPeople, testRelationships);
-    expect(result).toBe('Ex-Brother-in-law');
+    expect(result).toBe('Unrelated');
   });
 
   it('should identify nephew relationship (Charlie root, Bob person)', () => {
@@ -119,7 +119,7 @@ describe('Improved Relationship Calculator', () => {
 
     expect(resultMap['Charlie']).toBe('Root');
     expect(resultMap['Alice']).toBe('Sister');
-    expect(resultMap['David']).toBe('Ex-Brother-in-law');
+    expect(resultMap['David']).toBe('Unrelated');
     expect(resultMap['Bob']).toBe('Nephew');
     expect(resultMap['Emily']).toBe('Niece');
     expect(resultMap['John']).toBe('Father');

@@ -263,9 +263,21 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     return getGenderSpecificRelation(personId, 'Ex-Husband', 'Ex-Wife', allPeople, 'Ex-Spouse');
   }
   
-  // Check if person is root's sibling
+  // Check if person is root's sibling (with generation validation)
   if (siblingMap.has(rootId) && siblingMap.get(rootId).has(personId)) {
-    return getGenderSpecificRelation(personId, 'Brother', 'Sister', allPeople, 'Sibling');
+    // Validate that they're actually in the same generation by checking if they share parents
+    // This prevents incorrect sibling relationships between different generations
+    const rootParents = childToParents.get(rootId) || new Set();
+    const personParents = childToParents.get(personId) || new Set();
+    
+    // Only return sibling if they actually share at least one parent
+    // This fixes the issue where cross-generational siblings were incorrectly stored in database
+    const sharedParents = [...rootParents].filter(parent => personParents.has(parent));
+    
+    if (sharedParents.length > 0) {
+      return getGenderSpecificRelation(personId, 'Brother', 'Sister', allPeople, 'Sibling');
+    }
+    // If no shared parents, this is an incorrect sibling relationship - ignore it and continue to blood relationship calculation
   }
   
   return null;
@@ -457,17 +469,16 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // ===========================================
   
   // Check if person and root are both parents of spouses (co-parents-in-law)
-  // Example: Michael A (David's father) ↔ John/Jane Doe (Alice's parents) when David ↔ Alice are/were married
-  // Note: Co-parent-in-law relationships persist even after divorce due to shared grandchildren
+  // Example: Michael A (David's father) ↔ John/Jane Doe (Alice's parents) when David ↔ Alice are CURRENTLY married
+  // Note: Co-parent-in-law relationships only apply to CURRENT spouses, not ex-spouses
   
   for (const personChild of (parentToChildren.get(personId) || new Set())) {
     for (const rootChild of (parentToChildren.get(rootId) || new Set())) {
-      // Check if person's child is/was married to root's child (current or ex-spouse)
+      // Check if person's child is CURRENTLY married to root's child (only current spouses, not ex-spouses)
       const personChildCurrentSpouses = spouseMap.get(personChild) || new Set();
-      const personChildExSpouses = relationshipMaps.exSpouseMap.get(personChild) || new Set();
       
-      if (personChildCurrentSpouses.has(rootChild) || personChildExSpouses.has(rootChild)) {
-        // They are co-parents-in-law (parents of current or former spouses)
+      if (personChildCurrentSpouses.has(rootChild)) {
+        // They are co-parents-in-law (parents of CURRENT spouses only)
         return getGenderSpecificRelation(personId, 'Co-Father-in-law', 'Co-Mother-in-law', allPeople, 'Co-Parent-in-law');
       }
     }

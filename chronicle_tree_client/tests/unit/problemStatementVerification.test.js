@@ -67,9 +67,9 @@ describe('Problem Statement Verification Tests', () => {
       expect(result).not.toBe('Same Generation');
     });
 
-    it('should identify David A as Ex-Son-in-law, not Child', () => {
+    it('should identify David A as Unrelated, not Child', () => {
       const result = calculateRelationshipToRoot(david, john, testPeople, testRelationships);
-      expect(result).toBe('Ex-Son-in-law');
+      expect(result).toBe('Unrelated');
       expect(result).not.toBe('Child');
     });
   });
@@ -129,7 +129,7 @@ describe('Problem Statement Verification Tests', () => {
       const david = testPeople[3];
       const alice = testPeople[2];
       
-      expect(calculateRelationshipToRoot(david, john, testPeople, testRelationships)).toBe('Ex-Son-in-law');
+      expect(calculateRelationshipToRoot(david, john, testPeople, testRelationships)).toBe('Unrelated');
       expect(calculateRelationshipToRoot(david, alice, testPeople, testRelationships)).toBe('Ex-Husband');
     });
 
