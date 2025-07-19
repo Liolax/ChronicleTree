@@ -367,6 +367,40 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
+  // Check for step-grandparent relationship
+  // Person is step-grandparent of root if: person is parent of root's step-parent
+  for (const parent of rootParents) {
+    const parentSpouses = spouseMap.get(parent) || new Set();
+    const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
+    
+    // Check all step-parents of root
+    for (const stepParent of [...parentSpouses, ...parentDeceasedSpouses]) {
+      if (!rootParents.has(stepParent)) { // Make sure it's actually a step-parent
+        const stepParentParents = childToParents.get(stepParent) || new Set();
+        if (stepParentParents.has(personId)) {
+          return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
+        }
+      }
+    }
+  }
+  
+  // Check for step-grandchild relationship
+  // Person is step-grandchild of root if: root is parent of person's step-parent
+  for (const parent of personParents) {
+    const parentSpouses = spouseMap.get(parent) || new Set();
+    const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
+    
+    // Check all step-parents of person
+    for (const stepParent of [...parentSpouses, ...parentDeceasedSpouses]) {
+      if (!personParents.has(stepParent)) { // Make sure it's actually a step-parent
+        const stepParentParents = childToParents.get(stepParent) || new Set();
+        if (stepParentParents.has(rootId)) {
+          return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
+        }
+      }
+    }
+  }
+  
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents
   const rootStepParents = new Set();
