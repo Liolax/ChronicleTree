@@ -58,22 +58,22 @@ end
 
 # Attach placeholder profile photos to each person's avatar
 profile_photo_urls = {
-  p1: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  p1: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=facearea&w=400&h=400&facepad=2',
   alice: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=facearea&w=400&h=400&facepad=2',
   p2: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  david: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  bob: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  emily: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  david: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  bob: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  emily: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2',
   charlie: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&facepad=2',
   molly: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2',
   robert: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  sarah: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  thomas: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  lisa: 'https://images.unsplash.com/photo-1534751516642-a1af1ef26a56?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  sarah: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  thomas: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  lisa: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&w=400&h=400&facepad=2',
   michael: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  emma: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  emma: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=facearea&w=400&h=400&facepad=2',
   lisa_father: 'https://images.unsplash.com/photo-1556474835-b0f3ac40d4d1?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  lisa_mother: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=facearea&w=400&h=400&facepad=2'
+  lisa_mother: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=facearea&w=400&h=400&facepad=2'
 }
 require 'open-uri'
 [ p1, alice, p2, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
@@ -187,7 +187,7 @@ TimelineItem.find_or_create_by!(id: 414, person: lisa_mother, title: 'Lisa Born'
 TimelineItem.find_or_create_by!(id: 415, person: lisa_mother, title: 'Became Principal', date: Date.new(2000,9,1), place: 'City C Elementary', icon: 'Trophy', description: 'Promoted to school principal.')
 # --- MEDIA ---
 # Images
-Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Professional portrait of John Doe, used for his profile.', title: 'John Doe Profile Photo')
+Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Professional portrait of John Doe.', title: 'John Doe Studio Photo')
 Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting a landscape in her studio.', title: 'Alice Painting')
 Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane Doe at her graduation ceremony.', title: 'Jane Graduation Photo')
 Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David working as a senior engineer at Company X.', title: 'David at Work')
