@@ -2,7 +2,7 @@
 module Api
   module V1
     class RelationshipsController < BaseController
-      before_action :set_relationship, only: %i[destroy toggle_ex]
+      before_action :set_relationship, only: %i[destroy toggle_ex toggle_deceased]
 
       # POST /api/v1/relationships
       # body: { relationship: { person_id:, relative_id:, relationship_type: } }
@@ -51,6 +51,20 @@ module Api
         end
       end
 
+      # PATCH /api/v1/relationships/:id/toggle_deceased
+      def toggle_deceased
+        if @relationship.relationship_type == "spouse"
+          @relationship.is_deceased = !@relationship.is_deceased
+          if @relationship.save
+            render json: { success: true, is_deceased: @relationship.is_deceased }
+          else
+            render json: { success: false, errors: @relationship.errors.full_messages }, status: :unprocessable_entity
+          end
+        else
+          render json: { success: false, error: "Only spouse relationships can be marked as deceased." }, status: :bad_request
+        end
+      end
+
       private
 
       def set_relationship
@@ -60,7 +74,7 @@ module Api
 
       def relationship_params
         params.require(:relationship)
-              .permit(:person_id, :relative_id, :relationship_type, :is_ex)
+              .permit(:person_id, :relative_id, :relationship_type, :is_ex, :is_deceased)
       end
     end
   end

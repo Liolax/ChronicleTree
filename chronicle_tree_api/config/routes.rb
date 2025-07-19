@@ -68,6 +68,7 @@ Rails.application.routes.draw do
       resources :relationships,  only: %i[create destroy] do
         member do
           patch :toggle_ex
+          patch :toggle_deceased
         end
       end
       resources :profiles,       only: %i[index show create update destroy]

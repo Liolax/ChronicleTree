@@ -59,11 +59,12 @@ module People
           n.spouses.each do |spouse|
             # Only add one edge per pair
             if n.id < spouse.id && node_ids.include?(spouse.id)
-              # Find the relationship to get the is_ex attribute
+              # Find the relationship to get the is_ex and is_deceased attributes
               relationship = n.relationships.find { |r| r.relative_id == spouse.id && r.relationship_type == 'spouse' }
               edge = { source: n.id, target: spouse.id, relationship_type: 'spouse' }
               if relationship
                 edge[:is_ex] = relationship.is_ex
+                edge[:is_deceased] = relationship.is_deceased
               end
               edges << edge
             end

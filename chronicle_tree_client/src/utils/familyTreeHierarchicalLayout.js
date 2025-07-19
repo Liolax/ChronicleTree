@@ -152,8 +152,12 @@ const buildRelationshipMaps = (relationships) => {
         break;
         
       case 'spouse':
-        spouseMap.set(source, target);
-        spouseMap.set(target, source);
+        // Only include current spouses in the spouse map for positioning
+        // Ex-spouses and deceased spouses should not be positioned as couples
+        if (!rel.is_ex && !rel.is_deceased) {
+          spouseMap.set(source, target);
+          spouseMap.set(target, source);
+        }
         break;
         
       case 'sibling':
@@ -167,6 +171,21 @@ const buildRelationshipMaps = (relationships) => {
         siblingMap.get(target).add(source);
         break;
     }
+  });
+
+  // Debug: Log spouse relationship processing
+  console.log('Spouse relationships:');
+  const spouseRels = relationships.filter(rel => (rel.type || rel.relationship_type) === 'spouse');
+  spouseRels.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    const status = rel.is_deceased ? 'deceased' : (rel.is_ex ? 'ex' : 'current');
+    console.log(`  ${source} <-> ${target} (${status}) - Raw:`, rel);
+  });
+  
+  console.log('Current spouse map (for positioning):');
+  spouseMap.forEach((targetId, sourceId) => {
+    console.log(`  ${sourceId} -> ${targetId}`);
   });
 
   return {
@@ -409,8 +428,17 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
     const connectionKey = `spouse-${Math.min(source, target)}-${Math.max(source, target)}`;
 
     if (!processedConnections.has(connectionKey)) {
-      // Determine if this is an ex-spouse relationship
+      // Determine the relationship status and color
       const isEx = relationship.is_ex === true;
+      const isDeceased = relationship.is_deceased === true;
+      
+      // Choose color based on relationship status
+      let strokeColor = '#ec4899'; // Default: pink for current spouse
+      if (isDeceased) {
+        strokeColor = '#000000'; // Black for deceased spouse
+      } else if (isEx) {
+        strokeColor = '#9ca3af'; // Grey for ex-spouse
+      }
       
       edges.push({
         id: connectionKey,
@@ -419,7 +447,7 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
         type: 'straight',
         animated: false,
         style: {
-          stroke: isEx ? '#9ca3af' : '#ec4899', // Grey for ex-spouse, pink for current spouse
+          stroke: strokeColor,
           strokeWidth: 3,
           strokeDasharray: '5 5'
         }

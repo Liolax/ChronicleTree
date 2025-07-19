@@ -7,6 +7,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :age,
              :date_of_birth,
              :date_of_death,
+             :is_deceased,
              :avatar_url,
              :note,
              :relatives,

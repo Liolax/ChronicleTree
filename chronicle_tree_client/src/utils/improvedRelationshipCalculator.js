@@ -70,11 +70,12 @@ const buildRelationshipMaps = (relationships) => {
   const isRailsFormat = hasParentType && hasChildType;
   
   relationships.forEach(rel => {
-    const source = String(rel.source || rel.from);
-    const target = String(rel.target || rel.to);
+    // Handle different relationship formats (API format vs test format)
+    const source = String(rel.source || rel.from || rel.person_a_id);
+    const target = String(rel.target || rel.to || rel.person_b_id);
     
     // Support both 'type' and 'relationship_type' field names for flexibility
-    const relationshipType = rel.type || rel.relationship_type;
+    const relationshipType = (rel.type || rel.relationship_type || '').toLowerCase();
     
     switch (relationshipType) {
       case 'parent':
@@ -272,7 +273,7 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Check if person is root's deceased spouse
   if (deceasedSpouseMap.has(rootId) && deceasedSpouseMap.get(rootId).has(personId)) {
-    return getGenderSpecificRelation(personId, 'Husband (deceased)', 'Wife (deceased)', allPeople, 'Spouse (deceased)');
+    return getGenderSpecificRelation(personId, 'Late Husband', 'Late Wife', allPeople, 'Late Spouse');
   }
   
   // Check if person is root's ex-spouse

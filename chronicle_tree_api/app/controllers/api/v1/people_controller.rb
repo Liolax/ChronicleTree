@@ -113,9 +113,10 @@ module Api
                 target: rel.relative_id,
                 relationship_type: rel.relationship_type
               }
-              # Include is_ex attribute for spouse relationships
+              # Include is_ex and is_deceased attributes for spouse relationships
               if rel.relationship_type == 'spouse'
                 edge[:is_ex] = rel.is_ex
+                edge[:is_deceased] = rel.is_deceased
               end
               edges << edge
             end
@@ -142,7 +143,7 @@ module Api
         params.require(:person).permit(
           :first_name, :last_name,
           :date_of_birth, :date_of_death,
-          :gender
+          :gender, :is_deceased
         )
       end
     end

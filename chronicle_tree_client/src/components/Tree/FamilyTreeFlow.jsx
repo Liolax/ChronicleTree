@@ -66,6 +66,27 @@ const FamilyTree = () => {
     const token = localStorage.getItem('token');
     console.log('Auth token exists:', !!token);
     console.log('Token length:', token?.length);
+    
+    // Debug edges/relationships format
+    if (data && data.edges) {
+      console.log('=== Relationship Debug ===');
+      console.log('Total relationships:', data.edges.length);
+      
+      // Check spouse relationships specifically
+      const spouseRelationships = data.edges.filter(edge => 
+        (edge.relationship_type === 'spouse' || edge.type === 'spouse')
+      );
+      console.log('Spouse relationships found:', spouseRelationships.length);
+      spouseRelationships.forEach((edge, index) => {
+        console.log(`Spouse ${index + 1}:`, {
+          from: edge.from || edge.source,
+          to: edge.to || edge.target,
+          is_ex: edge.is_ex,
+          is_deceased: edge.is_deceased,
+          full_edge: edge
+        });
+      });
+    }
   }, [data, isLoading, isError, rootPersonId]);
 
   // Process data based on root person and add relationship information
@@ -425,6 +446,10 @@ const FamilyTree = () => {
                   <div className="flex items-center gap-2">
                     <div className="w-4 h-0.5 bg-[#9ca3af] border-dashed" style={{ borderTop: '2px dashed #9ca3af', background: 'none' }}></div>
                     <span>Ex-Spouse</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-black border-dashed" style={{ borderTop: '2px dashed #000000', background: 'none' }}></div>
+                    <span>Late Spouse</span>
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <div className="text-xs text-gray-500">
