@@ -37,8 +37,8 @@ michael = Person.find_or_create_by!(first_name: 'Michael', last_name: 'Doe', use
 emma = Person.find_or_create_by!(first_name: 'Emma', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(2020,3,22), is_deceased: false)
 
 # Lisa's parents (for step-grandparent relationship testing)
-lisa_father = Person.find_or_create_by!(first_name: 'William', last_name: 'Johnson', user: user, gender: 'Male', date_of_birth: Date.new(1965,4,15), is_deceased: false)
-lisa_mother = Person.find_or_create_by!(first_name: 'Patricia', last_name: 'Johnson', user: user, gender: 'Female', date_of_birth: Date.new(1968,11,8), is_deceased: false)
+lisa_father = Person.find_or_create_by!(first_name: 'William', last_name: 'O\'Sullivan', user: user, gender: 'Male', date_of_birth: Date.new(1965,4,15), is_deceased: false)
+lisa_mother = Person.find_or_create_by!(first_name: 'Patricia', last_name: 'O\'Sullivan', user: user, gender: 'Female', date_of_birth: Date.new(1968,11,8), is_deceased: false)
 
 # --- NOTES ---
 [ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
@@ -71,9 +71,9 @@ profile_photo_urls = {
   thomas: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&w=400&h=400&facepad=2',
   lisa: 'https://images.unsplash.com/photo-1506863530036-1efeddceb993?auto=format&fit=facearea&w=400&h=400&facepad=2',
   michael: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  emma: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  emma: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2',
   lisa_father: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  lisa_mother: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=400&h=400&facepad=2'
+  lisa_mother: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&w=400&h=400&facepad=2'
 }
 require 'open-uri'
 [ p1, alice, p2, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
@@ -176,12 +176,12 @@ TimelineItem.find_or_create_by!(id: 321, person: emma, title: 'Started Preschool
 TimelineItem.find_or_create_by!(id: 322, person: emma, title: 'First Piano Lesson', date: Date.new(2024,10,1), place: 'Music Studio', icon: 'Star', description: 'Started learning piano like her father Charlie.')
 TimelineItem.find_or_create_by!(id: 400, person: lisa_father, title: 'Born', date: Date.new(1965,4,15), place: 'City C', icon: 'Birthday', description: 'William was born in City C.')
 TimelineItem.find_or_create_by!(id: 401, person: lisa_father, title: 'Graduated Engineering', date: Date.new(1987,5,15), place: 'State Tech University', icon: 'Graduation', description: 'Graduated with Mechanical Engineering degree.')
-TimelineItem.find_or_create_by!(id: 402, person: lisa_father, title: 'Married Patricia', date: Date.new(1990,8,20), place: 'City C Church', icon: 'Love', description: 'Married Patricia Johnson.')
+TimelineItem.find_or_create_by!(id: 402, person: lisa_father, title: 'Married Patricia', date: Date.new(1990,8,20), place: 'City C Church', icon: 'Love', description: 'Married Patricia O\'Sullivan.')
 TimelineItem.find_or_create_by!(id: 403, person: lisa_father, title: 'Lisa Born', date: Date.new(1994,6,10), place: 'City C Hospital', icon: 'Birthday', description: 'Daughter Lisa was born.')
 TimelineItem.find_or_create_by!(id: 404, person: lisa_father, title: 'Retired', date: Date.new(2020,12,31), place: 'Engineering Corp', icon: 'Trophy', description: 'Retired after 35 years as a mechanical engineer.')
 TimelineItem.find_or_create_by!(id: 410, person: lisa_mother, title: 'Born', date: Date.new(1968,11,8), place: 'City C', icon: 'Birthday', description: 'Patricia was born in City C.')
 TimelineItem.find_or_create_by!(id: 411, person: lisa_mother, title: 'Graduated Education', date: Date.new(1990,5,15), place: 'City C University', icon: 'Graduation', description: 'Graduated with Education degree.')
-TimelineItem.find_or_create_by!(id: 412, person: lisa_mother, title: 'Married William', date: Date.new(1990,8,20), place: 'City C Church', icon: 'Love', description: 'Married William Johnson.')
+TimelineItem.find_or_create_by!(id: 412, person: lisa_mother, title: 'Married William', date: Date.new(1990,8,20), place: 'City C Church', icon: 'Love', description: 'Married William O\'Sullivan.')
 TimelineItem.find_or_create_by!(id: 413, person: lisa_mother, title: 'Started Teaching', date: Date.new(1990,9,1), place: 'City C Elementary', icon: 'Work', description: 'Started teaching at City C Elementary School.')
 TimelineItem.find_or_create_by!(id: 414, person: lisa_mother, title: 'Lisa Born', date: Date.new(1994,6,10), place: 'City C Hospital', icon: 'Birthday', description: 'Daughter Lisa was born.')
 TimelineItem.find_or_create_by!(id: 415, person: lisa_mother, title: 'Became Principal', date: Date.new(2000,9,1), place: 'City C Elementary', icon: 'Trophy', description: 'Promoted to school principal.')
