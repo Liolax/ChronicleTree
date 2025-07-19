@@ -322,7 +322,12 @@ const FamilyTree = () => {
     
     const handleFitView = useCallback(() => {
       fitView({ 
-        padding: 0.1,        // 10% padding around the tree
+        padding: {
+          top: 50,           // Top padding
+          right: 200,        // Extra right padding for Connection Legend
+          bottom: 50,        // Bottom padding  
+          left: 50           // Left padding
+        },
         minZoom: 0.3,        // Minimum zoom level
         maxZoom: 1.2,        // Maximum zoom level
         duration: 800        // Smooth animation duration
