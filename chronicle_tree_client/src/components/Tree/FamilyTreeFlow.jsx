@@ -54,6 +54,20 @@ const FamilyTree = () => {
   
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
+  // Debug: Log the API response
+  React.useEffect(() => {
+    console.log('=== API Data Debug ===');
+    console.log('isLoading:', isLoading);
+    console.log('isError:', isError);
+    console.log('data:', data);
+    console.log('rootPersonId:', rootPersonId);
+    
+    // Check authentication state
+    const token = localStorage.getItem('token');
+    console.log('Auth token exists:', !!token);
+    console.log('Token length:', token?.length);
+  }, [data, isLoading, isError, rootPersonId]);
+
   // Process data based on root person and add relationship information
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };

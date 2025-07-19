@@ -58,6 +58,7 @@ const buildRelationshipMaps = (relationships) => {
   const childToParents = new Map();
   const spouseMap = new Map(); // Maps person ID to Set of current spouses
   const exSpouseMap = new Map(); // Maps person ID to Set of ex-spouses
+  const deceasedSpouseMap = new Map(); // Maps person ID to Set of deceased spouses
   const siblingMap = new Map();
 
   // Detect relationship format based on whether we have both 'parent' and 'child' types
@@ -127,6 +128,16 @@ const buildRelationshipMaps = (relationships) => {
           }
           exSpouseMap.get(source).add(target);
           exSpouseMap.get(target).add(source);
+        } else if (rel.is_deceased) {
+          // Deceased spouse relationships - use Sets to handle multiple deceased spouses
+          if (!deceasedSpouseMap.has(source)) {
+            deceasedSpouseMap.set(source, new Set());
+          }
+          if (!deceasedSpouseMap.has(target)) {
+            deceasedSpouseMap.set(target, new Set());
+          }
+          deceasedSpouseMap.get(source).add(target);
+          deceasedSpouseMap.get(target).add(source);
         } else {
           // Current spouse relationships - use Sets to handle multiple current spouses
           if (!spouseMap.has(source)) {
@@ -194,6 +205,7 @@ const buildRelationshipMaps = (relationships) => {
     childToParents,
     spouseMap,
     exSpouseMap,
+    deceasedSpouseMap,
     siblingMap
   };
 };
@@ -241,7 +253,7 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
  * @returns {string|null} - Direct relationship or null
  */
 const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  const { parentToChildren, childToParents, spouseMap, exSpouseMap, siblingMap } = relationshipMaps;
+  const { parentToChildren, childToParents, spouseMap, exSpouseMap, deceasedSpouseMap, siblingMap } = relationshipMaps;
   
   // Check if person is root's parent
   if (childToParents.has(rootId) && childToParents.get(rootId).has(personId)) {
@@ -256,6 +268,11 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Check if person is root's current spouse
   if (spouseMap.has(rootId) && spouseMap.get(rootId).has(personId)) {
     return getGenderSpecificRelation(personId, 'Husband', 'Wife', allPeople, 'Spouse');
+  }
+  
+  // Check if person is root's deceased spouse
+  if (deceasedSpouseMap.has(rootId) && deceasedSpouseMap.get(rootId).has(personId)) {
+    return getGenderSpecificRelation(personId, 'Husband (deceased)', 'Wife (deceased)', allPeople, 'Spouse (deceased)');
   }
   
   // Check if person is root's ex-spouse
@@ -500,7 +517,15 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
 const getGenderSpecificRelation = (personId, maleRelation, femaleRelation, allPeople, neutralRelation = null) => {
   const person = allPeople.find(p => String(p.id) === String(personId));
   if (person && person.gender) {
-    return person.gender.toLowerCase() === 'female' ? femaleRelation : maleRelation;
+    const gender = person.gender.toLowerCase();
+    if (gender === 'female') {
+      return femaleRelation;
+    } else if (gender === 'male') {
+      return maleRelation;
+    } else {
+      // For non-binary, non-conforming, or any other gender identity
+      return neutralRelation || maleRelation;
+    }
   }
   // If neutralRelation is provided and gender is not available, use neutral term
   if (neutralRelation) {

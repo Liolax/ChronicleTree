@@ -2,10 +2,6 @@
 
 one:
   person: one
-  bio: MyText
-  notes: MyText
 
 two:
   person: two
-  bio: MyText
-  notes: MyText

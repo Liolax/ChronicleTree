@@ -13,14 +13,17 @@ class Relationship < ApplicationRecord
   validates :relationship_type, presence: true
   validate  :person_is_not_relative
   validate  :valid_relationship_type
-  validate  :only_one_current_spouse, if: -> { relationship_type == "spouse" && !is_ex }
+  validate  :only_one_current_spouse, if: -> { relationship_type == "spouse" && !is_ex && !is_deceased }
+  validate  :spouse_status_exclusivity, if: -> { relationship_type == "spouse" }
 
-  # Add a scope for ex-spouses
+  # Add scopes for different spouse types
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
+  scope :deceased_spouses, -> { where(relationship_type: "spouse", is_deceased: true) }
+  scope :current_spouses, -> { where(relationship_type: "spouse", is_ex: false, is_deceased: false) }
 
   # After creating/updating parent-child relationships, update sibling relationships
   after_create :update_sibling_relationships, if: -> { relationship_type == "child" || relationship_type == "parent" }
-  after_update :sync_reciprocal_spouse_status, if: -> { relationship_type == "spouse" && saved_change_to_is_ex? }
+  after_update :sync_reciprocal_spouse_status, if: -> { relationship_type == "spouse" && (saved_change_to_is_ex? || saved_change_to_is_deceased?) }
 
   private
 
@@ -52,12 +55,19 @@ class Relationship < ApplicationRecord
   def only_one_current_spouse
     # Check if this is a new record or is being updated to current spouse
     # Only allow one current spouse per person (per direction)
-    existing = Relationship.where(relationship_type: "spouse", is_ex: false)
+    existing = Relationship.where(relationship_type: "spouse", is_ex: false, is_deceased: false)
                           .where(person_id: person_id)
     # Exclude self if updating
     existing = existing.where.not(id: id) if persisted?
     if existing.exists?
       errors.add(:base, "A person can only have one current spouse at a time.")
+    end
+  end
+
+  def spouse_status_exclusivity
+    # A spouse relationship cannot be both ex and deceased
+    if is_ex && is_deceased
+      errors.add(:base, "A spouse cannot be both ex-spouse and deceased spouse.")
     end
   end
 
@@ -69,9 +79,15 @@ class Relationship < ApplicationRecord
       relationship_type: "spouse"
     )
     
-    if reciprocal && reciprocal.is_ex != is_ex
-      # Update without triggering callbacks to avoid infinite loop
-      reciprocal.update_column(:is_ex, is_ex)
+    if reciprocal
+      # Update both is_ex and is_deceased without triggering callbacks to avoid infinite loop
+      if reciprocal.is_ex != is_ex
+        reciprocal.update_column(:is_ex, is_ex)
+      end
+      
+      if reciprocal.is_deceased != is_deceased
+        reciprocal.update_column(:is_deceased, is_deceased)
+      end
     end
   end
 
