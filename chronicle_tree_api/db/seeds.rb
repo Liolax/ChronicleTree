@@ -19,22 +19,22 @@ puts "Adding fixture-style test people and their data for UI testing..."
 # --- PEOPLE ---
 p1 = Person.find_or_create_by!(first_name: 'John', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1970,1,1), is_deceased: false)
 p2 = Person.find_or_create_by!(first_name: 'Jane', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1972,1,1), date_of_death: Date.new(2022,1,1), is_deceased: true)
-alice = Person.find_or_create_by!(first_name: 'Alice', last_name: 'A', user: user, gender: 'Female', date_of_birth: Date.new(1995,1,1), is_deceased: false)
-david = Person.find_or_create_by!(first_name: 'David', last_name: 'A', user: user, gender: 'Male', date_of_birth: Date.new(1993,1,1), is_deceased: false)
-bob = Person.find_or_create_by!(first_name: 'Bob', last_name: 'B', user: user, gender: 'Male', date_of_birth: Date.new(2017,1,1), is_deceased: false)
-emily = Person.find_or_create_by!(first_name: 'Emily', last_name: 'E', user: user, gender: 'Female', date_of_birth: Date.new(2019,1,1), is_deceased: false)
-charlie = Person.find_or_create_by!(first_name: 'Charlie', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(1997,1,1), is_deceased: false)
+alice = Person.find_or_create_by!(first_name: 'Alice', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1995,1,1), is_deceased: false)
+david = Person.find_or_create_by!(first_name: 'David', last_name: 'Anderson', user: user, gender: 'Male', date_of_birth: Date.new(1993,1,1), is_deceased: false)
+bob = Person.find_or_create_by!(first_name: 'Bob', last_name: 'Anderson', user: user, gender: 'Male', date_of_birth: Date.new(2017,1,1), is_deceased: false)
+emily = Person.find_or_create_by!(first_name: 'Emily', last_name: 'Anderson', user: user, gender: 'Female', date_of_birth: Date.new(2019,1,1), is_deceased: false)
+charlie = Person.find_or_create_by!(first_name: 'Charlie', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1997,1,1), is_deceased: false)
 
 # Additional people to demonstrate deceased spouse functionality
-molly = Person.find_or_create_by!(first_name: 'Molly', last_name: 'C', user: user, gender: 'Female', date_of_birth: Date.new(1945,3,15), date_of_death: Date.new(2020,11,8), is_deceased: true)
-robert = Person.find_or_create_by!(first_name: 'Robert', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(1943,7,22), is_deceased: false)
-sarah = Person.find_or_create_by!(first_name: 'Sarah', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1950,9,12), is_deceased: false)
-thomas = Person.find_or_create_by!(first_name: 'Thomas', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1948,12,3), date_of_death: Date.new(2018,5,14), is_deceased: true)
+molly = Person.find_or_create_by!(first_name: 'Molly', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1945,3,15), date_of_death: Date.new(2020,11,8), is_deceased: true)
+robert = Person.find_or_create_by!(first_name: 'Robert', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1943,7,22), is_deceased: false)
+sarah = Person.find_or_create_by!(first_name: 'Sarah', last_name: 'Anderson', user: user, gender: 'Female', date_of_birth: Date.new(1950,9,12), is_deceased: false)
+thomas = Person.find_or_create_by!(first_name: 'Thomas', last_name: 'Anderson', user: user, gender: 'Male', date_of_birth: Date.new(1948,12,3), date_of_death: Date.new(2018,5,14), is_deceased: true)
 
 # Additional people for step-brother and cousin relationship testing
 lisa = Person.find_or_create_by!(first_name: 'Lisa', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1994,6,10), is_deceased: false)
 michael = Person.find_or_create_by!(first_name: 'Michael', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(2024,8,15), is_deceased: false)
-emma = Person.find_or_create_by!(first_name: 'Emma', last_name: 'C', user: user, gender: 'Female', date_of_birth: Date.new(2020,3,22), is_deceased: false)
+emma = Person.find_or_create_by!(first_name: 'Emma', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(2020,3,22), is_deceased: false)
 
 # --- NOTES ---
 [ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma ].each do |person|
@@ -67,7 +67,7 @@ profile_photo_urls = {
   thomas: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&w=400&h=400&facepad=2',
   lisa: 'https://images.unsplash.com/photo-1506863530036-1efeddceb993?auto=format&fit=facearea&w=400&h=400&facepad=2',
   michael: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  emma: 'https://images.unsplash.com/photo-1518384401463-48c1b11c591e?auto=format&fit=facearea&w=400&h=400&facepad=2'
+  emma: 'https://images.unsplash.com/photo-1544725176-7c40e5a71c5e?auto=format&fit=facearea&w=400&h=400&facepad=2'
 }
 require 'open-uri'
 [ p1, alice, p2, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma ].each do |person|
@@ -88,7 +88,7 @@ Fact.find_or_create_by!(id: 101, person: p1, label: 'Occupation', value: 'Softwa
 Fact.find_or_create_by!(id: 102, person: p1, label: 'Military Service', value: 'Served in the Army', date: Date.new(1990, 1, 1), location: 'Base Q')
 Fact.find_or_create_by!(id: 103, person: p1, label: 'Residence', value: 'Lives in City B', date: Date.new(2009, 1, 1), location: 'City B')
 # Memorial fact is unique and meaningful information not shown in relationships
-Fact.find_or_create_by!(id: 120, person: p1, label: 'Memorial', value: 'Dedicated memorial garden for Jane', date: Date.new(2022, 6, 1), location: 'City B Memorial Park')
+Fact.find_or_create_by!(id: 120, person: p1, label: 'Memorial', value: 'Dedicated memorial garden for Jane Doe', date: Date.new(2022, 6, 1), location: 'City B Memorial Park')
 Fact.find_or_create_by!(id: 104, person: p2, label: 'Occupation', value: 'Teacher at School B', date: Date.new(1995, 1, 1), location: 'School B')
 Fact.find_or_create_by!(id: 105, person: p2, label: 'Residence', value: 'Moved to City B', date: Date.new(2010, 1, 1), location: 'City B')
 Fact.find_or_create_by!(id: 106, person: alice, label: 'Hobby', value: 'Painting landscapes', date: Date.new(2005, 1, 1), location: 'Home Studio')
@@ -132,18 +132,18 @@ TimelineItem.find_or_create_by!(id: 216, person: p2, title: 'Moved to City B', d
 TimelineItem.find_or_create_by!(id: 217, person: alice, title: 'Born', date: Date.new(1995,1,1), place: 'City A', icon: 'Birthday', description: 'Alice was born in City A.')
 TimelineItem.find_or_create_by!(id: 218, person: alice, title: 'Graduated High School', date: Date.new(2013,6,1), place: 'City A High', icon: 'Graduation', description: 'Graduated from City A High School.')
 TimelineItem.find_or_create_by!(id: 219, person: alice, title: 'Started Painting', date: Date.new(2014,1,1), place: 'Home Studio', icon: 'Star', description: 'Began painting landscapes.')
-TimelineItem.find_or_create_by!(id: 220, person: alice, title: 'Married David', date: Date.new(2016,6,1), place: 'City A', icon: 'Love', description: 'Married David.')
+TimelineItem.find_or_create_by!(id: 220, person: alice, title: 'Married David', date: Date.new(2016,6,1), place: 'City A', icon: 'Love', description: 'Married David Anderson.')
 TimelineItem.find_or_create_by!(id: 221, person: alice, title: 'Bob Born', date: Date.new(2017,1,1), place: 'City A', icon: 'Birthday', description: 'Son Bob was born.')
 TimelineItem.find_or_create_by!(id: 222, person: alice, title: 'Emily Born', date: Date.new(2019,1,1), place: 'City A', icon: 'Birthday', description: 'Daughter Emily was born.')
 TimelineItem.find_or_create_by!(id: 223, person: alice, title: 'Won Art Prize', date: Date.new(2022,11,5), place: 'City Gallery', icon: 'Trophy', description: 'Won Art Prize at City Gallery.')
-TimelineItem.find_or_create_by!(id: 224, person: alice, title: 'Divorced David', date: Date.new(2023,1,1), place: 'City A', icon: 'Flag', description: 'Divorced David.')
-TimelineItem.find_or_create_by!(id: 225, person: david, title: 'Born', date: Date.new(1993,1,1), place: 'City A', icon: 'Birthday', description: 'David was born in City A.')
+TimelineItem.find_or_create_by!(id: 224, person: alice, title: 'Divorced David', date: Date.new(2023,1,1), place: 'City A', icon: 'Flag', description: 'Divorced David Anderson.')
+TimelineItem.find_or_create_by!(id: 225, person: david, title: 'Born', date: Date.new(1993,1,1), place: 'City A', icon: 'Birthday', description: 'David Anderson was born in City A.')
 TimelineItem.find_or_create_by!(id: 226, person: david, title: 'Graduated College', date: Date.new(2015,6,1), place: 'Tech University', icon: 'Graduation', description: 'Graduated from Tech University.')
-TimelineItem.find_or_create_by!(id: 227, person: david, title: 'Married Alice', date: Date.new(2016,6,1), place: 'City A', icon: 'Love', description: 'Married Alice.')
+TimelineItem.find_or_create_by!(id: 227, person: david, title: 'Married Alice', date: Date.new(2016,6,1), place: 'City A', icon: 'Love', description: 'Married Alice Doe.')
 TimelineItem.find_or_create_by!(id: 228, person: david, title: 'Bob Born', date: Date.new(2017,1,1), place: 'City A', icon: 'Birthday', description: 'Son Bob was born.')
 TimelineItem.find_or_create_by!(id: 229, person: david, title: 'Emily Born', date: Date.new(2019,1,1), place: 'City A', icon: 'Birthday', description: 'Daughter Emily was born.')
 TimelineItem.find_or_create_by!(id: 230, person: david, title: 'Started at Company X', date: Date.new(2015,9,1), place: 'Company X HQ', icon: 'Work', description: 'Started as Senior Engineer at Company X.')
-TimelineItem.find_or_create_by!(id: 231, person: david, title: 'Divorced Alice', date: Date.new(2023,1,1), place: 'City A', icon: 'Flag', description: 'Divorced Alice.')
+TimelineItem.find_or_create_by!(id: 231, person: david, title: 'Divorced Alice', date: Date.new(2023,1,1), place: 'City A', icon: 'Flag', description: 'Divorced Alice Doe.')
 TimelineItem.find_or_create_by!(id: 232, person: bob, title: 'Born', date: Date.new(2017,1,1), place: 'City A', icon: 'Birthday', description: 'Bob was born in City A.')
 TimelineItem.find_or_create_by!(id: 233, person: bob, title: 'Started School', date: Date.new(2023,9,1), place: 'City A', icon: 'Graduation', description: 'Started at Central Elementary School.')
 TimelineItem.find_or_create_by!(id: 234, person: bob, title: 'Joined Soccer Team', date: Date.new(2024,4,10), place: 'Field Y', icon: 'Star', description: 'Joined the city soccer team.')
