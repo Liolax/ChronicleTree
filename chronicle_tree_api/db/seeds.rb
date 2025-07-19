@@ -26,10 +26,10 @@ emily = Person.find_or_create_by!(first_name: 'Emily', last_name: 'E', user: use
 charlie = Person.find_or_create_by!(first_name: 'Charlie', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(1997,1,1), is_deceased: false)
 
 # Additional people to demonstrate deceased spouse functionality
-molly = Person.find_or_create_by!(first_name: 'Molly', last_name: 'Johnson', user: user, gender: 'Female', date_of_birth: Date.new(1945,3,15), date_of_death: Date.new(2020,11,8), is_deceased: true)
-robert = Person.find_or_create_by!(first_name: 'Robert', last_name: 'Johnson', user: user, gender: 'Male', date_of_birth: Date.new(1943,7,22), is_deceased: false)
-sarah = Person.find_or_create_by!(first_name: 'Sarah', last_name: 'Williams', user: user, gender: 'Female', date_of_birth: Date.new(1950,9,12), is_deceased: false)
-thomas = Person.find_or_create_by!(first_name: 'Thomas', last_name: 'Williams', user: user, gender: 'Male', date_of_birth: Date.new(1948,12,3), date_of_death: Date.new(2018,5,14), is_deceased: true)
+molly = Person.find_or_create_by!(first_name: 'Molly', last_name: 'C', user: user, gender: 'Female', date_of_birth: Date.new(1945,3,15), date_of_death: Date.new(2020,11,8), is_deceased: true)
+robert = Person.find_or_create_by!(first_name: 'Robert', last_name: 'C', user: user, gender: 'Male', date_of_birth: Date.new(1943,7,22), is_deceased: false)
+sarah = Person.find_or_create_by!(first_name: 'Sarah', last_name: 'Doe', user: user, gender: 'Female', date_of_birth: Date.new(1950,9,12), is_deceased: false)
+thomas = Person.find_or_create_by!(first_name: 'Thomas', last_name: 'Doe', user: user, gender: 'Male', date_of_birth: Date.new(1948,12,3), date_of_death: Date.new(2018,5,14), is_deceased: true)
 
 # --- NOTES ---
 [ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas ].each do |person|
