@@ -298,31 +298,53 @@ const FamilyTree = () => {
     setEdges(layoutedEdges);
   }, [layoutedEdges, setEdges]);
 
+  // Auto-fit the tree view when nodes change (new tree data loaded)
+  React.useEffect(() => {
+    if (layoutedNodes.length > 0) {
+      // Small delay to ensure nodes are rendered before fitting
+      const timer = setTimeout(() => {
+        // Get fitView from ReactFlow context if available
+        const reactFlowInstance = document.querySelector('.react-flow');
+        if (reactFlowInstance) {
+          // Dispatch a custom event that the FitViewButton can listen to
+          const event = new CustomEvent('autoFitTree');
+          reactFlowInstance.dispatchEvent(event);
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [layoutedNodes.length]);
+
   // Fit view button component
   const FitViewButton = () => {
     const { fitView } = useReactFlow();
     
     const handleFitView = useCallback(() => {
-      fitView({ padding: 0.15, duration: 800 });
+      fitView({ 
+        padding: 0.1,        // 10% padding around the tree
+        minZoom: 0.3,        // Minimum zoom level
+        maxZoom: 1.2,        // Maximum zoom level
+        duration: 800        // Smooth animation duration
+      });
     }, [fitView]);
+
+    // Auto-fit when tree data changes
+    React.useEffect(() => {
+      const reactFlowElement = document.querySelector('.react-flow');
+      if (reactFlowElement) {
+        const handleAutoFit = () => {
+          handleFitView();
+        };
+        
+        reactFlowElement.addEventListener('autoFitTree', handleAutoFit);
+        return () => reactFlowElement.removeEventListener('autoFitTree', handleAutoFit);
+      }
+    }, [handleFitView]);
 
     return (
       <Button onClick={handleFitView} variant="secondary">
-        Fit View
-      </Button>
-    );
-  };
-
-  const CenterViewButton = () => {
-    const { setCenter } = useReactFlow();
-    
-    const handleCenterView = useCallback(() => {
-      setCenter(0, 0, { zoom: 0.8, duration: 800 });
-    }, [setCenter]);
-
-    return (
-      <Button onClick={handleCenterView} variant="secondary">
-        Center View
+        Fit Tree
       </Button>
     );
   };
@@ -379,7 +401,6 @@ const FamilyTree = () => {
               <FaShareAlt className="mr-2" />
               Share Tree
             </Button>
-            <CenterViewButton />
             <FitViewButton />
           </div>
         </div>
