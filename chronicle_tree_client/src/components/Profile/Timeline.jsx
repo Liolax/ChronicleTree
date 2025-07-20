@@ -43,31 +43,54 @@ export default function Timeline({ events, onEdit, onDelete }) {
                 )}
               </div>
               {/* Event card */}
-              <div className="flex-1 bg-white rounded-xl shadow border border-slate-100 px-6 py-4 hover:bg-blue-50 transition">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-bold text-lg text-slate-800 truncate flex items-center gap-2">{event.title}</span>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex-1 bg-white rounded-xl shadow border border-slate-100 px-4 md:px-6 py-4 hover:bg-blue-50 transition min-w-0">
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <h4 className="font-bold text-base md:text-lg text-slate-800 break-words flex-1 leading-tight">
+                    {event.title}
+                  </h4>
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
                     {onEdit && (
-                      <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-blue-100" onClick={() => onEdit(event)} title="Edit Event">
-                        <FaPen className="text-blue-600" />
+                      <button 
+                        className="bg-white border border-gray-300 rounded-full p-1.5 shadow hover:bg-blue-100 transition-colors" 
+                        onClick={() => onEdit(event)} 
+                        title="Edit Event"
+                      >
+                        <FaPen className="text-blue-600 w-3 h-3" />
                       </button>
                     )}
                     {onDelete && (
-                      <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100" onClick={() => onDelete(event.id)} title="Delete Event">
-                        <FaTrashAlt className="text-red-600" />
+                      <button 
+                        className="bg-white border border-gray-300 rounded-full p-1.5 shadow hover:bg-red-100 transition-colors" 
+                        onClick={() => onDelete(event.id)} 
+                        title="Delete Event"
+                      >
+                        <FaTrashAlt className="text-red-600 w-3 h-3" />
                       </button>
                     )}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
-                  <FaCalendarAlt className="text-slate-300" />
-                  {event.date ? new Date(event.date).toLocaleDateString() : ''}
+                
+                {/* Date and place metadata */}
+                <div className="flex flex-wrap gap-3 text-sm text-slate-600 mb-2">
+                  {event.date && (
+                    <span className="flex items-center gap-1">
+                      <FaCalendarAlt className="text-slate-400 flex-shrink-0" />
+                      {new Date(event.date).toLocaleDateString()}
+                    </span>
+                  )}
+                  {event.place && (
+                    <span className="flex items-center gap-1">
+                      <FaMapMarkerAlt className="text-slate-400 flex-shrink-0" />
+                      <span className="truncate max-w-[150px]">{event.place}</span>
+                    </span>
+                  )}
                 </div>
-                {event.description && <p className="text-sm text-slate-500 mt-1 flex items-center gap-2"><FaAlignLeft className="text-slate-300" />{event.description}</p>}
-                {event.place && (
-                  <div className="flex items-center gap-2 text-xs text-slate-500 mb-1">
-                    <FaMapMarkerAlt className="text-slate-300" />
-                    {event.place}
+                
+                {/* Description */}
+                {event.description && (
+                  <div className="flex items-start gap-2 mt-2">
+                    <FaAlignLeft className="text-slate-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-slate-600 break-words leading-relaxed">{event.description}</p>
                   </div>
                 )}
               </div>

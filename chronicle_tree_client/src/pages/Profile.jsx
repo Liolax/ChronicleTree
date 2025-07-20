@@ -240,58 +240,64 @@ export default function Profile() {
   };
 
   return (
-    <main className="max-w-4xl mx-auto my-10 p-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <main className="max-w-6xl mx-auto my-6 md:my-10 p-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-8">
         {/* Left column: Profile summary */}
         <div className="flex flex-col gap-8">
           {/* Name, Age, Share, Avatar */}
-          <div className="flex flex-col items-center md:items-start gap-2">
-            <div className="flex items-center gap-4 w-full">
+          <div className="flex flex-col items-center md:items-start gap-4">
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 w-full">
               {/* Avatar */}
-              <div className="relative group">
+              <div className="relative group flex-shrink-0">
                 {person.avatar_url ? (
                   <img
                     src={person.avatar_url}
                     alt={person.full_name || person.name}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-blue-200 shadow"
+                    className="w-24 h-24 md:w-20 md:h-20 rounded-full object-cover border-2 border-blue-200 shadow"
                   />
                 ) : (
-                  <FaUserCircle className="w-20 h-20 text-gray-300 border-2 border-blue-200 rounded-full bg-white shadow" />
+                  <FaUserCircle className="w-24 h-24 md:w-20 md:h-20 text-gray-300 border-2 border-blue-200 rounded-full bg-white shadow" />
                 )}
                 <button
-                  className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-2 shadow hover:bg-blue-700 transition-opacity opacity-80 group-hover:opacity-100"
-                  style={{ fontSize: '1.1rem' }}
+                  className="absolute bottom-0 right-0 bg-blue-600 text-white rounded-full p-1.5 md:p-2 shadow hover:bg-blue-700 transition-opacity opacity-80 group-hover:opacity-100"
                   onClick={() => setShowEditPic(true)}
                   title="Edit Profile Picture"
                   aria-label="Edit Profile Picture"
                 >
-                  <FaCamera />
+                  <FaCamera className="w-3 h-3 md:w-4 md:h-4" />
                 </button>
               </div>
-              <div className="flex-1 flex flex-col gap-1">
-                <h1 className="text-3xl sm:text-4xl font-bold text-app-primary flex items-center gap-3">
+              
+              <div className="flex-1 flex flex-col gap-2 text-center sm:text-left min-w-0">
+                <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-app-primary break-words leading-tight">
                   {person.full_name || person.name}
                 </h1>
-                <div className="flex items-center gap-3 text-gray-500 text-lg">
+                
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 text-gray-500">
                   {person.date_of_birth && !person.date_of_death && (
-                    <span>{getAge(person.date_of_birth)} y.o.</span>
+                    <span className="text-sm md:text-base">{getAge(person.date_of_birth)} y.o.</span>
                   )}
                   {person.gender === 'Female' ? (
                     <FaVenus className="text-pink-500" />
                   ) : person.gender === 'Male' ? (
                     <FaMars className="text-blue-500" />
                   ) : null}
+                  {person.date_of_death && (
+                    <span className="text-xs md:text-sm text-gray-400">
+                      Deceased ({new Date(person.date_of_death).getFullYear()})
+                    </span>
+                  )}
+                </div>
+                
+                <div className="flex justify-center sm:justify-start mt-2">
                   <button
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition ml-4"
+                    className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition text-sm md:text-base"
                     onClick={() => setShowShareModal(true)}
                     aria-label="Share profile"
                   >
                     <FaShareAlt /> Share
                   </button>
                 </div>
-                {person.date_of_death && (
-                  <span className="text-xs text-gray-400 font-normal block">Deceased{` (${new Date(person.date_of_death).getFullYear()})`}</span>
-                )}
               </div>
             </div>
           </div>

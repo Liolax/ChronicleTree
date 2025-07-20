@@ -11,7 +11,18 @@
       "Bash(rm:*)",
       "Bash(cat:*)",
       "WebFetch(domain:developers.facebook.com)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(mv:*)",
+      "Bash(npm test:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(for file in *.test.js)",
+      "Bash(do if [ -f \"$file\" ])",
+      "Bash(then echo \"Fixing $file...\")",
+      "Bash(perl:*)",
+      "Bash(fi)",
+      "Bash(done)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

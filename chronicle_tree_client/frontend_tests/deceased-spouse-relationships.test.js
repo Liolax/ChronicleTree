@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { calculateRelationshipToRoot } from '../../src/utils/improvedRelationshipCalculator.js';
+import { calculateRelationshipToRoot } from '../src/utils/improvedRelationshipCalculator.js';
 
 describe('Deceased Spouse Relationships', () => {
   const allPeople = [

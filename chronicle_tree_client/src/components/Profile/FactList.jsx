@@ -16,45 +16,66 @@ const FactList = ({ facts, onEdit, onDelete }) => {
   return (
     <ul className="space-y-2 text-app-primary text-sm">
       {facts.map((fact) => (
-        <li key={fact.id} className="flex items-center justify-between bg-white rounded-lg px-3 py-2 border border-slate-100 shadow group hover:bg-blue-50 transition">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
-            {/* Fact Type (label) */}
-            <span className="text-xs font-semibold text-blue-600 min-w-[80px] flex items-center gap-1">
-              <FaInfoCircle className="mr-1 text-blue-400" />
-              {labelMap[fact.label] || fact.label}
-            </span>
-            {/* Date */}
-            <span className="text-xs text-slate-700 flex items-center gap-1">
-              <FaCalendarAlt className="text-slate-400" />
-              {fact.date ? new Date(fact.date).toLocaleDateString() : ''}
-            </span>
-            {/* Location */}
-            {fact.location && (
-              <span className="text-xs text-slate-500 ml-2 flex items-center gap-1">
-                <FaMapMarkerAlt className="text-slate-300" />{fact.location}
-              </span>
-            )}
-            {/* Value / Description */}
-            {fact.value && (
-              <span className="text-xs text-slate-500 ml-2 flex items-center gap-1">
-                <FaAlignLeft className="text-slate-300" />{fact.value}
-              </span>
-            )}
-          </div>
-          {(onEdit || onDelete) && (
-            <div className="flex gap-2 ml-4 opacity-0 group-hover:opacity-100 transition-opacity">
-              {onEdit && (
-                <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-blue-100" onClick={() => onEdit(fact)} title="Edit Fact">
-                  <FaPen className="text-blue-600" />
-                </button>
-              )}
-              {onDelete && (
-                <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100" onClick={() => onDelete(fact.id)} title="Delete Fact">
-                  <FaTrashAlt className="text-red-600" />
-                </button>
+        <li key={fact.id} className="bg-white rounded-lg px-3 py-3 border border-slate-100 shadow group hover:bg-blue-50 transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex-1 min-w-0 space-y-2">
+              {/* Fact Type (label) - Always on top */}
+              <div className="flex items-center gap-2">
+                <FaInfoCircle className="text-blue-400 flex-shrink-0" />
+                <span className="text-sm font-semibold text-blue-600 truncate">
+                  {labelMap[fact.label] || fact.label}
+                </span>
+              </div>
+              
+              {/* Metadata row */}
+              <div className="flex flex-wrap gap-3 text-xs text-slate-600">
+                {fact.date && (
+                  <span className="flex items-center gap-1">
+                    <FaCalendarAlt className="text-slate-400" />
+                    {new Date(fact.date).toLocaleDateString()}
+                  </span>
+                )}
+                {fact.location && (
+                  <span className="flex items-center gap-1">
+                    <FaMapMarkerAlt className="text-slate-400" />
+                    <span className="truncate max-w-[120px]">{fact.location}</span>
+                  </span>
+                )}
+              </div>
+              
+              {/* Value / Description */}
+              {fact.value && (
+                <div className="flex items-start gap-2">
+                  <FaAlignLeft className="text-slate-400 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-slate-700 break-words">{fact.value}</span>
+                </div>
               )}
             </div>
-          )}
+            
+            {/* Action buttons */}
+            {(onEdit || onDelete) && (
+              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                {onEdit && (
+                  <button 
+                    className="bg-white border border-gray-300 rounded-full p-1.5 shadow hover:bg-blue-100 transition-colors" 
+                    onClick={() => onEdit(fact)} 
+                    title="Edit Fact"
+                  >
+                    <FaPen className="text-blue-600 w-3 h-3" />
+                  </button>
+                )}
+                {onDelete && (
+                  <button 
+                    className="bg-white border border-gray-300 rounded-full p-1.5 shadow hover:bg-red-100 transition-colors" 
+                    onClick={() => onDelete(fact.id)} 
+                    title="Delete Fact"
+                  >
+                    <FaTrashAlt className="text-red-600 w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </li>
       ))}
     </ul>

@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateRelationshipToRoot } from '../../src/utils/improvedRelationshipCalculator';
+import { calculateRelationshipToRoot } from '../src/utils/improvedRelationshipCalculator';
 
 describe('Comprehensive Relationship Calculator Tests', () => {
   // Extended test data including Michael A (David's father) for co-parent-in-law testing
