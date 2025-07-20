@@ -323,18 +323,19 @@ const FamilyTree = () => {
   // Fit view button component
   const FitViewButton = () => {
     const { fitView } = useReactFlow();
-    
+
     const handleFitView = useCallback(() => {
-      fitView({ 
+      // Increase right padding to prevent legend overlap
+      fitView({
         padding: {
-          top: 50,           // Top padding
-          right: 200,        // Extra right padding for Connection Legend
-          bottom: 50,        // Bottom padding  
-          left: 50           // Left padding
+          top: 50,
+          right: 150,
+          bottom: 50,
+          left: 10
         },
-        minZoom: 0.3,        // Minimum zoom level
-        maxZoom: 1.2,        // Maximum zoom level
-        duration: 800        // Smooth animation duration
+        minZoom: 0.3,
+        maxZoom: 1.2,
+        duration: 800
       });
     }, [fitView]);
 
