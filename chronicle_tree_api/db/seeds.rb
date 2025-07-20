@@ -38,7 +38,7 @@ emma = Person.find_or_create_by!(first_name: 'Emma', last_name: 'Doe', user: use
 
 # Lisa's parents (for step-grandparent relationship testing)
 lisa_father = Person.find_or_create_by!(first_name: 'William', last_name: 'O\'Sullivan', user: user, gender: 'Male', date_of_birth: Date.new(1965,4,15), is_deceased: false)
-lisa_mother = Person.find_or_create_by!(first_name: 'Patricia', last_name: 'O\'Sullivan', user: user, gender: 'Female', date_of_birth: Date.new(1968,11,8), is_deceased: false)
+lisa_mother = Person.find_or_create_by!(first_name: 'Patricia', last_name: 'Smith', user: user, gender: 'Female', date_of_birth: Date.new(1968,11,8), is_deceased: false)
 
 # Jane's parents (for maternal grandparent testing)
 jane_father = Person.find_or_create_by!(first_name: 'Richard', last_name: 'Sharma', user: user, gender: 'Male', date_of_birth: Date.new(1945,8,12), is_deceased: false)
@@ -184,12 +184,10 @@ TimelineItem.find_or_create_by!(id: 321, person: emma, title: 'Started Preschool
 TimelineItem.find_or_create_by!(id: 322, person: emma, title: 'First Piano Lesson', date: Date.new(2024,10,1), place: 'Music Studio', icon: 'Star', description: 'Started learning piano like her father Charlie.')
 TimelineItem.find_or_create_by!(id: 400, person: lisa_father, title: 'Born', date: Date.new(1965,4,15), place: 'City C', icon: 'Birthday', description: 'William was born in City C.')
 TimelineItem.find_or_create_by!(id: 401, person: lisa_father, title: 'Graduated Engineering', date: Date.new(1987,5,15), place: 'State Tech University', icon: 'Graduation', description: 'Graduated with Mechanical Engineering degree.')
-TimelineItem.find_or_create_by!(id: 402, person: lisa_father, title: 'Married Patricia', date: Date.new(1990,8,20), place: 'City C Church', icon: 'Love', description: 'Married Patricia O\'Sullivan.')
 TimelineItem.find_or_create_by!(id: 403, person: lisa_father, title: 'Lisa Born', date: Date.new(1994,6,10), place: 'City C Hospital', icon: 'Birthday', description: 'Daughter Lisa was born.')
 TimelineItem.find_or_create_by!(id: 404, person: lisa_father, title: 'Retired', date: Date.new(2020,12,31), place: 'Engineering Corp', icon: 'Trophy', description: 'Retired after 35 years as a mechanical engineer.')
 TimelineItem.find_or_create_by!(id: 410, person: lisa_mother, title: 'Born', date: Date.new(1968,11,8), place: 'City C', icon: 'Birthday', description: 'Patricia was born in City C.')
 TimelineItem.find_or_create_by!(id: 411, person: lisa_mother, title: 'Graduated Education', date: Date.new(1990,5,15), place: 'City C University', icon: 'Graduation', description: 'Graduated with Education degree.')
-TimelineItem.find_or_create_by!(id: 412, person: lisa_mother, title: 'Married William', date: Date.new(1990,8,20), place: 'City C Church', icon: 'Love', description: 'Married William O\'Sullivan.')
 TimelineItem.find_or_create_by!(id: 413, person: lisa_mother, title: 'Started Teaching', date: Date.new(1990,9,1), place: 'City C Elementary', icon: 'Work', description: 'Started teaching at City C Elementary School.')
 TimelineItem.find_or_create_by!(id: 414, person: lisa_mother, title: 'Lisa Born', date: Date.new(1994,6,10), place: 'City C Hospital', icon: 'Birthday', description: 'Daughter Lisa was born.')
 TimelineItem.find_or_create_by!(id: 415, person: lisa_mother, title: 'Became Principal', date: Date.new(2000,9,1), place: 'City C Elementary', icon: 'Trophy', description: 'Promoted to school principal.')
