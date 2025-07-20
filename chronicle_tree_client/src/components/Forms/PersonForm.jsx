@@ -233,7 +233,14 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                             if (ageDifferenceYears < 12) {
                               const parentName = parentPerson.first_name ? `${parentPerson.first_name} ${parentPerson.last_name}` : 'the parent';
                               const childName = childPerson.first_name ? `${childPerson.first_name} ${childPerson.last_name}` : 'the child';
-                              alertMessage = `⚠️ Age Validation Error:\n\n${parentName} is ${Math.abs(ageDifferenceYears).toFixed(1)} years older than ${childName}.\n\nA parent must be at least 12 years older than their child. Please adjust the birth dates accordingly.`;
+                              
+                              if (ageDifferenceYears < 0) {
+                                // Parent is younger than child
+                                alertMessage = `⚠️ Age Validation Error:\n\n${parentName} (born ${parentPerson.date_of_birth}) is ${Math.abs(ageDifferenceYears).toFixed(1)} years YOUNGER than ${childName} (born ${childPerson.date_of_birth}).\n\nA parent cannot be younger than their child. Please correct the birth dates.`;
+                              } else {
+                                // Parent is older but not enough
+                                alertMessage = `⚠️ Age Validation Error:\n\n${parentName} is only ${ageDifferenceYears.toFixed(1)} years older than ${childName}.\n\nA parent must be at least 12 years older than their child. Please adjust the birth dates accordingly.`;
+                              }
                             }
                           }
 

@@ -108,10 +108,19 @@ class Person < ApplicationRecord
       age_difference = (child_birth - parent_birth) / 365.25
 
       if age_difference < 12
-        return { 
-          valid: false, 
-          error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is only #{age_difference.round(1)} years older than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent must be at least 12 years older than their child."
-        }
+        if age_difference < 0
+          # Parent is younger than child
+          return { 
+            valid: false, 
+            error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is #{age_difference.abs.round(1)} years YOUNGER than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent cannot be younger than their child."
+          }
+        else
+          # Parent is older but not enough
+          return { 
+            valid: false, 
+            error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is only #{age_difference.round(1)} years older than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent must be at least 12 years older than their child."
+          }
+        end
       end
     end
 
