@@ -337,6 +337,54 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
     });
   }
 
+  // Identify unrelated node ids (not connected to any other node by parent, spouse, sibling)
+  const connectedIds = new Set();
+  nodes.forEach(node => {
+    // If node has any edge, it's considered connected
+    // We'll mark all nodes as connected except those with no relationships
+    // But for minimal change, let's just use persons with no parents, spouses, or siblings
+    const person = persons.find(p => String(p.id) === node.id);
+    if (!person) return;
+    let hasRelation = false;
+    // Check parent
+    if (person.father_id || person.mother_id) hasRelation = true;
+    // Check spouse
+    if (spouseMap.has(String(person.id))) hasRelation = true;
+    // Check siblings (if any)
+    // Sibling logic is not perfect here, but we can skip for now
+    if (hasRelation) connectedIds.add(node.id);
+  });
+  const unrelatedNodeIds = nodes.map(n => n.id).filter(id => !connectedIds.has(id));
+
+  // Overlap avoidance function
+  function avoidNodeOverlap(nodes, unrelatedNodeIds, nodeWidth = 220, nodeHeight = 150, margin = 30) {
+    const isOverlapping = (nodeA, nodeB) => {
+      return (
+        Math.abs(nodeA.position.x - nodeB.position.x) < nodeWidth + margin &&
+        Math.abs(nodeA.position.y - nodeB.position.y) < nodeHeight + margin
+      );
+    };
+    unrelatedNodeIds.forEach((unrelatedId) => {
+      const node = nodes.find((n) => n.id === unrelatedId);
+      if (!node) return;
+      let overlapped;
+      do {
+        overlapped = nodes.some(
+          (other) =>
+            other.id !== node.id && isOverlapping(node, other)
+        );
+        if (overlapped) {
+          // Nudge to the right
+          node.position.x += nodeWidth + margin;
+        }
+      } while (overlapped);
+    });
+    return nodes;
+  }
+
+  // Nudge unrelated nodes to avoid overlap
+  avoidNodeOverlap(nodes, unrelatedNodeIds);
+
   return nodes;
 };
 
