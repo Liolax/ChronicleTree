@@ -417,12 +417,14 @@ const FamilyTree = () => {
               <FaShareAlt className="mr-2" />
               Share Tree
             </Button>
-            <Button 
-              onClick={() => setShowUnrelated(!showUnrelated)} 
-              variant="secondary"
-            >
-              {showUnrelated ? 'Hide Unrelated' : 'Show Unrelated'}
-            </Button>
+            {rootPersonId && (
+              <Button 
+                onClick={() => setShowUnrelated(!showUnrelated)} 
+                variant="secondary"
+              >
+                {showUnrelated ? 'Hide Unrelated' : 'Show Unrelated'}
+              </Button>
+            )}
             <FitViewButton />
           </div>
         </div>
