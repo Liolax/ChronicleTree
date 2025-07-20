@@ -40,45 +40,51 @@ emma = Person.find_or_create_by!(first_name: 'Emma', last_name: 'Doe', user: use
 lisa_father = Person.find_or_create_by!(first_name: 'William', last_name: 'O\'Sullivan', user: user, gender: 'Male', date_of_birth: Date.new(1965,4,15), is_deceased: false)
 lisa_mother = Person.find_or_create_by!(first_name: 'Patricia', last_name: 'O\'Sullivan', user: user, gender: 'Female', date_of_birth: Date.new(1968,11,8), is_deceased: false)
 
+# Jane's parents (for maternal grandparent testing)
+jane_father = Person.find_or_create_by!(first_name: 'Richard', last_name: 'Sharma', user: user, gender: 'Male', date_of_birth: Date.new(1945,8,12), is_deceased: false)
+jane_mother = Person.find_or_create_by!(first_name: 'Margaret', last_name: 'Sharma', user: user, gender: 'Female', date_of_birth: Date.new(1948,2,28), is_deceased: false)
+
 # --- NOTES ---
-[ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
+[ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
   Note.find_or_create_by!(person: person) do |note|
     note.content = "Add a note about this person. You can use this space to record stories, memories, or important details."
   end
 end
 # --- PROFILES ---
-[ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
+[ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
   Profile.find_or_create_by!(person: person)
 end
 # Ensure avatars are nil
-[ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
+[ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
   profile = person.profile
   profile.avatar.purge if profile.avatar.attached?
 end
 
 # Attach placeholder profile photos to each person's avatar
 profile_photo_urls = {
-  p1: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  alice: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  p2: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  p1: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  alice: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  p2: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=facearea&w=400&h=400&facepad=2',
   david: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2',
   bob: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
   emily: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  charlie: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  molly: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  charlie: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  molly: 'https://images.unsplash.com/photo-1554151228-14d9def656e4?auto=format&fit=facearea&w=400&h=400&facepad=2',
   robert: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  sarah: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  sarah: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=facearea&w=400&h=400&facepad=2',
   thomas: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&w=400&h=400&facepad=2',
   lisa: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  michael: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  michael: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=facearea&w=400&h=400&facepad=2',
   emma: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=facearea&w=400&h=400&facepad=2',
   lisa_father: 'https://images.unsplash.com/photo-1556474835-b0f3ac40d4d1?auto=format&fit=facearea&w=400&h=400&facepad=2',
-  lisa_mother: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=facearea&w=400&h=400&facepad=2'
+  lisa_mother: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  jane_father: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=facearea&w=400&h=400&facepad=2',
+  jane_mother: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=facearea&w=400&h=400&facepad=2'
 }
 require 'open-uri'
-[ p1, alice, p2, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother ].each do |person|
+[ p1, alice, p2, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
   profile = person.profile
-  url = profile_photo_urls[person == p1 ? :p1 : person == alice ? :alice : person == p2 ? :p2 : person == david ? :david : person == bob ? :bob : person == emily ? :emily : person == charlie ? :charlie : person == molly ? :molly : person == robert ? :robert : person == sarah ? :sarah : person == thomas ? :thomas : person == lisa ? :lisa : person == michael ? :michael : person == emma ? :emma : person == lisa_father ? :lisa_father : :lisa_mother]
+  url = profile_photo_urls[person == p1 ? :p1 : person == alice ? :alice : person == p2 ? :p2 : person == david ? :david : person == bob ? :bob : person == emily ? :emily : person == charlie ? :charlie : person == molly ? :molly : person == robert ? :robert : person == sarah ? :sarah : person == thomas ? :thomas : person == lisa ? :lisa : person == michael ? :michael : person == emma ? :emma : person == lisa_father ? :lisa_father : person == lisa_mother ? :lisa_mother : person == jane_father ? :jane_father : :jane_mother]
   unless profile.avatar.attached?
     begin
       file = URI.open(url)
@@ -112,6 +118,8 @@ Fact.find_or_create_by!(id: 116, person: michael, label: 'Age', value: '6 months
 Fact.find_or_create_by!(id: 117, person: emma, label: 'Preschool', value: 'Rainbow Preschool', date: Date.new(2023, 9, 1), location: 'City A')
 Fact.find_or_create_by!(id: 118, person: lisa_father, label: 'Occupation', value: 'Retired Engineer', date: Date.new(2020, 12, 31), location: 'City C')
 Fact.find_or_create_by!(id: 119, person: lisa_mother, label: 'Occupation', value: 'School Principal', date: Date.new(2000, 9, 1), location: 'City C Elementary')
+Fact.find_or_create_by!(id: 121, person: jane_father, label: 'Occupation', value: 'Retired Bank Manager', date: Date.new(2010, 6, 30), location: 'City B Bank')
+Fact.find_or_create_by!(id: 122, person: jane_mother, label: 'Occupation', value: 'Retired Nurse', date: Date.new(2013, 8, 15), location: 'City B Hospital')
 # --- TIMELINE ITEMS ---
 TimelineItem.find_or_create_by!(id: 242, person: alice, title: 'Won Art Prize', date: Date.new(2018,11,5), place: 'City Gallery', icon: 'Trophy', description: 'Won Art Prize at City Gallery.')
 TimelineItem.find_or_create_by!(id: 243, person: bob, title: 'Became Team Captain', date: Date.new(2024,4,10), place: 'Field Y', icon: 'Trophy', description: 'Became soccer team captain.')
@@ -185,11 +193,23 @@ TimelineItem.find_or_create_by!(id: 412, person: lisa_mother, title: 'Married Wi
 TimelineItem.find_or_create_by!(id: 413, person: lisa_mother, title: 'Started Teaching', date: Date.new(1990,9,1), place: 'City C Elementary', icon: 'Work', description: 'Started teaching at City C Elementary School.')
 TimelineItem.find_or_create_by!(id: 414, person: lisa_mother, title: 'Lisa Born', date: Date.new(1994,6,10), place: 'City C Hospital', icon: 'Birthday', description: 'Daughter Lisa was born.')
 TimelineItem.find_or_create_by!(id: 415, person: lisa_mother, title: 'Became Principal', date: Date.new(2000,9,1), place: 'City C Elementary', icon: 'Trophy', description: 'Promoted to school principal.')
+TimelineItem.find_or_create_by!(id: 420, person: jane_father, title: 'Born', date: Date.new(1945,8,12), place: 'City B', icon: 'Birthday', description: 'Richard was born in City B.')
+TimelineItem.find_or_create_by!(id: 421, person: jane_father, title: 'Started Banking Career', date: Date.new(1968,7,1), place: 'City B Bank', icon: 'Work', description: 'Started career at City B Bank.')
+TimelineItem.find_or_create_by!(id: 422, person: jane_father, title: 'Married Margaret', date: Date.new(1970,9,15), place: 'City B Church', icon: 'Love', description: 'Married Margaret Sharma.')
+TimelineItem.find_or_create_by!(id: 423, person: jane_father, title: 'Jane Born', date: Date.new(1972,1,1), place: 'City B Hospital', icon: 'Birthday', description: 'Daughter Jane was born.')
+TimelineItem.find_or_create_by!(id: 424, person: jane_father, title: 'Promoted to Manager', date: Date.new(1985,3,1), place: 'City B Bank', icon: 'Trophy', description: 'Promoted to Bank Manager.')
+TimelineItem.find_or_create_by!(id: 425, person: jane_father, title: 'Retired', date: Date.new(2010,6,30), place: 'City B Bank', icon: 'Trophy', description: 'Retired after 42 years of service.')
+TimelineItem.find_or_create_by!(id: 430, person: jane_mother, title: 'Born', date: Date.new(1948,2,28), place: 'City B', icon: 'Birthday', description: 'Margaret was born in City B.')
+TimelineItem.find_or_create_by!(id: 431, person: jane_mother, title: 'Graduated Nursing', date: Date.new(1969,5,15), place: 'City B Nursing School', icon: 'Graduation', description: 'Graduated from nursing school.')
+TimelineItem.find_or_create_by!(id: 432, person: jane_mother, title: 'Married Richard', date: Date.new(1970,9,15), place: 'City B Church', icon: 'Love', description: 'Married Richard Sharma.')
+TimelineItem.find_or_create_by!(id: 433, person: jane_mother, title: 'Started at Hospital', date: Date.new(1970,10,1), place: 'City B Hospital', icon: 'Work', description: 'Started nursing career at City B Hospital.')
+TimelineItem.find_or_create_by!(id: 434, person: jane_mother, title: 'Jane Born', date: Date.new(1972,1,1), place: 'City B Hospital', icon: 'Birthday', description: 'Daughter Jane was born.')
+TimelineItem.find_or_create_by!(id: 435, person: jane_mother, title: 'Retired', date: Date.new(2013,8,15), place: 'City B Hospital', icon: 'Trophy', description: 'Retired after 43 years of nursing service.')
 # --- MEDIA ---
 # Images
 Medium.find_or_create_by!(id: 301, attachable: p1, attachable_type: 'Person', description: 'Professional portrait of John Doe.', title: 'John Doe Studio Photo')
 Medium.find_or_create_by!(id: 302, attachable: alice, attachable_type: 'Person', description: 'Alice painting a landscape in her studio.', title: 'Alice Painting')
-Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane Doe at her graduation ceremony.', title: 'Jane Graduation Photo')
+Medium.find_or_create_by!(id: 303, attachable: p2, attachable_type: 'Person', description: 'Jane at her graduation ceremony.', title: 'Jane Graduation Photo')
 Medium.find_or_create_by!(id: 304, attachable: david, attachable_type: 'Person', description: 'David working as a senior engineer at Company X.', title: 'David at Work')
 Medium.find_or_create_by!(id: 305, attachable: bob, attachable_type: 'Person', description: 'Bob playing soccer on the city team.', title: 'Bob Soccer Action')
 Medium.find_or_create_by!(id: 306, attachable: emily, attachable_type: 'Person', description: 'Emily reading her favorite novel at the library.', title: 'Emily Reading')
@@ -206,7 +226,7 @@ media_files = [
   # Images
   {id: 301, url: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'john_doe.jpg', content_type: 'image/jpeg'},
   {id: 302, url: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'alice_painting.jpg', content_type: 'image/jpeg'},
-  {id: 303, url: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'jane_graduation.jpg', content_type: 'image/jpeg'},
+  {id: 303, url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'jane_graduation.jpg', content_type: 'image/jpeg'},
   {id: 304, url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'david_work.jpg', content_type: 'image/jpeg'},
   {id: 305, url: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'bob_soccer.jpg', content_type: 'image/jpeg'},
   {id: 306, url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'emily_reading.jpg', content_type: 'image/jpeg'},
@@ -238,7 +258,9 @@ parent_child_pairs = [
   [ p1, michael ], [ lisa, michael ],  # Michael is son of John and Lisa
   [ charlie, emma ],  # Emma is daughter of Charlie (no mother specified yet)
   # Lisa's parents (for step-grandparent testing)
-  [ lisa_father, lisa ], [ lisa_mother, lisa ]  # William and Patricia are Lisa's parents
+  [ lisa_father, lisa ], [ lisa_mother, lisa ],  # William and Patricia are Lisa's parents
+  # Jane's parents (for maternal grandparent testing)
+  [ jane_father, p2 ], [ jane_mother, p2 ]  # Richard and Margaret are Jane's parents
 ]
 
 # Create parent-child relationships (both directions)
@@ -261,6 +283,9 @@ Relationship.find_or_create_by!(person: robert, relative: molly, relationship_ty
 # Sarah and Thomas were married (Thomas is deceased)
 Relationship.find_or_create_by!(person: sarah, relative: thomas, relationship_type: 'spouse', is_ex: false, is_deceased: true)
 Relationship.find_or_create_by!(person: thomas, relative: sarah, relationship_type: 'spouse', is_ex: false, is_deceased: true)
+# Jane's parents are married
+Relationship.find_or_create_by!(person: jane_father, relative: jane_mother, relationship_type: 'spouse', is_ex: false, is_deceased: false)
+Relationship.find_or_create_by!(person: jane_mother, relative: jane_father, relationship_type: 'spouse', is_ex: false, is_deceased: false)
 
 # Siblings (only create sibling relationships for those who share at least one parent)
 def shared_parent?(a, b, parent_child_pairs)

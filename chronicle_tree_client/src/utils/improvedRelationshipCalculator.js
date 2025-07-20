@@ -245,7 +245,13 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
     return bloodRelationship;
   }
 
-  // Check in-law relationships
+  // Check deceased spouse's family relationships (special handling)
+  const deceasedSpouseRelationship = findDeceasedSpouseRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
+  if (deceasedSpouseRelationship) {
+    return deceasedSpouseRelationship;
+  }
+
+  // Check in-law relationships (current spouses only)
   const inLawRelationship = findInLawRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (inLawRelationship) {
     return inLawRelationship;
@@ -655,6 +661,123 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
   
   // NO EX-SPOUSE IN-LAW LOGIC - All ex-spouse relatives should be "Unrelated"
+  return null;
+};
+
+/**
+ * Find deceased spouse's family relationships
+ * @param {string} personId - The person's ID
+ * @param {string} rootId - The root person's ID
+ * @param {Object} relationshipMaps - Relationship maps
+ * @param {Array} allPeople - Array of all people
+ * @returns {string|null} - Deceased spouse family relationship or null
+ */
+const findDeceasedSpouseRelationship = (personId, rootId, relationshipMaps, allPeople) => {
+  const { parentToChildren, childToParents, deceasedSpouseMap, siblingMap } = relationshipMaps;
+  
+  // Get all deceased spouses of root
+  const rootDeceasedSpouses = deceasedSpouseMap.get(rootId) || new Set();
+  
+  // IMPORTANT: Deceased spouse's parents have NO relationship to the surviving spouse
+  // They are "Unrelated" because the connecting person (deceased spouse) is gone
+  // However, they maintain blood relationships to their grandchildren
+  
+  // Check if person is parent of root's deceased spouse
+  // This means person is deceased spouse's parent, root is the surviving spouse
+  // Result: They should be "Unrelated" - no relationship exists
+  for (const deceasedSpouse of rootDeceasedSpouses) {
+    if (childToParents.has(deceasedSpouse) && childToParents.get(deceasedSpouse).has(personId)) {
+      // Person is parent of root's deceased spouse -> NO RELATIONSHIP
+      return null; // Let it fall through to "Unrelated"
+    }
+  }
+  
+  // Check if person is child of root's deceased spouse (late spouse's child from another relationship)
+  for (const deceasedSpouse of rootDeceasedSpouses) {
+    if (parentToChildren.has(deceasedSpouse) && parentToChildren.get(deceasedSpouse).has(personId)) {
+      // Person is child of root's deceased spouse - but check if they're already blood relatives
+      // If they share the deceased spouse as a parent with root, they're already siblings/step-siblings
+      const rootParents = childToParents.get(rootId) || new Set();
+      if (!rootParents.has(deceasedSpouse)) {
+        // Root is not biological child of the deceased spouse, so this is truly a late spouse's child
+        const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
+        const deceasedGender = deceasedSpousePerson?.gender?.toLowerCase();
+        
+        if (deceasedGender === 'female') {
+          return getGenderSpecificRelation(personId, 'Late Wife\'s Son', 'Late Wife\'s Daughter', allPeople, 'Late Wife\'s Child');
+        } else if (deceasedGender === 'male') {
+          return getGenderSpecificRelation(personId, 'Late Husband\'s Son', 'Late Husband\'s Daughter', allPeople, 'Late Husband\'s Child');
+        } else {
+          return getGenderSpecificRelation(personId, 'Late Spouse\'s Son', 'Late Spouse\'s Daughter', allPeople, 'Late Spouse\'s Child');
+        }
+      }
+    }
+  }
+  
+  // Check if person is sibling of root's deceased spouse (late spouse's sibling)
+  for (const deceasedSpouse of rootDeceasedSpouses) {
+    if (siblingMap.has(deceasedSpouse) && siblingMap.get(deceasedSpouse).has(personId)) {
+      const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
+      const deceasedGender = deceasedSpousePerson?.gender?.toLowerCase();
+      
+      if (deceasedGender === 'female') {
+        return getGenderSpecificRelation(personId, 'Late Wife\'s Brother', 'Late Wife\'s Sister', allPeople, 'Late Wife\'s Sibling');
+      } else if (deceasedGender === 'male') {
+        return getGenderSpecificRelation(personId, 'Late Husband\'s Brother', 'Late Husband\'s Sister', allPeople, 'Late Husband\'s Sibling');
+      } else {
+        return getGenderSpecificRelation(personId, 'Late Spouse\'s Brother', 'Late Spouse\'s Sister', allPeople, 'Late Spouse\'s Sibling');
+      }
+    }
+  }
+  
+  // Reverse direction: Check if root is family member of person's deceased spouse
+  const personDeceasedSpouses = deceasedSpouseMap.get(personId) || new Set();
+  
+  // Check if root is parent of person's deceased spouse  
+  // This means: person had a deceased spouse, and root is that deceased spouse's parent
+  // Result: They should be "Unrelated" - no relationship exists
+  for (const deceasedSpouse of personDeceasedSpouses) {
+    if (childToParents.has(deceasedSpouse) && childToParents.get(deceasedSpouse).has(rootId)) {
+      // Root is parent of person's deceased spouse -> NO RELATIONSHIP
+      return null; // Let it fall through to "Unrelated"
+    }
+  }
+  
+  // Check if root is child of person's deceased spouse
+  for (const deceasedSpouse of personDeceasedSpouses) {
+    if (parentToChildren.has(deceasedSpouse) && parentToChildren.get(deceasedSpouse).has(rootId)) {
+      const personParents = childToParents.get(personId) || new Set();
+      if (!personParents.has(deceasedSpouse)) {
+        const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
+        const deceasedGender = deceasedSpousePerson?.gender?.toLowerCase();
+        
+        if (deceasedGender === 'female') {
+          return getGenderSpecificRelation(rootId, 'Late Wife\'s Son', 'Late Wife\'s Daughter', allPeople, 'Late Wife\'s Child');
+        } else if (deceasedGender === 'male') {
+          return getGenderSpecificRelation(rootId, 'Late Husband\'s Son', 'Late Husband\'s Daughter', allPeople, 'Late Husband\'s Child');
+        } else {
+          return getGenderSpecificRelation(rootId, 'Late Spouse\'s Son', 'Late Spouse\'s Daughter', allPeople, 'Late Spouse\'s Child');
+        }
+      }
+    }
+  }
+  
+  // Check if root is sibling of person's deceased spouse
+  for (const deceasedSpouse of personDeceasedSpouses) {
+    if (siblingMap.has(deceasedSpouse) && siblingMap.get(deceasedSpouse).has(rootId)) {
+      const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
+      const deceasedGender = deceasedSpousePerson?.gender?.toLowerCase();
+      
+      if (deceasedGender === 'female') {
+        return getGenderSpecificRelation(rootId, 'Late Wife\'s Brother', 'Late Wife\'s Sister', allPeople, 'Late Wife\'s Sibling');
+      } else if (deceasedGender === 'male') {
+        return getGenderSpecificRelation(rootId, 'Late Husband\'s Brother', 'Late Husband\'s Sister', allPeople, 'Late Husband\'s Sibling');
+      } else {
+        return getGenderSpecificRelation(rootId, 'Late Spouse\'s Brother', 'Late Spouse\'s Sister', allPeople, 'Late Spouse\'s Sibling');
+      }
+    }
+  }
+  
   return null;
 };
 
