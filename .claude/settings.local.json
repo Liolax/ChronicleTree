@@ -10,7 +10,8 @@
       "Bash(pkill:*)",
       "Bash(rm:*)",
       "Bash(cat:*)",
-      "WebFetch(domain:developers.facebook.com)"
+      "WebFetch(domain:developers.facebook.com)",
+      "Bash(timeout:*)"
     ],
     "deny": []
   }

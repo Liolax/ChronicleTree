@@ -74,32 +74,41 @@ module ImageGeneration
     
     def draw_tree_svg
       content = ""
+      
+      # Calculate tree dimensions and scaling
+      tree_bounds = calculate_tree_bounds
+      scale_factor = calculate_scale_factor(tree_bounds)
+      
+      # Apply scaling to positioning
       center_x = CANVAS_WIDTH / 2
-      center_y = CANVAS_HEIGHT / 2 + 50  # Offset down from title
+      center_y = CANVAS_HEIGHT / 2 + 30  # Reduced offset for better centering
       
       @tree_data.each do |generation_offset, people|
         next if people.empty?
         
-        y = center_y + (generation_offset * 120)  # Vertical spacing between generations
+        # Apply dynamic scaling to vertical spacing
+        y = center_y + (generation_offset * 120 * scale_factor)
         people_count = people.length
         
-        # Calculate starting X position to center the generation
-        total_width = (people_count - 1) * 200  # Horizontal spacing
+        # Calculate horizontal spacing with scaling
+        horizontal_spacing = [200 * scale_factor, 120].max  # Minimum 120px spacing
+        total_width = (people_count - 1) * horizontal_spacing
         start_x = center_x - (total_width / 2)
         
         people.each_with_index do |person, index|
-          x = start_x + (index * 200)
+          x = start_x + (index * horizontal_spacing)
           is_root = (generation_offset == 0 && person == @root_person)
-          content += draw_person_box_svg(person, x, y, is_root)
+          content += draw_person_box_svg(person, x, y, is_root, scale_factor)
         end
       end
       
       content
     end
     
-    def draw_person_box_svg(person, x, y, is_root = false)
-      box_width = 180
-      box_height = 100  # Increased height to accommodate relationship label
+    def draw_person_box_svg(person, x, y, is_root = false, scale_factor = 1.0)
+      # Apply scaling to box dimensions
+      box_width = [180 * scale_factor, 120].max  # Minimum width
+      box_height = [100 * scale_factor, 70].max  # Minimum height
       box_x = x - box_width / 2
       box_y = y - box_height / 2
       
@@ -147,34 +156,85 @@ module ImageGeneration
       # Check if this person is directly related to root
       direct_rel = root_relationships.find { |rel| rel.relative == person }
       if direct_rel
-        case direct_rel.relationship_type
-        when 'child' then return get_child_type(person)
-        when 'spouse' then return direct_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
-        when 'sibling' then return get_sibling_type(person)
+        base_label = case direct_rel.relationship_type
+        when 'child' 
+          # Check if this is a step-child (child of root's spouse but not root's biological child)
+          if is_step_child_of_root?(person)
+            get_step_child_type(person)
+          else
+            get_child_type(person)
+          end
+        when 'spouse' then direct_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
+        when 'sibling' 
+          # Check if this is a step-sibling
+          if is_step_sibling_of_root?(person)
+            get_step_sibling_type(person)
+          else
+            get_sibling_type(person)
+          end
         end
+        return add_deceased_prefix(base_label, person) if base_label
       end
       
       # Check reverse relationships (from person to root)
       person_relationships = person.relationships.includes(:relative)
       reverse_rel = person_relationships.find { |rel| rel.relative == @root_person }
       if reverse_rel
-        case reverse_rel.relationship_type
-        when 'child' then return get_parent_type(person)
-        when 'spouse' then return reverse_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
-        when 'sibling' then return get_sibling_type(person)
+        base_label = case reverse_rel.relationship_type
+        when 'child' 
+          # This means person is child of root, so root is parent
+          # Check if root is step-parent (spouse of person's parent but not biological parent)
+          if is_step_parent_of?(person, @root_person)
+            get_step_parent_type(@root_person)
+          else
+            get_parent_type(@root_person)
+          end
+        when 'spouse' then reverse_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
+        when 'sibling' 
+          # Check if this is a step-sibling
+          if is_step_sibling_of_root?(person)
+            get_step_sibling_type(person)
+          else
+            get_sibling_type(person)
+          end
         end
+        return add_deceased_prefix(base_label, person) if base_label
       end
+      
+      # Check for step relationships without direct relationship
+      step_relationship = detect_step_relationship(person)
+      return add_deceased_prefix(step_relationship, person) if step_relationship
       
       # Check for grandparent/grandchild relationships
       if is_grandparent_of_root?(person)
-        return get_grandparent_type(person)
+        return add_deceased_prefix(get_grandparent_type(person), person)
       elsif is_grandchild_of_root?(person)
-        return 'Grandchild'
+        grandchild_label = person.gender.present? ? 
+          (person.gender.downcase == 'male' ? 'Grandson' : 'Granddaughter') : 'Grandchild'
+        return add_deceased_prefix(grandchild_label, person)
+      end
+      
+      # Check for great-grandparent/great-grandchild relationships
+      if is_great_grandparent_of_root?(person)
+        return add_deceased_prefix(get_great_grandparent_type(person), person)
+      elsif is_great_grandchild_of_root?(person)
+        great_grandchild_label = person.gender.present? ? 
+          (person.gender.downcase == 'male' ? 'Great-Grandson' : 'Great-Granddaughter') : 'Great-Grandchild'
+        return add_deceased_prefix(great_grandchild_label, person)
+      end
+      
+      # Check for great-great-grandparent/great-great-grandchild relationships
+      if is_great_great_grandparent_of_root?(person)
+        return add_deceased_prefix(get_great_great_grandparent_type(person), person)
+      elsif is_great_great_grandchild_of_root?(person)
+        great_great_grandchild_label = person.gender.present? ? 
+          (person.gender.downcase == 'male' ? 'Great-Great-Grandson' : 'Great-Great-Granddaughter') : 'Great-Great-Grandchild'
+        return add_deceased_prefix(great_great_grandchild_label, person)
       end
       
       # Check for in-law relationships
       in_law_rel = get_in_law_relationship(person)
-      return in_law_rel if in_law_rel
+      return add_deceased_prefix(in_law_rel, person) if in_law_rel
       
       # Default for extended family
       'Family'
@@ -220,6 +280,60 @@ module ImageGeneration
       end
     end
     
+    def is_great_grandparent_of_root?(person)
+      # Check if person is parent of root's grandparents
+      root_grandparents = get_parents(@root_person).flat_map { |p| get_parents(p) }
+      return false if root_grandparents.empty?
+      
+      root_grandparents.any? do |grandparent|
+        get_parents(grandparent).include?(person)
+      end
+    end
+    
+    def is_great_grandchild_of_root?(person)
+      # Check if person is child of root's grandchildren
+      root_grandchildren = get_children(@root_person).flat_map { |c| get_children(c) }
+      return false if root_grandchildren.empty?
+      
+      root_grandchildren.any? do |grandchild|
+        get_children(grandchild).include?(person)
+      end
+    end
+    
+    def is_great_great_grandparent_of_root?(person)
+      # Check if person is parent of root's great-grandparents
+      root_great_grandparents = get_parents(@root_person).flat_map { |p| 
+        get_parents(p).flat_map { |gp| get_parents(gp) }
+      }
+      return false if root_great_grandparents.empty?
+      
+      root_great_grandparents.any? do |great_grandparent|
+        get_parents(great_grandparent).include?(person)
+      end
+    end
+    
+    def is_great_great_grandchild_of_root?(person)
+      # Check if person is child of root's great-grandchildren
+      root_great_grandchildren = get_children(@root_person).flat_map { |c| 
+        get_children(c).flat_map { |gc| get_children(gc) }
+      }
+      return false if root_great_grandchildren.empty?
+      
+      root_great_grandchildren.any? do |great_grandchild|
+        get_children(great_grandchild).include?(person)
+      end
+    end
+    
+    def get_great_grandparent_type(person)
+      return 'Great-Grandparent' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Great-Grandfather' : 'Great-Grandmother'
+    end
+    
+    def get_great_great_grandparent_type(person)
+      return 'Great-Great-Grandparent' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Great-Great-Grandfather' : 'Great-Great-Grandmother'
+    end
+    
     def get_in_law_relationship(person)
       # Check if person is spouse of root's siblings or children
       root_siblings = @root_person.siblings
@@ -250,6 +364,86 @@ module ImageGeneration
         # Spouse's siblings
         if spouse.siblings.include?(person)
           return person.gender&.downcase == 'male' ? 'Brother-in-law' : 'Sister-in-law'
+        end
+      end
+      
+      nil
+    end
+    
+    def get_step_child_type(person)
+      return 'Step-Child' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Step-Son' : 'Step-Daughter'
+    end
+    
+    def get_step_parent_type(person)
+      return 'Step-Parent' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Step-Father' : 'Step-Mother'
+    end
+    
+    def get_step_sibling_type(person)
+      return 'Step-Sibling' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Step-Brother' : 'Step-Sister'
+    end
+    
+    def add_deceased_prefix(label, person)
+      return label unless person.date_of_death.present?
+      "Late #{label}"
+    end
+    
+    # Methods to detect step relationships logically
+    def is_step_child_of_root?(person)
+      # A step-child is someone who is a child of root's spouse but not a biological child of root
+      root_spouses = get_spouses(@root_person)
+      return false if root_spouses.empty?
+      
+      # Check if person is a child of any of root's spouses
+      root_spouses.any? do |spouse|
+        spouse_children = get_children(spouse)
+        spouse_children.include?(person) && !get_children(@root_person).include?(person)
+      end
+    end
+    
+    def is_step_parent_of?(child, potential_step_parent)
+      # A step-parent is someone who is married to the child's parent but is not the biological parent
+      child_parents = get_parents(child)
+      return false if child_parents.include?(potential_step_parent)
+      
+      # Check if potential_step_parent is spouse of any of child's parents
+      child_parents.any? do |parent|
+        parent_spouses = get_spouses(parent)
+        parent_spouses.include?(potential_step_parent)
+      end
+    end
+    
+    def is_step_sibling_of_root?(person)
+      # A step-sibling shares one parent through marriage but not biological parents
+      root_parents = get_parents(@root_person)
+      person_parents = get_parents(person)
+      
+      # Check if they share any step-parents
+      root_spouses = get_spouses(@root_person).flat_map { |spouse| get_parents(spouse) }
+      person_spouses = get_spouses(person).flat_map { |spouse| get_parents(spouse) }
+      
+      # Step-siblings: one parent is married to the other's parent
+      (root_parents & person_spouses).any? || (person_parents & root_spouses).any?
+    end
+    
+    def detect_step_relationship(person)
+      # Check if person is a step-child through spouse relationships
+      root_spouses = get_spouses(@root_person)
+      root_spouses.each do |spouse|
+        spouse_children = get_children(spouse)
+        if spouse_children.include?(person)
+          return get_step_child_type(person)
+        end
+      end
+      
+      # Check if person is a step-parent through their spouse having root as child
+      person_spouses = get_spouses(person)
+      person_spouses.each do |spouse|
+        spouse_children = get_children(spouse)
+        if spouse_children.include?(@root_person)
+          return get_step_parent_type(person)
         end
       end
       
@@ -791,19 +985,44 @@ module ImageGeneration
         # Include root person and their spouses
         [@root_person] + get_spouses(@root_person)
       when -1
-        get_parents(@root_person)
+        get_parents_with_step_relationships(@root_person)
       when -2
-        get_parents(@root_person).flat_map { |p| get_parents(p) }.uniq
+        get_parents_with_step_relationships(@root_person).flat_map { |p| get_parents_with_step_relationships(p) }.uniq
+      when -3
+        # Great-grandparents
+        get_parents_with_step_relationships(@root_person).flat_map { |p| 
+          get_parents_with_step_relationships(p).flat_map { |gp| get_parents_with_step_relationships(gp) }
+        }.uniq
+      when -4
+        # Great-great-grandparents
+        get_parents_with_step_relationships(@root_person).flat_map { |p| 
+          get_parents_with_step_relationships(p).flat_map { |gp| 
+            get_parents_with_step_relationships(gp).flat_map { |ggp| get_parents_with_step_relationships(ggp) }
+          }
+        }.uniq
       when 1
-        get_children(@root_person)
+        get_children_with_step_relationships(@root_person)
       when 2
-        get_children(@root_person).flat_map { |c| get_children(c) }.uniq
+        get_children_with_step_relationships(@root_person).flat_map { |c| get_children_with_step_relationships(c) }.uniq
+      when 3
+        # Great-grandchildren
+        get_children_with_step_relationships(@root_person).flat_map { |c| 
+          get_children_with_step_relationships(c).flat_map { |gc| get_children_with_step_relationships(gc) }
+        }.uniq
+      when 4
+        # Great-great-grandchildren
+        get_children_with_step_relationships(@root_person).flat_map { |c| 
+          get_children_with_step_relationships(c).flat_map { |gc| 
+            get_children_with_step_relationships(gc).flat_map { |ggc| get_children_with_step_relationships(ggc) }
+          }
+        }.uniq
       else
         []
       end
     end
     
     def get_parents(person)
+      # Get direct biological parents only (step relationships detected logically)
       person.related_by_relationships
             .where(relationship_type: 'child')
             .includes(:person)
@@ -811,14 +1030,64 @@ module ImageGeneration
     end
     
     def get_children(person)
+      # Get direct biological children only (step relationships detected logically)
       person.relationships
             .where(relationship_type: 'child')
             .includes(:relative)
             .map(&:relative)
     end
     
+    def get_parents_with_step_relationships(person)
+      # Get both biological and step parents
+      biological_parents = get_parents(person)
+      step_parents = []
+      
+      # Find step-parents (spouses of biological parents who are not biological parents)
+      biological_parents.each do |parent|
+        parent_spouses = get_spouses(parent)
+        parent_spouses.each do |spouse|
+          unless biological_parents.include?(spouse)
+            step_parents << spouse
+          end
+        end
+      end
+      
+      (biological_parents + step_parents).uniq
+    end
+    
+    def get_children_with_step_relationships(person)
+      # Get both biological children and step-children
+      biological_children = get_children(person)
+      step_children = []
+      
+      # Find step-children (children of spouses who are not biological children)
+      spouses = get_spouses(person)
+      spouses.each do |spouse|
+        spouse_children = get_children(spouse)
+        spouse_children.each do |child|
+          unless biological_children.include?(child)
+            step_children << child
+          end
+        end
+      end
+      
+      (biological_children + step_children).uniq
+    end
+    
     def get_spouses(person)
-      person.all_spouses_including_deceased.to_a
+      # Get all spouses including ex-spouses and deceased
+      all_spouses = person.relationships
+                          .where(relationship_type: 'spouse')
+                          .includes(:relative)
+                          .map(&:relative)
+      
+      # Also check reverse relationships
+      reverse_spouses = person.related_by_relationships
+                              .where(relationship_type: 'spouse')
+                              .includes(:person)
+                              .map(&:person)
+      
+      (all_spouses + reverse_spouses).uniq
     end
     
     def draw_tree_structure
@@ -990,6 +1259,37 @@ module ImageGeneration
         size: 14,
         color: COLORS[:text_light]
       })
+    end
+    
+    def calculate_tree_bounds
+      return { width: 0, height: 0 } if @tree_data.empty?
+      
+      max_people_in_generation = @tree_data.values.map(&:length).max
+      generations_count = @tree_data.keys.length
+      
+      # Calculate estimated tree dimensions
+      estimated_width = max_people_in_generation * 200  # Original horizontal spacing
+      estimated_height = generations_count * 120  # Original vertical spacing
+      
+      { width: estimated_width, height: estimated_height }
+    end
+    
+    def calculate_scale_factor(tree_bounds)
+      return 1.0 if tree_bounds[:width] == 0 || tree_bounds[:height] == 0
+      
+      # Available space (leaving margins for title and footer)
+      available_width = CANVAS_WIDTH - 120  # 60px margin on each side
+      available_height = CANVAS_HEIGHT - 200  # Space for title (130px) and footer (70px)
+      
+      # Calculate scale factors for width and height
+      width_scale = available_width.to_f / tree_bounds[:width]
+      height_scale = available_height.to_f / tree_bounds[:height]
+      
+      # Use the smaller scale factor to ensure everything fits
+      scale_factor = [width_scale, height_scale, 1.0].min  # Never scale up, only down
+      
+      # Ensure minimum readability
+      [scale_factor, 0.4].max  # Minimum 40% scale
     end
     
     def total_people_count

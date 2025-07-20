@@ -91,29 +91,80 @@ class PublicSharesController < ApplicationController
   
   # GET /tree?root=:person_id&generations=:generations
   def tree
-    @generations = params[:generations]&.to_i || 3
+    # Log all requests for debugging
+    Rails.logger.info "PUBLIC TREE SHARE: #{request.user_agent} accessing #{request.original_url}"
     
-    # Generate fresh share image if needed
-    begin
-      generator = ImageGeneration::TreeSnippetGenerator.new
-      @image_path = generator.generate(@root_person, generations: @generations)
-      @share_image = @root_person.share_images.find_by(file_path: @image_path)
-    rescue => e
-      Rails.logger.error "Failed to generate tree share image: #{e.message}"
-      @share_image = nil
-    end
+    @generations = params[:generations]&.to_i || 3
     
     # Set meta data for social sharing
     @meta_title = "#{@root_person.full_name}'s Family Tree | ChronicleTree"
     @meta_description = build_tree_description(@root_person, @generations)
-    @meta_image_url = @share_image ? "#{request.base_url}#{@share_image.url}" : nil
+    @meta_image_url = nil
     @share_url = request.original_url
     
+    # Try to generate share image
+    begin
+      generator = ImageGeneration::TreeSnippetGenerator.new
+      image_path = generator.generate(@root_person, generations: @generations)
+      @share_image = @root_person.share_images.find_by(file_path: image_path)
+      @meta_image_url = @share_image ? "#{request.base_url}#{@share_image.url}" : nil
+    rescue => e
+      Rails.logger.error "Failed to generate tree share image: #{e.message}"
+    end
+    
     # Redirect to frontend if this is a browser request
-    if request.format.html? && !is_crawler?
+    if !is_crawler?
       redirect_to frontend_tree_url(@root_person.id)
     else
-      render template: 'public_shares/tree', layout: 'share'
+      # Set proper cache headers for Facebook crawler
+      if is_crawler?
+        response.headers['Cache-Control'] = 'public, max-age=86400' # 24 hours
+        response.headers['Vary'] = 'User-Agent'
+      end
+      
+      # Render HTML directly for crawlers
+      html_content = <<~HTML
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>#{@meta_title}</title>
+          <meta name="description" content="#{@meta_description}">
+          <meta property="og:type" content="website">
+          <meta property="og:url" content="#{@share_url}">
+          <meta property="og:title" content="#{@meta_title}">
+          <meta property="og:description" content="#{@meta_description}">
+          #{@meta_image_url ? "<meta property=\"og:image\" content=\"#{@meta_image_url}\">" : ""}
+          #{@meta_image_url ? "<meta property=\"og:image:width\" content=\"1200\">" : ""}
+          #{@meta_image_url ? "<meta property=\"og:image:height\" content=\"630\">" : ""}
+          #{@meta_image_url ? "<meta property=\"og:image:type\" content=\"image/jpeg\">" : ""}
+          <meta property="og:site_name" content="ChronicleTree">
+          <meta property="og:locale" content="en_US">
+          <meta property="fb:app_id" content="YOUR_FACEBOOK_APP_ID">
+          <link rel="canonical" href="#{@share_url}">
+          <meta property="twitter:card" content="summary_large_image">
+          <meta property="twitter:title" content="#{@meta_title}">
+          <meta property="twitter:description" content="#{@meta_description}">
+          #{@meta_image_url ? "<meta property=\"twitter:image\" content=\"#{@meta_image_url}\">" : ""}
+          <meta property="twitter:site" content="@chronicletree">
+          <meta property="twitter:creator" content="@chronicletree">
+        </head>
+        <body>
+          <h1>#{@meta_title}</h1>
+          <p>#{@meta_description}</p>
+          #{@meta_image_url ? "<img src=\"#{@meta_image_url}\" alt=\"#{@meta_title}\" style=\"max-width: 100%; height: auto;\">" : ""}
+          <p><a href="#{frontend_tree_url(@root_person.id)}">View Interactive Family Tree</a></p>
+          <script>
+            setTimeout(function() {
+              window.location.href = '#{frontend_tree_url(@root_person.id)}';
+            }, 3000);
+          </script>
+        </body>
+        </html>
+      HTML
+      
+      render html: html_content.html_safe
     end
   end
   
