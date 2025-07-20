@@ -14,7 +14,6 @@ class Relationship < ApplicationRecord
   validate  :person_is_not_relative
   validate  :valid_relationship_type
   validate  :only_one_current_spouse, if: -> { relationship_type == "spouse" && !is_ex && !is_deceased }
-  validate  :spouse_status_exclusivity, if: -> { relationship_type == "spouse" }
 
   # Add scopes for different spouse types
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
@@ -66,13 +65,6 @@ class Relationship < ApplicationRecord
     
     if existing.exists?
       errors.add(:base, "A person can only have one current spouse at a time.")
-    end
-  end
-
-  def spouse_status_exclusivity
-    # A spouse relationship cannot be both ex and deceased
-    if is_ex && is_deceased
-      errors.add(:base, "A spouse cannot be both ex-spouse and deceased spouse.")
     end
   end
 

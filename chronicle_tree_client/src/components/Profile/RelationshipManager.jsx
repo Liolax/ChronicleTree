@@ -242,17 +242,20 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                         {(() => {
                           const spousePerson = people.find(p => p.id === rel.id);
                           const isDeceased = spousePerson && spousePerson.date_of_death;
+                          const deathYear = isDeceased ? new Date(spousePerson.date_of_death).getFullYear() : null;
                           
                           if (type === 'spouse' && rel.is_ex) {
+                            // Ex-spouse: Only show "ex" regardless of whether they died later
                             return (
                               <span className="font-medium text-red-500 line-through">
                                 <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (ex)
                               </span>
                             );
                           } else if (type === 'spouse' && isDeceased) {
+                            // Current spouse who died: Show "deceased in [year]" - all gray
                             return (
                               <span className="font-medium text-gray-600">
-                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (deceased)
+                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-600 hover:text-gray-800">{rel.full_name}</a> (deceased in {deathYear})
                               </span>
                             );
                           } else {

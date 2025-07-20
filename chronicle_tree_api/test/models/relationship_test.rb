@@ -94,8 +94,9 @@ class RelationshipTest < ActiveSupport::TestCase
     assert current_spouse.valid?
   end
 
-  test "validates spouse cannot be both ex and deceased" do
-    relationship = Relationship.new(
+  test "allows spouse to be both ex and deceased" do
+    # This scenario happens when someone divorces first, then dies later
+    relationship = Relationship.create!(
       person: @john,
       relative: @jane,
       relationship_type: 'spouse',
@@ -103,8 +104,9 @@ class RelationshipTest < ActiveSupport::TestCase
       is_deceased: true
     )
     
-    assert_not relationship.valid?
-    assert_includes relationship.errors[:base], "A spouse cannot be both ex and deceased"
+    assert relationship.valid?
+    assert relationship.is_ex?
+    assert relationship.is_deceased?
   end
 
   test "automatically creates reciprocal relationships" do

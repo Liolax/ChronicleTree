@@ -51,7 +51,7 @@ class Person < ApplicationRecord
   def current_spouses
     Person.joins(:relationships)
           .where(
-            "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false AND relationships.is_deceased = false",
+            "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false",
             id: id
           )
           .where(date_of_death: nil) # Exclude spouses who have died
