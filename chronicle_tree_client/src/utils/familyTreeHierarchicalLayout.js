@@ -296,8 +296,24 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
   // Layout constants - enhanced spacing for better visual hierarchy
   const GENERATION_HEIGHT = 450;  // Increased vertical spacing between generations
   const NODE_WIDTH = 280;
-  const SPOUSE_SPACING = 300;     // Optimal spacing between spouses
+  const NODE_MARGIN = 40;
+  const currentSpouseSpacing = NODE_WIDTH + NODE_MARGIN; // 320, prevents overlap
+  const exSpouseSpacing = 120;
+  const lateSpouseSpacing = 70;
   const SIBLING_SPACING = 420;    // Increased spacing between siblings for better clarity
+
+  function getSpouseSpacing(spouseType) {
+    switch (spouseType) {
+      case "current":
+        return currentSpouseSpacing;
+      case "ex":
+        return exSpouseSpacing;
+      case "late":
+        return lateSpouseSpacing;
+      default:
+        return NODE_WIDTH + NODE_MARGIN;
+    }
+  }
 
   // Position nodes generation by generation
   for (const [generation, generationPersons] of generationGroups) {
@@ -307,30 +323,30 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
     // Calculate total width needed for this generation with proper spacing
     const coupleCount = Math.floor(generationPersons.length / 2);
     const singleCount = generationPersons.length % 2;
-    const totalWidth = (coupleCount * (NODE_WIDTH + SPOUSE_SPACING)) + (singleCount * NODE_WIDTH) + ((coupleCount + singleCount - 1) * (SIBLING_SPACING - NODE_WIDTH));
+    const totalWidth = (coupleCount * (NODE_WIDTH + SIBLING_SPACING)) + (singleCount * NODE_WIDTH) + ((coupleCount + singleCount - 1) * (SIBLING_SPACING - NODE_WIDTH));
     const startX = -totalWidth / 2;
     let xOffset = startX;
 
     generationPersons.forEach(person => {
       const personId = String(person.id);
-      
       if (processedPersons.has(personId)) return;
-
       const spouseId = spouseMap.get(personId);
       const spouse = spouseId ? generationPersons.find(p => String(p.id) === spouseId) : null;
-
       if (spouse && !processedPersons.has(spouseId)) {
+        // Determine spouse type for spacing
+        let spouseType = "current";
+        if (spouse.is_ex) spouseType = "ex";
+        else if (spouse.date_of_death || spouse.is_deceased) spouseType = "late";
+        const spacing = getSpouseSpacing(spouseType);
         // Position spouse pair
         nodes.push(createPersonNode(person, xOffset, y, handlers));
-        nodes.push(createPersonNode(spouse, xOffset + SPOUSE_SPACING, y, handlers));
-        
+        nodes.push(createPersonNode(spouse, xOffset + spacing, y, handlers));
         processedPersons.add(personId);
         processedPersons.add(spouseId);
         xOffset += SIBLING_SPACING;
       } else {
         // Position single person
         nodes.push(createPersonNode(person, xOffset, y, handlers));
-        
         processedPersons.add(personId);
         xOffset += SIBLING_SPACING;
       }
