@@ -238,17 +238,32 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                   {rels.map(rel => (
                     <li key={rel.id + (rel.inLaw ? '-inlaw' : '')} className="flex items-center justify-between bg-white rounded px-3 py-2 border border-slate-100">
                       <span className="flex items-center gap-2">
-                        {/* Ex-spouse styling */}
-                        {type === 'spouse' && rel.is_ex ? (
-                          <span className="font-medium text-red-500 line-through">
-                            <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (ex)
-                          </span>
-                        ) : (
-                          <span className="font-medium">
-                            <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
-                            {rel.inLaw && ' (in-law)'}
-                          </span>
-                        )}
+                        {/* Check if spouse is deceased based on date_of_death */}
+                        {(() => {
+                          const spousePerson = people.find(p => p.id === rel.id);
+                          const isDeceased = spousePerson && spousePerson.date_of_death;
+                          
+                          if (type === 'spouse' && rel.is_ex) {
+                            return (
+                              <span className="font-medium text-red-500 line-through">
+                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (ex)
+                              </span>
+                            );
+                          } else if (type === 'spouse' && isDeceased) {
+                            return (
+                              <span className="font-medium text-gray-600">
+                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (deceased)
+                              </span>
+                            );
+                          } else {
+                            return (
+                              <span className="font-medium">
+                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
+                                {rel.inLaw && ' (in-law)'}
+                              </span>
+                            );
+                          }
+                        })()}
                         {/* Edit icon for spouse to toggle ex status */}
                         {type === 'spouse' && !rel.inLaw && (
                           <button

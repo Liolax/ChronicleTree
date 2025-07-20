@@ -25,7 +25,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   // Enhanced sibling detection - automatically finds siblings through shared parents
 
   // Build comprehensive relationship maps
-  const relationshipMaps = buildRelationshipMaps(relationships);
+  const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
 
   // Find the relationship using improved algorithm
   const relationship = findRelationship(
@@ -51,9 +51,10 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
 /**
  * Build comprehensive relationship maps for efficient lookups
  * @param {Array} relationships - Array of relationship objects
+ * @param {Array} allPeople - Array of all people (needed to check death dates)
  * @returns {Object} - Maps for different relationship types
  */
-const buildRelationshipMaps = (relationships) => {
+const buildRelationshipMaps = (relationships, allPeople = []) => {
   const parentToChildren = new Map();
   const childToParents = new Map();
   const spouseMap = new Map(); // Maps person ID to Set of current spouses
@@ -118,7 +119,14 @@ const buildRelationshipMaps = (relationships) => {
         childToParents.get(target).add(source);
         break;
         
-      case 'spouse':
+      case 'spouse': {
+        // Check if either person in the spouse relationship is deceased
+        const sourcePerson = allPeople.find(p => String(p.id) === source);
+        const targetPerson = allPeople.find(p => String(p.id) === target);
+        const sourceIsDeceased = sourcePerson && sourcePerson.date_of_death;
+        const targetIsDeceased = targetPerson && targetPerson.date_of_death;
+        const isDeceasedSpouse = sourceIsDeceased || targetIsDeceased;
+        
         if (rel.is_ex) {
           // Ex-spouse relationships - use Sets to handle multiple ex-spouses
           if (!exSpouseMap.has(source)) {
@@ -129,8 +137,8 @@ const buildRelationshipMaps = (relationships) => {
           }
           exSpouseMap.get(source).add(target);
           exSpouseMap.get(target).add(source);
-        } else if (rel.is_deceased) {
-          // Deceased spouse relationships - use Sets to handle multiple deceased spouses
+        } else if (isDeceasedSpouse) {
+          // Automatically detect deceased spouse relationships based on death_date
           if (!deceasedSpouseMap.has(source)) {
             deceasedSpouseMap.set(source, new Set());
           }
@@ -151,6 +159,7 @@ const buildRelationshipMaps = (relationships) => {
           spouseMap.get(target).add(source);
         }
         break;
+      }
         
       case 'sibling':
         if (!siblingMap.has(source)) {
@@ -563,10 +572,20 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
  * @returns {string|null} - In-law relationship or null
  */
 const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  const { parentToChildren, childToParents, spouseMap, siblingMap } = relationshipMaps;
+  const { parentToChildren, childToParents, spouseMap, exSpouseMap, deceasedSpouseMap, siblingMap } = relationshipMaps;
   
   // Get all current spouses of root (NO ex-spouses for in-law calculations)
-  const rootCurrentSpouses = spouseMap.get(rootId) || new Set();
+  // DEFENSIVE CHECK: Filter out any spouses that are marked as deceased or ex
+  const rootCurrentSpousesRaw = spouseMap.get(rootId) || new Set();
+  const rootDeceasedSpouses = deceasedSpouseMap.get(rootId) || new Set();
+  const rootExSpouses = exSpouseMap.get(rootId) || new Set();
+  
+  const rootCurrentSpouses = new Set();
+  for (const spouse of rootCurrentSpousesRaw) {
+    if (!rootDeceasedSpouses.has(spouse) && !rootExSpouses.has(spouse)) {
+      rootCurrentSpouses.add(spouse);
+    }
+  }
   
   // ===========================================
   // CURRENT SPOUSE IN-LAW RELATIONSHIPS ONLY
@@ -597,7 +616,17 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   const rootSiblings = siblingMap.get(rootId) || new Set();
   
   for (const sibling of rootSiblings) {
-    const siblingCurrentSpouses = spouseMap.get(sibling) || new Set();
+    const siblingCurrentSpousesRaw = spouseMap.get(sibling) || new Set();
+    const siblingDeceasedSpouses = deceasedSpouseMap.get(sibling) || new Set();
+    const siblingExSpouses = exSpouseMap.get(sibling) || new Set();
+    
+    // Filter out deceased and ex-spouses
+    const siblingCurrentSpouses = new Set();
+    for (const spouse of siblingCurrentSpousesRaw) {
+      if (!siblingDeceasedSpouses.has(spouse) && !siblingExSpouses.has(spouse)) {
+        siblingCurrentSpouses.add(spouse);
+      }
+    }
     
     if (siblingCurrentSpouses.has(personId)) {
       return getGenderSpecificRelation(personId, 'Brother-in-law', 'Sister-in-law', allPeople, 'Sibling-in-law');
@@ -607,8 +636,15 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Check if person is current spouse of root's child (child-in-law)
   const rootChildren = parentToChildren.get(rootId) || new Set();
   for (const child of rootChildren) {
-    if (spouseMap.has(child) && spouseMap.get(child).has(personId)) {
-      return getGenderSpecificRelation(personId, 'Son-in-law', 'Daughter-in-law', allPeople, 'Child-in-law');
+    const childCurrentSpousesRaw = spouseMap.get(child) || new Set();
+    const childDeceasedSpouses = deceasedSpouseMap.get(child) || new Set();
+    const childExSpouses = exSpouseMap.get(child) || new Set();
+    
+    // Filter out deceased and ex-spouses
+    for (const spouse of childCurrentSpousesRaw) {
+      if (!childDeceasedSpouses.has(spouse) && !childExSpouses.has(spouse) && spouse === personId) {
+        return getGenderSpecificRelation(personId, 'Son-in-law', 'Daughter-in-law', allPeople, 'Child-in-law');
+      }
     }
   }
   
@@ -619,22 +655,46 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Check if root is current spouse of person's child (root is child-in-law to person)
   const personChildren = parentToChildren.get(personId) || new Set();
   for (const child of personChildren) {
-    if (spouseMap.has(child) && spouseMap.get(child).has(rootId)) {
-      return getGenderSpecificRelation(rootId, 'Son-in-law', 'Daughter-in-law', allPeople, 'Child-in-law');
+    const childCurrentSpousesRaw = spouseMap.get(child) || new Set();
+    const childDeceasedSpouses = deceasedSpouseMap.get(child) || new Set();
+    const childExSpouses = exSpouseMap.get(child) || new Set();
+    
+    // Filter out deceased and ex-spouses
+    for (const spouse of childCurrentSpousesRaw) {
+      if (!childDeceasedSpouses.has(spouse) && !childExSpouses.has(spouse) && spouse === rootId) {
+        return getGenderSpecificRelation(rootId, 'Son-in-law', 'Daughter-in-law', allPeople, 'Child-in-law');
+      }
     }
   }
   
   // Check if root is current spouse of person's sibling (root is sibling-in-law to person)
   const personSiblings = siblingMap.get(personId) || new Set();
   for (const sibling of personSiblings) {
-    if (spouseMap.has(sibling) && spouseMap.get(sibling).has(rootId)) {
-      return getGenderSpecificRelation(rootId, 'Brother-in-law', 'Sister-in-law', allPeople, 'Sibling-in-law');
+    const siblingCurrentSpousesRaw = spouseMap.get(sibling) || new Set();
+    const siblingDeceasedSpouses = deceasedSpouseMap.get(sibling) || new Set();
+    const siblingExSpouses = exSpouseMap.get(sibling) || new Set();
+    
+    // Filter out deceased and ex-spouses
+    for (const spouse of siblingCurrentSpousesRaw) {
+      if (!siblingDeceasedSpouses.has(spouse) && !siblingExSpouses.has(spouse) && spouse === rootId) {
+        return getGenderSpecificRelation(rootId, 'Brother-in-law', 'Sister-in-law', allPeople, 'Sibling-in-law');
+      }
     }
   }
   
   // Check if root is parent of person's current spouse (root is parent-in-law to person)
+  // DEFENSIVE CHECK: Ensure the spouse is truly current (not deceased or ex)
   const personCurrentSpouses = spouseMap.get(personId) || new Set();
   for (const spouse of personCurrentSpouses) {
+    // Double-check that this spouse is not in deceased or ex-spouse maps
+    const personDeceasedSpouses = deceasedSpouseMap.get(personId) || new Set();
+    const personExSpouses = exSpouseMap.get(personId) || new Set();
+    
+    if (personDeceasedSpouses.has(spouse) || personExSpouses.has(spouse)) {
+      // Skip this spouse if they're deceased or ex-spouse
+      continue;
+    }
+    
     if (childToParents.has(spouse) && childToParents.get(spouse).has(rootId)) {
       return getGenderSpecificRelation(rootId, 'Father-in-law', 'Mother-in-law', allPeople, 'Parent-in-law');
     }
@@ -651,11 +711,16 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   for (const personChild of (parentToChildren.get(personId) || new Set())) {
     for (const rootChild of (parentToChildren.get(rootId) || new Set())) {
       // Check if person's child is CURRENTLY married to root's child (only current spouses, not ex-spouses)
-      const personChildCurrentSpouses = spouseMap.get(personChild) || new Set();
+      const personChildCurrentSpousesRaw = spouseMap.get(personChild) || new Set();
+      const personChildDeceasedSpouses = deceasedSpouseMap.get(personChild) || new Set();
+      const personChildExSpouses = exSpouseMap.get(personChild) || new Set();
       
-      if (personChildCurrentSpouses.has(rootChild)) {
-        // They are co-parents-in-law (parents of CURRENT spouses only)
-        return getGenderSpecificRelation(personId, 'Co-Father-in-law', 'Co-Mother-in-law', allPeople, 'Co-Parent-in-law');
+      // Filter out deceased and ex-spouses
+      for (const spouse of personChildCurrentSpousesRaw) {
+        if (!personChildDeceasedSpouses.has(spouse) && !personChildExSpouses.has(spouse) && spouse === rootChild) {
+          // They are co-parents-in-law (parents of CURRENT spouses only)
+          return getGenderSpecificRelation(personId, 'Co-Father-in-law', 'Co-Mother-in-law', allPeople, 'Co-Parent-in-law');
+        }
       }
     }
   }

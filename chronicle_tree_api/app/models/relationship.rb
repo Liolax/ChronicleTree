@@ -55,10 +55,15 @@ class Relationship < ApplicationRecord
   def only_one_current_spouse
     # Check if this is a new record or is being updated to current spouse
     # Only allow one current spouse per person (per direction)
-    existing = Relationship.where(relationship_type: "spouse", is_ex: false, is_deceased: false)
+    # Also consider spouses with date_of_death as effectively "not current"
+    existing = Relationship.joins(:relative)
+                          .where(relationship_type: "spouse", is_ex: false, is_deceased: false)
                           .where(person_id: person_id)
+                          .where(people: { date_of_death: nil }) # Exclude deceased spouses
+    
     # Exclude self if updating
     existing = existing.where.not(id: id) if persisted?
+    
     if existing.exists?
       errors.add(:base, "A person can only have one current spouse at a time.")
     end
