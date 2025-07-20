@@ -33,16 +33,19 @@ module Api
             if rel_type.present? && rel_person_id.present?
               related_person = current_user.people.find(rel_person_id)
               
-              # TEMPORAL VALIDATION: Prevent impossible parent-child relationships
-              if rel_type == 'child' && related_person.date_of_death.present? && person.date_of_birth.present?
-                parent_death_date = Date.parse(related_person.date_of_death.to_s)
-                child_birth_date = Date.parse(person.date_of_birth.to_s)
-                
-                if child_birth_date > parent_death_date
+              # COMPREHENSIVE PARENT-CHILD VALIDATION
+              if ['child', 'parent'].include?(rel_type)
+                if rel_type == 'child'
+                  # New person is child, selected person is parent
+                  validation_result = related_person.can_be_parent_of?(person)
+                elsif rel_type == 'parent'
+                  # New person is parent, selected person is child
+                  validation_result = person.can_be_parent_of?(related_person)
+                end
+
+                unless validation_result[:valid]
                   render json: { 
-                    errors: [
-                      "Cannot add child born after parent's death. #{related_person.first_name} #{related_person.last_name} died on #{parent_death_date.strftime('%B %d, %Y')}, but child was born on #{child_birth_date.strftime('%B %d, %Y')}."
-                    ] 
+                    errors: [validation_result[:error]]
                   }, status: :unprocessable_entity
                   raise ActiveRecord::Rollback
                 end
@@ -73,7 +76,13 @@ module Api
               end
             end
             Rails.logger.info "[PeopleController#create] Person created: \n#{person.inspect}"
-            render json: person, serializer: Api::V1::PersonSerializer, status: :created
+            
+            # Success response with person data and success message
+            render json: {
+              person: Api::V1::PersonSerializer.new(person).as_json,
+              message: "#{person.first_name} #{person.last_name} has been successfully added to the family tree!",
+              success: true
+            }, status: :created
           else
             Rails.logger.error "[PeopleController#create] Failed to create person: \n#{person.errors.full_messages}"
             render json: { errors: person.errors.full_messages }, status: :unprocessable_entity

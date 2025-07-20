@@ -118,6 +118,11 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                 const birthDate = new Date(value);
                 const parentDeathDate = new Date(selectedPerson.date_of_death);
                 if (birthDate > parentDeathDate) {
+                  // Show alert for immediate user feedback
+                  setTimeout(() => {
+                    alert(`⚠️ Temporal Validation Error:\n\nCannot add child born after parent's death.\n\n${selectedPerson.first_name} ${selectedPerson.last_name} died on ${selectedPerson.date_of_death}, but the birth date you entered is ${value}.\n\nPlease choose a birth date before the parent's death date.`);
+                  }, 100);
+                  
                   return `Cannot add child born after parent's death (${selectedPerson.first_name} ${selectedPerson.last_name} died ${selectedPerson.date_of_death})`;
                 }
               }
@@ -189,7 +194,65 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
               <label htmlFor="relatedPersonId" className="block text-sm font-medium text-gray-700">Selected Person <span className="text-red-500">*</span></label>
               <select
                 id="relatedPersonId"
-                {...register('relatedPersonId', { required: 'Selected person is required' })}
+                {...register('relatedPersonId', { 
+                  required: 'Selected person is required',
+                  onChange: (e) => {
+                    const selectedPersonId = e.target.value;
+                    const currentRelationType = watch('relationType');
+                    const currentBirthDate = watch('date_of_birth');
+                    
+                    if (selectedPersonId) {
+                      const selectedPerson = filteredPeople.find(p => String(p.id) === String(selectedPersonId));
+                      
+                      if (selectedPerson) {
+                        // Parent-Child relationship validations
+                        if (['child', 'parent'].includes(currentRelationType)) {
+                          let parentPerson, childPerson, alertMessage = '';
+
+                          if (currentRelationType === 'child') {
+                            // New person is child, selected person is parent
+                            parentPerson = selectedPerson;
+                            childPerson = { date_of_birth: currentBirthDate };
+                          } else if (currentRelationType === 'parent') {
+                            // New person is parent, selected person is child  
+                            parentPerson = { date_of_birth: currentBirthDate };
+                            childPerson = selectedPerson;
+                          }
+
+                          // Check if selected person already has 2 parents (for parent relationship)
+                          if (currentRelationType === 'parent' && selectedPerson.parent_count >= 2) {
+                            alertMessage = `⚠️ Multiple Parents Error:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} already has 2 biological parents.\n\nA person can only have 2 biological parents. Consider adding as a step-parent or guardian instead.`;
+                          }
+
+                          // Check age difference if birth dates are available
+                          else if (parentPerson.date_of_birth && childPerson.date_of_birth) {
+                            const parentBirth = new Date(parentPerson.date_of_birth);
+                            const childBirth = new Date(childPerson.date_of_birth);
+                            const ageDifferenceYears = (childBirth - parentBirth) / (365.25 * 24 * 60 * 60 * 1000);
+
+                            if (ageDifferenceYears < 12) {
+                              const parentName = parentPerson.first_name ? `${parentPerson.first_name} ${parentPerson.last_name}` : 'the parent';
+                              const childName = childPerson.first_name ? `${childPerson.first_name} ${childPerson.last_name}` : 'the child';
+                              alertMessage = `⚠️ Age Validation Error:\n\n${parentName} is ${Math.abs(ageDifferenceYears).toFixed(1)} years older than ${childName}.\n\nA parent must be at least 12 years older than their child. Please adjust the birth dates accordingly.`;
+                            }
+                          }
+
+                          // Check deceased parent scenario (existing logic)
+                          else if (currentRelationType === 'child' && selectedPerson.date_of_death) {
+                            alertMessage = `ℹ️ Notice:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} is deceased (died ${selectedPerson.date_of_death}).\n\nWhen adding this person as a child, please ensure the birth date is before the parent's death date to maintain chronological accuracy.`;
+                          }
+
+                          // Show validation alert if needed
+                          if (alertMessage) {
+                            setTimeout(() => {
+                              alert(alertMessage);
+                            }, 100);
+                          }
+                        }
+                      }
+                    }
+                  }
+                })}
                 className="mt-1 block w-full pl-3 pr-10 py-2 border border-app-accent focus:outline-none focus:ring-app-accent focus:border-app-accent sm:text-sm rounded-md bg-white"
                 required
               >

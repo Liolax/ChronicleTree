@@ -96,6 +96,50 @@ class Person < ApplicationRecord
     date_of_death.present?
   end
 
+  # Validation methods for parent-child relationships
+  def can_be_parent_of?(child)
+    return { valid: false, error: "Child person is required" } if child.nil?
+    return { valid: false, error: "Parent cannot be same as child" } if self == child
+
+    # Check age difference - parent must be at least 12 years older
+    if self.date_of_birth.present? && child.date_of_birth.present?
+      parent_birth = Date.parse(self.date_of_birth.to_s)
+      child_birth = Date.parse(child.date_of_birth.to_s)
+      age_difference = (child_birth - parent_birth) / 365.25
+
+      if age_difference < 12
+        return { 
+          valid: false, 
+          error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is only #{age_difference.round(1)} years older than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent must be at least 12 years older than their child."
+        }
+      end
+    end
+
+    # Check if parent died before child was born
+    if self.date_of_death.present? && child.date_of_birth.present?
+      parent_death = Date.parse(self.date_of_death.to_s)
+      child_birth = Date.parse(child.date_of_birth.to_s)
+
+      if child_birth > parent_death
+        return { 
+          valid: false, 
+          error: "#{self.first_name} #{self.last_name} died on #{parent_death.strftime('%B %d, %Y')}, but #{child.first_name} #{child.last_name} was born on #{child_birth.strftime('%B %d, %Y')}."
+        }
+      end
+    end
+
+    # Check if child already has 2 parents
+    if child.parents.count >= 2
+      existing_parents = child.parents.map { |p| "#{p.first_name} #{p.last_name}" }.join(' and ')
+      return { 
+        valid: false, 
+        error: "#{child.first_name} #{child.last_name} already has 2 biological parents: #{existing_parents}. A person can only have 2 biological parents."
+      }
+    end
+
+    { valid: true }
+  end
+
   def siblings
     # Siblings share at least one parent
     parent_ids = parents.pluck(:id)

@@ -32,10 +32,45 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
     }
     console.log('AddPersonModal payload:', { person: payload }); // Debug log
     try {
-      await addPerson.mutateAsync(payload);
+      const response = await addPerson.mutateAsync(payload);
+      
+      // Enhanced success alert with person name
+      if (response?.message) {
+        alert(`✅ ${response.message}`);
+      } else {
+        alert(`✅ ${data.firstName} ${data.lastName} has been successfully added to the family tree!`);
+      }
+      
       onClose();
     } catch (err) {
       console.error('AddPersonModal error:', err?.response || err);
+      
+      // Enhanced error handling with specific alert messages
+      if (err?.response?.data?.errors) {
+        const errorMessages = err.response.data.errors;
+        if (Array.isArray(errorMessages)) {
+          // Show each error message with appropriate icons and formatting
+          errorMessages.forEach(error => {
+            if (error.includes("Cannot add child born after parent's death")) {
+              alert(`⚠️ Temporal Validation Error:\n\n${error}\n\nPlease adjust the birth date to be before the parent's death date.`);
+            } else if (error.includes("only") && error.includes("years older")) {
+              alert(`⚠️ Age Validation Error:\n\n${error}\n\nPlease ensure the parent is at least 12 years older than the child.`);
+            } else if (error.includes("already has 2 biological parents")) {
+              alert(`⚠️ Multiple Parents Error:\n\n${error}\n\nConsider adding this person as a step-parent or guardian instead of a biological parent.`);
+            } else if (error.includes("Selected Person are required")) {
+              alert('⚠️ Missing Information:\n\nPlease select both a relationship type and a person to relate to.');
+            } else {
+              alert(`❌ Validation Error:\n\n${error}`);
+            }
+          });
+        } else {
+          alert(`❌ Error: ${errorMessages}`);
+        }
+      } else if (err?.response?.data?.message) {
+        alert(`❌ Error: ${err.response.data.message}`);
+      } else {
+        alert('❌ Failed to add person. Please check your input and try again.');
+      }
     }
   };
 
