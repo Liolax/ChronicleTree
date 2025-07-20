@@ -32,6 +32,16 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
 
   const isDeceased = watch('isDeceased');
 
+  // Reset death date when 'Deceased' is unchecked
+  React.useEffect(() => {
+    if (!isDeceased) {
+      reset(prev => ({
+        ...prev,
+        deathDate: ''
+      }));
+    }
+  }, [isDeceased, reset]);
+
   const onSubmit = (data) => {
     onSave(data);
   };
