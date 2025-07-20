@@ -43,11 +43,22 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 - **Fixed In-Law Relationship Display**: Resolved critical issue where deceased spouse's parents were incorrectly showing as current in-laws for surviving spouses.
 - **Enhanced Backend Relationship Logic**: Updated `current_spouses` method in Person model to properly exclude deceased spouses from current relationship queries, ensuring accurate in-law calculations.
 - **Complex Spouse Status Handling**: Implemented support for complex scenarios where a person can be both an ex-spouse AND deceased (divorced then died vs died while married).
+- **Deceased Person Profile Logic**: Updated in-law methods (`parents_in_law`, `children_in_law`, `siblings_in_law`) to return empty arrays for deceased people, reflecting that deceased individuals don't maintain active in-law relationships.
+- **Frontend Display Perspective Fix**: Fixed relationship calculator to show proper labels based on perspective:
+  - From living person's view: deceased spouse shows as "Late Husband/Wife"
+  - From deceased person's view: living spouse shows as "Husband/Wife" (without "Late" prefix)
 - **Frontend Display Enhancements**: Enhanced RelationshipManager component with improved status display logic:
   - Ex-spouse status takes precedence over deceased status in display
   - Consistent gray styling for all deceased relationships
   - Proper year extraction and formatting for death dates
   - Clear visual distinctions between different spouse statuses
+- **Backend Model Updates**: Added new methods to Person model:
+  - `deceased_spouses` - Returns spouses who have died
+  - `is_deceased?` - Helper method to check if person is deceased
+  - `all_spouses_including_deceased` - Returns all non-ex spouses (both living and deceased)
+- **Validation Logic Updates**: Removed conflicting spouse status validation that prevented ex+deceased combinations, allowing for more realistic family history scenarios.
+- **Comprehensive Test Coverage**: Added extensive test cases covering all spouse exclusion scenarios and complex relationship status combinations.
+- **Enhanced Serialization**: Updated person serializer to include `is_deceased` and `date_of_death` fields for proper frontend status display.
 - **Validation Logic Updates**: Removed conflicting spouse status validation that prevented ex+deceased combinations, allowing for more realistic family history scenarios.
 - **Comprehensive Test Coverage**: Added extensive test cases covering all spouse exclusion scenarios and complex relationship status combinations.
 

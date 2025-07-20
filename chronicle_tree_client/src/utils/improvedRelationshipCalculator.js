@@ -297,7 +297,17 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Check if person is root's deceased spouse
   if (deceasedSpouseMap.has(rootId) && deceasedSpouseMap.get(rootId).has(personId)) {
-    return getGenderSpecificRelation(personId, 'Late Husband', 'Late Wife', allPeople, 'Late Spouse');
+    // Check if the root person is deceased - if so, don't use "Late" prefix
+    const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
+    const rootIsDeceased = rootPerson && (rootPerson.date_of_death || rootPerson.is_deceased);
+    
+    if (rootIsDeceased) {
+      // Root is deceased, so person is just their "Husband/Wife" (not "Late")
+      return getGenderSpecificRelation(personId, 'Husband', 'Wife', allPeople, 'Spouse');
+    } else {
+      // Root is living, so person is their "Late Husband/Wife"
+      return getGenderSpecificRelation(personId, 'Late Husband', 'Late Wife', allPeople, 'Late Spouse');
+    }
   }
   
   // Check if person is root's ex-spouse

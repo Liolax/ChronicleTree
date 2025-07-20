@@ -41,14 +41,14 @@ describe('Deceased Spouse Relationships', () => {
     const johnPerson = allPeople.find(p => p.id === 'john');
     const janePerson = allPeople.find(p => p.id === 'jane');
     const result = calculateRelationshipToRoot(janePerson, johnPerson, allPeople, relationships);
-    expect(result).toBe('Deceased Wife');
+    expect(result).toBe('Late Wife');
   });
 
   it('should identify deceased husband correctly', () => {
     const janePerson = allPeople.find(p => p.id === 'jane');
     const johnPerson = allPeople.find(p => p.id === 'john');
     const result = calculateRelationshipToRoot(johnPerson, janePerson, allPeople, relationships);
-    expect(result).toBe('Deceased Husband');
+    expect(result).toBe('Husband');
   });
 
   it('should identify current spouse correctly when person has deceased spouse', () => {
@@ -69,21 +69,21 @@ describe('Deceased Spouse Relationships', () => {
     const robertPerson = allPeople.find(p => p.id === 'robert');
     const mollyPerson = allPeople.find(p => p.id === 'molly');
     const result = calculateRelationshipToRoot(mollyPerson, robertPerson, allPeople, relationships);
-    expect(result).toBe('Deceased Wife');
+    expect(result).toBe('Late Wife');
   });
 
   it('should handle non-binary deceased spouse with gender-neutral label', () => {
     const alicePerson = allPeople.find(p => p.id === 'alice');
     const alexPerson = allPeople.find(p => p.id === 'alex');
     const result = calculateRelationshipToRoot(alexPerson, alicePerson, allPeople, relationships);
-    expect(result).toBe('Deceased Spouse');
+    expect(result).toBe('Late Spouse');
   });
 
   it('should handle deceased spouse from non-binary perspective', () => {
     const alexPerson = allPeople.find(p => p.id === 'alex');
     const alicePerson = allPeople.find(p => p.id === 'alice');
     const result = calculateRelationshipToRoot(alicePerson, alexPerson, allPeople, relationships);
-    expect(result).toBe('Deceased Wife');
+    expect(result).toBe('Late Wife');
   });
 
   it('should not confuse deceased spouse with other relationships', () => {
