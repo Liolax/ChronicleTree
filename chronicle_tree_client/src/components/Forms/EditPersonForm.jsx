@@ -2,8 +2,12 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
+import { usePerson } from '../../services/people';
 
 const EditPersonForm = ({ person, onSave, onCancel }) => {
+  // Fetch detailed person data including relationships
+  const { data: detailedPerson } = usePerson(person?.id);
+
   const { register, handleSubmit, formState: { errors }, watch, reset } = useForm({
     defaultValues: {
       firstName: person?.first_name || '',
@@ -51,6 +55,67 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
         {...register('birthDate', {
           validate: value => {
             if (value && new Date(value) > new Date()) return 'Birth date cannot be in the future';
+            
+            // Check against death date
+            const deathDate = watch('deathDate');
+            if (value && deathDate && new Date(value) > new Date(deathDate)) {
+              return 'Birth date cannot be after death date';
+            }
+            
+            // Validate against existing children (if person is parent)
+            const children = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'child') || 
+                           person?.children || [];
+            if (value && children.length > 0) {
+              const birthDate = new Date(value);
+              for (const child of children) {
+                if (child.date_of_birth) {
+                  const childBirth = new Date(child.date_of_birth);
+                  const ageDiff = (childBirth - birthDate) / (365.25 * 24 * 60 * 60 * 1000);
+                  
+                  if (ageDiff < 12) {
+                    if (ageDiff < 0) {
+                      setTimeout(() => {
+                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make ${person.first_name} ${person.last_name} ${Math.abs(ageDiff).toFixed(1)} years YOUNGER than their child ${child.first_name} ${child.last_name}.\n\nPlease choose a birth date that maintains at least 12 years difference with all children.`);
+                      }, 100);
+                      return `Cannot be younger than child ${child.first_name} ${child.last_name}`;
+                    } else {
+                      setTimeout(() => {
+                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make ${person.first_name} ${person.last_name} only ${ageDiff.toFixed(1)} years older than their child ${child.first_name} ${child.last_name}.\n\nA parent must be at least 12 years older than their child.`);
+                      }, 100);
+                      return `Must be at least 12 years older than child ${child.first_name} ${child.last_name}`;
+                    }
+                  }
+                }
+              }
+            }
+            
+            // Validate against existing parents (if person is child)
+            const parents = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'parent') || 
+                          person?.parents || [];
+            if (value && parents.length > 0) {
+              const birthDate = new Date(value);
+              for (const parent of parents) {
+                if (parent.date_of_birth) {
+                  const parentBirth = new Date(parent.date_of_birth);
+                  const ageDiff = (birthDate - parentBirth) / (365.25 * 24 * 60 * 60 * 1000);
+                  
+                  if (ageDiff < 12) {
+                    if (ageDiff < 0) {
+                      setTimeout(() => {
+                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make ${person.first_name} ${person.last_name} ${Math.abs(ageDiff).toFixed(1)} years OLDER than their parent ${parent.first_name} ${parent.last_name}.\n\nA child cannot be older than their parent.`);
+                      }, 100);
+                      return `Cannot be older than parent ${parent.first_name} ${parent.last_name}`;
+                    } else {
+                      setTimeout(() => {
+                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make parent ${parent.first_name} ${parent.last_name} only ${ageDiff.toFixed(1)} years older than ${person.first_name} ${person.last_name}.\n\nA parent must be at least 12 years older than their child.`);
+                      }, 100);
+                      return `Parent ${parent.first_name} ${parent.last_name} must be at least 12 years older`;
+                    }
+                  }
+                }
+              }
+            }
+            
             return true;
           }
         })}
@@ -72,6 +137,32 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
         {...register('deathDate', {
           validate: value => {
             if (value && new Date(value) > new Date()) return 'Death date cannot be in the future';
+            
+            // Check against birth date
+            const birthDate = watch('birthDate');
+            if (value && birthDate && new Date(value) < new Date(birthDate)) {
+              return 'Death date cannot be before birth date';
+            }
+            
+            // Validate against existing children (cannot die before children are born)
+            const children = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'child') || 
+                           person?.children || [];
+            if (value && children.length > 0) {
+              const deathDate = new Date(value);
+              for (const child of children) {
+                if (child.date_of_birth) {
+                  const childBirth = new Date(child.date_of_birth);
+                  
+                  if (deathDate < childBirth) {
+                    setTimeout(() => {
+                      alert(`⚠️ Death Date Validation Error:\n\nThe death date would be before the birth of ${person.first_name} ${person.last_name}'s child ${child.first_name} ${child.last_name}.\n\nChild born: ${child.date_of_birth}\nProposed death date: ${value}\n\nA parent cannot die before their child is born.`);
+                    }, 100);
+                    return `Cannot die before child ${child.first_name} ${child.last_name} was born`;
+                  }
+                }
+              }
+            }
+            
             return true;
           }
         })}

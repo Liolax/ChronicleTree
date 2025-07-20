@@ -57,6 +57,15 @@ export const getPerson = async (id) => {
   return data;
 };
 
+// React Query hook for getting a single person with relationships
+export const usePerson = (id) => {
+  return useQuery({
+    queryKey: ['person', id],
+    queryFn: () => getPerson(id),
+    enabled: !!id,
+  });
+};
+
 export const useAddPerson = () => {
   const queryClient = useQueryClient();
   return useMutation({

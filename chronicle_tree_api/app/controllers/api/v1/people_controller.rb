@@ -92,10 +92,101 @@ module Api
 
       # PATCH /api/v1/people/:id
       def update
-        if @person.update(person_params)
-          render json: @person, serializer: Api::V1::PersonSerializer, status: :ok
-        else
-          render json: { errors: @person.errors.full_messages }, status: :unprocessable_entity
+        ActiveRecord::Base.transaction do
+          # RELATIONSHIP-AWARE DATE VALIDATION for existing person
+          new_birth_date = params[:person][:date_of_birth]
+          new_death_date = params[:person][:date_of_death]
+          
+          # Validate birth date against existing relationships
+          if new_birth_date.present?
+            birth_date = Date.parse(new_birth_date.to_s)
+            
+            # Check if new birth date conflicts with children (must be at least 12 years before children's birth)
+            @person.children.each do |child|
+              if child.date_of_birth.present?
+                child_birth = Date.parse(child.date_of_birth.to_s)
+                age_diff = (child_birth - birth_date) / 365.25
+                
+                if age_diff < 12
+                  error_msg = if age_diff < 0
+                    "Cannot update birth date. #{@person.first_name} #{@person.last_name} would be #{age_diff.abs.round(1)} years YOUNGER than their child #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')})."
+                  else
+                    "Cannot update birth date. #{@person.first_name} #{@person.last_name} would be only #{age_diff.round(1)} years older than their child #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent must be at least 12 years older than their child."
+                  end
+                  
+                  render json: { errors: [error_msg] }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+              end
+            end
+            
+            # Check if new birth date conflicts with parents (must be at least 12 years after parents' birth)
+            @person.parents.each do |parent|
+              if parent.date_of_birth.present?
+                parent_birth = Date.parse(parent.date_of_birth.to_s)
+                age_diff = (birth_date - parent_birth) / 365.25
+                
+                if age_diff < 12
+                  error_msg = if age_diff < 0
+                    "Cannot update birth date. #{@person.first_name} #{@person.last_name} would be #{age_diff.abs.round(1)} years OLDER than their parent #{parent.first_name} #{parent.last_name} (born #{parent_birth.strftime('%B %d, %Y')})."
+                  else
+                    "Cannot update birth date. #{parent.first_name} #{parent.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) would be only #{age_diff.round(1)} years older than #{@person.first_name} #{@person.last_name}. A parent must be at least 12 years older than their child."
+                  end
+                  
+                  render json: { errors: [error_msg] }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+              end
+            end
+            
+            # Check if new birth date is after current death date
+            current_death_date = @person.date_of_death || (new_death_date.present? ? Date.parse(new_death_date.to_s) : nil)
+            if current_death_date && birth_date > current_death_date
+              render json: { 
+                errors: ["Birth date cannot be after death date. Birth: #{birth_date.strftime('%B %d, %Y')}, Death: #{current_death_date.strftime('%B %d, %Y')}."] 
+              }, status: :unprocessable_entity
+              raise ActiveRecord::Rollback
+            end
+          end
+          
+          # Validate death date against existing relationships  
+          if new_death_date.present?
+            death_date = Date.parse(new_death_date.to_s)
+            
+            # Check if new death date is before children's birth dates
+            @person.children.each do |child|
+              if child.date_of_birth.present?
+                child_birth = Date.parse(child.date_of_birth.to_s)
+                
+                if death_date < child_birth
+                  render json: { 
+                    errors: ["Cannot set death date before child's birth. #{@person.first_name} #{@person.last_name} would die on #{death_date.strftime('%B %d, %Y')}, but their child #{child.first_name} #{child.last_name} was born on #{child_birth.strftime('%B %d, %Y')}."] 
+                  }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+              end
+            end
+            
+            # Check if new death date is before current birth date
+            current_birth_date = @person.date_of_birth || (new_birth_date.present? ? Date.parse(new_birth_date.to_s) : nil)
+            if current_birth_date && death_date < current_birth_date
+              render json: { 
+                errors: ["Death date cannot be before birth date. Birth: #{current_birth_date.strftime('%B %d, %Y')}, Death: #{death_date.strftime('%B %d, %Y')}."] 
+              }, status: :unprocessable_entity
+              raise ActiveRecord::Rollback
+            end
+          end
+          
+          # If all validations pass, update the person
+          if @person.update(person_params)
+            render json: {
+              person: Api::V1::PersonSerializer.new(@person).as_json,
+              message: "#{@person.first_name} #{@person.last_name} has been successfully updated!"
+            }, status: :ok
+          else
+            render json: { errors: @person.errors.full_messages }, status: :unprocessable_entity
+            raise ActiveRecord::Rollback
+          end
         end
       end
 
