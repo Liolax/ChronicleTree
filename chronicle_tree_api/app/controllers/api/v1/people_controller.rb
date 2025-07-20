@@ -25,12 +25,29 @@ module Api
           rel_person_id = params[:person][:related_person_id]
           # Require relationship fields unless first person
           if !is_first_person && (rel_type.blank? || rel_person_id.blank?)
-            render json: { errors: [ "Relationship Type and Related Person are required" ] }, status: :unprocessable_entity
+            render json: { errors: [ "Relationship Type and Selected Person are required" ] }, status: :unprocessable_entity
             raise ActiveRecord::Rollback
           end
           if person.save
             # If relationship_type and related_person_id are provided, create relationship
             if rel_type.present? && rel_person_id.present?
+              related_person = current_user.people.find(rel_person_id)
+              
+              # TEMPORAL VALIDATION: Prevent impossible parent-child relationships
+              if rel_type == 'child' && related_person.date_of_death.present? && person.date_of_birth.present?
+                parent_death_date = Date.parse(related_person.date_of_death.to_s)
+                child_birth_date = Date.parse(person.date_of_birth.to_s)
+                
+                if child_birth_date > parent_death_date
+                  render json: { 
+                    errors: [
+                      "Cannot add child born after parent's death. #{related_person.first_name} #{related_person.last_name} died on #{parent_death_date.strftime('%B %d, %Y')}, but child was born on #{child_birth_date.strftime('%B %d, %Y')}."
+                    ] 
+                  }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+              end
+              
               # Create the correct relationship based on what the user selected
               case rel_type
               when 'child'

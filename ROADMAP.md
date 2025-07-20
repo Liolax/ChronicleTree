@@ -39,7 +39,17 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 
 ## Recent Updates
 
-### [2025-01-20] Step-Relationship Timeline Validation & Deceased Spouse Logic Improvements
+### [2025-01-20] Temporal Validation for Parent-Child Relationships & UI Improvements
+- **CRITICAL: Temporal Validation for Adding Children**: Added comprehensive validation to prevent adding children to deceased parents when the child's birth date is after the parent's death date:
+  - **Frontend Validation**: Real-time validation in PersonForm with clear error messages showing parent's name and death date
+  - **Backend Validation**: Server-side temporal validation with detailed error messages including formatted dates
+  - **Chronological Accuracy**: Ensures family tree relationships respect temporal reality and biological possibility
+  - **User Experience**: Provides immediate feedback explaining why invalid relationships cannot be created
+- **UI Text Improvements**: Changed "Related Person" to "Selected Person" throughout the application for clearer terminology:
+  - Updated form labels, error messages, and validation text
+  - Improved consistency across frontend and backend error messages
+- **Data Integrity**: Prevents impossible family relationships while preserving valid historical data
+- **Step-Relationship Timeline Validation & Deceased Spouse Logic Improvements**:
 - **CRITICAL FIX: Timeline Validation for Family Relationships**: Fixed issue where deceased people could show step-relationships with people born after their death (e.g., Michael Doe born 2024 incorrectly showing as Jane Doe's step-son when Jane died in 2022).
 - **Enhanced Relationship Calculator Logic**: Added fundamental timeline validation at entry point to prevent impossible relationships between people who never coexisted:
   - People born after someone's death cannot have family relationships with the deceased (except direct blood inheritance)

@@ -103,9 +103,26 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
         type="date"
         max={new Date().toISOString().split('T')[0]}
         value={watch('date_of_birth') ? watch('date_of_birth').slice(0, 10) : ''}
-        {...register('date_of_birth', { required: 'Birth date is required',
+        {...register('date_of_birth', { 
+          required: 'Birth date is required',
           validate: value => {
             if (value && new Date(value) > new Date()) return 'Birth date cannot be in the future';
+            
+            // Temporal validation for parent-child relationships
+            const relationType = watch('relationType');
+            const relatedPersonId = watch('relatedPersonId');
+            
+            if (value && relationType === 'child' && relatedPersonId) {
+              const selectedPerson = filteredPeople.find(p => String(p.id) === String(relatedPersonId));
+              if (selectedPerson && selectedPerson.date_of_death) {
+                const birthDate = new Date(value);
+                const parentDeathDate = new Date(selectedPerson.date_of_death);
+                if (birthDate > parentDeathDate) {
+                  return `Cannot add child born after parent's death (${selectedPerson.first_name} ${selectedPerson.last_name} died ${selectedPerson.date_of_death})`;
+                }
+              }
+            }
+            
             return true;
           }
         })}
@@ -169,10 +186,10 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
           </div>
           {relationType && relationType !== '' && (
             <div>
-              <label htmlFor="relatedPersonId" className="block text-sm font-medium text-gray-700">Related Person <span className="text-red-500">*</span></label>
+              <label htmlFor="relatedPersonId" className="block text-sm font-medium text-gray-700">Selected Person <span className="text-red-500">*</span></label>
               <select
                 id="relatedPersonId"
-                {...register('relatedPersonId', { required: 'Related person is required' })}
+                {...register('relatedPersonId', { required: 'Selected person is required' })}
                 className="mt-1 block w-full pl-3 pr-10 py-2 border border-app-accent focus:outline-none focus:ring-app-accent focus:border-app-accent sm:text-sm rounded-md bg-white"
                 required
               >

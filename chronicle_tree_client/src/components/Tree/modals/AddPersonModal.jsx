@@ -24,7 +24,7 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
         return;
       }
       if (!data.relatedPersonId) {
-        alert('Related Person is required');
+        alert('Selected Person is required');
         return;
       }
       payload.relation_type = data.relationType;
