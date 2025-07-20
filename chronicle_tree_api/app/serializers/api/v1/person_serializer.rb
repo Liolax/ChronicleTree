@@ -51,6 +51,8 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
         relationship_type: rel.relationship_type,
         id: rel.relative.id,
         is_ex: rel.try(:is_ex), # Only present for spouse relationships
+        is_deceased: rel.relative.date_of_death.present?, # Include deceased status
+        date_of_death: rel.relative.date_of_death, # Include death date for status display
         relationship_id: rel.id
       })
     end

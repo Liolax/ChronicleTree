@@ -48,6 +48,18 @@ class Person < ApplicationRecord
           .distinct
   end
 
+  def all_spouses_including_deceased
+    # For living people, show both current and deceased spouses
+    # For deceased people, show all spouses (they maintain their historical relationships)
+    Person.joins(:relationships)
+          .where(
+            "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false",
+            id: id
+          )
+          .where.not(id: id)
+          .distinct
+  end
+
   def current_spouses
     Person.joins(:relationships)
           .where(
@@ -69,6 +81,21 @@ class Person < ApplicationRecord
           .distinct
   end
 
+  def deceased_spouses
+    Person.joins(:relationships)
+          .where(
+            "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false",
+            id: id
+          )
+          .where.not(date_of_death: nil) # Only spouses who have died
+          .where.not(id: id)
+          .distinct
+  end
+
+  def is_deceased?
+    date_of_death.present?
+  end
+
   def siblings
     # Siblings share at least one parent
     parent_ids = parents.pluck(:id)
@@ -81,6 +108,9 @@ class Person < ApplicationRecord
   end
 
   def parents_in_law
+    # Deceased people don't have active in-law relationships
+    return [] if is_deceased?
+    
     # DEBUG: Print current spouses and their parents for this person
     Rails.logger.debug "[parents_in_law] Person: #{self.first_name} #{self.last_name} (id=#{self.id})"
     Rails.logger.debug "[parents_in_law] Current Spouses: #{current_spouses.map { |s| "#{s.first_name} #{s.last_name} (id=#{s.id})" }.inspect}"
@@ -93,6 +123,9 @@ class Person < ApplicationRecord
   end
 
   def children_in_law
+    # Deceased people don't have active in-law relationships
+    return [] if is_deceased?
+    
     # DEBUG: Print children and their current spouses for this person
     Rails.logger.debug "[children_in_law] Person: #{self.first_name} #{self.last_name} (id=#{self.id})"
     Rails.logger.debug "[children_in_law] Children: #{children.map { |c| "#{c.first_name} #{c.last_name} (id=#{c.id})" }.inspect}"
@@ -105,6 +138,9 @@ class Person < ApplicationRecord
   end
 
   def siblings_in_law
+    # Deceased people don't have active in-law relationships
+    return [] if is_deceased?
+    
     # DEBUG: Print current spouses and their siblings for this person
     Rails.logger.debug "[siblings_in_law] Person: #{self.first_name} #{self.last_name} (id=#{self.id})"
     Rails.logger.debug "[siblings_in_law] Current Spouses: #{current_spouses.map { |s| "#{s.first_name} #{s.last_name} (id=#{s.id})" }.inspect}"

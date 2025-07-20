@@ -39,6 +39,18 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 
 ## Recent Updates
 
+### [2025-01-20] Deceased Spouse Relationship Logic Improvements
+- **Fixed In-Law Relationship Display**: Resolved critical issue where deceased spouse's parents were incorrectly showing as current in-laws for surviving spouses.
+- **Enhanced Backend Relationship Logic**: Updated `current_spouses` method in Person model to properly exclude deceased spouses from current relationship queries, ensuring accurate in-law calculations.
+- **Complex Spouse Status Handling**: Implemented support for complex scenarios where a person can be both an ex-spouse AND deceased (divorced then died vs died while married).
+- **Frontend Display Enhancements**: Enhanced RelationshipManager component with improved status display logic:
+  - Ex-spouse status takes precedence over deceased status in display
+  - Consistent gray styling for all deceased relationships
+  - Proper year extraction and formatting for death dates
+  - Clear visual distinctions between different spouse statuses
+- **Validation Logic Updates**: Removed conflicting spouse status validation that prevented ex+deceased combinations, allowing for more realistic family history scenarios.
+- **Comprehensive Test Coverage**: Added extensive test cases covering all spouse exclusion scenarios and complex relationship status combinations.
+
 ### [2025-07-17] Ex-Spouse In-Law Exclusion, Gender-Neutral Naming, and Relationship Logic Overhaul
 - **Ex-Spouse In-Law Exclusion:**
   - Backend and frontend now strictly exclude ex-spouse relatives (parents, siblings, children) from in-law calculations, matching the problem statement: “relatives of spouse (because after divorce they are not official yet) are not showing.”
