@@ -16,12 +16,12 @@ module ChronicleTreeApi
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
-    # Configure Redis for caching
-    config.cache_store = :redis_cache_store, {
-      url: ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' },
-      expires_in: 90.minutes,
-      race_condition_ttl: 10.seconds
-    }
+    # Configure Redis for caching (disabled for development without Redis)
+    # config.cache_store = :redis_cache_store, {
+    #   url: ENV.fetch('REDIS_URL') { 'redis://localhost:6379/1' },
+    #   expires_in: 90.minutes,
+    #   race_condition_ttl: 10.seconds
+    # }
 
     # Configuration for the application, engines, and railties goes here.
     #

@@ -14,6 +14,9 @@ Rails.application.configure do
 
   config.cache_store = :memory_store
   config.active_storage.service = :local
+  
+  # Use inline job processing instead of background jobs to avoid Redis dependency
+  config.active_job.queue_adapter = :inline
   config.action_mailer.raise_delivery_errors = false
   config.action_mailer.perform_caching = false
   config.action_mailer.default_url_options = { host: "localhost", port: 3000 }

@@ -22,7 +22,8 @@
       "Bash(perl:*)",
       "Bash(fi)",
       "Bash(done)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(redis-server:*)"
     ],
     "deny": []
   }

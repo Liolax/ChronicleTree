@@ -55,47 +55,8 @@ end
 [ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
   Profile.find_or_create_by!(person: person)
 end
-# Avatar attachments commented out to avoid Redis/Sidekiq dependency during seeding
-# # Ensure avatars are nil
-# [ p1, p2, alice, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
-#   profile = person.profile
-#   profile.avatar.purge if profile.avatar.attached?
-# end
-
-# # Attach placeholder profile photos to each person's avatar
-# profile_photo_urls = {
-#   p1: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   alice: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   p2: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   david: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   bob: 'https://images.unsplash.com/photo-1551963831-b3b1ca40c98e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   emily: 'https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   charlie: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   molly: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   robert: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   sarah: 'https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   thomas: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   lisa: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   michael: 'https://images.unsplash.com/photo-1592194996308-7b43878e84a6?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   emma: 'https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   lisa_father: 'https://images.unsplash.com/photo-1556474835-b0f3ac40d4d1?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   lisa_mother: 'https://images.unsplash.com/photo-1544717302-de2939b7ef71?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   jane_father: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=facearea&w=400&h=400&facepad=2',
-#   jane_mother: 'https://images.unsplash.com/photo-1547036967-23d11aacaee0?auto=format&fit=facearea&w=400&h=400&facepad=2'
-# }
-# require 'open-uri'
-# [ p1, alice, p2, david, bob, emily, charlie, molly, robert, sarah, thomas, lisa, michael, emma, lisa_father, lisa_mother, jane_father, jane_mother ].each do |person|
-#   profile = person.profile
-#   url = profile_photo_urls[person == p1 ? :p1 : person == alice ? :alice : person == p2 ? :p2 : person == david ? :david : person == bob ? :bob : person == emily ? :emily : person == charlie ? :charlie : person == molly ? :molly : person == robert ? :robert : person == sarah ? :sarah : person == thomas ? :thomas : person == lisa ? :lisa : person == michael ? :michael : person == emma ? :emma : person == lisa_father ? :lisa_father : person == lisa_mother ? :lisa_mother : person == jane_father ? :jane_father : :jane_mother]
-#   unless profile.avatar.attached?
-#     begin
-#       file = URI.open(url)
-#       profile.avatar.attach(io: file, filename: "avatar_#{person.id}.jpg", content_type: 'image/jpeg')
-#     rescue OpenURI::HTTPError => e
-#       puts "Warning: Could not download image for #{person.first_name} from #{url}: #{e.message}"
-#     end
-#   end
-# end
+# Avatar attachments are handled by separate seeds_avatars.rb script to avoid timeouts
+puts "Skipping avatar downloads in main seeds (use 'rails runner db/seeds_avatars.rb' to add avatars)"
 
 # --- FACTS ---
 Fact.find_or_create_by!(id: 101, person: p1, label: 'Occupation', value: 'Software Architect at TechCorp', date: Date.new(2005, 1, 1), location: 'TechCorp HQ')
@@ -220,30 +181,8 @@ Medium.find_or_create_by!(id: 309, attachable: alice, attachable_type: 'Person',
 # Attach placeholder images to media records if not already attached
 require 'open-uri'
 
-# Media file attachments commented out to avoid Redis/Sidekiq dependency during seeding
-# # Attach files to media records
-# require 'open-uri'
-# media_files = [
-#   # Images
-#   {id: 301, url: 'https://images.unsplash.com/photo-1511367461989-f85a21fda167?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'john_doe.jpg', content_type: 'image/jpeg'},
-#   {id: 302, url: 'https://images.unsplash.com/photo-1464983953574-0892a716854b?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'alice_painting.jpg', content_type: 'image/jpeg'},
-#   {id: 303, url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'jane_graduation.jpg', content_type: 'image/jpeg'},
-#   {id: 304, url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'david_work.jpg', content_type: 'image/jpeg'},
-#   {id: 305, url: 'https://images.unsplash.com/photo-1521412644187-c49fa049e84d?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'bob_soccer.jpg', content_type: 'image/jpeg'},
-#   {id: 306, url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'emily_reading.jpg', content_type: 'image/jpeg'},
-#   {id: 307, url: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=facearea&w=400&h=400&facepad=2', filename: 'charlie_guitar.jpg', content_type: 'image/jpeg'},
-#   # PDFs
-#   {id: 308, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', filename: 'john_doe_resume.pdf', content_type: 'application/pdf'},
-#   {id: 309, url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf', filename: 'alice_portfolio.pdf', content_type: 'application/pdf'}
-# ]
-# media_files.each do |file_info|
-#   media = Medium.find_by(id: file_info[:id])
-#   next unless media
-#   unless media.file.attached?
-#     file = URI.open(file_info[:url])
-#     media.file.attach(io: file, filename: file_info[:filename], content_type: file_info[:content_type])
-#   end
-# end
+# Media file attachments are handled by separate seeds_media.rb script to avoid timeouts
+puts "Skipping media file downloads in main seeds (use 'rails runner db/seeds_media.rb' to add media files)"
 # --- RELATIONSHIPS ---
 # Define all parent-child pairs in the tree
 parent_child_pairs = [
