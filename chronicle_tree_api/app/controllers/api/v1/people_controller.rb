@@ -221,8 +221,16 @@ module Api
         people = current_user.people
         nodes = people.to_a
         edges = []
+        
+        Rails.logger.info "=== FULL TREE DEBUG ==="
+        Rails.logger.info "User #{current_user.id} has #{people.count} people"
+        Rails.logger.info "Total relationships in database: #{Relationship.count}"
+        
         people.each do |person|
-          person.relationships.each do |rel|
+          person_relationships = person.relationships
+          Rails.logger.info "Person #{person.id} (#{person.first_name} #{person.last_name}) has #{person_relationships.count} relationships"
+          
+          person_relationships.each do |rel|
             # Only include edges where both people are in the user's tree
             if people.map(&:id).include?(rel.relative_id)
               edge = {

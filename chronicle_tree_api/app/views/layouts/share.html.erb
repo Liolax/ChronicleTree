@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- Standard meta tags -->
+  <title><%= @meta_title || 'ChronicleTree - Family Tree Platform' %></title>
+  <meta name="description" content="<%= @meta_description || 'Discover and share your family story with ChronicleTree' %>">
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="<%= @share_url %>">
+  <meta property="og:title" content="<%= @meta_title %>">
+  <meta property="og:description" content="<%= @meta_description %>">
+  <% if @meta_image_url %>
+    <meta property="og:image" content="<%= @meta_image_url %>">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
+  <% end %>
+  <meta property="og:site_name" content="ChronicleTree">
+  
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image">
+  <meta property="twitter:url" content="<%= @share_url %>">
+  <meta property="twitter:title" content="<%= @meta_title %>">
+  <meta property="twitter:description" content="<%= @meta_description %>">
+  <% if @meta_image_url %>
+    <meta property="twitter:image" content="<%= @meta_image_url %>">
+  <% end %>
+  <meta property="twitter:site" content="@chronicletree">
+  <meta property="twitter:creator" content="@chronicletree">
+  
+  <!-- WhatsApp -->
+  <% if @meta_image_url %>
+    <meta property="og:image:alt" content="<%= @meta_title %>">
+  <% end %>
+  
+  <!-- LinkedIn -->
+  <meta property="og:locale" content="en_US">
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      margin: 0;
+      padding: 40px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .share-container {
+      background: white;
+      border-radius: 12px;
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+    
+    .logo {
+      font-size: 2.5rem;
+      color: #4F46E5;
+      margin-bottom: 20px;
+    }
+    
+    h1 {
+      color: #1F2937;
+      margin-bottom: 16px;
+      font-size: 1.8rem;
+    }
+    
+    .description {
+      color: #6B7280;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    
+    .share-image {
+      margin: 30px 0;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    
+    .share-image img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .cta-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #4F46E5;
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    
+    .cta-button:hover {
+      background: #4338CA;
+    }
+    
+    .footer {
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid #E5E7EB;
+      color: #9CA3AF;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="share-container">
+    <div class="logo">🌳</div>
+    <h1><%= @meta_title %></h1>
+    <p class="description"><%= @meta_description %></p>
+    
+    <% if @meta_image_url %>
+      <div class="share-image">
+        <img src="<%= @meta_image_url %>" alt="<%= @meta_title %>" loading="lazy">
+      </div>
+    <% end %>
+    
+    <%= yield %>
+    
+    <div class="footer">
+      <p>Powered by <strong>ChronicleTree</strong> - Your Family Story Platform</p>
+    </div>
+  </div>
+
+  <script>
+    // Auto-redirect to React frontend after a delay for human visitors
+    // (Social crawlers will have already fetched the meta tags by then)
+    setTimeout(function() {
+      <% if action_name == 'profile' %>
+        window.location.href = '<%= frontend_profile_url(@person.id) %>';
+      <% elsif action_name == 'tree' %>
+        window.location.href = '<%= frontend_tree_url(@root_person.id) %>';
+      <% end %>
+    }, 3000);
+  </script>
+</body>
+</html>

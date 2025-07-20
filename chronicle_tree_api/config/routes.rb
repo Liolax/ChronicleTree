@@ -2,6 +2,19 @@ Rails.application.routes.draw do
   # health check endpoint
   get "up" => "rails/health#show", as: :rails_health_check
   get "/ping", to: "application#ping"
+  
+  # Serve generated share images
+  get '/generated_shares/*path', to: 'share_images#show', constraints: { path: /.+/ }
+  
+  # Public sharing pages for social media crawlers
+  get '/profile/:id', to: 'public_shares#profile', as: :public_profile_share
+  get '/tree', to: 'public_shares#tree', as: :public_tree_share
+
+  # Sidekiq monitoring (development only)
+  if Rails.env.development?
+    require 'sidekiq/web'
+    mount Sidekiq::Web => '/sidekiq'
+  end
 
   # Devise routes for JWT authentication
   devise_for :users,
@@ -75,6 +88,13 @@ Rails.application.routes.draw do
       
       # Sharing functionality
       resources :shares, only: %i[create show]
+      
+      # New image generation endpoints
+      namespace :share do
+        get 'profile/:id', to: 'images#profile'
+        get 'tree/:id', to: 'images#tree'
+        delete 'cleanup', to: 'images#cleanup'
+      end
     end
   end
 end

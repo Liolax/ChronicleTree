@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rails:*)",
+      "Bash(npm run:*)",
+      "Bash(curl:*)",
+      "Bash(ls:*)",
+      "Bash(gem install:*)",
+      "Bash(mkdir:*)",
+      "Bash(pkill:*)",
+      "Bash(rm:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:developers.facebook.com)"
+    ],
+    "deny": []
+  }
+}

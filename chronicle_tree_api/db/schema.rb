@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_19_173724) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_20_163104) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -112,6 +112,24 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_19_173724) do
     t.index ["relative_id"], name: "index_relationships_on_relative_id"
   end
 
+  create_table "share_images", force: :cascade do |t|
+    t.bigint "person_id", null: false
+    t.string "image_type", null: false
+    t.string "file_path", limit: 500, null: false
+    t.datetime "expires_at", null: false
+    t.json "metadata", default: {}
+    t.integer "file_size"
+    t.integer "generation_time_ms"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["expires_at"], name: "index_share_images_on_expires_at"
+    t.index ["image_type"], name: "index_share_images_on_image_type"
+    t.index ["person_id", "image_type"], name: "index_share_images_on_person_id_and_image_type"
+    t.index ["person_id"], name: "index_share_images_on_person_id"
+    t.check_constraint "expires_at > created_at", name: "valid_expiry_date"
+    t.check_constraint "image_type::text = ANY (ARRAY['profile'::character varying, 'tree'::character varying]::text[])", name: "valid_image_type"
+  end
+
   create_table "shares", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "content_type", null: false
@@ -149,6 +167,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_19_173724) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "name"
+    t.boolean "admin"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
@@ -161,6 +180,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_19_173724) do
   add_foreign_key "profiles", "people"
   add_foreign_key "relationships", "people"
   add_foreign_key "relationships", "people", column: "relative_id"
+  add_foreign_key "share_images", "people"
   add_foreign_key "shares", "users"
   add_foreign_key "timeline_items", "people"
 end

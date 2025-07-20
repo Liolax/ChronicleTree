@@ -1,0 +1,237 @@
+/* Share Button Styles */
+.share-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #3498db;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.share-button:hover {
+  background: #2980b9;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.share-button:active {
+  transform: translateY(0);
+}
+
+.share-button:disabled {
+  background: #bdc3c7;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.share-button.loading {
+  background: #95a5a6;
+  cursor: wait;
+}
+
+.share-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loading-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Share Preview Modal */
+.share-preview-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.share-preview-modal {
+  background: white;
+  border-radius: 1rem;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.share-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 1.5rem 1rem;
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.share-preview-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #7f8c8d;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.close-button:hover {
+  background: #ecf0f1;
+  color: #2c3e50;
+}
+
+.share-preview-content {
+  padding: 0 1.5rem 1rem;
+}
+
+.preview-image {
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.preview-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.preview-details h4 {
+  margin: 0 0 0.5rem;
+  color: #2c3e50;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.preview-details p {
+  margin: 0 0 1.5rem;
+  color: #7f8c8d;
+  line-height: 1.5;
+}
+
+.share-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.75rem;
+}
+
+.share-option-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  background: #f8f9fa;
+  color: #2c3e50;
+  border: 1px solid #ecf0f1;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.share-option-button:hover {
+  background: #e9ecef;
+  border-color: #3498db;
+  color: #3498db;
+  transform: translateY(-1px);
+}
+
+.share-option-button svg {
+  flex-shrink: 0;
+}
+
+.share-preview-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #ecf0f1;
+  background: #f8f9fa;
+  border-radius: 0 0 1rem 1rem;
+  text-align: center;
+}
+
+.share-preview-footer small {
+  color: #7f8c8d;
+  font-size: 0.75rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .share-preview-modal {
+    margin: 0.5rem;
+    max-height: 95vh;
+  }
+  
+  .share-options {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .share-option-button {
+    font-size: 0.7rem;
+    padding: 0.5rem;
+  }
+}
+
+/* Integration with existing buttons */
+.share-button.tree-button {
+  background: #27ae60;
+}
+
+.share-button.tree-button:hover {
+  background: #229954;
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+.share-button.profile-button {
+  background: #9b59b6;
+}
+
+.share-button.profile-button:hover {
+  background: #8e44ad;
+  box-shadow: 0 4px 12px rgba(155, 89, 182, 0.3);
+}

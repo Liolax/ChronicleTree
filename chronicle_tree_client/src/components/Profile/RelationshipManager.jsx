@@ -314,8 +314,18 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   if (treeData?.nodes && treeData?.edges && person) {
     console.log('[RelationshipManager] Calculating step relationships for:', person.full_name);
     console.log('[RelationshipManager] TreeData:', { peopleCount: treeData.nodes.length, relationshipsCount: treeData.edges.length });
+    console.log('[RelationshipManager] Sample edges:', treeData.edges.slice(0, 3));
     
-    const { stepParents, stepChildren } = findStepRelationships(person, treeData.nodes, treeData.edges);
+    // Convert edges to relationships format that buildRelationshipMaps expects
+    const relationships = treeData.edges.map(edge => ({
+      from: edge.source,
+      to: edge.target, 
+      relationship_type: edge.type || edge.relationship_type,
+      is_ex: edge.is_ex,
+      is_deceased: edge.is_deceased
+    }));
+    
+    const { stepParents, stepChildren } = findStepRelationships(person, treeData.nodes, relationships);
     
     console.log('[RelationshipManager] Found step relationships:', { stepParents, stepChildren });
     

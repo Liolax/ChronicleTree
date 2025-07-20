@@ -25,7 +25,7 @@ import { useFullTree, useDeletePerson } from '../../services/people';
 import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
-import { generateTreeShareContent, handleSocialShare } from '../../services/sharing';
+import { ShareModal } from '../Share';
 // import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
 // Node types for react-flow
@@ -47,7 +47,6 @@ const FamilyTree = () => {
   const [rootPersonId, setRootPersonId] = useState(null);
   const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
-  const [shareCaption, setShareCaption] = useState('');
   const [showUnrelated, setShowUnrelated] = useState(false);
   
   const queryClient = useQueryClient();
@@ -413,7 +412,7 @@ const FamilyTree = () => {
             )}
           </div>
           <div className="flex gap-3">
-            <Button onClick={handleShareTree} variant="secondary">
+            <Button onClick={() => setShowShareModal(true)} variant="secondary">
               <FaShareAlt className="mr-2" />
               Share Tree
             </Button>
@@ -522,90 +521,12 @@ const FamilyTree = () => {
           />
         )}
 
-        {/* Share Modal */}
-        {showShareModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg p-6 shadow-xl w-full max-w-md">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">Share Family Tree</h3>
-                <button
-                  onClick={handleCloseShareModal}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div className="bg-gray-100 p-4 rounded-lg text-center mb-4">
-                <div className="text-4xl mb-2">🌳</div>
-                <p className="font-semibold">
-                  {rootPersonId 
-                    ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
-                    : 'Complete Family Tree'
-                  }
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  {processedData.nodes.length} family members
-                </p>
-              </div>
-              
-              <textarea 
-                className="w-full p-2 border rounded-md mb-4" 
-                placeholder="Add an optional caption..."
-                rows="3"
-                value={shareCaption}
-                onChange={(e) => setShareCaption(e.target.value)}
-              />
-              
-              <div className="flex justify-center space-x-4 mt-4">
-                <button 
-                  className="text-2xl text-blue-600 hover:text-blue-800" 
-                  title="Share on Facebook"
-                  onClick={() => handleSocialShareClick('facebook', shareCaption)}
-                >
-                  <FaFacebookSquare />
-                </button>
-                <button 
-                  className="text-2xl text-black hover:text-gray-700" 
-                  title="Share on X"
-                  onClick={() => handleSocialShareClick('x', shareCaption)}
-                >
-                  <FaTwitter />
-                </button>
-                <button 
-                  className="text-2xl text-green-500 hover:text-green-700" 
-                  title="Share on WhatsApp"
-                  onClick={() => handleSocialShareClick('whatsapp', shareCaption)}
-                >
-                  <FaWhatsappSquare />
-                </button>
-                <button 
-                  className="text-2xl text-red-500 hover:text-red-700" 
-                  title="Share via Email"
-                  onClick={() => handleSocialShareClick('email', shareCaption)}
-                >
-                  <FaEnvelopeSquare />
-                </button>
-                <button 
-                  className="text-2xl text-gray-600 hover:text-gray-800" 
-                  title="Copy Link"
-                  onClick={() => handleSocialShareClick('copy', shareCaption)}
-                >
-                  <FaLink />
-                </button>
-              </div>
-              
-              <div className="flex justify-end mt-6">
-                <button 
-                  className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 transition-colors" 
-                  onClick={handleCloseShareModal}
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
+        <ShareModal
+          isOpen={showShareModal}
+          onClose={() => setShowShareModal(false)}
+          personId={rootPersonId}
+          shareType="tree"
+        />
 
         {/* Modals */}
         {isAddPersonModalOpen && (

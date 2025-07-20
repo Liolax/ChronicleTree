@@ -25,8 +25,18 @@ class Person < ApplicationRecord
            as: :attachable,
            dependent: :destroy
   has_one :note, dependent: :destroy
+  has_many :share_images, dependent: :destroy
 
   after_create :ensure_profile
+
+  # Display methods
+  def full_name
+    "#{first_name} #{last_name}".strip
+  end
+
+  def display_name
+    full_name.present? ? full_name : name
+  end
 
   # Methods to query relationships
   def parents

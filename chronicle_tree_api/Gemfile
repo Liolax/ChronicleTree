@@ -22,6 +22,16 @@ gem "active_model_serializers", "~> 0.10.0"
 # Avoid breaking changes from rubyzip v3
 gem "rubyzip", "~> 2.3.0"
 
+# Image generation and processing
+gem "ruby-vips", "~> 2.1"
+gem "mini_magick", "~> 5.0"
+
+# Background job processing
+gem "sidekiq", "~> 7.0"
+
+# Caching
+gem "redis", "~> 5.0"
+
 group :development, :test do
   gem "debug", platforms: %i[mri windows], require: "debug/prelude"
   gem "rubocop-rails-omakase", require: false

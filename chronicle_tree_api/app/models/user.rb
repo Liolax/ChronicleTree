@@ -6,6 +6,7 @@
 #  name                   :string
 #  email                  :string           not null, unique
 #  encrypted_password     :string           not null
+#  admin                  :boolean          default: false
 #  created_at             :datetime         not null
 #  updated_at             :datetime         not null
 #
