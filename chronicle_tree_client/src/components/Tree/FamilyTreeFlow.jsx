@@ -48,6 +48,7 @@ const FamilyTree = () => {
   const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareCaption, setShareCaption] = useState('');
+  const [showUnrelated, setShowUnrelated] = useState(false);
   
   const queryClient = useQueryClient();
   const deletePerson = useDeletePerson();
@@ -143,11 +144,16 @@ const FamilyTree = () => {
       });
     }
 
+    // Filter out unrelated nodes if showUnrelated is false
+    const finalNodes = showUnrelated 
+      ? peopleWithRelations 
+      : peopleWithRelations.filter(node => node.relation !== 'Unrelated');
+
     return {
-      nodes: peopleWithRelations,
+      nodes: finalNodes,
       edges: filteredEdges
     };
-  }, [data, rootPersonId, hasSetDefaultRoot]);
+  }, [data, rootPersonId, hasSetDefaultRoot, showUnrelated]);
 
   // Debug: Log processed data
   React.useEffect(() => {
@@ -410,6 +416,12 @@ const FamilyTree = () => {
             <Button onClick={handleShareTree} variant="secondary">
               <FaShareAlt className="mr-2" />
               Share Tree
+            </Button>
+            <Button 
+              onClick={() => setShowUnrelated(!showUnrelated)} 
+              variant="secondary"
+            >
+              {showUnrelated ? 'Hide Unrelated' : 'Show Unrelated'}
             </Button>
             <FitViewButton />
           </div>
