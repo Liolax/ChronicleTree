@@ -170,6 +170,8 @@ const FamilyTree = () => {
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
+    setSelectedPerson(null); // Close person card when editing
+    setPersonCardPosition(null);
     setEditPerson(person);
   }, []);
 
@@ -178,6 +180,8 @@ const FamilyTree = () => {
   }, []);
 
   const openAddPersonModal = useCallback(() => {
+    setSelectedPerson(null); // Close person card when adding
+    setPersonCardPosition(null);
     setAddPersonModalOpen(true);
   }, []);
 
