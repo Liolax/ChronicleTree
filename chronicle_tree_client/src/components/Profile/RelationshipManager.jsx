@@ -96,23 +96,6 @@ function findStepRelationships(person, allPeople, relationships) {
       }
     }
     
-    // Check ex-spouses of this parent
-    const parentExSpouses = exSpouseMap.get(parent) || new Set();
-    for (const spouse of parentExSpouses) {
-      if (!personParents.has(spouse)) {
-        const spousePerson = allPeople.find(p => String(p.id) === spouse);
-        if (spousePerson) {
-          stepParents.push({
-            ...spousePerson,
-            id: spousePerson.id,
-            full_name: `${spousePerson.first_name} ${spousePerson.last_name}`,
-            relationship_type: 'parent',
-            isStep: true
-          });
-        }
-      }
-    }
-    
     // Check deceased spouses of this parent
     const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
     for (const spouse of parentDeceasedSpouses) {
@@ -141,10 +124,11 @@ function findStepRelationships(person, allPeople, relationships) {
   }
 
   // Find step-children: People whose biological parent is married to this person, but this person is not their biological parent
+  // Only consider current spouses and deceased spouses (not ex-spouses, as step relationships end with divorce)
   const personCurrentSpouses = spouseMap.get(String(person.id)) || new Set();
   const personDeceasedSpouses = deceasedSpouseMap.get(String(person.id)) || new Set();
   const personExSpouses = exSpouseMap.get(String(person.id)) || new Set();
-  const allPersonSpouses = new Set([...personCurrentSpouses, ...personDeceasedSpouses, ...personExSpouses]);
+  const allPersonSpouses = new Set([...personCurrentSpouses, ...personDeceasedSpouses]);
   
   console.log('[findStepRelationships] Person spouses:', {
     personId: person.id,
