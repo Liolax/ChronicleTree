@@ -56,7 +56,7 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
             } else if (error.includes("only") && error.includes("years older")) {
               alert(`⚠️ Age Validation Error:\n\n${error}\n\nPlease ensure the parent is at least 12 years older than the child.`);
             } else if (error.includes("already has 2 biological parents")) {
-              alert(`⚠️ Multiple Parents Error:\n\n${error}\n\nConsider adding this person as a step-parent or guardian instead of a biological parent.`);
+              alert(`⚠️ Multiple Parents Error:\n\n${error}`);
             } else if (error.includes("Selected Person are required")) {
               alert('⚠️ Missing Information:\n\nPlease select both a relationship type and a person to relate to.');
             } else {

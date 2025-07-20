@@ -221,7 +221,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
 
                           // Check if selected person already has 2 parents (for parent relationship)
                           if (currentRelationType === 'parent' && selectedPerson.parent_count >= 2) {
-                            alertMessage = `⚠️ Multiple Parents Error:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} already has 2 biological parents.\n\nA person can only have 2 biological parents. Consider adding as a step-parent or guardian instead.`;
+                            alertMessage = `⚠️ Multiple Parents Error:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} already has 2 biological parents.\n\nA person can only have 2 biological parents.`;
                           }
 
                           // Check age difference if birth dates are available
