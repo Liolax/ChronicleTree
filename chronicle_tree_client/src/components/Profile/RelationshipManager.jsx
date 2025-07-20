@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import RelationshipForm from '../Forms/RelationshipForm';
-import { createRelationship, deletePerson, getPerson, useToggleSpouseEx } from '../../services/people';
+import { createRelationship, deletePerson, getPerson, useToggleSpouseEx, useFullTree } from '../../services/people';
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
+import { buildRelationshipMaps } from '../../utils/improvedRelationshipCalculator';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -53,6 +54,138 @@ function mergeInLaws(groups, inLaws) {
   return merged;
 }
 
+// Helper function to find step relationships for a person
+function findStepRelationships(person, allPeople, relationships) {
+  if (!person || !allPeople || !relationships) {
+    console.log('[findStepRelationships] Missing required data');
+    return { stepParents: [], stepChildren: [] };
+  }
+
+  console.log('[findStepRelationships] Processing for:', person.full_name, 'ID:', person.id);
+  
+  const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
+  const { childToParents, parentToChildren, spouseMap, deceasedSpouseMap, exSpouseMap } = relationshipMaps;
+  
+  console.log('[findStepRelationships] Relationship maps:', {
+    spouseMapSize: spouseMap.size,
+    exSpouseMapSize: exSpouseMap.size,
+    deceasedSpouseMapSize: deceasedSpouseMap.size
+  });
+  
+  const stepParents = [];
+  const stepChildren = [];
+  
+  // Find step-parents: People who are married to person's biological parents but are not person's biological parents
+  const personParents = childToParents.get(String(person.id)) || new Set();
+  for (const parent of personParents) {
+    // Check current spouses of this parent
+    const parentCurrentSpouses = spouseMap.get(parent) || new Set();
+    for (const spouse of parentCurrentSpouses) {
+      // Make sure the spouse is not a biological parent of the person
+      if (!personParents.has(spouse)) {
+        const spousePerson = allPeople.find(p => String(p.id) === spouse);
+        if (spousePerson) {
+          stepParents.push({
+            ...spousePerson,
+            id: spousePerson.id,
+            full_name: `${spousePerson.first_name} ${spousePerson.last_name}`,
+            relationship_type: 'parent',
+            isStep: true
+          });
+        }
+      }
+    }
+    
+    // Check ex-spouses of this parent
+    const parentExSpouses = exSpouseMap.get(parent) || new Set();
+    for (const spouse of parentExSpouses) {
+      if (!personParents.has(spouse)) {
+        const spousePerson = allPeople.find(p => String(p.id) === spouse);
+        if (spousePerson) {
+          stepParents.push({
+            ...spousePerson,
+            id: spousePerson.id,
+            full_name: `${spousePerson.first_name} ${spousePerson.last_name}`,
+            relationship_type: 'parent',
+            isStep: true
+          });
+        }
+      }
+    }
+    
+    // Check deceased spouses of this parent
+    const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
+    for (const spouse of parentDeceasedSpouses) {
+      if (!personParents.has(spouse)) {
+        const spousePerson = allPeople.find(p => String(p.id) === spouse);
+        if (spousePerson) {
+          // Check if step relationship is valid (deceased spouse was alive when person was born)
+          if (spousePerson.date_of_death && person.date_of_birth) {
+            const deathDate = new Date(spousePerson.date_of_death);
+            const birthDate = new Date(person.date_of_birth);
+            if (birthDate > deathDate) {
+              continue; // Skip this deceased spouse
+            }
+          }
+          
+          stepParents.push({
+            ...spousePerson,
+            id: spousePerson.id,
+            full_name: `${spousePerson.first_name} ${spousePerson.last_name}`,
+            relationship_type: 'parent',
+            isStep: true
+          });
+        }
+      }
+    }
+  }
+
+  // Find step-children: People whose biological parent is married to this person, but this person is not their biological parent
+  const personCurrentSpouses = spouseMap.get(String(person.id)) || new Set();
+  const personDeceasedSpouses = deceasedSpouseMap.get(String(person.id)) || new Set();
+  const personExSpouses = exSpouseMap.get(String(person.id)) || new Set();
+  const allPersonSpouses = new Set([...personCurrentSpouses, ...personDeceasedSpouses, ...personExSpouses]);
+  
+  console.log('[findStepRelationships] Person spouses:', {
+    personId: person.id,
+    currentSpouses: Array.from(personCurrentSpouses),
+    exSpouses: Array.from(personExSpouses),
+    deceasedSpouses: Array.from(personDeceasedSpouses),
+    allSpouses: Array.from(allPersonSpouses)
+  });
+  
+  for (const spouse of allPersonSpouses) {
+    const spouseChildren = parentToChildren.get(spouse) || new Set();
+    for (const child of spouseChildren) {
+      // Make sure this person is not a biological parent of the child
+      const childParents = childToParents.get(child) || new Set();
+      if (!childParents.has(String(person.id))) {
+        const childPerson = allPeople.find(p => String(p.id) === child);
+        if (childPerson) {
+          // Check if step relationship is valid for deceased spouse relationships
+          if (personDeceasedSpouses.has(spouse) && person.date_of_death && childPerson.date_of_birth) {
+            const deathDate = new Date(person.date_of_death);
+            const birthDate = new Date(childPerson.date_of_birth);
+            if (birthDate > deathDate) {
+              continue; // Skip this child
+            }
+          }
+          
+          stepChildren.push({
+            ...childPerson,
+            id: childPerson.id,
+            full_name: `${childPerson.first_name} ${childPerson.last_name}`,
+            relationship_type: 'child',
+            isStep: true
+          });
+        }
+      }
+    }
+  }
+
+  return { stepParents, stepChildren };
+}
+
 const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelationshipDeleted }) => {
   const [showAdd, setShowAdd] = useState(false);
   const [addType, setAddType] = useState(null);
@@ -66,6 +199,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const [toggleLoadingId, setToggleLoadingId] = useState(null);
 
   const toggleSpouseExMutation = useToggleSpouseEx();
+  
+  // Get full tree data to calculate step relationships
+  const { data: treeData } = useFullTree();
 
   // Helper to get IDs of already-related people for a given type
   const getRelatedIds = (type) => {
@@ -187,7 +323,37 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
 
   const groups = groupRelatives(person);
   const inLaws = getInLaws();
-  const mergedGroups = mergeInLaws(groups, inLaws);
+  let mergedGroups = mergeInLaws(groups, inLaws);
+  
+  // Calculate and add step relationships
+  console.log('[RelationshipManager] Debug treeData structure:', treeData);
+  if (treeData?.nodes && treeData?.edges && person) {
+    console.log('[RelationshipManager] Calculating step relationships for:', person.full_name);
+    console.log('[RelationshipManager] TreeData:', { peopleCount: treeData.nodes.length, relationshipsCount: treeData.edges.length });
+    
+    const { stepParents, stepChildren } = findStepRelationships(person, treeData.nodes, treeData.edges);
+    
+    console.log('[RelationshipManager] Found step relationships:', { stepParents, stepChildren });
+    
+    // Add step-parents to parent group
+    if (stepParents.length > 0) {
+      console.log('[RelationshipManager] Adding step-parents:', stepParents);
+      mergedGroups.parent = [...mergedGroups.parent, ...stepParents];
+    }
+    
+    // Add step-children to child group  
+    if (stepChildren.length > 0) {
+      console.log('[RelationshipManager] Adding step-children:', stepChildren);
+      mergedGroups.child = [...mergedGroups.child, ...stepChildren];
+    }
+  } else {
+    console.log('[RelationshipManager] Missing data for step calculations:', {
+      hasTreeData: !!treeData,
+      hasPeople: !!treeData?.nodes,
+      hasRelationships: !!treeData?.edges,
+      hasPerson: !!person
+    });
+  }
 
   return (
     <section className="bg-slate-50 rounded-xl p-6 shadow-inner border border-slate-100">
@@ -203,11 +369,14 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           let canAdd = false;
           let forceEx = false;
           if (type === 'parent') {
-            canAdd = rels.length < 2;
+            // Only count biological parents (not step-parents) for the limit of 2
+            const biologicalParents = rels.filter(rel => !rel.isStep);
+            canAdd = biologicalParents.length < 2;
           } else if (type === 'spouse') {
             // Always show add button for spouse, but force ex if a current spouse exists
             canAdd = true;
-            forceEx = rels.some(rel => !rel.is_ex);
+            // Only consider biological spouses (not step-spouses) for forcing ex status
+            forceEx = rels.some(rel => !rel.is_ex && !rel.isStep);
           } else {
             canAdd = true;
           }
@@ -236,7 +405,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
               {rels.length > 0 ? (
                 <ul className="space-y-1">
                   {rels.map(rel => (
-                    <li key={rel.id + (rel.inLaw ? '-inlaw' : '')} className="flex items-center justify-between bg-white rounded px-3 py-2 border border-slate-100">
+                    <li key={rel.id + (rel.inLaw ? '-inlaw' : '') + (rel.isStep ? '-step' : '')} className="flex items-center justify-between bg-white rounded px-3 py-2 border border-slate-100">
                       <span className="flex items-center gap-2">
                         {/* Check if spouse is deceased based on date_of_death */}
                         {(() => {
@@ -263,12 +432,13 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                               <span className="font-medium">
                                 <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
                                 {rel.inLaw && ' (in-law)'}
+                                {rel.isStep && ' (step)'}
                               </span>
                             );
                           }
                         })()}
                         {/* Edit icon for spouse to toggle ex status */}
-                        {type === 'spouse' && !rel.inLaw && (
+                        {type === 'spouse' && !rel.inLaw && !rel.isStep && (
                           <button
                             type="button"
                             className={
@@ -303,9 +473,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                         )}
                       </span>
                       <div className="flex gap-2">
-                        <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleDelete(rel.id); }} title="Delete Relationship">
-                          <FaTrash />
-                        </button>
+                        {/* Only show delete button for non-step relationships */}
+                        {!rel.isStep && (
+                          <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleDelete(rel.id); }} title="Delete Relationship">
+                            <FaTrash />
+                          </button>
+                        )}
                       </div>
                     </li>
                   ))}

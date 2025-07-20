@@ -110,7 +110,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
  * @param {Array} allPeople - Array of all people (needed to check death dates)
  * @returns {Object} - Maps for different relationship types
  */
-const buildRelationshipMaps = (relationships, allPeople = []) => {
+export const buildRelationshipMaps = (relationships, allPeople = []) => {
   const parentToChildren = new Map();
   const childToParents = new Map();
   const spouseMap = new Map(); // Maps person ID to Set of current spouses
