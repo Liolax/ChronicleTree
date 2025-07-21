@@ -251,18 +251,92 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
     }
     
-    // Enhanced validation for siblings - prevent parents/uncles/aunts from being siblings
+    // ENHANCED SIBLING VALIDATION - Much more robust filtering
     if (type === 'sibling') {
+      // 1. Prevent direct ancestors/descendants from being siblings
       if (bloodCheck.isBloodRelated) {
         const relationship = bloodCheck.relationship || '';
-        if (relationship.includes('Parent') || relationship.includes('Child') || 
-            relationship.includes('Uncle') || relationship.includes('Aunt') ||
-            relationship.includes('Nephew') || relationship.includes('Niece') ||
-            relationship.includes('Grandparent') || relationship.includes('Grandchild')) {
+        const lowerRel = relationship.toLowerCase();
+        
+        // Block all ancestor-descendant relationships
+        if (lowerRel.includes('parent') || lowerRel.includes('child') || 
+            lowerRel.includes('father') || lowerRel.includes('mother') ||
+            lowerRel.includes('son') || lowerRel.includes('daughter') ||
+            lowerRel.includes('grandparent') || lowerRel.includes('grandchild') ||
+            lowerRel.includes('grandfather') || lowerRel.includes('grandmother') ||
+            lowerRel.includes('grandson') || lowerRel.includes('granddaughter') ||
+            lowerRel.includes('great-grand')) {
           return { 
             valid: false, 
-            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()}` 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - different generations` 
           };
+        }
+        
+        // Block uncle/aunt-nephew/niece relationships (different generations)
+        if (lowerRel.includes('uncle') || lowerRel.includes('aunt') ||
+            lowerRel.includes('nephew') || lowerRel.includes('niece')) {
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - different generations` 
+          };
+        }
+        
+        // Block existing siblings
+        if (lowerRel.includes('sibling') || lowerRel.includes('brother') || lowerRel.includes('sister')) {
+          return { 
+            valid: false, 
+            reason: `Already siblings with ${person2.first_name} ${person2.last_name}` 
+          };
+        }
+        
+        // Block cousin relationships for now (conservative approach)
+        if (lowerRel.includes('cousin')) {
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - blood relatives should not be step-siblings` 
+          };
+        }
+      }
+      
+      // 2. Age validation for siblings - should be within reasonable range
+      if (person1.date_of_birth && person2.date_of_birth) {
+        const person1Birth = new Date(person1.date_of_birth);
+        const person2Birth = new Date(person2.date_of_birth);
+        const ageGapYears = Math.abs((person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+        
+        // Siblings should not have more than 25-year age gap
+        if (ageGapYears > 25) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+          };
+        }
+      }
+      
+      // 3. Timeline validation for siblings
+      if (person1.date_of_birth && person2.date_of_birth) {
+        const person1Birth = new Date(person1.date_of_birth);
+        const person2Birth = new Date(person2.date_of_birth);
+        
+        // Check if one died before the other was born
+        if (person1.date_of_death) {
+          const person1Death = new Date(person1.date_of_death);
+          if (person2Birth > person1Death) {
+            return { 
+              valid: false, 
+              reason: `${person1.first_name} ${person1.last_name} died before ${person2.first_name} ${person2.last_name} was born - cannot be biological siblings` 
+            };
+          }
+        }
+        
+        if (person2.date_of_death) {
+          const person2Death = new Date(person2.date_of_death);
+          if (person1Birth > person2Death) {
+            return { 
+              valid: false, 
+              reason: `${person2.first_name} ${person2.last_name} died before ${person1.first_name} ${person1.last_name} was born - cannot be biological siblings` 
+            };
+          }
         }
       }
     }

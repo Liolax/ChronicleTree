@@ -17,6 +17,11 @@ class BloodRelationshipDetector
   def self.marriage_allowed?(person1, person2)
     new(person1, person2).marriage_allowed?
   end
+  
+  # Check if sibling relationship is allowed and logical
+  def self.sibling_allowed?(person1, person2)
+    new(person1, person2).sibling_allowed?
+  end
 
   def blood_related?
     # Quick checks first
@@ -62,6 +67,69 @@ class BloodRelationshipDetector
     end
     
     # If not blood related and not a remarriage scenario, marriage is allowed
+    true
+  end
+  
+  # Enhanced sibling relationship validation
+  def sibling_allowed?
+    # Quick checks first
+    return false if @person1.nil? || @person2.nil?
+    return false if @person1 == @person2
+    
+    # 1. Prevent direct ancestor-descendant relationships from being siblings
+    if blood_related?
+      # Get the specific relationship
+      desc = relationship_description
+      return false if desc && (
+        desc.include?('parent') || desc.include?('child') ||
+        desc.include?('grandparent') || desc.include?('grandchild') ||
+        desc.include?('uncle') || desc.include?('aunt') ||
+        desc.include?('nephew') || desc.include?('niece') ||
+        desc.include?('great-grand')
+      )
+      
+      # Allow existing siblings (they're already siblings)
+      return false if siblings?
+      
+      # Be conservative with cousins - they shouldn't become step-siblings
+      return false if first_cousins?
+    end
+    
+    # 2. CRITICAL: Biological siblings must share at least one parent
+    # Check if they would share a parent after this relationship is created
+    # For now, we'll validate this during the actual relationship creation
+    
+    # 3. Age validation - siblings should have reasonable age gap
+    if @person1.date_of_birth && @person2.date_of_birth
+      person1_birth = Date.parse(@person1.date_of_birth.to_s)
+      person2_birth = Date.parse(@person2.date_of_birth.to_s)
+      age_gap_years = (person1_birth - person2_birth).abs / 365.25
+      
+      # Siblings should not have more than 25-year age gap
+      return false if age_gap_years > 25
+    end
+    
+    # 4. Timeline validation - siblings should have overlapping lifespans or reasonable timing
+    if @person1.date_of_birth && @person2.date_of_birth
+      person1_birth = Date.parse(@person1.date_of_birth.to_s)
+      person2_birth = Date.parse(@person2.date_of_birth.to_s)
+      
+      # Check if one died before the other was born
+      if @person1.date_of_death
+        person1_death = Date.parse(@person1.date_of_death.to_s)
+        return false if person2_birth > person1_death
+      end
+      
+      if @person2.date_of_death
+        person2_death = Date.parse(@person2.date_of_death.to_s)
+        return false if person1_birth > person2_death
+      end
+    end
+    
+    # 5. Prevent existing parent-child relationships from becoming siblings
+    return false if @person1.children.include?(@person2)
+    return false if @person2.children.include?(@person1)
+    
     true
   end
 

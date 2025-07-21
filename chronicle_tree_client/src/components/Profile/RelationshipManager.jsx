@@ -478,20 +478,145 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // Enhanced validation for siblings - prevent parents/uncles/aunts from being siblings
+    // ENHANCED SIBLING VALIDATION - Much more robust filtering
     if (type === 'sibling') {
+      // 1. CRITICAL: Prevent any current/former spouse from becoming sibling (incestuous)
+      const candidateRels = candidate.relatives || [];
+      const personRels = person.relatives || [];
+      
+      // Check if candidate was ever person's spouse (current, ex, or deceased)
+      const wasSpouse = candidateRels.some(rel => 
+        rel.id === person.id && rel.relationship_type === 'spouse'
+      ) || personRels.some(rel => 
+        rel.id === candidate.id && rel.relationship_type === 'spouse'
+      );
+      
+      if (wasSpouse) {
+        return { 
+          valid: false, 
+          reason: `Cannot be siblings with former spouse ${candidate.first_name} ${candidate.last_name} - would be incestuous` 
+        };
+      }
+      
+      // 2. CRITICAL: Check for downstream relationship conflicts
+      // If making this person a sibling would create incestuous relationships elsewhere, block it
+      const wouldCreateIncest = checkSiblingRelationshipConflicts(person, candidate, people);
+      if (wouldCreateIncest.hasConflict) {
+        return { 
+          valid: false, 
+          reason: wouldCreateIncest.reason
+        };
+      }
+      
+      // 3. Prevent direct ancestors/descendants from being siblings
       if (bloodCheck.isBloodRelated) {
         const relationship = bloodCheck.relationship || '';
-        if (relationship.includes('Parent') || relationship.includes('Child') || 
-            relationship.includes('Uncle') || relationship.includes('Aunt') ||
-            relationship.includes('Nephew') || relationship.includes('Niece') ||
-            relationship.includes('Grandparent') || relationship.includes('Grandchild')) {
+        const lowerRel = relationship.toLowerCase();
+        
+        // Block all ancestor-descendant relationships
+        if (lowerRel.includes('parent') || lowerRel.includes('child') || 
+            lowerRel.includes('father') || lowerRel.includes('mother') ||
+            lowerRel.includes('son') || lowerRel.includes('daughter') ||
+            lowerRel.includes('grandparent') || lowerRel.includes('grandchild') ||
+            lowerRel.includes('grandfather') || lowerRel.includes('grandmother') ||
+            lowerRel.includes('grandson') || lowerRel.includes('granddaughter') ||
+            lowerRel.includes('great-grand')) {
           return { 
             valid: false, 
-            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()}` 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - different generations` 
+          };
+        }
+        
+        // Block uncle/aunt-nephew/niece relationships (different generations)
+        if (lowerRel.includes('uncle') || lowerRel.includes('aunt') ||
+            lowerRel.includes('nephew') || lowerRel.includes('niece')) {
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - different generations` 
+          };
+        }
+        
+        // Allow existing siblings (this handles the case where they're already siblings)
+        if (lowerRel.includes('sibling') || lowerRel.includes('brother') || lowerRel.includes('sister')) {
+          return { 
+            valid: false, 
+            reason: `Already siblings with ${candidate.first_name} ${candidate.last_name}` 
+          };
+        }
+        
+        // Allow cousins to become step-siblings if they share step-parents
+        // But for now, we'll be conservative and block cousin relationships
+        if (lowerRel.includes('cousin')) {
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - blood relatives should not be step-siblings` 
           };
         }
       }
+      
+      // 3. Age validation for siblings - should be within reasonable range
+      if (person.date_of_birth && candidate.date_of_birth) {
+        const personBirth = new Date(person.date_of_birth);
+        const candidateBirth = new Date(candidate.date_of_birth);
+        const ageGapYears = Math.abs((candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+        
+        // Siblings should not have more than 25-year age gap (very conservative)
+        if (ageGapYears > 25) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+          };
+        }
+      }
+      
+      // 4. Check for existing parent relationships that would prevent sibling relationship
+      const candidateRelationships = candidate.relatives || [];
+      const personRelationships = person.relatives || [];
+      
+      // If candidate is already person's parent or child, they can't be siblings
+      const isParentChild = candidateRelationships.some(rel => 
+        rel.id === person.id && ['parent', 'child'].includes(rel.relationship_type)
+      ) || personRelationships.some(rel => 
+        rel.id === candidate.id && ['parent', 'child'].includes(rel.relationship_type)
+      );
+      
+      if (isParentChild) {
+        return { 
+          valid: false, 
+          reason: `Cannot be siblings - already have parent-child relationship with ${candidate.first_name} ${candidate.last_name}` 
+        };
+      }
+      
+      // 5. Timeline validation - siblings should have overlapping lifespans or reasonable birth timing
+      if (person.date_of_birth && candidate.date_of_birth) {
+        const personBirth = new Date(person.date_of_birth);
+        const candidateBirth = new Date(candidate.date_of_birth);
+        
+        // Check if one died before the other was born (impossible for biological siblings)
+        if (person.date_of_death) {
+          const personDeath = new Date(person.date_of_death);
+          if (candidateBirth > personDeath) {
+            return { 
+              valid: false, 
+              reason: `${person.first_name} ${person.last_name} died before ${candidate.first_name} ${candidate.last_name} was born - cannot be biological siblings` 
+            };
+          }
+        }
+        
+        if (candidate.date_of_death) {
+          const candidateDeath = new Date(candidate.date_of_death);
+          if (personBirth > candidateDeath) {
+            return { 
+              valid: false, 
+              reason: `${candidate.first_name} ${candidate.last_name} died before ${person.first_name} ${person.last_name} was born - cannot be biological siblings` 
+            };
+          }
+        }
+      }
+      
+      // 6. IMPORTANT NOTE: We cannot validate shared parents here because we don't have 
+      // complete parent information at validation time. This validation should happen 
+      // at the API level during relationship creation.
     }
     
     // ENHANCED PARENT VALIDATION - Much more robust filtering
@@ -742,6 +867,120 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       
       return constraintCheck.valid;
     });
+  };
+
+  // CRITICAL: Check if making two people siblings would create incestuous relationships elsewhere
+  const checkSiblingRelationshipConflicts = (person1, person2, allPeople) => {
+    // If person1 and person2 become siblings, then:
+    // - person1's children become person2's nephews/nieces
+    // - person2's children become person1's nephews/nieces
+    
+    // Get all descendants of both people
+    const person1Descendants = getAllDescendants(person1, allPeople);
+    const person2Descendants = getAllDescendants(person2, allPeople);
+    
+    // Check if any descendants are married to each other (mutual descendants)
+    for (const desc1 of person1Descendants) {
+      for (const desc2 of person2Descendants) {
+        // Check if desc1 and desc2 are married
+        const desc1Rels = desc1.relatives || [];
+        const areMarried = desc1Rels.some(rel => 
+          rel.id === desc2.id && rel.relationship_type === 'spouse' && !rel.is_ex
+        );
+        
+        if (areMarried) {
+          return {
+            hasConflict: true,
+            reason: `Cannot be siblings - would create uncle-niece relationship: ${desc1.first_name} ${desc1.last_name} (${person1.first_name}'s descendant) is married to ${desc2.first_name} ${desc2.last_name} (${person2.first_name}'s descendant)`
+          };
+        }
+      }
+    }
+    
+    // CRITICAL: Check if person2 is married to any of person1's descendants
+    // This catches cases like Robert's granddaughter Alice being married to David
+    const person2Rels = person2.relatives || [];
+    for (const descendant of person1Descendants) {
+      const isMarriedToDescendant = person2Rels.some(rel => 
+        rel.id === descendant.id && rel.relationship_type === 'spouse' && !rel.is_ex
+      );
+      
+      if (isMarriedToDescendant) {
+        return {
+          hasConflict: true,
+          reason: `Cannot be siblings - ${person2.first_name} ${person2.last_name} is married to ${descendant.first_name} ${descendant.last_name} (${person1.first_name}'s descendant), would create inappropriate uncle-niece marriage`
+        };
+      }
+    }
+    
+    // CRITICAL: Check if person1 is married to any of person2's descendants
+    // This catches the reverse case
+    const person1Rels = person1.relatives || [];
+    for (const descendant of person2Descendants) {
+      const isMarriedToDescendant = person1Rels.some(rel => 
+        rel.id === descendant.id && rel.relationship_type === 'spouse' && !rel.is_ex
+      );
+      
+      if (isMarriedToDescendant) {
+        return {
+          hasConflict: true,
+          reason: `Cannot be siblings - ${person1.first_name} ${person1.last_name} is married to ${descendant.first_name} ${descendant.last_name} (${person2.first_name}'s descendant), would create inappropriate uncle-niece marriage`
+        };
+      }
+    }
+    
+    // Check for existing in-law relationships that would become problematic
+    // If person2 is parent of person1's child's spouse, they can't become siblings
+    const person1Children = person1Rels.filter(rel => rel.relationship_type === 'child');
+    
+    for (const child of person1Children) {
+      const childPerson = allPeople.find(p => p.id === child.id);
+      if (childPerson) {
+        const childSpouses = (childPerson.relatives || []).filter(rel => 
+          rel.relationship_type === 'spouse' && !rel.is_ex
+        );
+        
+        for (const spouse of childSpouses) {
+          const spousePerson = allPeople.find(p => p.id === spouse.id);
+          if (spousePerson) {
+            // Check if person2 is this spouse's parent
+            const spouseParents = (spousePerson.relatives || []).filter(rel => 
+              rel.relationship_type === 'parent'
+            );
+            
+            if (spouseParents.some(parent => parent.id === person2.id)) {
+              return {
+                hasConflict: true,
+                reason: `Cannot be siblings - ${person2.first_name} ${person2.last_name} is parent of ${person1.first_name} ${person1.last_name}'s child's spouse (would create inappropriate in-law relationship)`
+              };
+            }
+          }
+        }
+      }
+    }
+    
+    return { hasConflict: false };
+  };
+  
+  // Helper to get all descendants of a person (children, grandchildren, etc.)
+  const getAllDescendants = (person, allPeople, visited = new Set()) => {
+    if (visited.has(person.id)) return []; // Prevent infinite loops
+    visited.add(person.id);
+    
+    const descendants = [];
+    const personRels = person.relatives || [];
+    const children = personRels.filter(rel => rel.relationship_type === 'child');
+    
+    for (const child of children) {
+      const childPerson = allPeople.find(p => p.id === child.id);
+      if (childPerson) {
+        descendants.push(childPerson);
+        // Recursively get grandchildren, great-grandchildren, etc.
+        descendants.push(...getAllDescendants(childPerson, allPeople, new Set(visited)));
+      }
+    }
+    
+    return descendants;
   };
 
   // Helper to get in-law relationships

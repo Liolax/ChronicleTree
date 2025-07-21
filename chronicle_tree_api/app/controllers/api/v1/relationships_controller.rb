@@ -16,8 +16,9 @@ module Api
           return
         end
 
-        # ✅ COMPLEX REMARRIAGE SCENARIOS VALIDATION
-        if relationship_params[:relationship_type] == 'spouse'
+        # ✅ ENHANCED RELATIONSHIP VALIDATION
+        case relationship_params[:relationship_type]
+        when 'spouse'
           # Use enhanced blood relationship detector that supports complex remarriage scenarios
           unless BloodRelationshipDetector.marriage_allowed?(person, relative)
             blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
@@ -25,6 +26,54 @@ module Api
               errors: [ "Cannot marry blood relative#{blood_relationship ? " (#{blood_relationship})" : ''} - incestuous relationships are prohibited" ] 
             }, status: :unprocessable_entity
             return
+          end
+        when 'sibling'
+          # Use enhanced sibling relationship detector
+          unless BloodRelationshipDetector.sibling_allowed?(person, relative)
+            blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
+            error_msg = if blood_relationship
+              "Cannot add sibling relationship - #{blood_relationship.downcase} relationship already exists"
+            else
+              "Cannot add sibling relationship - age gap too large, timeline conflict, or inappropriate relationship"
+            end
+            render json: { 
+              errors: [ error_msg ] 
+            }, status: :unprocessable_entity
+            return
+          end
+          
+          # CRITICAL: Validate that siblings share at least one parent
+          # This is the most important validation for biological siblings
+          person_parents = person.parents.pluck(:id).sort
+          relative_parents = relative.parents.pluck(:id).sort
+          
+          # Check if they share any parents
+          shared_parents = person_parents & relative_parents
+          
+          # For biological siblings, they must share at least one parent
+          # For step-siblings, one person's parent must be married to the other person's parent
+          has_shared_biological_parent = shared_parents.any?
+          has_step_relationship = false
+          
+          unless has_shared_biological_parent
+            # Check for step-sibling relationship
+            person.parents.each do |person_parent|
+              relative.parents.each do |relative_parent|
+                # Check if person's parent is married to relative's parent
+                if person_parent.spouses.include?(relative_parent)
+                  has_step_relationship = true
+                  break
+                end
+              end
+              break if has_step_relationship
+            end
+            
+            unless has_step_relationship
+              render json: { 
+                errors: [ "Cannot add sibling relationship - siblings must share at least one parent or have parents married to each other" ] 
+              }, status: :unprocessable_entity
+              return
+            end
           end
         end
 
