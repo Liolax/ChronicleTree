@@ -3,7 +3,7 @@ import RelationshipForm from '../Forms/RelationshipForm';
 import { createRelationship, deletePerson, getPerson, useToggleSpouseEx, useFullTree } from '../../services/people';
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
-import { buildRelationshipMaps } from '../../utils/improvedRelationshipCalculator';
+import { buildRelationshipMaps, calculateRelationshipToRoot } from '../../utils/improvedRelationshipCalculator';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -193,6 +193,95 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
   };
 
+  // Enhanced blood relationship detection
+  const detectBloodRelationship = (person1Id, person2Id) => {
+    if (!treeData?.nodes || !treeData?.edges) {
+      return { isBloodRelated: false, relationship: null, degree: null };
+    }
+
+    // Convert edges to relationships format
+    const relationships = treeData.edges.map(edge => ({
+      from: edge.source,
+      to: edge.target, 
+      relationship_type: edge.type || edge.relationship_type,
+      is_ex: edge.is_ex,
+      is_deceased: edge.is_deceased
+    }));
+
+    // Use existing relationship calculator to find blood relationship
+    const relationshipToRoot = calculateRelationshipToRoot(person2Id, person1Id, relationships, treeData.nodes);
+    
+    // Check if the relationship is a blood relationship
+    const bloodRelationships = [
+      'Parent', 'Child', 'Father', 'Mother', 'Son', 'Daughter',
+      'Brother', 'Sister', 'Sibling',
+      'Grandfather', 'Grandmother', 'Grandparent', 'Grandson', 'Granddaughter', 'Grandchild',
+      'Great-Grandfather', 'Great-Grandmother', 'Great-Grandparent', 'Great-Grandson', 'Great-Granddaughter', 'Great-Grandchild',
+      'Uncle', 'Aunt', 'Nephew', 'Niece',
+      '1st Cousin', '2nd Cousin', 'Cousin'
+    ];
+
+    const isBloodRelated = bloodRelationships.some(rel => 
+      relationshipToRoot && relationshipToRoot.toLowerCase().includes(rel.toLowerCase())
+    );
+
+    // Determine relationship degree for blood relatives
+    let degree = null;
+    if (isBloodRelated && relationshipToRoot) {
+      if (relationshipToRoot.includes('Parent') || relationshipToRoot.includes('Child')) {
+        degree = 1; // Direct parent-child
+      } else if (relationshipToRoot.includes('Sibling') || relationshipToRoot.includes('Brother') || relationshipToRoot.includes('Sister')) {
+        degree = 1; // Siblings
+      } else if (relationshipToRoot.includes('Grandparent') || relationshipToRoot.includes('Grandchild')) {
+        degree = 2; // Grandparent-grandchild
+      } else if (relationshipToRoot.includes('Great-Grandparent') || relationshipToRoot.includes('Great-Grandchild')) {
+        degree = 3; // Great-grandparent-great-grandchild
+      } else if (relationshipToRoot.includes('Uncle') || relationshipToRoot.includes('Aunt') || relationshipToRoot.includes('Nephew') || relationshipToRoot.includes('Niece')) {
+        degree = 2; // Uncle/aunt-nephew/niece
+      } else if (relationshipToRoot.includes('1st Cousin')) {
+        degree = 3; // First cousins
+      } else if (relationshipToRoot.includes('2nd Cousin')) {
+        degree = 4; // Second cousins
+      } else {
+        degree = 5; // Other distant blood relationships
+      }
+    }
+
+    return {
+      isBloodRelated,
+      relationship: relationshipToRoot,
+      degree
+    };
+  };
+
+  // Helper to check if a person is an ex or widowed spouse's relative (but not blood related to current person)
+  const isAllowedRemarriageRelative = (candidateId) => {
+    if (!person?.relatives) return false;
+    
+    // Get all ex-spouses and deceased spouses of the current person
+    const exSpouses = person.relatives.filter(rel => 
+      rel.relationship_type === 'spouse' && (rel.is_ex || people.find(p => p.id === rel.id)?.date_of_death)
+    );
+
+    // Check if candidate is a relative of any ex or deceased spouse
+    for (const exSpouse of exSpouses) {
+      const exSpousePerson = people.find(p => p.id === exSpouse.id);
+      if (exSpousePerson?.relatives) {
+        // Check if candidate is a relative of this ex/deceased spouse
+        const isRelativeOfExSpouse = exSpousePerson.relatives.some(rel => rel.id === candidateId);
+        if (isRelativeOfExSpouse) {
+          // But make sure candidate is not blood related to current person
+          const bloodCheck = detectBloodRelationship(person.id, candidateId);
+          if (!bloodCheck.isBloodRelated) {
+            return true; // Allowed - relative of ex/deceased spouse but not blood related to current person
+          }
+        }
+      }
+    }
+
+    return false;
+  };
+
   // Helper to validate age constraints for relationships
   const validateAgeConstraint = (person1, person2, relationshipType) => {
     if (!person1?.date_of_birth || !person2?.date_of_birth) {
@@ -235,15 +324,64 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       return ageCheck;
     }
     
+    // Blood relationship detection
+    const bloodCheck = detectBloodRelationship(person.id, candidateId);
+    
     // Check for existing relationships that would prevent this new relationship
     const existingRels = person.relatives || [];
     
-    // Prevent parent-child from becoming spouses
+    // Enhanced validation for children - prevent shared children between blood relatives
+    if (type === 'child') {
+      if (bloodCheck.isBloodRelated) {
+        // Blood relatives cannot have shared children
+        return { 
+          valid: false, 
+          reason: `Blood relatives (${bloodCheck.relationship}) cannot have shared children` 
+        };
+      }
+    }
+    
+    // Enhanced validation for spouses - prevent marriage between blood relatives
     if (type === 'spouse') {
+      if (bloodCheck.isBloodRelated) {
+        // However, allow marriage to ex/widowed spouse's relatives if no blood relation
+        if (!isAllowedRemarriageRelative(candidateId)) {
+          return { 
+            valid: false, 
+            reason: `Cannot marry blood relative (${bloodCheck.relationship})` 
+          };
+        }
+      }
+      
+      // Prevent parent-child from becoming spouses (redundant with blood check but kept for clarity)
       const isParent = existingRels.some(rel => rel.id === candidateId && rel.relationship_type === 'parent');
       const isChild = existingRels.some(rel => rel.id === candidateId && rel.relationship_type === 'child');
       if (isParent || isChild) {
         return { valid: false, reason: 'Cannot marry parent or child' };
+      }
+      
+      // Check for deceased spouse constraint for current spouses
+      const candidateRels = candidate.relatives || [];
+      const candidateSpouses = candidateRels.filter(rel => rel.relationship_type === 'spouse');
+      const hasCurrentSpouse = candidateSpouses.some(rel => !rel.is_ex && !people.find(p => p.id === rel.id)?.date_of_death);
+      if (hasCurrentSpouse) {
+        return { valid: false, reason: 'Person already has a current spouse' };
+      }
+    }
+    
+    // Enhanced validation for siblings - prevent parents/uncles/aunts from being siblings
+    if (type === 'sibling') {
+      if (bloodCheck.isBloodRelated) {
+        const relationship = bloodCheck.relationship || '';
+        if (relationship.includes('Parent') || relationship.includes('Child') || 
+            relationship.includes('Uncle') || relationship.includes('Aunt') ||
+            relationship.includes('Nephew') || relationship.includes('Niece') ||
+            relationship.includes('Grandparent') || relationship.includes('Grandchild')) {
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()}` 
+          };
+        }
       }
     }
     
@@ -253,15 +391,14 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       if (biologicalParents.length >= 2) {
         return { valid: false, reason: 'Person already has maximum number of biological parents (2)' };
       }
-    }
-    
-    // Check for deceased spouse constraint for current spouses
-    if (type === 'spouse') {
-      const candidateRels = candidate.relatives || [];
-      const candidateSpouses = candidateRels.filter(rel => rel.relationship_type === 'spouse');
-      const hasCurrentSpouse = candidateSpouses.some(rel => !rel.is_ex && !people.find(p => p.id === rel.id)?.date_of_death);
-      if (hasCurrentSpouse) {
-        return { valid: false, reason: 'Person already has a current spouse' };
+      
+      // Prevent child from becoming parent (should be caught by blood relationship check)
+      if (bloodCheck.isBloodRelated && bloodCheck.relationship && 
+          (bloodCheck.relationship.includes('Child') || bloodCheck.relationship.includes('Grandchild'))) {
+        return { 
+          valid: false, 
+          reason: `Cannot add ${bloodCheck.relationship.toLowerCase()} as parent` 
+        };
       }
     }
     

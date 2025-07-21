@@ -4,6 +4,66 @@ This document outlines the current state, recent progress, and future plans for 
 
 ---
 
+## Enhanced Blood Relationship Validation System
+
+ChronicleTree now features a comprehensive blood relationship validation system, ensuring realistic, legal, and culturally appropriate family structures. Key improvements include:
+
+### 1. Comprehensive Blood Relationship Detection
+- Advanced detection using `calculateRelationshipToRoot` from `improvedRelationshipCalculator.js`.
+- Assigns numerical degrees (1-5) to measure closeness of blood relationships.
+- Detects parents, children, siblings, grandparents, aunts, uncles, cousins, and more distant relatives.
+
+### 2. Children Relationship Validation
+- Prevents incest: blood relatives cannot have shared children.
+- Covers all cases: siblings, parents, aunts, uncles, cousins, etc. cannot be co-parents.
+- Clear error messages specify the relationship preventing the addition (e.g., "Blood relatives (Brother) cannot have shared children").
+
+### 3. Enhanced Spouse Validation
+- Prevents marriage between any blood relatives.
+- Smart remarriage logic: allows marriage to ex/widowed spouse's relatives if no blood relation exists.
+- Supports complex family scenarios (e.g., marrying into a family after a spouse dies/divorces).
+
+### 4. Sophisticated Sibling Validation
+- Hierarchical prevention: parents, grandparents, aunts, uncles cannot become siblings.
+- Multi-generational: prevents impossible relationships across generations.
+- Maintains logical family tree structure.
+
+### 5. Enhanced Parent Validation
+- Reverse relationship check: children and grandchildren cannot become parents.
+- Maintains generational order in the family tree.
+
+### 6. Advanced User Feedback
+- Detailed filtering explanations for why people are filtered out.
+- Visual indicators: color-coded information boxes for different constraint types.
+- Educational: helps users understand family relationship rules.
+
+### 7. Blood Relationship Degrees (Examples)
+- Degree 1: Parent/Child, Siblings
+- Degree 2: Grandparent/Grandchild, Uncle/Aunt-Nephew/Niece
+- Degree 3: Great-Grandparent/Great-Grandchild, 1st Cousins
+- Degree 4: 2nd Cousins
+- Degree 5: Distant blood relatives
+
+### 8. Complex Remarriage Scenarios Supported
+- ✅ Allowed: Marrying ex-spouse's sibling (if no blood relation)
+- ✅ Allowed: Marrying deceased spouse's relative (if no blood relation)
+- ❌ Prevented: Marrying any blood relative regardless of previous marriages
+- ❌ Prevented: Any incestuous relationships
+
+### 9. Real-World Family Constraints
+- Enforces biological reality and realistic family structure rules.
+- Prevents relationships considered inappropriate in most cultures.
+- Aligns with legal marriage restrictions in most jurisdictions.
+- Prevents relationships that could lead to genetic issues.
+
+### 10. Integration with Existing System
+- Leverages backend Rails validation system.
+- Maintains compatibility with step-relationship and in-law functionality.
+- Performance optimized with efficient relationship mapping and caching.
+- Graceful error handling when tree data is unavailable.
+
+This system provides comprehensive protection against inappropriate family relationships while supporting realistic and complex family situations, such as remarriage within extended family networks.
+
 ## Visualization Library Update
 
 - The family tree visualization is now implemented using [React Flow (xyflow)](https://xyflow.com/) for advanced support of complex family structures, generational layouts, and interactive features.

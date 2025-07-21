@@ -48,14 +48,23 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
         </select>
         {errors.selectedId && <p className="mt-2 text-sm text-red-600">{errors.selectedId.message}</p>}
         {people.length === 0 && (
-          <p className="mt-2 text-sm text-gray-500">
-            No eligible people found for this relationship type. This may be due to age constraints, existing relationships, or other validation rules.
-          </p>
+          <div className="mt-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800 font-medium">No eligible people found</p>
+            <p className="text-xs text-yellow-700 mt-1">
+              People may be filtered out due to:
+              <br />• Blood relationship restrictions (siblings, cousins, etc. cannot marry or have shared children)
+              <br />• Age constraints (12+ year gap for parent-child relationships)
+              <br />• Existing relationships (max 2 parents, 1 current spouse)
+              <br />• Relationship logic (parents cannot be siblings with their children)
+            </p>
+          </div>
         )}
         {people.length > 0 && allPeople.length > people.length + 1 && (
-          <p className="mt-2 text-xs text-gray-400">
-            {allPeople.length - people.length - 1} people filtered out due to relationship constraints.
-          </p>
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded">
+            <p className="text-xs text-blue-700">
+              <span className="font-medium">{allPeople.length - people.length - 1} people filtered out</span> due to relationship constraints, blood relationships, or age requirements.
+            </p>
+          </div>
         )}
       </div>
       
