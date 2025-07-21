@@ -94,26 +94,21 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
 }
 export const createFamilyTreeLayout = (persons, relationships, handlers = {}, rootPersonId = null) => {
   // Debug: Print incoming persons and relationships
-  console.log('createFamilyTreeLayout: persons:', persons);
-  console.log('createFamilyTreeLayout: relationships:', relationships);
-  console.log('createFamilyTreeLayout: rootPersonId:', rootPersonId);
   if (!persons || !relationships) {
     return { nodes: [], edges: [] };
   }
 
   // Step 1: Build relationship maps
-  const relationshipMaps = buildRelationshipMaps(relationships);
+  const relationshipMaps = buildRelationshipMaps(relationships, persons);
   
   // Step 2: Determine root nodes - use selected root person if provided, otherwise find natural roots
   let rootNodes;
   if (rootPersonId) {
     // Use the selected root person as the only root
     rootNodes = [String(rootPersonId)];
-    console.log('createFamilyTreeLayout: using selected root:', rootNodes);
   } else {
     // Find root nodes (people with no parents)
     rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
-    console.log('createFamilyTreeLayout: computed natural rootNodes:', rootNodes);
   }
   
   // Step 3: Calculate generations for each person
@@ -131,28 +126,98 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 /**
  * Build relationship maps for efficient lookups
  * @param {Array} relationships - Array of relationship objects
+ * @param {Array} persons - Array of person objects  
  * @returns {Object} - Maps for different relationship types
  */
-const buildRelationshipMaps = (relationships) => {
+const buildRelationshipMaps = (relationships, persons) => {
   const parentToChildren = new Map();
   const childToParents = new Map();
   const spouseMap = new Map();
   const siblingMap = new Map();
   
-  console.log('=== DEBUG buildRelationshipMaps ===');
-  console.log('Input relationships:', relationships);
+  // DEBUG: Show what data we're working with
+  console.log('\n--- DEBUG: buildRelationshipMaps Input ---');
+  console.log('persons count:', persons.length);
+  console.log('relationships count:', relationships.length);
+  console.log('person IDs:', persons.map(p => p.id));
+  console.log('---------------------------------------\n');
+  
+
+  let totalParentRels = 0;
+  let skippedMissingPerson = 0;
+  let skippedInverted = 0;
+  let skippedMissingDates = 0;
+  let addedToMaps = 0;
 
   relationships.forEach(rel => {
-    const source = String(rel.source || rel.from);
-    const target = String(rel.target || rel.to);
+    let source = String(rel.source || rel.from);
+    let target = String(rel.target || rel.to);
     
     // Support both 'type' and 'relationship_type' field names for flexibility
     const relationshipType = rel.type || rel.relationship_type;
     
     switch (relationshipType) {
       case 'parent':
-        // Parent -> Child relationship
-        console.log(`Processing parent relationship: ${source} -> ${target}`);
+        totalParentRels++;
+        // Validate relationship based on birth dates to prevent inverted hierarchies
+        let sourcePerson = persons.find(p => String(p.id) === source);
+        let targetPerson = persons.find(p => String(p.id) === target);
+        
+        // DEBUG: Check for Bob Anderson relationships
+        if (source === '5' || target === '5') {
+          console.log(`DEBUG RELATIONSHIP ${source} -> ${target}:`);
+          console.log(`  Source (${source}):`, sourcePerson ? { name: `${sourcePerson.first_name} ${sourcePerson.last_name}`, dob: sourcePerson.date_of_birth } : 'Not found');
+          console.log(`  Target (${target}):`, targetPerson ? { name: `${targetPerson.first_name} ${targetPerson.last_name}`, dob: targetPerson.date_of_birth } : 'Not found');
+        }
+        
+        // Skip relationships where one or both persons are not found
+        if (!sourcePerson || !targetPerson) {
+          skippedMissingPerson++;
+          if (source === '5' || target === '5') {
+            console.warn(`Skipping relationship with missing person: ${source} -> ${target} (source found: ${!!sourcePerson}, target found: ${!!targetPerson})`);
+          }
+          return; // Skip to next relationship
+        }
+        
+        // Skip inverted relationships where "parent" is younger than "child"
+        if (sourcePerson.date_of_birth && targetPerson.date_of_birth) {
+          const sourceBirthYear = new Date(sourcePerson.date_of_birth).getFullYear();
+          const targetBirthYear = new Date(targetPerson.date_of_birth).getFullYear();
+          
+          // DEBUG for Bob Anderson
+          if (source === '5' || target === '5') {
+            console.log(`  Source Year: ${sourceBirthYear}, Target Year: ${targetBirthYear}`);
+            console.log(`  sourceBirthYear > targetBirthYear: ${sourceBirthYear > targetBirthYear} (inverted if true)`);
+          }
+          
+          if (sourceBirthYear > targetBirthYear) {
+            // Parent is younger than child - this is inverted, fix it by swapping
+            skippedInverted++;
+            console.warn(`Fixing inverted relationship: ${sourcePerson.first_name} ${sourcePerson.last_name} (born ${sourceBirthYear}) marked as parent of ${targetPerson.first_name} ${targetPerson.last_name} (born ${targetBirthYear}). Swapping: ${target} -> ${source}`);
+            
+            // Swap source and target to fix the inversion
+            const tempSource = source;
+            source = target;
+            target = tempSource;
+            
+            // Also swap the person objects for consistency
+            const tempSourcePerson = sourcePerson;
+            sourcePerson = targetPerson;
+            targetPerson = tempSourcePerson;
+          }
+        } else {
+          skippedMissingDates++;
+          if (source === '5' || target === '5') {
+            console.log('  One or both birth dates are missing for this relationship.');
+          }
+        }
+        
+        // Parent -> Child relationship (only if not inverted)
+        if (source === '5' || target === '5') {
+          console.log(`  ADDING to maps: ${source} -> ${target}`);
+        }
+        
+        addedToMaps++;
         if (!parentToChildren.has(source)) {
           parentToChildren.set(source, new Set());
         }
@@ -186,20 +251,28 @@ const buildRelationshipMaps = (relationships) => {
     }
   });
 
-  // Debug: Log spouse relationship processing
-  console.log('Spouse relationships:');
-  const spouseRels = relationships.filter(rel => (rel.type || rel.relationship_type) === 'spouse');
-  spouseRels.forEach(rel => {
-    const source = String(rel.source || rel.from);
-    const target = String(rel.target || rel.to);
-    const status = rel.is_deceased ? 'deceased' : (rel.is_ex ? 'ex' : 'current');
-    console.log(`  ${source} <-> ${target} (${status}) - Raw:`, rel);
-  });
+
+  // DEBUG: Check maps for Bob Anderson after processing
+  const bobId = '5';
+  console.log(`\n--- DEBUG: Bob Anderson (${bobId}) Maps After Processing ---`);
+  console.log(`  parentToChildren for Bob:`, parentToChildren.has(bobId) ? Array.from(parentToChildren.get(bobId)) : 'N/A');
+  console.log(`  childToParents for Bob:`, childToParents.has(bobId) ? Array.from(childToParents.get(bobId)) : 'N/A');
+  console.log('---------------------------------------------------\n');
   
-  console.log('Current spouse map (for positioning):');
-  spouseMap.forEach((targetId, sourceId) => {
-    console.log(`  ${sourceId} -> ${targetId}`);
-  });
+  // DEBUG: Show filtering statistics
+  console.log('\n--- DEBUG: Relationship Filtering Statistics ---');
+  console.log(`Total parent relationships processed: ${totalParentRels}`);
+  console.log(`Skipped (missing person): ${skippedMissingPerson}`);
+  console.log(`Skipped (inverted dates): ${skippedInverted}`);
+  console.log(`Skipped (missing dates): ${skippedMissingDates}`);
+  console.log(`Successfully added to maps: ${addedToMaps}`);
+  console.log('----------------------------------------------------\n');
+  
+  // DEBUG: Show all relationship maps
+  console.log('\n--- DEBUG: All Relationship Maps ---');
+  console.log('parentToChildren:', Array.from(parentToChildren.entries()).map(([k,v]) => [k, Array.from(v)]));
+  console.log('childToParents:', Array.from(childToParents.entries()).map(([k,v]) => [k, Array.from(v)]));
+  console.log('----------------------------------------\n');
 
   return {
     parentToChildren,
@@ -232,11 +305,8 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
   const generations = new Map();
   const visited = new Set();
   const queue = [];
+  
 
-  console.log('=== DEBUG calculateGenerations ===');
-  console.log('rootNodes:', rootNodes);
-  console.log('parentToChildren map:', parentToChildren);
-  console.log('childToParents map:', childToParents);
 
   // Start with root nodes at generation 0
   rootNodes.forEach(rootId => {
@@ -251,32 +321,26 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     visited.add(id);
     
     generations.set(id, generation);
-    console.log(`Person ${id} assigned to generation ${generation}`);
+    
     
     // Add children to next generation (lower/positive generations)
     if (parentToChildren && parentToChildren.has(id)) {
       const children = parentToChildren.get(id);
-      console.log(`Person ${id} has children:`, Array.from(children));
       children.forEach(childId => {
         if (!visited.has(childId)) {
           queue.push({ id: childId, generation: generation + 1 });
         }
       });
-    } else {
-      console.log(`Person ${id} has no children in parentToChildren map`);
     }
     
     // Add parents to previous generation (higher/negative generations)
     if (childToParents && childToParents.has(id)) {
       const parents = childToParents.get(id);
-      console.log(`Person ${id} has parents:`, Array.from(parents));
       parents.forEach(parentId => {
         if (!visited.has(parentId)) {
           queue.push({ id: parentId, generation: generation - 1 });
         }
       });
-    } else {
-      console.log(`Person ${id} has no parents in childToParents map`);
     }
   }
 
@@ -284,12 +348,10 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
   persons.forEach(person => {
     const id = String(person.id);
     if (!generations.has(id)) {
-      console.log(`Orphaned person ${id} assigned to generation 0`);
-      generations.set(id, 0);
+      generations.set(id, 999); // Put orphaned nodes far from root
     }
   });
 
-  console.log('Final generations map:', generations);
   return generations;
 };
 
@@ -322,23 +384,27 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   const generationGroups = new Map();
 
   // Group persons by generation
-  console.log('=== DEBUG createHierarchicalNodes ===');
-  console.log('generations map:', generations);
   persons.forEach(person => {
     const id = String(person.id);
     const generation = generations.get(id) || 0;
-    console.log(`Person ${id} (${person.first_name}) -> generation ${generation}`);
     
     if (!generationGroups.has(generation)) {
       generationGroups.set(generation, []);
     }
     generationGroups.get(generation).push(person);
   });
-  console.log('generationGroups:', generationGroups);
 
-  // Sort each generation to prioritize oldest person first (leftmost position)
+  // Sort each generation to prioritize root person first, then oldest person first (leftmost position)
   for (const [generation, generationPersons] of generationGroups) {
     generationPersons.sort((a, b) => {
+      // If rootPersonId is specified, prioritize it first in its generation
+      if (rootPersonId) {
+        const aIsRoot = String(a.id) === String(rootPersonId);
+        const bIsRoot = String(b.id) === String(rootPersonId);
+        if (aIsRoot && !bIsRoot) return -1; // Root person comes first
+        if (!aIsRoot && bIsRoot) return 1;  // Root person comes first
+      }
+      
       // Sort by birth date (oldest first)
       if (a.date_of_birth && b.date_of_birth) {
         const dateA = new Date(a.date_of_birth);
@@ -375,10 +441,17 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     }
   }
 
+  // Find the minimum generation to adjust Y positioning
+  const minGeneration = Math.min(...generationGroups.keys());
+  
+  // Create sorted generation array for consistent positioning
+  const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
+  
   // Position nodes generation by generation
   for (const [generation, generationPersons] of generationGroups) {
-    // Handle negative generations (ancestors above root)
-    const y = generation * GENERATION_HEIGHT;
+    // Calculate Y position based on the index in sorted generations (more compact)
+    const generationIndex = sortedGenerations.indexOf(generation);
+    const y = generationIndex * GENERATION_HEIGHT;
     const processedPersons = new Set();
 
     // Calculate total width needed for this generation with proper spacing
@@ -503,47 +576,34 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
   const spouseRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'spouse');
   const siblingRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'sibling');
 
-  // Enhanced Debug: Print all sibling relationships and sibling map for verification
-  if (siblingRelationships.length > 0) {
-    console.log('Sibling relationships:');
-    siblingRelationships.forEach(rel => {
-      console.log(`Sibling: ${rel.source || rel.from} <-> ${rel.target || rel.to}`);
-    });
-    // Print sibling map for each person
-    if (relationshipMaps && relationshipMaps.siblingMap) {
-      console.log('SiblingMap breakdown:');
-      for (const [personId, siblingsSet] of relationshipMaps.siblingMap.entries()) {
-        console.log(`Person ${personId} has siblings: [${Array.from(siblingsSet).join(', ')}]`);
+
+  // Process parent relationships from corrected relationship maps
+  // Use the corrected parentToChildren map instead of raw relationships
+  relationshipMaps.parentToChildren.forEach((children, parentId) => {
+    children.forEach(childId => {
+      const connectionKey = `parent-${parentId}-${childId}`;
+
+      if (!processedConnections.has(connectionKey)) {
+        edges.push({
+          id: connectionKey,
+          source: parentId,
+          target: childId,
+          type: 'smoothstep',
+          animated: false,
+          style: {
+            stroke: '#6366f1',
+            strokeWidth: 2,
+          },
+          markerEnd: {
+            type: 'arrowclosed',
+            width: 20,
+            height: 20,
+            color: '#6366f1'
+          }
+        });
+        processedConnections.add(connectionKey);
       }
-    }
-  }
-
-  // Process parent relationships - only create one edge per parent-child pair
-  parentRelationships.forEach(relationship => {
-    const source = String(relationship.source || relationship.from);
-    const target = String(relationship.target || relationship.to);
-    const connectionKey = `parent-${source}-${target}`;
-
-    if (!processedConnections.has(connectionKey)) {
-      edges.push({
-        id: connectionKey,
-        source,
-        target,
-        type: 'smoothstep',
-        animated: false,
-        style: {
-          stroke: '#6366f1',
-          strokeWidth: 2,
-        },
-        markerEnd: {
-          type: 'arrowclosed',
-          width: 20,
-          height: 20,
-          color: '#6366f1'
-        }
-      });
-      processedConnections.add(connectionKey);
-    }
+    });
   });
 
   // Process spouse relationships - create horizontal connections

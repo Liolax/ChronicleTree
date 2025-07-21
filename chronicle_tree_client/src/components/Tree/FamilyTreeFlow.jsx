@@ -54,40 +54,6 @@ const FamilyTree = () => {
   
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
-  // Debug: Log the API response
-  React.useEffect(() => {
-    console.log('=== API Data Debug ===');
-    console.log('isLoading:', isLoading);
-    console.log('isError:', isError);
-    console.log('data:', data);
-    console.log('rootPersonId:', rootPersonId);
-    
-    // Check authentication state
-    const token = localStorage.getItem('token');
-    console.log('Auth token exists:', !!token);
-    console.log('Token length:', token?.length);
-    
-    // Debug edges/relationships format
-    if (data && data.edges) {
-      console.log('=== Relationship Debug ===');
-      console.log('Total relationships:', data.edges.length);
-      
-      // Check spouse relationships specifically
-      const spouseRelationships = data.edges.filter(edge => 
-        (edge.relationship_type === 'spouse' || edge.type === 'spouse')
-      );
-      console.log('Spouse relationships found:', spouseRelationships.length);
-      spouseRelationships.forEach((edge, index) => {
-        console.log(`Spouse ${index + 1}:`, {
-          from: edge.from || edge.source,
-          to: edge.to || edge.target,
-          is_ex: edge.is_ex,
-          is_deceased: edge.is_deceased,
-          full_edge: edge
-        });
-      });
-    }
-  }, [data, isLoading, isError, rootPersonId]);
 
   // Process data based on root person and add relationship information
   const processedData = useMemo(() => {
@@ -103,19 +69,9 @@ const FamilyTree = () => {
     let filteredNodes = data.nodes;
     let filteredEdges = data.edges;
     if (rootPersonId) {
-      console.log('=== BEFORE collectConnectedFamily ===');
-      console.log('rootPersonId:', rootPersonId);
-      console.log('data.nodes count:', data.nodes?.length);
-      console.log('data.edges count:', data.edges?.length);
-      console.log('Sample edges:', data.edges?.slice(0, 3));
-      
       const result = collectConnectedFamily(rootPersonId, data.nodes, data.edges);
       filteredNodes = result.persons;
       filteredEdges = result.relationships;
-      
-      console.log('=== AFTER collectConnectedFamily ===');
-      console.log('filteredNodes count:', filteredNodes?.length);
-      console.log('filteredEdges count:', filteredEdges?.length);
     }
 
     // Add relationship information to all people (if needed)
@@ -123,19 +79,6 @@ const FamilyTree = () => {
       ? filteredNodes.find(n => n.id === rootPersonId)
       : null;
     
-    // DEBUG LOGGING: Log data being passed to relationship calculator
-    if (rootPerson && (rootPerson.id === 5 || rootPerson.id === '5')) { // Charlie C
-      console.log('=== DEBUG: Family Tree Relationship Calculator Data ===');
-      console.log('Root Person (Charlie):', rootPerson);
-      console.log('All People:', filteredNodes);
-      console.log('All Edges:', filteredEdges);
-      console.log('Edges involving Charlie (5) or David (4):');
-      const relevantEdges = filteredEdges.filter(edge => 
-        edge.from === 5 || edge.to === 5 || edge.from === 4 || edge.to === 4 ||
-        edge.from === '5' || edge.to === '5' || edge.from === '4' || edge.to === '4'
-      );
-      relevantEdges.forEach(edge => console.log('  ', edge));
-    }
     
     const peopleWithRelations = getAllRelationshipsToRoot(
       rootPerson,
@@ -164,10 +107,6 @@ const FamilyTree = () => {
     };
   }, [data, rootPersonId, hasSetDefaultRoot, showUnrelated]);
 
-  // Debug: Log processed data
-  React.useEffect(() => {
-    console.log('processedData:', processedData);
-  }, [processedData]);
 
   // Helper to group relationships for delete modal
   const groupRelatives = useCallback((person) => {
@@ -299,11 +238,6 @@ const FamilyTree = () => {
     }, rootPersonId);
   }, [processedData, handleEditPerson, handleDeletePerson, openPersonCard, handleRestructureTree, rootPersonId]);
 
-  // Debug: Log layouted nodes and edges
-  React.useEffect(() => {
-    console.log('layoutedNodes:', layoutedNodes);
-    console.log('layoutedEdges:', layoutedEdges);
-  }, [layoutedNodes, layoutedEdges]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
