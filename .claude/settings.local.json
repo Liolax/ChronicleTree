@@ -23,7 +23,9 @@
       "Bash(fi)",
       "Bash(done)",
       "Bash(find:*)",
-      "Bash(redis-server:*)"
+      "Bash(redis-server:*)",
+      "Bash(npm start)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

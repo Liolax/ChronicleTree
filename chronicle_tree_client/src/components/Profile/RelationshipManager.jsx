@@ -193,10 +193,93 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
   };
 
-  // Filter people for each relationship type
+  // Helper to validate age constraints for relationships
+  const validateAgeConstraint = (person1, person2, relationshipType) => {
+    if (!person1?.date_of_birth || !person2?.date_of_birth) {
+      return { valid: true }; // Allow if birth dates are unknown
+    }
+    
+    const person1Birth = new Date(person1.date_of_birth);
+    const person2Birth = new Date(person2.date_of_birth);
+    const ageGapInYears = Math.abs(person1Birth.getTime() - person2Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+    
+    if (relationshipType === 'parent') {
+      // When adding parent: selected person (child) should be at least 12 years younger
+      if (person2Birth <= person1Birth) {
+        return { valid: false, reason: 'Parent must be older than child' };
+      }
+      if (ageGapInYears < 12) {
+        return { valid: false, reason: 'Parent must be at least 12 years older than child' };
+      }
+    } else if (relationshipType === 'child') {
+      // When adding child: selected person (parent) should be at least 12 years older  
+      if (person1Birth <= person2Birth) {
+        return { valid: false, reason: 'Child must be younger than parent' };
+      }
+      if (ageGapInYears < 12) {
+        return { valid: false, reason: 'Child must be at least 12 years younger than parent' };
+      }
+    }
+    // Note: Siblings, spouses, aunts/uncles can have flexible age differences
+    return { valid: true };
+  };
+
+  // Helper to check existing relationship constraints
+  const checkRelationshipConstraints = (candidateId, type) => {
+    const candidate = people.find(p => p.id === candidateId);
+    if (!candidate) return { valid: false, reason: 'Person not found' };
+    
+    // Age validation
+    const ageCheck = validateAgeConstraint(person, candidate, type);
+    if (!ageCheck.valid) {
+      return ageCheck;
+    }
+    
+    // Check for existing relationships that would prevent this new relationship
+    const existingRels = person.relatives || [];
+    
+    // Prevent parent-child from becoming spouses
+    if (type === 'spouse') {
+      const isParent = existingRels.some(rel => rel.id === candidateId && rel.relationship_type === 'parent');
+      const isChild = existingRels.some(rel => rel.id === candidateId && rel.relationship_type === 'child');
+      if (isParent || isChild) {
+        return { valid: false, reason: 'Cannot marry parent or child' };
+      }
+    }
+    
+    // Prevent adding more than 2 biological parents
+    if (type === 'parent') {
+      const biologicalParents = existingRels.filter(rel => rel.relationship_type === 'parent' && !rel.isStep);
+      if (biologicalParents.length >= 2) {
+        return { valid: false, reason: 'Person already has maximum number of biological parents (2)' };
+      }
+    }
+    
+    // Check for deceased spouse constraint for current spouses
+    if (type === 'spouse') {
+      const candidateRels = candidate.relatives || [];
+      const candidateSpouses = candidateRels.filter(rel => rel.relationship_type === 'spouse');
+      const hasCurrentSpouse = candidateSpouses.some(rel => !rel.is_ex && !people.find(p => p.id === rel.id)?.date_of_death);
+      if (hasCurrentSpouse) {
+        return { valid: false, reason: 'Person already has a current spouse' };
+      }
+    }
+    
+    return { valid: true };
+  };
+
+  // Filter people for each relationship type with enhanced constraints
   const getSelectablePeople = (type) => {
     const excludeIds = [person.id, ...getRelatedIds(type)];
-    return people.filter(p => !excludeIds.includes(p.id));
+    
+    return people.filter(p => {
+      // Basic exclusion (self and already related)
+      if (excludeIds.includes(p.id)) return false;
+      
+      // Check relationship constraints
+      const constraintCheck = checkRelationshipConstraints(p.id, type);
+      return constraintCheck.valid;
+    });
   };
 
   // Helper to get in-law relationships
@@ -357,7 +440,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         </h2>
       </div>
       <div>
-        <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, and in-laws. Click add or delete to modify.</p>
+        <p className="text-sm text-gray-600 mb-2">Manage parents, spouses, children, siblings, steps and in-laws. Click add or delete to modify.</p>
         {/* Existing relationships (detailed, editable) */}
         {Object.entries(mergedGroups).map(([type, rels]) => {
           let canAdd = false;
@@ -486,7 +569,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                   <RelationshipForm
                     type={type}
                     people={getSelectablePeople(type)}
-                    person={person}
+                    allPeople={people}
+                    selectedPerson={person}
                     onSubmit={async (data) => {
                       // If adding a spouse and a current spouse exists, force ex
                       if (type === 'spouse' && forceEx) {

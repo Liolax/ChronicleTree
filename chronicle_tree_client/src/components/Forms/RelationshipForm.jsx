@@ -9,13 +9,12 @@ const LABELS = {
   sibling: 'Select Sibling',
 };
 
-const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, forceEx }) => {
+const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, forceEx, selectedPerson, allPeople = [] }) => {
   const { register, handleSubmit, formState: { errors } } = useForm();
 
   const handleFormSubmit = (data) => {
     onSubmit({ 
-      person1Id: data.person1Id,
-      person2Id: data.person2Id,
+      selectedId: data.selectedId,
       relationshipType: type,
       is_ex: type === 'spouse' ? (forceEx ? true : !!data.is_ex) : undefined 
     });
@@ -23,30 +22,41 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
-      <div>
-        <label htmlFor="person1Id" className="block text-sm font-medium text-gray-700">First Person</label>
-        <select
-          id="person1Id"
-          {...register('person1Id', { required: 'Please select the first person' })}
-          className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-        >
-          <option value="">Select First Person</option>
-          {people.map(p => <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>)}
-        </select>
-        {errors.person1Id && <p className="mt-2 text-sm text-red-600">{errors.person1Id.message}</p>}
+      {/* Selected Person - Hidden from UI, automatically set to current profile person */}
+      <div className="hidden">
+        <input type="hidden" value={selectedPerson?.id || ''} {...register('selectedPersonId')} />
+      </div>
+      
+      <div className="bg-blue-50 p-3 rounded-lg border border-blue-200 mb-4">
+        <p className="text-sm text-blue-800">
+          <span className="font-medium">Selected Person:</span> {selectedPerson?.first_name} {selectedPerson?.last_name}
+        </p>
+        <p className="text-xs text-blue-600 mt-1">
+          Adding {LABELS[type].toLowerCase().replace('select ', '')} relationship for this person.
+        </p>
       </div>
       
       <div>
-        <label htmlFor="person2Id" className="block text-sm font-medium text-gray-700">Second Person</label>
+        <label htmlFor="selectedId" className="block text-sm font-medium text-gray-700">{LABELS[type]}</label>
         <select
-          id="person2Id"
-          {...register('person2Id', { required: 'Please select the second person' })}
+          id="selectedId"
+          {...register('selectedId', { required: `Please select a ${type}` })}
           className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
         >
-          <option value="">Select Second Person</option>
+          <option value="">{LABELS[type]}</option>
           {people.map(p => <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>)}
         </select>
-        {errors.person2Id && <p className="mt-2 text-sm text-red-600">{errors.person2Id.message}</p>}
+        {errors.selectedId && <p className="mt-2 text-sm text-red-600">{errors.selectedId.message}</p>}
+        {people.length === 0 && (
+          <p className="mt-2 text-sm text-gray-500">
+            No eligible people found for this relationship type. This may be due to age constraints, existing relationships, or other validation rules.
+          </p>
+        )}
+        {people.length > 0 && allPeople.length > people.length + 1 && (
+          <p className="mt-2 text-xs text-gray-400">
+            {allPeople.length - people.length - 1} people filtered out due to relationship constraints.
+          </p>
+        )}
       </div>
       
       {type === 'spouse' && (
