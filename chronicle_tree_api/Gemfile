@@ -27,7 +27,7 @@ gem "ruby-vips", "~> 2.1"
 gem "mini_magick", "~> 5.0"
 
 # Background job processing
-gem "sidekiq", "~> 7.0"
+gem "sidekiq", "~> 8.0"
 
 # Caching
 gem "redis", "~> 5.0"
