@@ -112,10 +112,10 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   }
   
   // Step 3: Calculate generations for each person
-  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren);
+  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap);
   
   // Step 4: Create nodes with hierarchical positioning (prioritize rootPersonId)
-  const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId);
+  const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId, relationshipMaps.childToParents);
   
   // Step 5: Create simplified edges (no duplication)
   const edges = createSimplifiedEdges(relationships, relationshipMaps);
@@ -301,7 +301,7 @@ const findRootNodes = (persons, childToParents) => {
  * @param {Array} rootNodes - Array of root node IDs
  * @returns {Map} - Map of person ID to generation level
  */
-const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren) => {
+const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren, spouseMap = null) => {
   const generations = new Map();
   const visited = new Set();
   const queue = [];
@@ -322,6 +322,13 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     
     generations.set(id, generation);
     
+    // Add spouse to SAME generation (very important!)
+    if (spouseMap && spouseMap.has(id)) {
+      const spouseId = spouseMap.get(id);
+      if (!visited.has(spouseId)) {
+        queue.push({ id: spouseId, generation: generation }); // Same generation as spouse
+      }
+    }
     
     // Add children to next generation (lower/positive generations)
     if (parentToChildren && parentToChildren.has(id)) {
@@ -379,7 +386,7 @@ const getChildrenOfPerson = (personId, childToParents) => {
  * @param {Object} handlers - Event handlers
  * @returns {Array} - Array of positioned nodes
  */
-const createHierarchicalNodes = (persons, generations, spouseMap, handlers, rootPersonId = null) => {
+const createHierarchicalNodes = (persons, generations, spouseMap, handlers, rootPersonId = null, childToParents = null) => {
   const nodes = [];
   const generationGroups = new Map();
 
@@ -423,10 +430,11 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   const GENERATION_HEIGHT = 450;  // Increased vertical spacing between generations
   const NODE_WIDTH = 280;
   const NODE_MARGIN = 40;
-  const currentSpouseSpacing = NODE_WIDTH + NODE_MARGIN; // 320, prevents overlap
+  const currentSpouseSpacing = NODE_WIDTH + 50;  // 330, close spacing for current spouses
   const exSpouseSpacing = 120;
   const lateSpouseSpacing = 70;
-  const SIBLING_SPACING = 420;    // Increased spacing between siblings for better clarity
+  const SIBLING_SPACING = 460;    // Comfortable spacing for siblings from same parents
+  const COUSIN_SPACING = 420;     // Closer spacing between different families (cousins)
 
   function getSpouseSpacing(spouseType) {
     switch (spouseType) {
@@ -461,25 +469,69 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     const startX = -totalWidth / 2;
     let xOffset = startX;
 
+    // Group people by their parents (sibling groups)
+    const siblingGroups = new Map(); // parentKey -> [siblings]
+    const orphans = []; // people with no parents
+
     generationPersons.forEach(person => {
       const personId = String(person.id);
-      if (processedPersons.has(personId)) return;
-      const spouseId = spouseMap.get(personId);
-      const spouse = spouseId ? generationPersons.find(p => String(p.id) === spouseId) : null;
-      if (spouse && !processedPersons.has(spouseId)) {
-        // Determine spouse type for spacing
-        let spouseType = "current";
-        if (spouse.is_ex) spouseType = "ex";
-        else if (spouse.date_of_death || spouse.is_deceased) spouseType = "late";
-        const spacing = getSpouseSpacing(spouseType);
-        // Position spouse pair
-        nodes.push(createPersonNode(person, xOffset, y, handlers));
-        nodes.push(createPersonNode(spouse, xOffset + spacing, y, handlers));
-        processedPersons.add(personId);
-        processedPersons.add(spouseId);
-        xOffset += SIBLING_SPACING;
+      const parents = childToParents && childToParents.get ? childToParents.get(personId) : null;
+      
+      if (parents && parents.size > 0) {
+        // Create a key from sorted parent IDs
+        const parentKey = Array.from(parents).sort().join('-');
+        if (!siblingGroups.has(parentKey)) {
+          siblingGroups.set(parentKey, []);
+        }
+        siblingGroups.get(parentKey).push(person);
       } else {
-        // Position single person
+        orphans.push(person);
+      }
+    });
+
+    // Position each sibling group
+    Array.from(siblingGroups.values()).forEach((siblings, groupIndex) => {
+      if (groupIndex > 0) {
+        xOffset += COUSIN_SPACING; // Gap between different families
+      }
+
+      siblings.forEach(person => {
+        const personId = String(person.id);
+        if (processedPersons.has(personId)) return;
+        
+        const spouseId = spouseMap.get(personId);
+        const spouse = spouseId ? siblings.find(p => String(p.id) === spouseId) : null;
+        
+        if (spouse && !processedPersons.has(spouseId)) {
+          // Determine spouse type for spacing
+          let spouseType = "current";
+          if (spouse.is_ex) spouseType = "ex";
+          else if (spouse.date_of_death || spouse.is_deceased) spouseType = "late";
+          const spacing = getSpouseSpacing(spouseType);
+          
+          // Position spouse pair
+          nodes.push(createPersonNode(person, xOffset, y, handlers));
+          nodes.push(createPersonNode(spouse, xOffset + spacing, y, handlers));
+          processedPersons.add(personId);
+          processedPersons.add(spouseId);
+          xOffset += SIBLING_SPACING;
+        } else {
+          // Position single person
+          nodes.push(createPersonNode(person, xOffset, y, handlers));
+          processedPersons.add(personId);
+          xOffset += SIBLING_SPACING;
+        }
+      });
+    });
+
+    // Position orphans (people with no parents) at the end
+    if (orphans.length > 0 && siblingGroups.size > 0) {
+      xOffset += COUSIN_SPACING; // Gap before orphans
+    }
+    
+    orphans.forEach(person => {
+      const personId = String(person.id);
+      if (!processedPersons.has(personId)) {
         nodes.push(createPersonNode(person, xOffset, y, handlers));
         processedPersons.add(personId);
         xOffset += SIBLING_SPACING;
