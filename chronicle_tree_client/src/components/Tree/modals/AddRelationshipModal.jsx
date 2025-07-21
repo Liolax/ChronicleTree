@@ -180,12 +180,45 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     // Blood relationship detection
     const bloodCheck = detectBloodRelationship(person1Id, person2Id);
     
-    // Enhanced validation for children - prevent shared children between blood relatives
+    // ENHANCED CHILD VALIDATION - Much more robust filtering  
     if (type === 'child') {
+      // 1. CRITICAL: Prevent any blood relative from becoming a child
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
-          reason: `Blood relatives (${bloodCheck.relationship}) cannot have shared children` 
+          reason: `Cannot add blood relative (${bloodCheck.relationship}) as child - would create invalid family structure` 
+        };
+      }
+      
+      // 2. Enhanced age validation for child relationships
+      if (person1.date_of_birth && person2.date_of_birth) {
+        const person1Birth = new Date(person1.date_of_birth);
+        const person2Birth = new Date(person2.date_of_birth);
+        const ageGapYears = (person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        
+        // Child must be at least 12 years younger
+        if (ageGapYears < 12) {
+          return { 
+            valid: false, 
+            reason: `${person2.first_name} ${person2.last_name} is not young enough to be child (${ageGapYears.toFixed(1)} year age gap, minimum 12 years required)` 
+          };
+        }
+        
+        // Prevent unrealistic age gaps (over 60 years)
+        if (ageGapYears > 60) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) - unlikely parent-child relationship` 
+          };
+        }
+      }
+      
+      // 3. Check if person2 already has 2 biological parents
+      const person2Parents = person2.relatives?.filter(rel => rel.relationship_type === 'parent' && !rel.isStep) || [];
+      if (person2Parents.length >= 2) {
+        return { 
+          valid: false, 
+          reason: `${person2.first_name} ${person2.last_name} already has maximum number of biological parents (2)` 
         };
       }
     }
@@ -234,12 +267,56 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
     }
     
-    // Prevent adding more than 2 biological parents
+    // ENHANCED PARENT VALIDATION - Much more robust filtering
     if (type === 'parent') {
-      // Check if person2 already has 2 parents
+      // 1. Check if person2 already has 2 biological parents
       const person2Parents = person2.relatives?.filter(rel => rel.relationship_type === 'parent' && !rel.isStep) || [];
       if (person2Parents.length >= 2) {
         return { valid: false, reason: 'Person already has maximum number of biological parents (2)' };
+      }
+      
+      // 2. CRITICAL: Prevent any blood relative from becoming a parent
+      if (bloodCheck.isBloodRelated) {
+        return { 
+          valid: false, 
+          reason: `Cannot add blood relative (${bloodCheck.relationship}) as parent - would create invalid family structure` 
+        };
+      }
+      
+      // 3. Enhanced age validation for parent relationships
+      if (person1.date_of_birth && person2.date_of_birth) {
+        const person1Birth = new Date(person1.date_of_birth);
+        const person2Birth = new Date(person2.date_of_birth);
+        const ageGapYears = (person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        
+        // Parent must be at least 12 years older
+        if (ageGapYears < 12) {
+          return { 
+            valid: false, 
+            reason: `${person1.first_name} ${person1.last_name} is not old enough to be parent (${ageGapYears.toFixed(1)} year age gap, minimum 12 years required)` 
+          };
+        }
+        
+        // Prevent unrealistic age gaps (over 60 years)
+        if (ageGapYears > 60) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) - unlikely parent-child relationship` 
+          };
+        }
+      }
+      
+      // 4. Prevent deceased people from being parents of people born after their death
+      if (person1.date_of_death && person2.date_of_birth) {
+        const person1Death = new Date(person1.date_of_death);
+        const person2Birth = new Date(person2.date_of_birth);
+        
+        if (person2Birth > person1Death) {
+          return { 
+            valid: false, 
+            reason: `${person1.first_name} ${person1.last_name} died before ${person2.first_name} ${person2.last_name} was born - cannot be parent` 
+          };
+        }
       }
     }
     

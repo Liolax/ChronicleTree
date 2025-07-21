@@ -354,13 +354,83 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     // Check for existing relationships that would prevent this new relationship
     const existingRels = person.relatives || [];
     
-    // Enhanced validation for children - prevent shared children between blood relatives
+    // ENHANCED CHILD VALIDATION - Much more robust filtering  
     if (type === 'child') {
+      // 1. CRITICAL: Prevent any blood relative from becoming a child
       if (bloodCheck.isBloodRelated) {
-        // Blood relatives cannot have shared children
         return { 
           valid: false, 
-          reason: `Blood relatives (${bloodCheck.relationship}) cannot have shared children` 
+          reason: `Cannot add blood relative (${bloodCheck.relationship}) as child - would create invalid family structure` 
+        };
+      }
+      
+      // 2. Prevent anyone who is already an ancestor from becoming a child (generational impossibility)
+      const candidateRels = candidate.relatives || [];
+      const isAlreadyAncestor = candidateRels.some(rel => 
+        rel.id === person.id && 
+        ['parent', 'grandparent'].includes(rel.relationship_type)
+      );
+      if (isAlreadyAncestor) {
+        return { 
+          valid: false, 
+          reason: `Cannot add ${candidate.first_name} ${candidate.last_name} as child - they are already your ancestor` 
+        };
+      }
+      
+      // 3. Prevent people from same generation from being parent-child
+      if (bloodCheck.relationship) {
+        const rel = bloodCheck.relationship.toLowerCase();
+        if (rel.includes('sibling') || rel.includes('cousin') || 
+            rel.includes('brother') || rel.includes('sister')) {
+          return { 
+            valid: false, 
+            reason: `Cannot add ${bloodCheck.relationship.toLowerCase()} as child - same generation relationship` 
+          };
+        }
+      }
+      
+      // 4. Enhanced age validation for child relationships
+      if (person.date_of_birth && candidate.date_of_birth) {
+        const personBirth = new Date(person.date_of_birth);
+        const candidateBirth = new Date(candidate.date_of_birth);
+        const ageGapYears = (candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        
+        // Child must be at least 12 years younger
+        if (ageGapYears < 12) {
+          return { 
+            valid: false, 
+            reason: `${candidate.first_name} ${candidate.last_name} is not young enough to be child (${ageGapYears.toFixed(1)} year age gap, minimum 12 years required)` 
+          };
+        }
+        
+        // Prevent unrealistic age gaps (over 60 years)
+        if (ageGapYears > 60) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) - unlikely parent-child relationship` 
+          };
+        }
+      }
+      
+      // 5. Prevent deceased people from having children born after their death
+      if (person.date_of_death && candidate.date_of_birth) {
+        const personDeath = new Date(person.date_of_death);
+        const candidateBirth = new Date(candidate.date_of_birth);
+        
+        if (candidateBirth > personDeath) {
+          return { 
+            valid: false, 
+            reason: `${person.first_name} ${person.last_name} died before ${candidate.first_name} ${candidate.last_name} was born - cannot be parent` 
+          };
+        }
+      }
+      
+      // 6. Check if candidate already has 2 biological parents
+      const candidateParents = candidate.relatives?.filter(rel => rel.relationship_type === 'parent' && !rel.isStep) || [];
+      if (candidateParents.length >= 2) {
+        return { 
+          valid: false, 
+          reason: `${candidate.first_name} ${candidate.last_name} already has maximum number of biological parents (2)` 
         };
       }
     }
@@ -424,20 +494,82 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // Prevent adding more than 2 biological parents
+    // ENHANCED PARENT VALIDATION - Much more robust filtering
     if (type === 'parent') {
-      const biologicalParents = existingRels.filter(rel => rel.relationship_type === 'parent' && !rel.isStep);
-      if (biologicalParents.length >= 2) {
+      // 1. Check if current person already has 2 biological parents
+      const currentPersonParents = existingRels.filter(rel => rel.relationship_type === 'parent' && !rel.isStep);
+      if (currentPersonParents.length >= 2) {
         return { valid: false, reason: 'Person already has maximum number of biological parents (2)' };
       }
       
-      // Prevent child from becoming parent (should be caught by blood relationship check)
-      if (bloodCheck.isBloodRelated && bloodCheck.relationship && 
-          (bloodCheck.relationship.includes('Child') || bloodCheck.relationship.includes('Grandchild'))) {
+      // 2. CRITICAL: Prevent any blood relative from becoming a parent
+      if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
-          reason: `Cannot add ${bloodCheck.relationship.toLowerCase()} as parent` 
+          reason: `Cannot add blood relative (${bloodCheck.relationship}) as parent - would create invalid family structure` 
         };
+      }
+      
+      // 3. Prevent anyone who is already a descendant from becoming a parent (generational impossibility)
+      const candidateRels = candidate.relatives || [];
+      const isAlreadyDescendant = candidateRels.some(rel => 
+        rel.id === person.id && 
+        ['child', 'grandchild'].includes(rel.relationship_type)
+      );
+      if (isAlreadyDescendant) {
+        return { 
+          valid: false, 
+          reason: `Cannot add ${candidate.first_name} ${candidate.last_name} as parent - they are already your descendant` 
+        };
+      }
+      
+      // 4. Prevent people from same generation from being parent-child
+      // Check if candidate is sibling, cousin, or same-generation relative
+      if (bloodCheck.relationship) {
+        const rel = bloodCheck.relationship.toLowerCase();
+        if (rel.includes('sibling') || rel.includes('cousin') || 
+            rel.includes('brother') || rel.includes('sister')) {
+          return { 
+            valid: false, 
+            reason: `Cannot add ${bloodCheck.relationship.toLowerCase()} as parent - same generation relationship` 
+          };
+        }
+      }
+      
+      // 5. Enhanced age validation for parent relationships
+      if (person.date_of_birth && candidate.date_of_birth) {
+        const personBirth = new Date(person.date_of_birth);
+        const candidateBirth = new Date(candidate.date_of_birth);
+        const ageGapYears = (personBirth.getTime() - candidateBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        
+        // Parent must be at least 12 years older
+        if (ageGapYears < 12) {
+          return { 
+            valid: false, 
+            reason: `${candidate.first_name} ${candidate.last_name} is not old enough to be parent (${ageGapYears.toFixed(1)} year age gap, minimum 12 years required)` 
+          };
+        }
+        
+        // Prevent unrealistic age gaps (over 60 years)
+        if (ageGapYears > 60) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) - unlikely parent-child relationship` 
+          };
+        }
+      }
+      
+      // 6. Prevent deceased people from being parents of people born after their death
+      if (candidate.date_of_death && person.date_of_birth) {
+        const candidateDeath = new Date(candidate.date_of_death);
+        const personBirth = new Date(person.date_of_birth);
+        
+        if (personBirth > candidateDeath) {
+          return { 
+            valid: false, 
+            reason: `${candidate.first_name} ${candidate.last_name} died before ${person.first_name} ${person.last_name} was born - cannot be parent` 
+          };
+        }
       }
     }
     
