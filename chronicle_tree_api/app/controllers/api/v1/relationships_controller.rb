@@ -7,23 +7,35 @@ module Api
       # POST /api/v1/relationships
       # body: { relationship: { person_id:, relative_id:, relationship_type: } }
       def create
-        @relationship = Relationship.new(relationship_params)
-
         person = current_user.people.find_by(id: relationship_params[:person_id])
         relative = current_user.people.find_by(id: relationship_params[:relative_id])
 
-        if person && relative
-          if @relationship.save
-            render json: @relationship,
-                   serializer: Api::V1::RelationshipSerializer,
-                   status: :created
-          else
-            render json: { errors: @relationship.errors.full_messages },
-                   status: :unprocessable_entity
-          end
-        else
+        unless person && relative
           render json: { errors: [ "One or both persons not found in your records." ] },
                  status: :not_found
+          return
+        end
+
+        # ✅ COMPLEX REMARRIAGE SCENARIOS VALIDATION
+        if relationship_params[:relationship_type] == 'spouse'
+          # Use enhanced blood relationship detector that supports complex remarriage scenarios
+          unless BloodRelationshipDetector.marriage_allowed?(person, relative)
+            blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
+            render json: { 
+              errors: [ "Cannot marry blood relative#{blood_relationship ? " (#{blood_relationship})" : ''} - incestuous relationships are prohibited" ] 
+            }, status: :unprocessable_entity
+            return
+          end
+        end
+
+        @relationship = Relationship.new(relationship_params)
+        if @relationship.save
+          render json: @relationship,
+                 serializer: Api::V1::RelationshipSerializer,
+                 status: :created
+        else
+          render json: { errors: @relationship.errors.full_messages },
+                 status: :unprocessable_entity
         end
       end
 

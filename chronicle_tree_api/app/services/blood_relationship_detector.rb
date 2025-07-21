@@ -1,4 +1,8 @@
 # Service to detect blood relationships between people
+# ✅ COMPLEX REMARRIAGE SCENARIOS SUPPORTED:
+# - Marrying ex-spouse's sibling (if no blood relation)
+# - Marrying deceased spouse's relative (if no blood relation)
+# ❌ ALWAYS PREVENTED: Any blood relative regardless of previous marriages
 class BloodRelationshipDetector
   def initialize(person1, person2)
     @person1 = person1
@@ -7,6 +11,11 @@ class BloodRelationshipDetector
 
   def self.blood_related?(person1, person2)
     new(person1, person2).blood_related?
+  end
+  
+  # Check if marriage is allowed considering complex remarriage scenarios
+  def self.marriage_allowed?(person1, person2)
+    new(person1, person2).marriage_allowed?
   end
 
   def blood_related?
@@ -30,6 +39,30 @@ class BloodRelationshipDetector
     return true if first_cousins?
 
     false
+  end
+  
+  # Complex remarriage validation - allows specific scenarios while preventing incest
+  def marriage_allowed?
+    # ALWAYS prevent marriage between blood relatives regardless of previous marriages
+    return false if blood_related?
+    
+    # If not blood related, check if this is an allowed remarriage scenario
+    # ✅ Allow: Ex-spouse's sibling (if no blood relation) 
+    # ✅ Allow: Deceased spouse's relative (if no blood relation)
+    # ✅ Allow: Any non-blood relative
+    
+    # Check if person2 is a relative of person1's ex or deceased spouse
+    allowed_through_ex_spouse = allowed_remarriage_relative?(@person1, @person2) || 
+                               allowed_remarriage_relative?(@person2, @person1)
+    
+    # If it's an allowed remarriage scenario, double-check no blood relationship
+    if allowed_through_ex_spouse
+      Rails.logger.info "✅ ALLOWED REMARRIAGE: #{@person2.first_name} #{@person2.last_name} is relative of #{@person1.first_name} #{@person1.last_name}'s ex/deceased spouse, with no blood relation"
+      return true
+    end
+    
+    # If not blood related and not a remarriage scenario, marriage is allowed
+    true
   end
 
   def relationship_description
@@ -86,6 +119,33 @@ class BloodRelationshipDetector
   end
 
   private
+  
+  # Check if candidate is a relative of person's ex or deceased spouse
+  def allowed_remarriage_relative?(person, candidate)
+    return false unless person.spouses.any?
+    
+    # Get all ex-spouses and deceased spouses
+    ex_and_deceased_spouses = person.spouses.select do |spouse|
+      relationship = person.relationships.find { |rel| rel.relative_id == spouse.id && rel.relationship_type == 'spouse' }
+      relationship&.is_ex || spouse.date_of_death.present?
+    end
+    
+    return false if ex_and_deceased_spouses.empty?
+    
+    # Check if candidate is a relative of any ex or deceased spouse
+    ex_and_deceased_spouses.each do |spouse|
+      # Check if candidate is a relative (parent, child, sibling) of this spouse
+      if spouse.parents.include?(candidate) || 
+         spouse.children.include?(candidate) || 
+         spouse.siblings.include?(candidate)
+        
+        # Ensure candidate is not blood related to person (already checked in marriage_allowed? but double-check)
+        return true unless BloodRelationshipDetector.blood_related?(person, candidate)
+      end
+    end
+    
+    false
+  end
 
   def direct_parent_child?
     @person1.children.include?(@person2) || @person2.children.include?(@person1)

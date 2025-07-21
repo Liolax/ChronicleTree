@@ -986,6 +986,254 @@ const getGenderSpecificRelation = (personId, maleRelation, femaleRelation, allPe
 };
 
 /**
+ * Enhanced function to detect ANY blood relationship between two people
+ * including all ancestor-descendant relationships regardless of depth
+ * @param {string} person1Id - First person's ID  
+ * @param {string} person2Id - Second person's ID
+ * @param {Array} relationships - Array of all relationships
+ * @param {Array} allPeople - Array of all people
+ * @returns {Object} - {isBloodRelated: boolean, relationship: string, depth: number}
+ */
+export const detectAnyBloodRelationship = (person1Id, person2Id, relationships, allPeople) => {
+  if (!person1Id || !person2Id || person1Id === person2Id) {
+    return { isBloodRelated: false, relationship: null, depth: 0 };
+  }
+
+  const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
+  const { parentToChildren, childToParents } = relationshipMaps;
+  
+  // Convert IDs to strings for consistent lookup
+  const p1Id = String(person1Id);
+  const p2Id = String(person2Id);
+  
+  // Check if person1 is an ancestor of person2 (any depth)
+  const ancestorResult = isAncestorOf(p1Id, p2Id, parentToChildren, 0);
+  if (ancestorResult.isAncestor) {
+    return {
+      isBloodRelated: true,
+      relationship: `${getGenerationName(ancestorResult.depth)}-ancestor`,
+      depth: ancestorResult.depth
+    };
+  }
+  
+  // Check if person2 is an ancestor of person1 (any depth)
+  const descendantResult = isAncestorOf(p2Id, p1Id, parentToChildren, 0);
+  if (descendantResult.isAncestor) {
+    return {
+      isBloodRelated: true,
+      relationship: `${getGenerationName(descendantResult.depth)}-descendant`,
+      depth: descendantResult.depth
+    };
+  }
+  
+  // Check for sibling relationships (same parents)
+  const p1Parents = childToParents.get(p1Id) || new Set();
+  const p2Parents = childToParents.get(p2Id) || new Set();
+  
+  if (p1Parents.size > 0 && p2Parents.size > 0) {
+    const sharedParents = [...p1Parents].filter(parent => p2Parents.has(parent));
+    if (sharedParents.length > 0) {
+      return {
+        isBloodRelated: true,
+        relationship: 'sibling',
+        depth: 0
+      };
+    }
+  }
+  
+  // Check for cousin relationships (shared ancestors)
+  const cousinResult = findCousinRelationship(p1Id, p2Id, parentToChildren, childToParents);
+  if (cousinResult.isCousin) {
+    return {
+      isBloodRelated: true,
+      relationship: cousinResult.relationship,
+      depth: cousinResult.depth
+    };
+  }
+  
+  // Use the existing relationship calculator for other blood relationships
+  const calculatedRelation = calculateRelationshipToRoot(
+    { id: person2Id }, 
+    { id: person1Id }, 
+    allPeople, 
+    relationships
+  );
+  
+  // Check if the calculated relationship indicates blood relation
+  if (isBloodRelationshipString(calculatedRelation)) {
+    return {
+      isBloodRelated: true,
+      relationship: calculatedRelation,
+      depth: getRelationshipDepth(calculatedRelation)
+    };
+  }
+  
+  return { isBloodRelated: false, relationship: null, depth: 0 };
+};
+
+/**
+ * Recursive function to check if person1 is an ancestor of person2
+ * @param {string} ancestorId - Potential ancestor's ID
+ * @param {string} descendantId - Potential descendant's ID
+ * @param {Map} parentToChildren - Parent to children map
+ * @param {number} depth - Current depth
+ * @param {Set} visited - Visited nodes to prevent cycles
+ * @returns {Object} - {isAncestor: boolean, depth: number}
+ */
+const isAncestorOf = (ancestorId, descendantId, parentToChildren, depth, visited = new Set()) => {
+  if (visited.has(descendantId)) {
+    return { isAncestor: false, depth: 0 }; // Prevent infinite loops
+  }
+  
+  visited.add(descendantId);
+  
+  const children = parentToChildren.get(ancestorId) || new Set();
+  
+  // Direct child relationship
+  if (children.has(descendantId)) {
+    return { isAncestor: true, depth: depth + 1 };
+  }
+  
+  // Check descendants of children (recursive)
+  for (const child of children) {
+    const result = isAncestorOf(child, descendantId, parentToChildren, depth + 1, new Set(visited));
+    if (result.isAncestor) {
+      return { isAncestor: true, depth: result.depth };
+    }
+  }
+  
+  return { isAncestor: false, depth: 0 };
+};
+
+/**
+ * Find cousin relationships between two people
+ * @param {string} person1Id - First person's ID
+ * @param {string} person2Id - Second person's ID
+ * @param {Map} parentToChildren - Parent to children map
+ * @param {Map} childToParents - Child to parents map
+ * @returns {Object} - {isCousin: boolean, relationship: string, depth: number}
+ */
+const findCousinRelationship = (person1Id, person2Id, parentToChildren, childToParents) => {
+  // Find common ancestors and their generation distance
+  const p1Ancestors = getAllAncestors(person1Id, childToParents);
+  const p2Ancestors = getAllAncestors(person2Id, childToParents);
+  
+  for (const [ancestor1, depth1] of p1Ancestors) {
+    for (const [ancestor2, depth2] of p2Ancestors) {
+      if (ancestor1 === ancestor2 && depth1 > 1 && depth2 > 1) {
+        // Found common ancestor at generation depth > 1 (not parent/grandparent)
+        const minDepth = Math.min(depth1, depth2);
+        const maxDepth = Math.max(depth1, depth2);
+        
+        if (minDepth === maxDepth) {
+          if (minDepth === 2) return { isCousin: true, relationship: '1st cousin', depth: 2 };
+          if (minDepth === 3) return { isCousin: true, relationship: '2nd cousin', depth: 3 };
+          return { isCousin: true, relationship: `${minDepth - 1}th cousin`, depth: minDepth };
+        } else {
+          const removedCount = maxDepth - minDepth;
+          return { 
+            isCousin: true, 
+            relationship: `${minDepth - 1}th cousin ${removedCount} time${removedCount > 1 ? 's' : ''} removed`, 
+            depth: minDepth 
+          };
+        }
+      }
+    }
+  }
+  
+  return { isCousin: false, relationship: null, depth: 0 };
+};
+
+/**
+ * Get all ancestors of a person with their depths
+ * @param {string} personId - Person's ID
+ * @param {Map} childToParents - Child to parents map
+ * @param {number} depth - Current depth
+ * @param {Set} visited - Visited nodes to prevent cycles
+ * @returns {Map} - Map of ancestor ID to depth
+ */
+const getAllAncestors = (personId, childToParents, depth = 1, visited = new Set()) => {
+  if (visited.has(personId)) {
+    return new Map(); // Prevent infinite loops
+  }
+  
+  visited.add(personId);
+  const ancestors = new Map();
+  const parents = childToParents.get(personId) || new Set();
+  
+  for (const parent of parents) {
+    ancestors.set(parent, depth);
+    
+    // Recursively get ancestors of this parent
+    const parentAncestors = getAllAncestors(parent, childToParents, depth + 1, new Set(visited));
+    for (const [ancestor, ancestorDepth] of parentAncestors) {
+      if (!ancestors.has(ancestor) || ancestors.get(ancestor) > ancestorDepth) {
+        ancestors.set(ancestor, ancestorDepth);
+      }
+    }
+  }
+  
+  return ancestors;
+};
+
+/**
+ * Get generation name for a given depth
+ * @param {number} depth - Generation depth
+ * @returns {string} - Generation name
+ */
+const getGenerationName = (depth) => {
+  switch (depth) {
+    case 1: return 'parent/child';
+    case 2: return 'grandparent/grandchild';
+    case 3: return 'great-grandparent/great-grandchild';
+    case 4: return 'great-great-grandparent/great-great-grandchild';
+    default: return depth > 4 ? `${depth - 2}x-great-grandparent/grandchild` : 'related';
+  }
+};
+
+/**
+ * Check if a relationship string indicates a blood relationship
+ * @param {string} relationship - Relationship string
+ * @returns {boolean} - True if blood relationship
+ */
+const isBloodRelationshipString = (relationship) => {
+  if (!relationship || relationship === 'Unrelated') return false;
+  
+  const bloodKeywords = [
+    'parent', 'child', 'father', 'mother', 'son', 'daughter',
+    'brother', 'sister', 'sibling',
+    'grandfather', 'grandmother', 'grandparent', 'grandson', 'granddaughter', 'grandchild',
+    'great-grandfather', 'great-grandmother', 'great-grandparent', 'great-grandson', 'great-granddaughter', 'great-grandchild',
+    'uncle', 'aunt', 'nephew', 'niece',
+    'cousin'
+  ];
+  
+  const lowerRelation = relationship.toLowerCase();
+  return bloodKeywords.some(keyword => lowerRelation.includes(keyword));
+};
+
+/**
+ * Get relationship depth from relationship string
+ * @param {string} relationship - Relationship string
+ * @returns {number} - Relationship depth
+ */
+const getRelationshipDepth = (relationship) => {
+  if (!relationship) return 0;
+  
+  const lowerRelation = relationship.toLowerCase();
+  
+  if (lowerRelation.includes('parent') || lowerRelation.includes('child')) return 1;
+  if (lowerRelation.includes('sibling') || lowerRelation.includes('brother') || lowerRelation.includes('sister')) return 0;
+  if (lowerRelation.includes('grandparent') || lowerRelation.includes('grandchild')) return 2;
+  if (lowerRelation.includes('great-grandparent') || lowerRelation.includes('great-grandchild')) return 3;
+  if (lowerRelation.includes('uncle') || lowerRelation.includes('aunt') || lowerRelation.includes('nephew') || lowerRelation.includes('niece')) return 2;
+  if (lowerRelation.includes('1st cousin')) return 2;
+  if (lowerRelation.includes('2nd cousin')) return 3;
+  
+  return 1;
+};
+
+/**
  * Get all people and their relationships to a root person
  * @param {Object} rootPerson - The root person
  * @param {Array} allPeople - Array of all people

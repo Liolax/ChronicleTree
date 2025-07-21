@@ -8,8 +8,10 @@ export const showValidationAlert = (type, details = {}) => {
       : 'Both people must be at least 16 years old to marry.',
     
     bloodRelatives: relationship === 'spouse' 
-      ? 'Blood relatives cannot marry.'
+      ? 'Blood relatives cannot marry - incestuous relationships are prohibited.'
       : 'Blood relatives cannot have children together.',
+      
+    remarriageAllowed: 'Complex remarriage scenario allowed: This person can marry their ex-spouse\'s relative since there is no blood relationship.',
     
     ageDifference: 'Parents must be at least 12 years older than their children.',
     

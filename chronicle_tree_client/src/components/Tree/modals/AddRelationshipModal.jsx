@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Modal from '../../UI/Modal';
 import RelationshipForm from '../../Forms/RelationshipForm';
 import { createRelationship, useFullTree } from '../../../services/people';
-import { calculateRelationshipToRoot } from '../../../utils/improvedRelationshipCalculator';
+import { calculateRelationshipToRoot, detectAnyBloodRelationship } from '../../../utils/improvedRelationshipCalculator';
 import { showValidationAlert } from '../../../utils/validationAlerts';
 
 const RELATIONSHIP_TYPE_OPTIONS = [
@@ -36,12 +36,13 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     },
   });
 
-  // Enhanced blood relationship detection (same as in RelationshipManager)
+  // Enhanced blood relationship detection using comprehensive algorithm
   const detectBloodRelationship = (person1Id, person2Id) => {
     if (!treeData?.nodes || !treeData?.edges) {
       return { isBloodRelated: false, relationship: null, degree: null };
     }
 
+    // Convert edges to relationships format for the enhanced detector
     const relationships = treeData.edges.map(edge => ({
       from: edge.source,
       to: edge.target, 
@@ -50,26 +51,61 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       is_deceased: edge.is_deceased
     }));
 
-    const relationshipToRoot = calculateRelationshipToRoot(person2Id, person1Id, relationships, treeData.nodes);
+    // Use the comprehensive blood relationship detector that catches ALL blood relations
+    const bloodResult = detectAnyBloodRelationship(person1Id, person2Id, relationships, treeData.nodes);
     
-    const bloodRelationships = [
-      'Parent', 'Child', 'Father', 'Mother', 'Son', 'Daughter',
-      'Brother', 'Sister', 'Sibling',
-      'Grandfather', 'Grandmother', 'Grandparent', 'Grandson', 'Granddaughter', 'Grandchild',
-      'Great-Grandfather', 'Great-Grandmother', 'Great-Grandparent', 'Great-Grandson', 'Great-Granddaughter', 'Great-Grandchild',
-      'Uncle', 'Aunt', 'Nephew', 'Niece',
-      '1st Cousin', '2nd Cousin', 'Cousin'
-    ];
+    if (bloodResult.isBloodRelated) {
+      console.log(`🩸 BLOOD RELATIONSHIP DETECTED (Modal): Person ${person1Id} and ${person2Id} are related as ${bloodResult.relationship} (depth: ${bloodResult.depth})`);
+      return {
+        isBloodRelated: true,
+        relationship: bloodResult.relationship,
+        degree: bloodResult.depth
+      };
+    }
 
-    const isBloodRelated = bloodRelationships.some(rel => 
-      relationshipToRoot && relationshipToRoot.toLowerCase().includes(rel.toLowerCase())
+    return { isBloodRelated: false, relationship: null, degree: null };
+  };
+
+  // Helper to check if a person is an ex or deceased spouse's relative (but not blood related to current person)
+  // ✅ COMPLEX REMARRIAGE SCENARIOS SUPPORTED:
+  // - Marrying ex-spouse's sibling (if no blood relation)
+  // - Marrying deceased spouse's relative (if no blood relation)
+  // ❌ ALWAYS PREVENTED: Any blood relative regardless of previous marriages
+  const isAllowedRemarriageRelative = (currentPersonId, candidateId) => {
+    const currentPerson = people.find(p => p.id === parseInt(currentPersonId));
+    if (!currentPerson?.relatives) return false;
+    
+    // Get all ex-spouses and deceased spouses of the current person
+    const exAndDeceasedSpouses = currentPerson.relatives.filter(rel => 
+      rel.relationship_type === 'spouse' && (rel.is_ex || people.find(p => p.id === rel.id)?.date_of_death)
     );
 
-    return {
-      isBloodRelated,
-      relationship: relationshipToRoot,
-      degree: isBloodRelated ? 1 : null
-    };
+    if (exAndDeceasedSpouses.length === 0) return false;
+
+    // Check if candidate is a relative of any ex or deceased spouse
+    for (const spouse of exAndDeceasedSpouses) {
+      const spousePerson = people.find(p => p.id === spouse.id);
+      if (spousePerson?.relatives) {
+        // Check if candidate is a relative of this ex/deceased spouse
+        const isRelativeOfSpouse = spousePerson.relatives.some(rel => rel.id === candidateId);
+        if (isRelativeOfSpouse) {
+          // CRITICAL: Ensure candidate is not blood related to current person
+          const bloodCheck = detectBloodRelationship(currentPersonId, candidateId);
+          if (!bloodCheck.isBloodRelated) {
+            const spouseStatus = spouse.is_ex ? 'ex-spouse' : 'deceased spouse';
+            const candidatePerson = people.find(p => p.id === candidateId);
+            const spouseRelType = spousePerson.relatives.find(rel => rel.id === candidateId)?.relationship_type;
+            
+            console.log(`✅ ALLOWED REMARRIAGE: ${candidatePerson?.first_name} ${candidatePerson?.last_name} is ${spouseRelType} of ${spouseStatus} ${spousePerson.first_name} ${spousePerson.last_name}, with no blood relation to current person`);
+            return true; // ✅ Allowed - relative of ex/deceased spouse but not blood related to current person
+          } else {
+            console.log(`❌ BLOCKED REMARRIAGE: Blood relationship detected - ${bloodCheck.relationship}`);
+          }
+        }
+      }
+    }
+
+    return false;
   };
 
   // Helper to validate age constraints for relationships
@@ -132,13 +168,31 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
     }
     
-    // Enhanced validation for spouses - prevent marriage between blood relatives
+    // Enhanced validation for spouses - complex remarriage scenarios
     if (type === 'spouse') {
+      // ALWAYS prevent marriage between blood relatives regardless of previous marriages
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
-          reason: `Cannot marry blood relative (${bloodCheck.relationship})` 
+          reason: `Cannot marry blood relative (${bloodCheck.relationship}) - incestuous relationships are prohibited` 
         };
+      }
+      
+      // ✅ COMPLEX REMARRIAGE SCENARIOS - Allow these specific cases:
+      // 1. Marrying ex-spouse's sibling (if no blood relation to current person)
+      // 2. Marrying deceased spouse's relative (if no blood relation to current person)
+      const isRemarriageRelative = isAllowedRemarriageRelative(person1Id, person2Id);
+      if (isRemarriageRelative) {
+        // Double-check no blood relationship exists (this should already be verified in isAllowedRemarriageRelative)
+        const finalBloodCheck = detectBloodRelationship(person1Id, person2Id);
+        if (finalBloodCheck.isBloodRelated) {
+          return { 
+            valid: false, 
+            reason: `Cannot marry ${person2.first_name} ${person2.last_name} - blood relationship detected (${finalBloodCheck.relationship})` 
+          };
+        }
+        // If we reach here, this is an allowed remarriage scenario
+        return { valid: true };
       }
     }
     
