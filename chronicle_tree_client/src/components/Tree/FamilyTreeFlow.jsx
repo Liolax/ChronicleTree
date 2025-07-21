@@ -296,8 +296,8 @@ const FamilyTree = () => {
       onDelete: handleDeletePerson,
       onPersonCardOpen: openPersonCard,
       onRestructure: handleRestructureTree,
-    });
-  }, [processedData, handleEditPerson, handleDeletePerson, openPersonCard, handleRestructureTree]);
+    }, rootPersonId);
+  }, [processedData, handleEditPerson, handleDeletePerson, openPersonCard, handleRestructureTree, rootPersonId]);
 
   // Debug: Log layouted nodes and edges
   React.useEffect(() => {

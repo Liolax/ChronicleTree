@@ -92,10 +92,11 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     relationships: connectedRelationships,
   };
 }
-export const createFamilyTreeLayout = (persons, relationships, handlers = {}) => {
+export const createFamilyTreeLayout = (persons, relationships, handlers = {}, rootPersonId = null) => {
   // Debug: Print incoming persons and relationships
   console.log('createFamilyTreeLayout: persons:', persons);
   console.log('createFamilyTreeLayout: relationships:', relationships);
+  console.log('createFamilyTreeLayout: rootPersonId:', rootPersonId);
   if (!persons || !relationships) {
     return { nodes: [], edges: [] };
   }
@@ -103,15 +104,23 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}) =>
   // Step 1: Build relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships);
   
-  // Step 2: Find root nodes (people with no parents)
-  const rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
-  console.log('createFamilyTreeLayout: computed rootNodes:', rootNodes);
+  // Step 2: Determine root nodes - use selected root person if provided, otherwise find natural roots
+  let rootNodes;
+  if (rootPersonId) {
+    // Use the selected root person as the only root
+    rootNodes = [String(rootPersonId)];
+    console.log('createFamilyTreeLayout: using selected root:', rootNodes);
+  } else {
+    // Find root nodes (people with no parents)
+    rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
+    console.log('createFamilyTreeLayout: computed natural rootNodes:', rootNodes);
+  }
   
   // Step 3: Calculate generations for each person
-  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes);
+  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren);
   
-  // Step 4: Create nodes with hierarchical positioning
-  const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers);
+  // Step 4: Create nodes with hierarchical positioning (prioritize rootPersonId)
+  const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId);
   
   // Step 5: Create simplified edges (no duplication)
   const edges = createSimplifiedEdges(relationships, relationshipMaps);
@@ -129,6 +138,9 @@ const buildRelationshipMaps = (relationships) => {
   const childToParents = new Map();
   const spouseMap = new Map();
   const siblingMap = new Map();
+  
+  console.log('=== DEBUG buildRelationshipMaps ===');
+  console.log('Input relationships:', relationships);
 
   relationships.forEach(rel => {
     const source = String(rel.source || rel.from);
@@ -140,6 +152,7 @@ const buildRelationshipMaps = (relationships) => {
     switch (relationshipType) {
       case 'parent':
         // Parent -> Child relationship
+        console.log(`Processing parent relationship: ${source} -> ${target}`);
         if (!parentToChildren.has(source)) {
           parentToChildren.set(source, new Set());
         }
@@ -215,10 +228,15 @@ const findRootNodes = (persons, childToParents) => {
  * @param {Array} rootNodes - Array of root node IDs
  * @returns {Map} - Map of person ID to generation level
  */
-const calculateGenerations = (persons, childToParents, rootNodes) => {
+const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren) => {
   const generations = new Map();
   const visited = new Set();
   const queue = [];
+
+  console.log('=== DEBUG calculateGenerations ===');
+  console.log('rootNodes:', rootNodes);
+  console.log('parentToChildren map:', parentToChildren);
+  console.log('childToParents map:', childToParents);
 
   // Start with root nodes at generation 0
   rootNodes.forEach(rootId => {
@@ -233,24 +251,45 @@ const calculateGenerations = (persons, childToParents, rootNodes) => {
     visited.add(id);
     
     generations.set(id, generation);
+    console.log(`Person ${id} assigned to generation ${generation}`);
     
-    // Add children to next generation
-    const children = getChildrenOfPerson(id, childToParents);
-    children.forEach(childId => {
-      if (!visited.has(childId)) {
-        queue.push({ id: childId, generation: generation + 1 });
-      }
-    });
+    // Add children to next generation (lower/positive generations)
+    if (parentToChildren && parentToChildren.has(id)) {
+      const children = parentToChildren.get(id);
+      console.log(`Person ${id} has children:`, Array.from(children));
+      children.forEach(childId => {
+        if (!visited.has(childId)) {
+          queue.push({ id: childId, generation: generation + 1 });
+        }
+      });
+    } else {
+      console.log(`Person ${id} has no children in parentToChildren map`);
+    }
+    
+    // Add parents to previous generation (higher/negative generations)
+    if (childToParents && childToParents.has(id)) {
+      const parents = childToParents.get(id);
+      console.log(`Person ${id} has parents:`, Array.from(parents));
+      parents.forEach(parentId => {
+        if (!visited.has(parentId)) {
+          queue.push({ id: parentId, generation: generation - 1 });
+        }
+      });
+    } else {
+      console.log(`Person ${id} has no parents in childToParents map`);
+    }
   }
 
   // Handle any unvisited nodes (orphaned nodes)
   persons.forEach(person => {
     const id = String(person.id);
     if (!generations.has(id)) {
+      console.log(`Orphaned person ${id} assigned to generation 0`);
       generations.set(id, 0);
     }
   });
 
+  console.log('Final generations map:', generations);
   return generations;
 };
 
@@ -278,20 +317,41 @@ const getChildrenOfPerson = (personId, childToParents) => {
  * @param {Object} handlers - Event handlers
  * @returns {Array} - Array of positioned nodes
  */
-const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
+const createHierarchicalNodes = (persons, generations, spouseMap, handlers, rootPersonId = null) => {
   const nodes = [];
   const generationGroups = new Map();
 
   // Group persons by generation
+  console.log('=== DEBUG createHierarchicalNodes ===');
+  console.log('generations map:', generations);
   persons.forEach(person => {
     const id = String(person.id);
     const generation = generations.get(id) || 0;
+    console.log(`Person ${id} (${person.first_name}) -> generation ${generation}`);
     
     if (!generationGroups.has(generation)) {
       generationGroups.set(generation, []);
     }
     generationGroups.get(generation).push(person);
   });
+  console.log('generationGroups:', generationGroups);
+
+  // Sort each generation to prioritize oldest person first (leftmost position)
+  for (const [generation, generationPersons] of generationGroups) {
+    generationPersons.sort((a, b) => {
+      // Sort by birth date (oldest first)
+      if (a.date_of_birth && b.date_of_birth) {
+        const dateA = new Date(a.date_of_birth);
+        const dateB = new Date(b.date_of_birth);
+        return dateA.getTime() - dateB.getTime(); // Older person (earlier date) comes first
+      }
+      // If one has birth date and other doesn't, prioritize the one with birth date
+      if (a.date_of_birth && !b.date_of_birth) return -1;
+      if (!a.date_of_birth && b.date_of_birth) return 1;
+      // If neither has birth date, sort by name for consistent ordering
+      return (a.first_name + ' ' + a.last_name).localeCompare(b.first_name + ' ' + b.last_name);
+    });
+  }
 
   // Layout constants - enhanced spacing for better visual hierarchy
   const GENERATION_HEIGHT = 450;  // Increased vertical spacing between generations
@@ -317,6 +377,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers) => {
 
   // Position nodes generation by generation
   for (const [generation, generationPersons] of generationGroups) {
+    // Handle negative generations (ancestors above root)
     const y = generation * GENERATION_HEIGHT;
     const processedPersons = new Set();
 

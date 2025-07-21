@@ -208,7 +208,131 @@ The Add New Person modal (and all other validation points) now provide short, cl
 
 All validation alerts are now consistent across the entire application! 🎉
 
-## No More Generic Error Messages! All Validation Issues Fixed
+
+## Robust Parent and Sibling Filtering Validation (Automated Test Coverage)
+
+### Parent Filtering
+
+Created `test_robust_parent_filtering.rake` to validate:
+
+**Parent Filtering Tests:**
+- ❌ Great-grandfather as parent (blood relative)
+- ❌ Grandfather as parent (blood relative)
+- ❌ Father as parent (already exists)
+- ❌ Sibling as parent (same generation)
+- ❌ Too young candidate (5-year gap)
+- ❌ Too old candidate (75-year gap)
+- ❌ Deceased candidate (died before birth)
+- ✅ Good candidate (30-year gap, unrelated)
+
+**Child Filtering Tests:**
+- ❌ Sibling as child (blood relative)
+- ❌ Grandfather as child (blood relative)
+- ❌ Too old child (5-year gap)
+- ✅ Young child (20-year gap, unrelated)
+
+🎯 **Result:**
+
+Parent filtering is now extremely robust and will prevent:
+- ALL blood relatives from becoming parents/children
+- Age-inappropriate relationships (too young, too old)
+- Generational impossibilities (siblings as parents)
+- Timeline violations (deceased before birth)
+- Biological impossibilities (more than 2 parents)
+
+Your family tree will now maintain biological reality and logical family structures! 🎉
+
+---
+
+## Enhanced Robust Sibling Filtering
+
+Significantly enhanced the robustness of sibling filtering. Previous problems and fixes:
+
+🚨 **Previous Problems with Sibling Filtering:**
+1. Weak generational logic – parents/grandparents could become siblings
+2. No shared parent validation – missing constraint for biological siblings
+3. Insufficient age validation – no realistic age gap limits
+4. Missing timeline validation – dead people could be siblings of people born after their death
+5. No blood relationship depth – only checked some specific relationships
+6. No step-sibling logic – couldn't distinguish between biological and step-siblings
+
+✅ **Enhanced Robust Sibling Filtering Now Includes:**
+1. Comprehensive generational blocking (blocks all ancestor-descendant relationships)
+2. CRITICAL: Shared parent validation (siblings must share at least one parent or have parents married to each other)
+3. Enhanced age validation (max 25-year age gap for siblings)
+4. Timeline validation (siblings cannot exist if one died before the other was born)
+5. Blood relationship depth detection (prevents all blood relatives from inappropriate sibling relationships)
+6. Step-sibling support (allows siblings when they share a biological parent or have parents married to each other)
+7. Existing relationship conflict prevention (parent-child cannot become siblings, prevents duplicates)
+
+**Backend Example:**
+```ruby
+# CRITICAL: Validate that siblings share at least one parent
+person_parents = person.parents.pluck(:id).sort
+relative_parents = relative.parents.pluck(:id).sort
+shared_parents = person_parents & relative_parents
+
+# Must share biological parent OR have step-relationship
+unless shared_parents.any?
+  # Check for step-sibling relationship
+  person.parents.each do |person_parent|
+    relative.parents.each do |relative_parent|
+      if person_parent.spouses.include?(relative_parent)
+        has_step_relationship = true
+      end
+    end
+  end
+  unless has_step_relationship
+    error: "siblings must share at least one parent or have parents married to each other"
+  end
+end
+```
+
+**Step-sibling logic (frontend):**
+```js
+// Block all ancestor-descendant relationships
+if (lowerRel.includes('parent') || lowerRel.includes('child') ||
+    lowerRel.includes('father') || lowerRel.includes('mother') ||
+    lowerRel.includes('grandparent') || lowerRel.includes('grandchild') ||
+    lowerRel.includes('great-grand')) {
+  return {
+    valid: false,
+    reason: `Cannot be siblings with ${bloodCheck.relationship.toLowerCase()} - different generations`
+  };
+}
+```
+
+---
+
+### 🧪 Test Coverage
+
+Created `test_robust_sibling_filtering.rake` to validate:
+
+**Sibling Filtering Tests:**
+- ❌ Great-grandfather as sibling (different generation)
+- ❌ Grandfather as sibling (different generation)
+- ❌ Father as sibling (already parent)
+- ❌ Uncle as sibling (different generation)
+- ❌ Existing sibling as sibling (duplicate)
+- ❌ Cousin as sibling (blood relative)
+- ❌ Too old candidate (35-year gap)
+- ❌ Deceased before birth (timeline violation)
+- ✅ Step-sibling (parents married to each other)
+- ✅ Good biological sibling (shares parent, appropriate age)
+
+🎯 **Result:**
+
+Sibling filtering is now extremely robust and will prevent:
+- ALL different-generation relationships (parents, grandparents, uncles as siblings)
+- Age-inappropriate relationships (> 25-year gap)
+- Timeline violations (died before birth)
+- Blood relatives from inappropriate sibling relationships
+- Siblings without shared parents or step-relationships
+
+MOST CRITICALLY: The backend now enforces that biological siblings must share at least one parent or have a step-relationship through married parents. This is the fundamental biological constraint that was missing!
+
+Your family tree will now maintain logical family structures and biological reality! 🎉
+
 
 All validation alerts now provide:
 - ✅ Clear explanations of what went wrong
