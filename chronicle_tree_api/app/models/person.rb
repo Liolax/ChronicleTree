@@ -106,6 +106,27 @@ class Person < ApplicationRecord
     date_of_death.present?
   end
 
+  # Validation method for marriage age
+  def marriage_age_valid?
+    return { valid: true } unless date_of_birth.present?
+    
+    current_date = Date.current
+    age = ((current_date - date_of_birth).to_f / 365.25).round(1)
+    
+    # Check if this person has any spouse relationships
+    spouse_relationships = relationships.where(relationship_type: "spouse") + 
+                          related_by_relationships.where(relationship_type: "spouse")
+    
+    if spouse_relationships.any? && age < 16
+      return { 
+        valid: false, 
+        error: "#{first_name} #{last_name} is only #{age} years old. Minimum marriage age is 16 years."
+      }
+    end
+    
+    { valid: true }
+  end
+
   # Validation methods for parent-child relationships
   def can_be_parent_of?(child)
     return { valid: false, error: "Child person is required" } if child.nil?

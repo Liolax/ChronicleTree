@@ -4,6 +4,7 @@ import Input from '../UI/Input';
 import Button from '../UI/Button';
 import { usePerson, useFullTree } from '../../services/people';
 import { calculateRelationshipToRoot } from '../../utils/improvedRelationshipCalculator';
+import { showValidationAlert, validateMarriageAge } from '../../utils/validationAlerts';
 
 const EditPersonForm = ({ person, onSave, onCancel }) => {
   // Fetch detailed person data including relationships
@@ -70,39 +71,6 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
     };
   };
 
-  // Enhanced relationship validation for spouse date editing
-  const validateSpouseRelationshipConstraints = (newBirthDate, newDeathDate) => {
-    const spouses = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'spouse') || [];
-    const warnings = [];
-
-    for (const spouse of spouses) {
-      // Check for blood relationship violations when editing dates
-      const bloodCheck = detectBloodRelationship(person.id, spouse.id);
-      if (bloodCheck.isBloodRelated) {
-        warnings.push(`⚠️ Blood Relationship Warning:\n\n${person.first_name} ${person.last_name} is married to ${spouse.first_name} ${spouse.last_name}, but they are blood relatives (${bloodCheck.relationship}).\n\nThis relationship should be reviewed for appropriateness.`);
-      }
-
-      // Check for impossible spouse relationships based on birth dates
-      if (newBirthDate && spouse.date_of_death) {
-        const personBirth = new Date(newBirthDate);
-        const spouseDeath = new Date(spouse.date_of_death);
-        if (personBirth > spouseDeath) {
-          warnings.push(`⚠️ Timeline Warning:\n\n${person.first_name} ${person.last_name} would be born after their spouse ${spouse.first_name} ${spouse.last_name} died.\n\nBirth: ${newBirthDate}\nSpouse died: ${spouse.date_of_death}\n\nThis creates an impossible relationship timeline.`);
-        }
-      }
-
-      // Check for impossible spouse relationships based on death dates
-      if (newDeathDate && spouse.date_of_birth) {
-        const personDeath = new Date(newDeathDate);
-        const spouseBirth = new Date(spouse.date_of_birth);
-        if (personDeath < spouseBirth) {
-          warnings.push(`⚠️ Timeline Warning:\n\n${person.first_name} ${person.last_name} would have died before their spouse ${spouse.first_name} ${spouse.last_name} was born.\n\nDeath: ${newDeathDate}\nSpouse born: ${spouse.date_of_birth}\n\nThis creates an impossible relationship timeline.`);
-        }
-      }
-    }
-
-    return warnings;
-  };
 
   // Reset death date when 'Deceased' is unchecked
   React.useEffect(() => {
@@ -198,13 +166,29 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
               }
             }
             
-            // Enhanced validation - check for blood relationship and spouse constraint violations
-            const spouseWarnings = validateSpouseRelationshipConstraints(value, watch('deathDate'));
-            if (spouseWarnings.length > 0) {
-              // Show warnings for review but don't block the edit (user may need to fix legacy data)
-              setTimeout(() => {
-                spouseWarnings.forEach(warning => alert(warning));
-              }, 100);
+            // Check spouse constraints
+            const spouses = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'spouse') || [];
+            for (const spouse of spouses) {
+              // Check marriage age only if both have birth dates
+              if (value && spouse.date_of_birth) {
+                const currentDate = new Date();
+                const personAge = (currentDate - new Date(value)) / (1000 * 60 * 60 * 24 * 365.25);
+                const spouseAge = (currentDate - new Date(spouse.date_of_birth)) / (1000 * 60 * 60 * 24 * 365.25);
+                
+                if (personAge < 16) {
+                  setTimeout(() => {
+                    alert(`${person.first_name} ${person.last_name} would be ${personAge.toFixed(1)} years old. Minimum marriage age is 16.`);
+                  }, 100);
+                  return 'Too young to be married';
+                }
+              }
+              
+              // Check blood relationship
+              const bloodCheck = detectBloodRelationship(person.id, spouse.id);
+              if (bloodCheck.isBloodRelated) {
+                setTimeout(() => showValidationAlert('bloodRelatives', { relationship: 'spouse' }), 100);
+                return 'Blood relatives cannot marry';
+              }
             }
             
             return true;
@@ -254,13 +238,17 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
               }
             }
             
-            // Enhanced validation - check for blood relationship and spouse constraint violations
-            const spouseWarnings = validateSpouseRelationshipConstraints(watch('birthDate'), value);
-            if (spouseWarnings.length > 0) {
-              // Show warnings for review but don't block the edit (user may need to fix legacy data)
-              setTimeout(() => {
-                spouseWarnings.forEach(warning => alert(warning));
-              }, 100);
+            // Check timeline constraints
+            const spouses = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'spouse') || [];
+            for (const spouse of spouses) {
+              if (spouse.date_of_birth) {
+                const personDeath = new Date(value);
+                const spouseBirth = new Date(spouse.date_of_birth);
+                if (personDeath < spouseBirth) {
+                  setTimeout(() => showValidationAlert('timeline'), 100);
+                  return 'Timeline validation failed';
+                }
+              }
             }
             
             return true;

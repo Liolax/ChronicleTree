@@ -4,6 +4,7 @@ import Modal from '../../UI/Modal';
 import RelationshipForm from '../../Forms/RelationshipForm';
 import { createRelationship, useFullTree } from '../../../services/people';
 import { calculateRelationshipToRoot } from '../../../utils/improvedRelationshipCalculator';
+import { showValidationAlert } from '../../../utils/validationAlerts';
 
 const RELATIONSHIP_TYPE_OPTIONS = [
   { value: 'parent', label: 'Parent' },
@@ -71,12 +72,52 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     };
   };
 
+  // Helper to validate age constraints for relationships
+  const validateAgeConstraint = (person1, person2, relationshipType) => {
+    // For spouse relationships, require birth dates to validate marriage age
+    if (relationshipType === 'spouse') {
+      if (!person1?.date_of_birth) {
+        return { valid: false, reason: `${person1?.first_name || 'Person'} ${person1?.last_name || ''} must have a birth date for marriage validation` };
+      }
+      if (!person2?.date_of_birth) {
+        return { valid: false, reason: `${person2?.first_name || 'Person'} ${person2?.last_name || ''} must have a birth date for marriage validation` };
+      }
+    } else if (!person1?.date_of_birth || !person2?.date_of_birth) {
+      return { valid: true }; // Allow if birth dates are unknown for non-spouse relationships
+    }
+    
+    const person1Birth = new Date(person1.date_of_birth);
+    const person2Birth = new Date(person2.date_of_birth);
+    
+    if (relationshipType === 'spouse') {
+      // Minimum marriage age validation - both people must be at least 16 years old
+      const currentDate = new Date();
+      const person1Age = (currentDate.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      const person2Age = (currentDate.getTime() - person2Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      
+      if (person1Age < 16) {
+        return { valid: false, reason: `${person1.first_name} ${person1.last_name} is only ${person1Age.toFixed(1)} years old. Minimum marriage age is 16 years` };
+      }
+      if (person2Age < 16) {
+        return { valid: false, reason: `${person2.first_name} ${person2.last_name} is only ${person2Age.toFixed(1)} years old. Minimum marriage age is 16 years` };
+      }
+    }
+    
+    return { valid: true };
+  };
+
   // Enhanced relationship constraint validation
   const validateRelationshipConstraints = (person1Id, person2Id, type) => {
     const person1 = people.find(p => p.id === parseInt(person1Id));
     const person2 = people.find(p => p.id === parseInt(person2Id));
     
     if (!person1 || !person2) return { valid: false, reason: 'Person not found' };
+
+    // Age validation
+    const ageCheck = validateAgeConstraint(person1, person2, type);
+    if (!ageCheck.valid) {
+      return ageCheck;
+    }
 
     // Blood relationship detection
     const bloodCheck = detectBloodRelationship(person1Id, person2Id);
@@ -145,6 +186,24 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     // Validate relationship constraints before submitting
     const validation = validateRelationshipConstraints(data.selectedId, selectedPerson?.id, selectedType);
     if (!validation.valid) {
+      // Determine alert type based on validation reason
+      let alertType = 'invalidRelationship';
+      let alertDetails = {};
+      
+      if (validation.reason.includes('marriage age') || validation.reason.includes('16 years')) {
+        alertType = 'marriageAge';
+      } else if (validation.reason.includes('blood relative') || validation.reason.includes('Blood relatives')) {
+        alertType = 'bloodRelatives';
+        alertDetails = { relationship: selectedType };
+      } else if (validation.reason.includes('maximum') || validation.reason.includes('biological parents')) {
+        alertType = 'maxParents';
+        const targetPerson = people.find(p => p.id === parseInt(data.selectedId));
+        alertDetails = { targetName: targetPerson ? `${targetPerson.first_name} ${targetPerson.last_name}` : 'Person' };
+      } else if (validation.reason.includes('birth date')) {
+        alertType = 'missingData';
+      }
+      
+      showValidationAlert(alertType, alertDetails);
       setWarning(validation.reason);
       return;
     }

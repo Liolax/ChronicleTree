@@ -147,6 +147,19 @@ module Api
               }, status: :unprocessable_entity
               raise ActiveRecord::Rollback
             end
+            
+            # Check marriage age validation if person has spouses
+            spouse_relationships = @person.relationships.where(relationship_type: "spouse") + 
+                                 @person.related_by_relationships.where(relationship_type: "spouse")
+            
+            if spouse_relationships.any?
+              age = ((Date.current - birth_date).to_f / 365.25).round(1)
+              if age < 16
+                error_msg = "Cannot update birth date. #{@person.first_name} #{@person.last_name} would be only #{age} years old. Minimum marriage age is 16 years."
+                render json: { errors: [error_msg] }, status: :unprocessable_entity
+                raise ActiveRecord::Rollback
+              end
+            end
           end
           
           # Validate death date against existing relationships  

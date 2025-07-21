@@ -14,6 +14,7 @@ class Relationship < ApplicationRecord
   validate  :person_is_not_relative
   validate  :valid_relationship_type
   validate  :only_one_current_spouse, if: -> { relationship_type == "spouse" && !is_ex && !is_deceased }
+  validate  :minimum_marriage_age, if: -> { relationship_type == "spouse" }
 
   # Add scopes for different spouse types
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
@@ -35,12 +36,12 @@ class Relationship < ApplicationRecord
     when "parent", "child"
       # Prevent parent/child relationships between spouses
       if person.spouses.include?(relative)
-        errors.add(:base, "A spouse cannot be a parent or child.")
+        errors.add(:base, "Blood relatives cannot marry.")
       end
     when "spouse"
       # Prevent spouse relationship between parent/child
       if person.parents.include?(relative) || person.children.include?(relative)
-        errors.add(:base, "A parent or child cannot be a spouse.")
+        errors.add(:base, "Blood relatives cannot marry.")
       end
     when "sibling"
       # Siblings must share at least one parent
@@ -64,7 +65,24 @@ class Relationship < ApplicationRecord
     existing = existing.where.not(id: id) if persisted?
     
     if existing.exists?
-      errors.add(:base, "A person can only have one current spouse at a time.")
+      errors.add(:base, "Person already has a current spouse.")
+    end
+  end
+
+  def minimum_marriage_age
+    # Validate that both people in a spouse relationship are at least 16 years old
+    return unless person&.date_of_birth && relative&.date_of_birth
+    
+    current_date = Date.current
+    person_age = ((current_date - person.date_of_birth).to_f / 365.25).round(1)
+    relative_age = ((current_date - relative.date_of_birth).to_f / 365.25).round(1)
+    
+    if person_age < 16
+      errors.add(:base, "#{person.first_name} #{person.last_name} is only #{person_age} years old. Minimum marriage age is 16 years.")
+    end
+    
+    if relative_age < 16
+      errors.add(:base, "#{relative.first_name} #{relative.last_name} is only #{relative_age} years old. Minimum marriage age is 16 years.")
     end
   end
 

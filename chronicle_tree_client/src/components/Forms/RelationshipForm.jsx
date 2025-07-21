@@ -53,7 +53,7 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
             <p className="text-xs text-yellow-700 mt-1">
               People may be filtered out due to:
               <br />• Blood relationship restrictions (siblings, cousins, etc. cannot marry or have shared children)
-              <br />• Age constraints (12+ year gap for parent-child relationships)
+              <br />• Age constraints (12+ year gap for parent-child relationships, 16+ years for marriage)
               <br />• Existing relationships (max 2 parents, 1 current spouse)
               <br />• Relationship logic (parents cannot be siblings with their children)
             </p>

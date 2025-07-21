@@ -25,7 +25,8 @@
       "Bash(find:*)",
       "Bash(redis-server:*)",
       "Bash(npm start)",
-      "Bash(npx eslint:*)"
+      "Bash(npx eslint:*)",
+      "Bash(bundle exec rails:*)"
     ],
     "deny": []
   }

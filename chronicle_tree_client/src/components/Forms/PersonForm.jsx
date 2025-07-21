@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
 import { useCurrentUser } from '../../services/users';
+import { showValidationAlert, validateMarriageAge, validateParentChildAge } from '../../utils/validationAlerts';
 
 const RELATIONSHIP_TYPES = [
   { value: '', label: 'Relationship Type' },
@@ -254,46 +255,42 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                             childPerson = selectedPerson;
                           }
 
-                          // Enhanced validation using the new constraint checking
+                          let alertType = null;
+                          let alertDetails = {};
+                          
+                          // Check relationship constraints
                           const constraintCheck = validateBloodRelationshipConstraints(selectedPersonId, currentBirthDate, currentRelationType);
                           if (!constraintCheck.valid) {
-                            alertMessage = `⚠️ Relationship Constraint Error:\n\n${constraintCheck.reason}`;
+                            alertType = 'invalidRelationship';
                           }
-                          
-                          // Check if selected person already has 2 parents (for parent relationship)
+                          // Check marriage age for spouse relationships
+                          else if (currentRelationType === 'spouse') {
+                            const marriageValidation = validateMarriageAge(
+                              { date_of_birth: currentBirthDate },
+                              selectedPerson
+                            );
+                            if (!marriageValidation.valid) {
+                              alertType = marriageValidation.type;
+                              alertDetails = marriageValidation.details;
+                            }
+                          }
+                          // Check parent limits
                           else if (currentRelationType === 'parent' && selectedPerson.parent_count >= 2) {
-                            alertMessage = `⚠️ Multiple Parents Error:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} already has 2 biological parents.\n\nA person can only have 2 biological parents.`;
+                            alertType = 'maxParents';
+                            alertDetails = { targetName: `${selectedPerson.first_name} ${selectedPerson.last_name}` };
                           }
-
-                          // Check age difference if birth dates are available
-                          else if (parentPerson.date_of_birth && childPerson.date_of_birth) {
-                            const parentBirth = new Date(parentPerson.date_of_birth);
-                            const childBirth = new Date(childPerson.date_of_birth);
-                            const ageDifferenceYears = (childBirth - parentBirth) / (365.25 * 24 * 60 * 60 * 1000);
-
-                            if (ageDifferenceYears < 12) {
-                              const parentName = parentPerson.first_name ? `${parentPerson.first_name} ${parentPerson.last_name}` : 'the parent';
-                              const childName = childPerson.first_name ? `${childPerson.first_name} ${childPerson.last_name}` : 'the child';
-                              
-                              if (ageDifferenceYears < 0) {
-                                // Parent is younger than child
-                                alertMessage = `⚠️ Age Validation Error:\n\n${parentName} (born ${parentPerson.date_of_birth}) is ${Math.abs(ageDifferenceYears).toFixed(1)} years YOUNGER than ${childName} (born ${childPerson.date_of_birth}).\n\nA parent cannot be younger than their child. Please correct the birth dates.`;
-                              } else {
-                                // Parent is older but not enough
-                                alertMessage = `⚠️ Age Validation Error:\n\n${parentName} is only ${ageDifferenceYears.toFixed(1)} years older than ${childName}.\n\nA parent must be at least 12 years older than their child. Please adjust the birth dates accordingly.`;
-                              }
+                          // Check parent-child age difference
+                          else if (['parent', 'child'].includes(currentRelationType)) {
+                            const ageValidation = validateParentChildAge(parentPerson, childPerson);
+                            if (!ageValidation.valid) {
+                              alertType = ageValidation.type;
                             }
                           }
 
-                          // Check deceased parent scenario (existing logic)
-                          else if (currentRelationType === 'child' && selectedPerson.date_of_death) {
-                            alertMessage = `ℹ️ Notice:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} is deceased (died ${selectedPerson.date_of_death}).\n\nWhen adding this person as a child, please ensure the birth date is before the parent's death date to maintain chronological accuracy.`;
-                          }
-
                           // Show validation alert if needed
-                          if (alertMessage) {
+                          if (alertType) {
                             setTimeout(() => {
-                              alert(alertMessage);
+                              showValidationAlert(alertType, alertDetails);
                             }, 100);
                           }
                         }

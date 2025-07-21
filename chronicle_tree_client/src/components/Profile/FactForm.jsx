@@ -66,7 +66,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
         setLocation('');
       }
     } catch (err) {
-      setError('Failed to save fact. Please check your input.');
+      setError('Unable to save fact. Please check your information.');
     } finally {
       setSubmitting(false);
     }

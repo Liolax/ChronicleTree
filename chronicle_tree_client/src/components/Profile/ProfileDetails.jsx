@@ -56,7 +56,7 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
       });
       if (onPersonUpdated) onPersonUpdated(res.data);
     } catch (err) {
-      setError('Failed to update profile.');
+      setError('Unable to update profile. Please check your information.');
     } finally {
       setSaving(false);
     }

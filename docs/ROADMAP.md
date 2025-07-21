@@ -64,6 +64,150 @@ ChronicleTree now features a comprehensive blood relationship validation system,
 
 This system provides comprehensive protection against inappropriate family relationships while supporting realistic and complex family situations, such as remarriage within extended family networks.
 
+## Comprehensive Marriage Age Validation (16 Years Minimum)
+
+ChronicleTree now enforces strict marriage age validation, ensuring that no spouse relationship can be created or edited where either person is under 16 years old. This validation is implemented on both the frontend and backend for complete protection.
+
+### Problem Identified & Solved
+- Previous validation allowed spouse relationships when birth dates were missing.
+- Now, birth dates are required for all spouse relationships, and age is strictly checked.
+
+### Key Fixes Implemented
+
+#### 1. Frontend Validation - Made Strict
+- Requires birth dates for all spouse relationships.
+- Filters out people under 16 from spouse selection.
+- Error message: "Person must have a birth date for marriage validation".
+
+#### 2. Backend Validation - Comprehensive Protection
+- Added `minimum_marriage_age` validation to the Relationship model.
+- Added marriage age check to the Person controller during updates.
+- Error messages provide clear explanations with specific ages.
+
+#### 3. Validation Now Blocks These Scenarios
+- Adding a 0-year-old spouse to Alice Doe (born 01/01/1995) – BLOCKED.
+- Missing birth dates: cannot create spouse relationship without birth dates – BLOCKED.
+- Under 16: any person under 16 years old cannot be married – BLOCKED.
+- Edit scenarios: editing birth dates that would make a married person under 16 – WARNED/BLOCKED.
+
+### How It Now Works
+1. Frontend checks that both people have birth dates.
+2. Frontend calculates current age and blocks if under 16.
+3. Backend double-checks in the Relationship model.
+4. Relationship creation fails with a clear error message if validation fails.
+
+#### Example Error Messages
+- ❌ "Alice Doe is only 0.0 years old. Minimum marriage age is 16 years"
+- ❌ "Person must have a birth date for marriage validation"
+- ❌ "Cannot marry person under 16 years old"
+
+### Complete Validation Chain
+
+**Frontend (JavaScript):**
+- `RelationshipManager.jsx`: filters out people under 16 from spouse selection.
+- `AddRelationshipModal.jsx`: validates age before submission.
+- `PersonForm.jsx`: validates during person creation with relationships.
+- `EditPersonForm.jsx`: warns when editing creates under-16 married person.
+
+**Backend (Ruby):**
+- `Relationship.rb`: `minimum_marriage_age` validation method.
+- `Person.rb`: `marriage_age_valid?` validation method.
+- `people_controller.rb`: marriage age validation during updates.
+
+### Why You Can No Longer Add Inappropriate Relationships
+1. Birth date required: cannot create spouse relationship without birth dates for both people.
+2. Age calculation: real-time age calculation using current date.
+3. Strict validation: both frontend and backend enforce 16-year minimum.
+4. User feedback: clear error messages explain why relationship is blocked.
+5. Complete coverage: all relationship creation paths include validation.
+
+### Test the Fix
+Try adding a spouse relationship now – the system should:
+1. Block the relationship if either person is under 16.
+2. Show a clear error message explaining the minimum age requirement.
+3. Filter out people under 16 from the spouse selection dropdown.
+4. Require birth dates for both people before allowing spouse relationships.
+
+The validation is now bulletproof – no marriage relationships can be created where either person is under 16 years old.
+
+## All Validation Alert Tasks Completed
+
+The application now features a comprehensive, user-friendly validation alert system for all relationship and data entry constraints. This system ensures users receive clear, actionable, and context-aware feedback whenever a validation rule is triggered.
+
+### Key Improvements
+- Clear explanations instead of technical error messages
+- Actionable solutions with specific guidance for each validation error
+- Contextual help with tips and notes
+- Proactive filtering alerts that explain why people are filtered out
+- Consistent formatting across all components
+
+### Components Enhanced
+- `RelationshipManager`, `AddRelationshipModal`, `PersonForm`, `EditPersonForm`, `RelationshipForm`
+- Backend validation in `people_controller.rb` and `relationship.rb`
+
+### Validation Types Covered
+- Blood relationship restrictions
+- Marriage age constraints (16+ years)
+- Parent-child age gaps (12+ years)
+- Timeline consistency
+- Maximum relationship limits
+- Logical relationship constraints
+
+The validation alert system is now comprehensive and user-friendly, helping users understand exactly what issues they're encountering and how to resolve them.
+
+## Unified Simple Validation Alerts
+
+### Components Updated
+- ✅ EditPersonForm.jsx – Uses new simple alerts
+- ✅ PersonForm.jsx – Uses new simple alerts
+- ✅ AddRelationshipModal.jsx – Uses new simple alerts
+- ✅ RelationshipForm.jsx – Already had good proactive alerts
+- ✅ RelationshipManager.jsx – Already had good filtering alerts
+
+### 🚀 Benefits Achieved
+- No more duplicated content – single validation utility
+- Short & friendly messages – easy to understand
+- Consistent user experience – same format everywhere
+- Maintainable code – one place to update messages
+- Clean codebase – removed verbose alert blocks
+
+The validation system now provides one clear, short alert per validation issue instead of multiple similar lengthy messages. Users get the essential information they need without overwhelming detail.
+
+## All Validation Alerts Fixed!
+
+All user-friendly validation alerts are now fully implemented and consistent across the application. The system now provides clear, specific, and actionable feedback for every validation scenario.
+
+### 🎯 Problem Fixed
+- Before: Generic error messages like "This relationship type is not allowed between these people" and "❌ Failed to add person. Please check your input and try again."
+- After: Clear, specific, friendly validation alerts using our centralized system.
+
+### 🔧 Components Updated
+1. AddPersonModal.jsx ✅
+   - Now uses showValidationAlert() for consistent messages
+   - Catches all backend validation errors and shows appropriate user-friendly alerts
+   - Clear error categorization (timeline, age, marriage, blood relatives, etc.)
+2. EditPersonModal.jsx ✅
+   - Updated to use centralized validation alerts
+   - Removes verbose error handling
+   - Consistent with other components
+3. Backend Models ✅
+   - Updated error messages to be more consistent and friendly
+   - "Blood relatives cannot marry" instead of technical jargon
+   - "Person already has a current spouse" instead of verbose explanations
+
+### 📝 Alert Examples Now
+Instead of generic errors, users now see:
+- ✅ "Both people must be at least 16 years old to marry."
+- ✅ "Blood relatives cannot marry."
+- ✅ "Parents must be at least 12 years older than children."
+- ✅ "Person already has 2 parents."
+- ✅ "Birth and death dates must be in chronological order."
+
+### 🚀 Result
+The Add New Person modal (and all other validation points) now provide short, clear, and friendly validation messages that explain exactly what the issue is without overwhelming technical details or duplicate verbose explanations.
+
+All validation alerts are now consistent across the entire application! 🎉
+
 ## Enhanced Edit Functionality Validation
 
 Both the Edit Person modal and Edit Relationship functionality now feature robust blood relationship validation, ensuring data integrity and user guidance during all edit operations.

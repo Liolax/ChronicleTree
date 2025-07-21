@@ -284,8 +284,16 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
 
   // Helper to validate age constraints for relationships
   const validateAgeConstraint = (person1, person2, relationshipType) => {
-    if (!person1?.date_of_birth || !person2?.date_of_birth) {
-      return { valid: true }; // Allow if birth dates are unknown
+    // For spouse relationships, require birth dates to validate marriage age
+    if (relationshipType === 'spouse') {
+      if (!person1?.date_of_birth) {
+        return { valid: false, reason: `${person1?.first_name || 'Person'} ${person1?.last_name || ''} must have a birth date for marriage validation` };
+      }
+      if (!person2?.date_of_birth) {
+        return { valid: false, reason: `${person2?.first_name || 'Person'} ${person2?.last_name || ''} must have a birth date for marriage validation` };
+      }
+    } else if (!person1?.date_of_birth || !person2?.date_of_birth) {
+      return { valid: true }; // Allow if birth dates are unknown for non-spouse relationships
     }
     
     const person1Birth = new Date(person1.date_of_birth);
@@ -308,8 +316,20 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       if (ageGapInYears < 12) {
         return { valid: false, reason: 'Child must be at least 12 years younger than parent' };
       }
+    } else if (relationshipType === 'spouse') {
+      // Minimum marriage age validation - both people must be at least 16 years old
+      const currentDate = new Date();
+      const person1Age = (currentDate.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      const person2Age = (currentDate.getTime() - person2Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+      
+      if (person1Age < 16) {
+        return { valid: false, reason: `${person1.first_name} ${person1.last_name} is only ${person1Age.toFixed(1)} years old. Minimum marriage age is 16 years` };
+      }
+      if (person2Age < 16) {
+        return { valid: false, reason: `${person2.first_name} ${person2.last_name} is only ${person2Age.toFixed(1)} years old. Minimum marriage age is 16 years` };
+      }
     }
-    // Note: Siblings, spouses, aunts/uncles can have flexible age differences
+    // Note: Siblings, aunts/uncles can have flexible age differences
     return { valid: true };
   };
 
@@ -344,13 +364,10 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     // Enhanced validation for spouses - prevent marriage between blood relatives
     if (type === 'spouse') {
       if (bloodCheck.isBloodRelated) {
-        // However, allow marriage to ex/widowed spouse's relatives if no blood relation
-        if (!isAllowedRemarriageRelative(candidateId)) {
-          return { 
-            valid: false, 
-            reason: `Cannot marry blood relative (${bloodCheck.relationship})` 
-          };
-        }
+        return { 
+          valid: false, 
+          reason: `Cannot marry blood relative (${bloodCheck.relationship})` 
+        };
       }
       
       // Prevent parent-child from becoming spouses (redundant with blood check but kept for clarity)
@@ -403,6 +420,128 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
     
     return { valid: true };
+  };
+
+  // Helper to get detailed filtering information for user alerts
+  const getFilteringInfo = (type) => {
+    const excludeIds = [person.id, ...getRelatedIds(type)];
+    const filteringReasons = {
+      alreadyRelated: [],
+      ageConstraints: [],
+      bloodRelationships: [],
+      marriageAge: [],
+      relationshipLimits: [],
+      missingData: []
+    };
+    
+    people.forEach(p => {
+      if (p.id === person.id) return; // Skip self
+      
+      // Check if already related
+      if (excludeIds.includes(p.id)) {
+        filteringReasons.alreadyRelated.push(`${p.first_name} ${p.last_name} (already related)`);
+        return;
+      }
+      
+      // Check relationship constraints and categorize reasons
+      const constraintCheck = checkRelationshipConstraints(p.id, type);
+      if (!constraintCheck.valid) {
+        const reason = constraintCheck.reason;
+        if (reason.includes('marriage age') || reason.includes('16 years')) {
+          filteringReasons.marriageAge.push(`${p.first_name} ${p.last_name} (${reason})`);
+        } else if (reason.includes('blood relative') || reason.includes('Blood relatives')) {
+          filteringReasons.bloodRelationships.push(`${p.first_name} ${p.last_name} (${reason})`);
+        } else if (reason.includes('12 years older') || reason.includes('age')) {
+          filteringReasons.ageConstraints.push(`${p.first_name} ${p.last_name} (${reason})`);
+        } else if (reason.includes('maximum') || reason.includes('already has')) {
+          filteringReasons.relationshipLimits.push(`${p.first_name} ${p.last_name} (${reason})`);
+        } else if (reason.includes('birth date')) {
+          filteringReasons.missingData.push(`${p.first_name} ${p.last_name} (${reason})`);
+        } else {
+          filteringReasons.bloodRelationships.push(`${p.first_name} ${p.last_name} (${reason})`);
+        }
+      }
+    });
+    
+    return filteringReasons;
+  };
+
+  // Show detailed filtering alert to help users understand what's being filtered
+  const showFilteringAlert = (type) => {
+    const filteringInfo = getFilteringInfo(type);
+    const totalFiltered = Object.values(filteringInfo).reduce((sum, arr) => sum + arr.length, 0);
+    
+    if (totalFiltered === 0) return;
+    
+    let alertMessage = `🔍 RELATIONSHIP FILTERING INFORMATION\n\n`;
+    alertMessage += `Adding ${type} relationship for ${person.first_name} ${person.last_name}\n\n`;
+    alertMessage += `${totalFiltered} people have been filtered out for the following reasons:\n\n`;
+    
+    if (filteringInfo.marriageAge.length > 0) {
+      alertMessage += `👶 MARRIAGE AGE RESTRICTIONS (${filteringInfo.marriageAge.length} people):\n`;
+      alertMessage += `• Minimum marriage age is 16 years\n`;
+      filteringInfo.marriageAge.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
+      if (filteringInfo.marriageAge.length > 3) {
+        alertMessage += `  - And ${filteringInfo.marriageAge.length - 3} more...\n`;
+      }
+      alertMessage += `\n`;
+    }
+    
+    if (filteringInfo.bloodRelationships.length > 0) {
+      alertMessage += `🧬 BLOOD RELATIONSHIP RESTRICTIONS (${filteringInfo.bloodRelationships.length} people):\n`;
+      alertMessage += `• Blood relatives cannot marry or have shared children\n`;
+      filteringInfo.bloodRelationships.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
+      if (filteringInfo.bloodRelationships.length > 3) {
+        alertMessage += `  - And ${filteringInfo.bloodRelationships.length - 3} more...\n`;
+      }
+      alertMessage += `\n`;
+    }
+    
+    if (filteringInfo.ageConstraints.length > 0) {
+      alertMessage += `📅 AGE CONSTRAINTS (${filteringInfo.ageConstraints.length} people):\n`;
+      alertMessage += `• Parents must be 12+ years older than children\n`;
+      filteringInfo.ageConstraints.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
+      if (filteringInfo.ageConstraints.length > 3) {
+        alertMessage += `  - And ${filteringInfo.ageConstraints.length - 3} more...\n`;
+      }
+      alertMessage += `\n`;
+    }
+    
+    if (filteringInfo.relationshipLimits.length > 0) {
+      alertMessage += `👥 RELATIONSHIP LIMITS (${filteringInfo.relationshipLimits.length} people):\n`;
+      alertMessage += `• Max 2 parents, 1 current spouse per person\n`;
+      filteringInfo.relationshipLimits.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
+      if (filteringInfo.relationshipLimits.length > 3) {
+        alertMessage += `  - And ${filteringInfo.relationshipLimits.length - 3} more...\n`;
+      }
+      alertMessage += `\n`;
+    }
+    
+    if (filteringInfo.missingData.length > 0) {
+      alertMessage += `📋 MISSING REQUIRED DATA (${filteringInfo.missingData.length} people):\n`;
+      alertMessage += `• Birth dates required for marriage validation\n`;
+      filteringInfo.missingData.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
+      if (filteringInfo.missingData.length > 3) {
+        alertMessage += `  - And ${filteringInfo.missingData.length - 3} more...\n`;
+      }
+      alertMessage += `\n`;
+    }
+    
+    if (filteringInfo.alreadyRelated.length > 0) {
+      alertMessage += `🔗 ALREADY RELATED (${filteringInfo.alreadyRelated.length} people):\n`;
+      filteringInfo.alreadyRelated.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
+      if (filteringInfo.alreadyRelated.length > 3) {
+        alertMessage += `  - And ${filteringInfo.alreadyRelated.length - 3} more...\n`;
+      }
+      alertMessage += `\n`;
+    }
+    
+    alertMessage += `💡 TIP: To add filtered people, you may need to:\n`;
+    alertMessage += `• Add missing birth dates\n`;
+    alertMessage += `• Wait for people to reach minimum age\n`;
+    alertMessage += `• Review family relationship structure\n`;
+    
+    alert(alertMessage);
   };
 
   // Filter people for each relationship type with enhanced constraints
@@ -471,10 +610,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       setAddType(null);
       if (onRelationshipAdded) onRelationshipAdded();
     } catch (err) {
-      setWarning(
-        err?.response?.data?.errors?.[0] ||
-        'This relationship is not allowed. Please check your selection.'
-      );
+      const errorMsg = err?.response?.data?.errors?.[0];
+      if (errorMsg) {
+        setWarning(errorMsg);
+      } else {
+        setWarning('Unable to create this relationship. Please check the selected people and relationship type.');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -610,9 +751,26 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                   <button
                     className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-blue-100 text-blue-600 text-xs"
                     title={`Add ${RELATIONSHIP_LABELS[type].toLowerCase().slice(0, -1)}${type === 'spouse' && forceEx ? ' (ex only)' : ''}`}
-                    onClick={() => { setShowAdd(true); setAddType(type); }}
+                    onClick={() => { 
+                      const selectablePeople = getSelectablePeople(type);
+                      if (selectablePeople.length === 0) {
+                        showFilteringAlert(type);
+                      } else {
+                        setShowAdd(true); 
+                        setAddType(type); 
+                      }
+                    }}
                   >
                     <FaPlus />
+                  </button>
+                )}
+                {showAddButton && getSelectablePeople(type).length === 0 && (
+                  <button
+                    className="bg-yellow-50 border border-yellow-300 rounded-full p-1 shadow hover:bg-yellow-100 text-yellow-600 text-xs ml-1"
+                    title="Why can't I add anyone? Click for details"
+                    onClick={() => showFilteringAlert(type)}
+                  >
+                    ❓
                   </button>
                 )}
               </div>
