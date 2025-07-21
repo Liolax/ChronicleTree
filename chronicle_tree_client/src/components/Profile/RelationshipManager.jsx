@@ -193,7 +193,71 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
   };
 
-  // Enhanced blood relationship detection
+  // Enhanced blood relationship check - handles multi-generational relationships
+  const checkDirectBloodRelationship = (person1Id, person2Id, relationships) => {
+    if (person1Id === person2Id) return false;
+    
+    // Check direct parent-child relationship
+    const isDirectParentChild = relationships.some(rel => 
+      (rel.from === person1Id && rel.to === person2Id && rel.relationship_type === 'child') ||
+      (rel.from === person2Id && rel.to === person1Id && rel.relationship_type === 'child') ||
+      (rel.from === person1Id && rel.to === person2Id && rel.relationship_type === 'parent') ||
+      (rel.from === person2Id && rel.to === person1Id && rel.relationship_type === 'parent')
+    );
+    
+    if (isDirectParentChild) return true;
+    
+    // Check sibling relationship
+    const isSibling = relationships.some(rel => 
+      (rel.from === person1Id && rel.to === person2Id && rel.relationship_type === 'sibling') ||
+      (rel.from === person2Id && rel.to === person1Id && rel.relationship_type === 'sibling')
+    );
+    
+    if (isSibling) return true;
+    
+    // Check multi-generational ancestor-descendant relationships
+    // This covers grandparent-grandchild, great-grandparent-great-grandchild, etc.
+    const isAncestorDescendant = checkAncestorDescendantRelationship(person1Id, person2Id, relationships);
+    
+    return isAncestorDescendant;
+  };
+  
+  // Check if person1 is an ancestor of person2 or vice versa (any number of generations)
+  const checkAncestorDescendantRelationship = (person1Id, person2Id, relationships, maxDepth = 10) => {
+    // Build parent-child maps for efficient traversal
+    const childrenMap = new Map(); // parent -> [children]
+    const parentsMap = new Map();  // child -> [parents]
+    
+    relationships.forEach(rel => {
+      if (rel.relationship_type === 'child') {
+        // rel.from is parent, rel.to is child
+        if (!childrenMap.has(rel.from)) childrenMap.set(rel.from, []);
+        childrenMap.get(rel.from).push(rel.to);
+        
+        if (!parentsMap.has(rel.to)) parentsMap.set(rel.to, []);
+        parentsMap.get(rel.to).push(rel.from);
+      }
+    });
+    
+    // Check if person1 is ancestor of person2 (person1 -> ... -> person2)
+    const isPersonAncestorOf = (ancestorId, descendantId, depth = 0) => {
+      if (depth > maxDepth) return false; // Prevent infinite loops
+      if (ancestorId === descendantId) return false; // Same person
+      
+      const children = childrenMap.get(ancestorId) || [];
+      
+      // Direct child relationship
+      if (children.includes(descendantId)) return true;
+      
+      // Check deeper generations recursively
+      return children.some(childId => isPersonAncestorOf(childId, descendantId, depth + 1));
+    };
+    
+    // Check both directions: person1 ancestor of person2, or person2 ancestor of person1
+    return isPersonAncestorOf(person1Id, person2Id) || isPersonAncestorOf(person2Id, person1Id);
+  };
+
+  // Enhanced blood relationship detection with direct path finding
   const detectBloodRelationship = (person1Id, person2Id) => {
     if (!treeData?.nodes || !treeData?.edges) {
       return { isBloodRelated: false, relationship: null, degree: null };
@@ -208,22 +272,30 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       is_deceased: edge.is_deceased
     }));
 
-    // Use existing relationship calculator to find blood relationship
+    // Direct blood relationship checks (more reliable than relationship calculator)
+    const isDirectBloodRelated = checkDirectBloodRelationship(person1Id, person2Id, relationships);
+    
+    // Fallback to existing relationship calculator
     const relationshipToRoot = calculateRelationshipToRoot(person2Id, person1Id, relationships, treeData.nodes);
     
-    // Check if the relationship is a blood relationship
+    
+    // Check if the relationship is a blood relationship using both methods
     const bloodRelationships = [
       'Parent', 'Child', 'Father', 'Mother', 'Son', 'Daughter',
       'Brother', 'Sister', 'Sibling',
       'Grandfather', 'Grandmother', 'Grandparent', 'Grandson', 'Granddaughter', 'Grandchild',
       'Great-Grandfather', 'Great-Grandmother', 'Great-Grandparent', 'Great-Grandson', 'Great-Granddaughter', 'Great-Grandchild',
-      'Uncle', 'Aunt', 'Nephew', 'Niece',
-      '1st Cousin', '2nd Cousin', 'Cousin'
+      'Great-Great-Grandfather', 'Great-Great-Grandmother', 'Great-Great-Grandparent', 'Great-Great-Grandson', 'Great-Great-Granddaughter', 'Great-Great-Grandchild',
+      'Uncle', 'Aunt', 'Nephew', 'Niece', 'Great-Uncle', 'Great-Aunt', 'Great-Nephew', 'Great-Niece',
+      '1st Cousin', '2nd Cousin', '3rd Cousin', 'Cousin'
     ];
 
-    const isBloodRelated = bloodRelationships.some(rel => 
+    const isBloodRelatedByCalculator = bloodRelationships.some(rel => 
       relationshipToRoot && relationshipToRoot.toLowerCase().includes(rel.toLowerCase())
     );
+    
+    // Use direct check as primary, calculator as fallback
+    const isBloodRelated = isDirectBloodRelated || isBloodRelatedByCalculator;
 
     // Determine relationship degree for blood relatives
     let degree = null;
@@ -548,18 +620,44 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const getSelectablePeople = (type) => {
     const excludeIds = [person.id, ...getRelatedIds(type)];
     
-    // If tree data is not loaded yet, return all people except self and already related
-    // This prevents showing empty lists while tree data loads
+    // If tree data is not loaded yet, use basic filtering plus existing relationships check
+    // This prevents showing empty lists while tree data loads but still validates existing relationships
     if (!treeData?.nodes || !treeData?.edges) {
-      return people.filter(p => !excludeIds.includes(p.id));
+      return people.filter(p => {
+        // Basic exclusion (self and already related)
+        if (excludeIds.includes(p.id)) return false;
+        
+        // Basic relationship constraints using existing relationships only (no tree data needed)
+        const existingRels = person.relatives || [];
+        
+        // Check if this person is already in a conflicting relationship
+        const conflictingRel = existingRels.find(rel => {
+          if (rel.id !== p.id) return false;
+          
+          // Prevent obvious conflicts: can't be parent and sibling, etc.
+          if (type === 'sibling' && (rel.relationship_type === 'parent' || rel.relationship_type === 'child')) {
+            return true;
+          }
+          if (type === 'parent' && rel.relationship_type === 'child') {
+            return true;
+          }
+          if (type === 'child' && rel.relationship_type === 'parent') {
+            return true;
+          }
+          return false;
+        });
+        
+        return !conflictingRel;
+      });
     }
     
     return people.filter(p => {
       // Basic exclusion (self and already related)
       if (excludeIds.includes(p.id)) return false;
       
-      // Check relationship constraints
+      // Full relationship constraints check when tree data is available
       const constraintCheck = checkRelationshipConstraints(p.id, type);
+      
       return constraintCheck.valid;
     });
   };

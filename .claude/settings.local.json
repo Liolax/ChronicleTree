@@ -27,7 +27,8 @@
       "Bash(npm start)",
       "Bash(npx eslint:*)",
       "Bash(bundle exec rails:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   }

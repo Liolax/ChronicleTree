@@ -231,6 +231,7 @@ module Api
 
       # GET /api/v1/people/tree
       def full_tree
+        Rails.logger.info "=== FULL_TREE ENDPOINT CALLED ==="
         people = current_user.people
         nodes = people.to_a
         edges = []
@@ -261,8 +262,10 @@ module Api
           end
         end
         
-        # Find the oldest person to use as default root
-        oldest_person = people.where.not(date_of_birth: nil).order(:date_of_birth).first
+        # Find the oldest person with relationships to use as default root
+        oldest_person = people.joins(:relationships).where.not(date_of_birth: nil).order(:date_of_birth).first
+        # Fallback to oldest person if no one has relationships
+        oldest_person ||= people.where.not(date_of_birth: nil).order(:date_of_birth).first
         
         render json: {
           nodes: ActiveModelSerializers::SerializableResource.new(nodes, each_serializer: Api::V1::PersonSerializer),

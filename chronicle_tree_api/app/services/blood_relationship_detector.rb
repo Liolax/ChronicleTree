@@ -20,8 +20,8 @@ class BloodRelationshipDetector
     # Check sibling relationships
     return true if siblings?
     
-    # Check grandparent-grandchild relationships
-    return true if grandparent_grandchild?
+    # Check all generational relationships (grandparent, great-grandparent, etc.)
+    return true if ancestor_descendant?
     
     # Check uncle/aunt - nephew/niece relationships
     return true if uncle_aunt_nephew_niece?
@@ -47,12 +47,28 @@ class BloodRelationshipDetector
       return "#{@person1.first_name} and #{@person2.first_name} are siblings"
     end
 
-    # Grandparent-grandchild
-    if grandparent_grandchild?
-      if @person1.children.any? { |child| child.children.include?(@person2) }
-        return "#{@person2.first_name} is #{@person1.first_name}'s grandchild"
+    # Multi-generational relationships
+    if ancestor_descendant?
+      # Determine the specific generational relationship
+      if grandparent_grandchild?
+        if @person1.children.any? { |child| child.children.include?(@person2) }
+          return "#{@person2.first_name} is #{@person1.first_name}'s grandchild"
+        else
+          return "#{@person1.first_name} is #{@person2.first_name}'s grandchild"
+        end
+      elsif great_grandparent_great_grandchild?
+        if @person1.children.any? { |child| child.children.any? { |grandchild| grandchild.children.include?(@person2) } }
+          return "#{@person2.first_name} is #{@person1.first_name}'s great-grandchild"
+        else
+          return "#{@person1.first_name} is #{@person2.first_name}'s great-grandchild"
+        end
       else
-        return "#{@person1.first_name} is #{@person2.first_name}'s grandchild"
+        # For deeper relationships, use generic ancestor/descendant
+        if is_ancestor_of?(@person1, @person2)
+          return "#{@person2.first_name} is #{@person1.first_name}'s descendant"
+        else
+          return "#{@person1.first_name} is #{@person2.first_name}'s descendant"
+        end
       end
     end
 
@@ -89,6 +105,33 @@ class BloodRelationshipDetector
     # Check if person1 is grandparent of person2 or vice versa
     @person1.children.any? { |child| child.children.include?(@person2) } ||
     @person2.children.any? { |child| child.children.include?(@person1) }
+  end
+
+  def great_grandparent_great_grandchild?
+    # Check if person1 is great-grandparent of person2 or vice versa (3 generations)
+    @person1.children.any? { |child| child.children.any? { |grandchild| grandchild.children.include?(@person2) } } ||
+    @person2.children.any? { |child| child.children.any? { |grandchild| grandchild.children.include?(@person1) } }
+  end
+
+  def ancestor_descendant?
+    # Check if one person is an ancestor of another (any number of generations)
+    is_ancestor_of?(@person1, @person2) || is_ancestor_of?(@person2, @person1)
+  end
+
+  def is_ancestor_of?(ancestor, descendant, visited = Set.new, max_depth = 10)
+    return false if max_depth <= 0
+    return false if visited.include?(ancestor.id)
+    return false if ancestor == descendant
+    
+    visited.add(ancestor.id)
+    
+    # Check direct children
+    ancestor.children.each do |child|
+      return true if child == descendant
+      return true if is_ancestor_of?(child, descendant, visited.dup, max_depth - 1)
+    end
+    
+    false
   end
 
   def uncle_aunt_nephew_niece?

@@ -103,9 +103,19 @@ const FamilyTree = () => {
     let filteredNodes = data.nodes;
     let filteredEdges = data.edges;
     if (rootPersonId) {
+      console.log('=== BEFORE collectConnectedFamily ===');
+      console.log('rootPersonId:', rootPersonId);
+      console.log('data.nodes count:', data.nodes?.length);
+      console.log('data.edges count:', data.edges?.length);
+      console.log('Sample edges:', data.edges?.slice(0, 3));
+      
       const result = collectConnectedFamily(rootPersonId, data.nodes, data.edges);
       filteredNodes = result.persons;
       filteredEdges = result.relationships;
+      
+      console.log('=== AFTER collectConnectedFamily ===');
+      console.log('filteredNodes count:', filteredNodes?.length);
+      console.log('filteredEdges count:', filteredEdges?.length);
     }
 
     // Add relationship information to all people (if needed)

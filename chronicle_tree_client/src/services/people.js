@@ -27,7 +27,10 @@ export function usePeople() {
 }
 
 const getFullTree = async () => {
-  const { data } = await api.get('/people/tree');
+  console.log('=== API CALL DEBUG ===');
+  console.log('Calling endpoint: /people/full_tree');
+  const { data } = await api.get('/people/full_tree');
+  console.log('API response:', data);
   return data;
 };
 
@@ -35,11 +38,9 @@ export function useFullTree(rootPersonId = null) {
   return useQuery({
     queryKey: ['full-tree', rootPersonId],
     queryFn: () => {
-      if (rootPersonId) {
-        return getTree(rootPersonId);
-      } else {
-        return getFullTree();
-      }
+      // Always get the full tree data, regardless of rootPersonId
+      // The rootPersonId is used for frontend filtering only
+      return getFullTree();
     },
   });
 }
