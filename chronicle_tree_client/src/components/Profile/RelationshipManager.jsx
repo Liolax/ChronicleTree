@@ -220,6 +220,28 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       };
     }
 
+    // Additional check: Use the traditional relationship calculator and verify it's not incorrectly flagging in-laws
+    const calculatedRelation = calculateRelationshipToRoot(
+      { id: person2Id }, 
+      { id: person1Id }, 
+      treeData.nodes, 
+      relationships
+    );
+    
+    // Double-check that in-law relationships are not being flagged as blood relationships
+    if (calculatedRelation && calculatedRelation !== 'Unrelated') {
+      const lowerRelation = calculatedRelation.toLowerCase();
+      // If it contains in-law, co-, step-, ex-, or late - it's NOT a blood relationship
+      if (lowerRelation.includes('in-law') || 
+          lowerRelation.includes('co-') || 
+          lowerRelation.includes('step-') ||
+          lowerRelation.includes('ex-') ||
+          lowerRelation.includes('late ')) {
+        console.log(`✅ IN-LAW RELATIONSHIP ALLOWED: Person ${person1Id} and ${person2Id} are related as ${calculatedRelation} - NOT blood relatives`);
+        return { isBloodRelated: false, relationship: calculatedRelation, degree: null };
+      }
+    }
+
     return { isBloodRelated: false, relationship: null, degree: null };
   };
 

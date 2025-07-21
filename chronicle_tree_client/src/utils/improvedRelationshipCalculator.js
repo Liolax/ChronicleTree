@@ -1199,6 +1199,18 @@ const getGenerationName = (depth) => {
 const isBloodRelationshipString = (relationship) => {
   if (!relationship || relationship === 'Unrelated') return false;
   
+  const lowerRelation = relationship.toLowerCase();
+  
+  // EXCLUDE in-law relationships first - these are NOT blood relationships
+  if (lowerRelation.includes('in-law') || 
+      lowerRelation.includes('co-') || 
+      lowerRelation.includes('step-') ||
+      lowerRelation.includes('ex-') ||
+      lowerRelation.includes('late ')) {
+    return false;
+  }
+  
+  // Now check for actual blood relationship keywords
   const bloodKeywords = [
     'parent', 'child', 'father', 'mother', 'son', 'daughter',
     'brother', 'sister', 'sibling',
@@ -1208,7 +1220,6 @@ const isBloodRelationshipString = (relationship) => {
     'cousin'
   ];
   
-  const lowerRelation = relationship.toLowerCase();
   return bloodKeywords.some(keyword => lowerRelation.includes(keyword));
 };
 
