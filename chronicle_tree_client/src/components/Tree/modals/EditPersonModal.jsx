@@ -40,6 +40,10 @@ const EditPersonModal = ({ person, isOpen = true, onClose }) => {
                 alert(`⚠️ Insufficient Age Gap:\n\n${errorMsg}\n\nParents must be at least 12 years older than their children.`);
               } else if (errorMsg.includes("before child's birth") || errorMsg.includes("after death date")) {
                 alert(`⚠️ Timeline Error:\n\n${errorMsg}\n\nPlease check the chronological order of birth and death dates.`);
+              } else if (errorMsg.includes("blood relative") || errorMsg.includes("Blood relatives")) {
+                alert(`⚠️ Blood Relationship Violation:\n\n${errorMsg}\n\nThis edit would create or maintain an inappropriate blood relationship. Please review family connections.`);
+              } else if (errorMsg.includes("Timeline Warning") || errorMsg.includes("impossible relationship")) {
+                alert(`⚠️ Relationship Timeline Error:\n\n${errorMsg}\n\nPlease ensure dates are chronologically consistent with existing relationships.`);
               } else {
                 alert(`❌ Validation Error:\n\n${errorMsg}`);
               }

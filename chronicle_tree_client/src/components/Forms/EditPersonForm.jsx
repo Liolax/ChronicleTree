@@ -2,11 +2,13 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
-import { usePerson } from '../../services/people';
+import { usePerson, useFullTree } from '../../services/people';
+import { calculateRelationshipToRoot } from '../../utils/improvedRelationshipCalculator';
 
 const EditPersonForm = ({ person, onSave, onCancel }) => {
   // Fetch detailed person data including relationships
   const { data: detailedPerson } = usePerson(person?.id);
+  const { data: treeData } = useFullTree();
 
   const { register, handleSubmit, formState: { errors }, watch, reset } = useForm({
     defaultValues: {
@@ -31,6 +33,76 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
   }, [person, reset]);
 
   const isDeceased = watch('isDeceased');
+
+  // Enhanced blood relationship detection for validation
+  const detectBloodRelationship = (person1Id, person2Id) => {
+    if (!treeData?.nodes || !treeData?.edges) {
+      return { isBloodRelated: false, relationship: null, degree: null };
+    }
+
+    const relationships = treeData.edges.map(edge => ({
+      from: edge.source,
+      to: edge.target, 
+      relationship_type: edge.type || edge.relationship_type,
+      is_ex: edge.is_ex,
+      is_deceased: edge.is_deceased
+    }));
+
+    const relationshipToRoot = calculateRelationshipToRoot(person2Id, person1Id, relationships, treeData.nodes);
+    
+    const bloodRelationships = [
+      'Parent', 'Child', 'Father', 'Mother', 'Son', 'Daughter',
+      'Brother', 'Sister', 'Sibling',
+      'Grandfather', 'Grandmother', 'Grandparent', 'Grandson', 'Granddaughter', 'Grandchild',
+      'Great-Grandfather', 'Great-Grandmother', 'Great-Grandparent', 'Great-Grandson', 'Great-Granddaughter', 'Great-Grandchild',
+      'Uncle', 'Aunt', 'Nephew', 'Niece',
+      '1st Cousin', '2nd Cousin', 'Cousin'
+    ];
+
+    const isBloodRelated = bloodRelationships.some(rel => 
+      relationshipToRoot && relationshipToRoot.toLowerCase().includes(rel.toLowerCase())
+    );
+
+    return {
+      isBloodRelated,
+      relationship: relationshipToRoot,
+      degree: isBloodRelated ? 1 : null
+    };
+  };
+
+  // Enhanced relationship validation for spouse date editing
+  const validateSpouseRelationshipConstraints = (newBirthDate, newDeathDate) => {
+    const spouses = detailedPerson?.relatives?.filter(rel => rel.relationship_type === 'spouse') || [];
+    const warnings = [];
+
+    for (const spouse of spouses) {
+      // Check for blood relationship violations when editing dates
+      const bloodCheck = detectBloodRelationship(person.id, spouse.id);
+      if (bloodCheck.isBloodRelated) {
+        warnings.push(`⚠️ Blood Relationship Warning:\n\n${person.first_name} ${person.last_name} is married to ${spouse.first_name} ${spouse.last_name}, but they are blood relatives (${bloodCheck.relationship}).\n\nThis relationship should be reviewed for appropriateness.`);
+      }
+
+      // Check for impossible spouse relationships based on birth dates
+      if (newBirthDate && spouse.date_of_death) {
+        const personBirth = new Date(newBirthDate);
+        const spouseDeath = new Date(spouse.date_of_death);
+        if (personBirth > spouseDeath) {
+          warnings.push(`⚠️ Timeline Warning:\n\n${person.first_name} ${person.last_name} would be born after their spouse ${spouse.first_name} ${spouse.last_name} died.\n\nBirth: ${newBirthDate}\nSpouse died: ${spouse.date_of_death}\n\nThis creates an impossible relationship timeline.`);
+        }
+      }
+
+      // Check for impossible spouse relationships based on death dates
+      if (newDeathDate && spouse.date_of_birth) {
+        const personDeath = new Date(newDeathDate);
+        const spouseBirth = new Date(spouse.date_of_birth);
+        if (personDeath < spouseBirth) {
+          warnings.push(`⚠️ Timeline Warning:\n\n${person.first_name} ${person.last_name} would have died before their spouse ${spouse.first_name} ${spouse.last_name} was born.\n\nDeath: ${newDeathDate}\nSpouse born: ${spouse.date_of_birth}\n\nThis creates an impossible relationship timeline.`);
+        }
+      }
+    }
+
+    return warnings;
+  };
 
   // Reset death date when 'Deceased' is unchecked
   React.useEffect(() => {
@@ -126,6 +198,15 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
               }
             }
             
+            // Enhanced validation - check for blood relationship and spouse constraint violations
+            const spouseWarnings = validateSpouseRelationshipConstraints(value, watch('deathDate'));
+            if (spouseWarnings.length > 0) {
+              // Show warnings for review but don't block the edit (user may need to fix legacy data)
+              setTimeout(() => {
+                spouseWarnings.forEach(warning => alert(warning));
+              }, 100);
+            }
+            
             return true;
           }
         })}
@@ -171,6 +252,15 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
                   }
                 }
               }
+            }
+            
+            // Enhanced validation - check for blood relationship and spouse constraint violations
+            const spouseWarnings = validateSpouseRelationshipConstraints(watch('birthDate'), value);
+            if (spouseWarnings.length > 0) {
+              // Show warnings for review but don't block the edit (user may need to fix legacy data)
+              setTimeout(() => {
+                spouseWarnings.forEach(warning => alert(warning));
+              }, 100);
             }
             
             return true;

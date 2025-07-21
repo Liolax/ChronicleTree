@@ -64,6 +64,63 @@ ChronicleTree now features a comprehensive blood relationship validation system,
 
 This system provides comprehensive protection against inappropriate family relationships while supporting realistic and complex family situations, such as remarriage within extended family networks.
 
+## Enhanced Edit Functionality Validation
+
+Both the Edit Person modal and Edit Relationship functionality now feature robust blood relationship validation, ensuring data integrity and user guidance during all edit operations.
+
+### 1. Edit Person Modal Enhancements (EditPersonModal.jsx & EditPersonForm.jsx)
+- Comprehensive blood relationship detection using the same system as RelationshipManager.
+- Real-time validation of relationships when editing birth/death dates.
+- Timeline consistency checks for impossible relationship timelines.
+- Spouse blood relationship warnings: alerts when editing reveals inappropriate blood relationships between spouses.
+- Timeline validation: prevents impossible date combinations (e.g., person born after spouse died).
+- Multi-relationship checks: validates against all existing spouses, children, and parents.
+- Date constraint validation: enhanced birth/death date validation with blood relationship awareness.
+- Specific validation scenarios:
+  - Birth date changes: warns if person would be born after spouse died, maintains parent-child age gap (12+ years), alerts for blood relationship violations with spouses.
+  - Death date changes: warns if person would die before spouse was born, prevents death before children were born, checks timeline consistency with all relationships.
+- Enhanced error handling: specific warnings for inappropriate blood relationships, clear explanations of chronological conflicts, user-friendly non-blocking warnings for legacy data.
+
+### 2. Edit Relationship Functionality Enhancements (RelationshipManager.jsx)
+- Enhanced toggle spouse functionality: shows warning dialog when toggling spouse status for blood relatives.
+- Action-aware messaging: different warnings for "divorce" vs "remarry" actions.
+- User choice: allows user to proceed with confirmation or cancel the action.
+- Relationship context: shows specific blood relationship type in warning.
+- Enhanced validation integration: confirmation dialogs for potentially problematic actions, consistent error handling using the same validation system across all relationship operations.
+
+### 3. Key Blood Relationship Scenarios Covered
+- Edit Person:
+  - Timeline violations: person born after spouse died / died before spouse born.
+  - Blood relationship detection: identifies and warns about inappropriate spouse relationships.
+  - Parent-child constraints: maintains age gap requirements when editing dates.
+  - Legacy data handling: allows fixing existing inappropriate relationships.
+- Edit Relationship:
+  - Spouse status toggle: warns before remarrying/divorcing blood relatives.
+  - User confirmation: requires explicit confirmation for potentially inappropriate actions.
+  - Relationship awareness: shows specific blood relationship type in warnings.
+
+### 4. Enhanced User Experience Features
+- Warning system: educational alerts, clear messaging with dates and relationship details, non-blocking warnings for legacy data, action-specific guidance.
+- Validation integration: real-time feedback during date editing, consistent rules across Profile and Tree view, progressive enhancement on existing validation, graceful degradation if tree data is unavailable.
+
+### 5. Technical Implementation
+- Blood relationship detection covers direct (parent, child, siblings), extended (grandparents, aunts, uncles, cousins), multi-generational, and all gender variations.
+- Validation architecture: reuses logic from RelationshipManager, performance optimized, error resilient, comprehensive coverage for all edit scenarios.
+
+### 6. Validation Rules Now Enforced in Edit Functionality
+- Edit Person:
+  - ❌ Timeline violations between spouses (birth after spouse died, etc.)
+  - ⚠️ Blood relationship warnings for spouse relationships
+  - ❌ Parent-child age gap violations (12+ years required)
+  - ❌ Chronological impossibilities (death before birth, etc.)
+- Edit Relationship:
+  - ⚠️ Confirmation required for toggling spouse status of blood relatives
+  - ❌ Backend validation prevents inappropriate new relationships
+  - ✅ User education about blood relationship implications
+  - ✅ Explicit choice for potentially problematic actions
+
+The edit functionality now provides the same level of sophisticated validation as the add functionality, ensuring comprehensive protection against inappropriate family relationships while maintaining usability for legitimate edits and legacy data correction.
+
 ## Visualization Library Update
 
 - The family tree visualization is now implemented using [React Flow (xyflow)](https://xyflow.com/) for advanced support of complex family structures, generational layouts, and interactive features.

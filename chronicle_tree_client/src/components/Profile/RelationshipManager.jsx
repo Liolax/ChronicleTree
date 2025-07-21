@@ -669,7 +669,20 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                               event.stopPropagation();
                               setWarning('');
                               setToggleLoadingId(rel.relationship_id);
+                              
                               try {
+                                // Enhanced validation - check for blood relationship before toggling
+                                const bloodCheck = detectBloodRelationship(person.id, rel.id);
+                                if (bloodCheck.isBloodRelated) {
+                                  const action = rel.is_ex ? 'remarry' : 'divorce';
+                                  const confirmMsg = `⚠️ Blood Relationship Warning\n\n${person.first_name} ${person.last_name} and ${rel.full_name} are blood relatives (${bloodCheck.relationship}).\n\nDo you want to ${action} them anyway?\n\nNote: Marriage between blood relatives is generally inappropriate.`;
+                                  
+                                  if (!confirm(confirmMsg)) {
+                                    setToggleLoadingId(null);
+                                    return;
+                                  }
+                                }
+                                
                                 await toggleSpouseExMutation.mutateAsync(rel.relationship_id);
                                 if (onRelationshipAdded) onRelationshipAdded();
                               } catch (err) {

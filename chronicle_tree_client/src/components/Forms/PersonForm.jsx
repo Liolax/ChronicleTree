@@ -56,6 +56,41 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
 
   const relationType = watch('relationType');
 
+  // Note: Blood relationship detection function removed as it's not currently used
+  // in PersonForm (since we're creating new people who don't exist in the tree yet)
+  // The main validation happens in the backend and in AddRelationshipModal
+
+  // Enhanced relationship constraint validation
+  const validateBloodRelationshipConstraints = (selectedPersonId, newPersonBirthDate, relationshipType) => {
+    if (!selectedPersonId || !relationshipType) return { valid: true };
+    
+    const selectedPerson = filteredPeople.find(p => String(p.id) === String(selectedPersonId));
+    if (!selectedPerson) return { valid: true };
+
+    // For new person creation, we can't check blood relationships yet since the person doesn't exist
+    // But we can validate against logical constraints based on the relationship type
+    
+    // Enhanced validation for children - check if selected person can have children
+    if (relationshipType === 'child') {
+      // Check if selected person (who will be parent) already has 2 biological parents
+      // This doesn't apply here since we're adding a child, not a parent
+    }
+    
+    // Enhanced validation for parent - check if selected person can be a parent
+    if (relationshipType === 'parent') {
+      // Check if selected person (who will be child) already has 2 biological parents
+      const selectedPersonParents = selectedPerson.relatives?.filter(rel => rel.relationship_type === 'parent' && !rel.isStep) || [];
+      if (selectedPersonParents.length >= 2) {
+        return { 
+          valid: false, 
+          reason: `${selectedPerson.first_name} ${selectedPerson.last_name} already has 2 biological parents. A person can only have 2 biological parents.` 
+        };
+      }
+    }
+    
+    return { valid: true };
+  };
+
   // Filter people to show only those belonging to the current user
   // For test/demo data, if user_id is missing, show all except self
   const filteredPeople = people.filter(p => {
@@ -219,8 +254,14 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                             childPerson = selectedPerson;
                           }
 
+                          // Enhanced validation using the new constraint checking
+                          const constraintCheck = validateBloodRelationshipConstraints(selectedPersonId, currentBirthDate, currentRelationType);
+                          if (!constraintCheck.valid) {
+                            alertMessage = `⚠️ Relationship Constraint Error:\n\n${constraintCheck.reason}`;
+                          }
+                          
                           // Check if selected person already has 2 parents (for parent relationship)
-                          if (currentRelationType === 'parent' && selectedPerson.parent_count >= 2) {
+                          else if (currentRelationType === 'parent' && selectedPerson.parent_count >= 2) {
                             alertMessage = `⚠️ Multiple Parents Error:\n\n${selectedPerson.first_name} ${selectedPerson.last_name} already has 2 biological parents.\n\nA person can only have 2 biological parents.`;
                           }
 
