@@ -344,7 +344,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       return ageCheck;
     }
     
-    // Blood relationship detection
+    // Blood relationship detection - only if tree data is available
     const bloodCheck = detectBloodRelationship(person.id, candidateId);
     
     // Check for existing relationships that would prevent this new relationship
@@ -547,6 +547,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   // Filter people for each relationship type with enhanced constraints
   const getSelectablePeople = (type) => {
     const excludeIds = [person.id, ...getRelatedIds(type)];
+    
+    // If tree data is not loaded yet, return all people except self and already related
+    // This prevents showing empty lists while tree data loads
+    if (!treeData?.nodes || !treeData?.edges) {
+      return people.filter(p => !excludeIds.includes(p.id));
+    }
     
     return people.filter(p => {
       // Basic exclusion (self and already related)

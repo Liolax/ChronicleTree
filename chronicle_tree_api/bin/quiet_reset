@@ -1,0 +1,44 @@
+#!/usr/bin/env ruby
+
+# Quiet database reset script
+# This suppresses log rotation and VIPS warnings during db:reset
+
+puts "Resetting database quietly..."
+
+# Set environment to suppress warnings
+ENV['RAILS_LOG_LEVEL'] = 'error'
+ENV['VIPS_WARNING'] = '0'
+ENV['G_MESSAGES_DEBUG'] = ''
+
+# Capture and filter output
+require 'open3'
+
+command = "rails db:reset"
+filtered_lines = []
+
+Open3.popen2e(command) do |stdin, stdout_stderr, wait_thread|
+  stdin.close
+  
+  stdout_stderr.each_line do |line|
+    # Skip unwanted messages
+    unless line.include?('log shifting failed') ||
+           line.include?('closed stream') ||
+           line.include?('VIPS-WARNING') ||
+           line.include?('unable to load') ||
+           line.include?('.dll')
+      filtered_lines << line
+    end
+  end
+  
+  exit_status = wait_thread.value
+  
+  # Show filtered output
+  filtered_lines.each { |line| puts line }
+  
+  if exit_status.success?
+    puts "\n✅ Database reset completed successfully!"
+  else
+    puts "\n❌ Database reset failed!"
+    exit 1
+  end
+end

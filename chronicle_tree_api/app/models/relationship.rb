@@ -15,6 +15,8 @@ class Relationship < ApplicationRecord
   validate  :valid_relationship_type
   validate  :only_one_current_spouse, if: -> { relationship_type == "spouse" && !is_ex && !is_deceased }
   validate  :minimum_marriage_age, if: -> { relationship_type == "spouse" }
+  validate  :no_blood_relative_marriages, if: -> { relationship_type == "spouse" }
+  validate  :no_blood_relative_children, if: -> { relationship_type == "child" }
 
   # Add scopes for different spouse types
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
@@ -83,6 +85,36 @@ class Relationship < ApplicationRecord
     
     if relative_age < 16
       errors.add(:base, "#{relative.first_name} #{relative.last_name} is only #{relative_age} years old. Minimum marriage age is 16 years.")
+    end
+  end
+
+  def no_blood_relative_marriages
+    # Prevent marriage between blood relatives
+    return unless person && relative
+    
+    if BloodRelationshipDetector.blood_related?(person, relative)
+      relationship_desc = BloodRelationshipDetector.new(person, relative).relationship_description
+      errors.add(:base, "Blood relatives cannot marry. #{relationship_desc}.")
+    end
+  end
+
+  def no_blood_relative_children
+    # Prevent blood relatives from having shared children
+    return unless person && relative
+    
+    # For child relationships, person is the parent and relative is the child
+    # We need to check if the parent (person) and their spouse (other parent) are blood relatives
+    parent = person
+    child = relative
+    
+    # Get all other parents of this child
+    other_parents = child.parents.where.not(id: parent.id)
+    
+    other_parents.each do |other_parent|
+      if BloodRelationshipDetector.blood_related?(parent, other_parent)
+        relationship_desc = BloodRelationshipDetector.new(parent, other_parent).relationship_description
+        errors.add(:base, "Blood relatives cannot have children together. #{relationship_desc}.")
+      end
     end
   end
 

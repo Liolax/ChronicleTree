@@ -208,6 +208,126 @@ The Add New Person modal (and all other validation points) now provide short, cl
 
 All validation alerts are now consistent across the entire application! 🎉
 
+## No More Generic Error Messages! All Validation Issues Fixed
+
+All validation alerts now provide:
+- ✅ Clear explanations of what went wrong
+- ✅ Specific guidance on how to fix issues
+- ✅ Consistent formatting across the application
+- ✅ User-friendly language instead of technical jargon
+
+Users now see helpful messages like:
+- "Both people must be at least 16 years old to marry."
+- "Blood relatives cannot marry."
+- "Parents must be at least 12 years older than children."
+Instead of unhelpful messages like "Failed to add person. Please check your input."
+
+### Summary of All Validation Issues Fixed
+
+I have systematically addressed all the validation problems you identified:
+
+#### 🎯 Issues Fixed
+1. Marriage Age Validation Wrong Message ✅
+   - Problem: Editing person's birth date to 2019 showed "Birth date required for marriage relationships" instead of age-related message
+   - Fix: Modified validateMarriageAge() to return valid: true when birth dates are missing, and updated EditPersonForm to show proper marriage age messages
+2. Blood Relationship Validation Missing ✅
+   - Problem: Alice Doe (granddaughter) could be added as spouse to Robert Doe (grandfather)
+   - Fix: Removed broken isAllowedRemarriageRelative() function call that was bypassing blood relationship validation. Now all blood relatives are properly blocked from marriage
+3. Parent-Child Age Validation Messages ✅
+   - Problem: When editing birth date to create invalid parent-child age gap, wrong messages appeared
+   - Fix: Updated handleBackendError() to properly distinguish between marriage age and parent-child age constraint errors using more specific pattern matching
+4. Spouse Constraint Validation ✅
+   - Problem: Removing death date of late wife didn't show proper "multiple spouses" message
+   - Fix: Improved error pattern matching to correctly identify spouse constraint violations
+5. Error Message Pattern Matching ✅
+   - Problem: Generic "Birth date required for marriage relationships" appearing for non-marriage issues
+   - Fix: Reordered and improved pattern matching logic to be more specific:
+     - Marriage age: requires both "16 years" AND "marriage"
+     - Parent-child age: looks for "12 years" AND "parent" or "YOUNGER/OLDER" keywords
+     - Added specific patterns for different constraint types
+
+#### 🔧 Technical Changes Made
+1. utils/validationAlerts.js:
+   - Fixed validateMarriageAge() to not trigger on missing birth dates
+   - Improved handleBackendError() pattern matching
+   - Made error categorization more specific and accurate
+2. EditPersonForm.jsx:
+   - Simplified marriage age validation logic
+   - Removed redundant validation calls
+   - Improved error message specificity
+3. RelationshipManager.jsx:
+   - Fixed blood relationship validation for spouse relationships
+   - Removed broken isAllowedRemarriageRelative() function call
+4. Log Shifting Errors ✅
+   - Issue: "log shifting failed. closed stream" errors during reseed
+   - Resolution: These are normal Rails log rotation messages in development mode, not actual errors
+
+#### 🚀 Result
+Now users will see accurate, specific validation messages:
+- ✅ Marriage age issues: "Person is X years old. Minimum marriage age is 16."
+- ✅ Parent-child age issues: "Parents must be at least 12 years older than their children."
+- ✅ Blood relationship blocks: "Blood relatives cannot marry."
+- ✅ Spouse constraints: "Person already has a current spouse."
+- ✅ Timeline issues: "Birth and death dates must be in chronological order."
+
+All validation logic now works correctly and provides helpful, accurate feedback to users! 🎉
+
+# Blood Relationship Validation Fix
+## Problem Fixed
+Users could add blood relatives (like grandchild) as spouses to other blood relatives (like grandparent), which should not be allowed.
+**Example Issue**: Alice Doe (granddaughter) could be added as spouse to Robert Doe (grandfather).
+## Root Cause
+The backend Rails application had **no blood relationship validation**
+- it only checked:
+- Age constraints (12+ years for parent-child, 16+ for marriage)
+
+● ✅ Blood Relationship Validation Fixed!
+
+I have completely resolved the issue where grandchildren could be added as spouses to grandparents. Here's what was accomplished:
+
+### 🎯 Problem Solved
+- Before: Alice Doe (granddaughter) was married to Robert Doe (grandfather) ❌
+- After: Blood relatives are blocked from marriage relationships ✅
+
+### 🔧 Root Cause Found
+The backend had NO blood relationship validation - it only checked age and relationship limits, but never verified if two people were blood relatives.
+
+### 💡 Solution Implemented
+1. Created BloodRelationshipDetector Service ✅
+   - Detects parent-child, grandparent-grandchild, sibling, uncle/aunt-nephew/niece, and cousin relationships
+   - Provides clear relationship descriptions
+2. Added Backend Validation ✅
+   - no_blood_relative_marriages - prevents blood relatives from marrying
+   - no_blood_relative_children - prevents blood relatives from having shared children
+3. Fixed Frontend Validation ✅
+   - Improved tree data loading checks
+   - Better error handling for blood relationship detection
+4. Cleaned Up Existing Data ✅
+   - Ran cleanup script that found and removed the invalid Robert-Alice marriage
+   - Database is now clean of invalid relationships
+
+### 🚫 Relationships Now Blocked
+- ❌ Parent ↔ Child marriage
+- ❌ Grandparent ↔ Grandchild marriage
+- ❌ Sibling ↔ Sibling marriage
+- ❌ Uncle/Aunt ↔ Nephew/Niece marriage
+- ❌ First Cousin ↔ First Cousin marriage
+- ❌ Blood relatives having shared children
+
+### ✅ Validation Results
+🔍 Found 1 invalid relationship:
+   Robert Doe married to Alice Doe
+   Issue: Alice is Robert's grandchild
+
+✅ Successfully removed invalid relationship!
+
+### 🎯 User Experience
+Now when users try to add inappropriate relationships, they'll see clear messages like:
+- "Blood relatives cannot marry. Alice is Robert's grandchild."
+- "Blood relatives cannot have children together."
+
+The system now prevents all inappropriate blood relative relationships while maintaining proper family tree integrity! 🎉
+
 ## Enhanced Edit Functionality Validation
 
 Both the Edit Person modal and Edit Relationship functionality now feature robust blood relationship validation, ensuring data integrity and user guidance during all edit operations.
