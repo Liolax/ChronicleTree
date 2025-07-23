@@ -541,35 +541,9 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  // ADDITIONAL: Check for step-grandparent relationship (reverse)
-  // Person is step-grandparent of root if: person is married to parent of person's step-children, and root is child of those step-children
-  const personSpouses = spouseMap.get(personId) || new Set();
-  const personDeceasedSpouses = deceasedSpouseMap.get(personId) || new Set();
-  
-  for (const spouse of [...personSpouses, ...personDeceasedSpouses]) {
-    // Check if this spouse has children that are not person's biological children (person's step-children)
-    const spouseChildren = parentToChildren.get(spouse) || new Set();
-    for (const spouseChild of spouseChildren) {
-      const childParents = childToParents.get(spouseChild) || new Set();
-      // If person is not a biological parent of this child, it's person's step-child
-      if (!childParents.has(personId) && childParents.has(spouse)) {
-        // This is person's step-child, check if root is their child (making root person's step-grandchild)
-        const stepChildChildren = parentToChildren.get(spouseChild) || new Set();
-        if (stepChildChildren.has(rootId)) {
-          return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
-        }
-        
-        // ADDITIONAL: Check for step-great-grandparent relationship
-        // Person is step-great-grandparent of root if: root is child of person's step-grandchild
-        for (const stepGrandchild of stepChildChildren) {
-          const stepGrandchildChildren = parentToChildren.get(stepGrandchild) || new Set();
-          if (stepGrandchildChildren.has(rootId)) {
-            return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Great-Grandparent');
-          }
-        }
-      }
-    }
-  }
+  // REMOVED: Incorrect step-grandparent reverse logic
+  // The reverse step-grandparent logic was creating false relationships.
+  // Step-grandparent relationships should only be created through the primary logic above.
   
   // ADDITIONAL: Check for step-great-grandparent relationship through person's biological children
   // Person is step-great-grandparent of root if: person's child has step-grandchildren, and root is one of them
