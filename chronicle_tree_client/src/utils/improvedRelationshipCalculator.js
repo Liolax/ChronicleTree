@@ -615,6 +615,21 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
       // Check if this child is not root's biological child (making it root's step-child)
       const spouseChildParents = childToParents.get(spouseChild) || new Set();
       if (!spouseChildParents.has(rootId) && spouseChildParents.has(spouse)) {
+        // CRITICAL TIMELINE CHECK: If the step-child is deceased, check if they were alive when person was born
+        // A deceased step-child cannot create step-grandchild relationships for people born after their death
+        const stepChildPerson = allPeople.find(p => String(p.id) === String(spouseChild));
+        const personObj = allPeople.find(p => String(p.id) === String(personId));
+        
+        if (stepChildPerson && personObj && stepChildPerson.date_of_death && personObj.date_of_birth) {
+          const deathDate = new Date(stepChildPerson.date_of_death);
+          const birthDate = new Date(personObj.date_of_birth);
+          
+          // If person was born after step-child's death, no step-grandchild relationship exists
+          if (birthDate > deathDate) {
+            continue; // Skip this deceased step-child, not a valid step-grandchild relationship
+          }
+        }
+        
         // This is root's step-child, check if person is their child (making person root's step-grandchild)
         const stepChildChildren = parentToChildren.get(spouseChild) || new Set();
         if (stepChildChildren.has(personId)) {
