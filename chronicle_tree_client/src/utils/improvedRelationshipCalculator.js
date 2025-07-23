@@ -541,6 +541,27 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
+  // ADDITIONAL: Check for step-grandparent relationship (reverse)
+  // Person is step-grandparent of root if: person is married to parent of root's children, where root's children are not person's biological children
+  const personSpouses = spouseMap.get(personId) || new Set();
+  const personDeceasedSpouses = deceasedSpouseMap.get(personId) || new Set();
+  
+  for (const spouse of [...personSpouses, ...personDeceasedSpouses]) {
+    // Check if this spouse has children
+    const spouseChildren = parentToChildren.get(spouse) || new Set();
+    for (const spouseChild of spouseChildren) {
+      // Check if person is not a biological parent of this child (making it person's step-child)
+      const childParents = childToParents.get(spouseChild) || new Set();
+      if (!childParents.has(personId) && childParents.has(spouse)) {
+        // This is person's step-child, check if root is their child (making root person's step-grandchild)
+        const stepChildChildren = parentToChildren.get(spouseChild) || new Set();
+        if (stepChildChildren.has(rootId)) {
+          return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
+        }
+      }
+    }
+  }
+  
   // Check for step-grandchild relationship
   // Person is step-grandchild of root if: root is parent of person's step-parent
   for (const parent of personParents) {
