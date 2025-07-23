@@ -100,7 +100,28 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 
   // Step 1: Build relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships, persons);
-  
+
+  // --- DEBUG: Print parent/child relationships for root and parents ---
+  if (rootPersonId) {
+    const rootId = String(rootPersonId);
+    const rootPerson = persons.find(p => String(p.id) === rootId);
+    if (rootPerson) {
+      const parentIds = relationshipMaps.childToParents.get(rootId);
+      console.log('[FAMILY TREE DEBUG] Root person:', rootPerson.first_name, rootPerson.last_name, '(', rootId, ')');
+      console.log('[FAMILY TREE DEBUG] Parent IDs of root:', parentIds ? Array.from(parentIds) : 'None');
+      if (parentIds) {
+        Array.from(parentIds).forEach(parentId => {
+          const parent = persons.find(p => String(p.id) === parentId);
+          if (parent) {
+            const grandparentIds = relationshipMaps.childToParents.get(parentId);
+            console.log('[FAMILY TREE DEBUG] Parent:', parent.first_name, parent.last_name, '(', parentId, ')');
+            console.log('[FAMILY TREE DEBUG] Parent IDs of parent:', grandparentIds ? Array.from(grandparentIds) : 'None');
+          }
+        });
+      }
+    }
+  }
+
   // Step 2: Determine root nodes - use selected root person if provided, otherwise find natural roots
   let rootNodes;
   if (rootPersonId) {
@@ -110,16 +131,16 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
     // Find root nodes (people with no parents)
     rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
   }
-  
+
   // Step 3: Calculate generations for each person
   const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap);
-  
+
   // Step 4: Create nodes with hierarchical positioning (prioritize rootPersonId)
   const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId, relationshipMaps.childToParents);
-  
+
   // Step 5: Create simplified edges (no duplication)
   const edges = createSimplifiedEdges(relationships, relationshipMaps);
-  
+
   return { nodes, edges };
 };
 
@@ -152,24 +173,24 @@ const buildRelationshipMaps = (relationships, persons) => {
   relationships.forEach(rel => {
     let source = String(rel.source || rel.from);
     let target = String(rel.target || rel.to);
-    
+
     // Support both 'type' and 'relationship_type' field names for flexibility
     const relationshipType = rel.type || rel.relationship_type;
-    
+
     switch (relationshipType) {
       case 'parent':
         totalParentRels++;
         // Validate relationship based on birth dates to prevent inverted hierarchies
         let sourcePerson = persons.find(p => String(p.id) === source);
         let targetPerson = persons.find(p => String(p.id) === target);
-        
+
         // DEBUG: Check for Bob Anderson relationships
         if (source === '5' || target === '5') {
           console.log(`DEBUG RELATIONSHIP ${source} -> ${target}:`);
           console.log(`  Source (${source}):`, sourcePerson ? { name: `${sourcePerson.first_name} ${sourcePerson.last_name}`, dob: sourcePerson.date_of_birth } : 'Not found');
           console.log(`  Target (${target}):`, targetPerson ? { name: `${targetPerson.first_name} ${targetPerson.last_name}`, dob: targetPerson.date_of_birth } : 'Not found');
         }
-        
+
         // Skip relationships where one or both persons are not found
         if (!sourcePerson || !targetPerson) {
           skippedMissingPerson++;
@@ -178,32 +199,42 @@ const buildRelationshipMaps = (relationships, persons) => {
           }
           return; // Skip to next relationship
         }
-        
-        // Skip inverted relationships where "parent" is younger than "child"
+
+        // Only invert if the relationship is truly inverted (parent is younger than child and the relationship is not already child->parent)
         if (sourcePerson.date_of_birth && targetPerson.date_of_birth) {
           const sourceBirthYear = new Date(sourcePerson.date_of_birth).getFullYear();
           const targetBirthYear = new Date(targetPerson.date_of_birth).getFullYear();
-          
+
           // DEBUG for Bob Anderson
           if (source === '5' || target === '5') {
             console.log(`  Source Year: ${sourceBirthYear}, Target Year: ${targetBirthYear}`);
             console.log(`  sourceBirthYear > targetBirthYear: ${sourceBirthYear > targetBirthYear} (inverted if true)`);
           }
-          
+
+          // Only swap if the relationship is not already child->parent (i.e., if the data is not already inverted)
+          // If the relationship is already child->parent, do not swap
+          // If the relationship is parent->child but parent is younger, swap
+          // Heuristic: If the relationship is marked as parent, but the source is younger, and the target is not a parent of the source, swap
           if (sourceBirthYear > targetBirthYear) {
-            // Parent is younger than child - this is inverted, fix it by swapping
-            skippedInverted++;
-            console.warn(`Fixing inverted relationship: ${sourcePerson.first_name} ${sourcePerson.last_name} (born ${sourceBirthYear}) marked as parent of ${targetPerson.first_name} ${targetPerson.last_name} (born ${targetBirthYear}). Swapping: ${target} -> ${source}`);
-            
-            // Swap source and target to fix the inversion
-            const tempSource = source;
-            source = target;
-            target = tempSource;
-            
-            // Also swap the person objects for consistency
-            const tempSourcePerson = sourcePerson;
-            sourcePerson = targetPerson;
-            targetPerson = tempSourcePerson;
+            // Check if the target is already a parent of the source (i.e., the data is already inverted)
+            const targetIsParentOfSource = relationships.some(r => {
+              const rType = r.type || r.relationship_type;
+              const rSource = String(r.source || r.from);
+              const rTarget = String(r.target || r.to);
+              return rType === 'parent' && rSource === target && rTarget === source;
+            });
+            if (!targetIsParentOfSource) {
+              skippedInverted++;
+              console.warn(`Fixing inverted relationship: ${sourcePerson.first_name} ${sourcePerson.last_name} (born ${sourceBirthYear}) marked as parent of ${targetPerson.first_name} ${targetPerson.last_name} (born ${targetBirthYear}). Swapping: ${target} -> ${source}`);
+              // Swap source and target to fix the inversion
+              const tempSource = source;
+              source = target;
+              target = tempSource;
+              // Also swap the person objects for consistency
+              const tempSourcePerson = sourcePerson;
+              sourcePerson = targetPerson;
+              targetPerson = tempSourcePerson;
+            }
           }
         } else {
           skippedMissingDates++;
@@ -211,18 +242,18 @@ const buildRelationshipMaps = (relationships, persons) => {
             console.log('  One or both birth dates are missing for this relationship.');
           }
         }
-        
+
         // Parent -> Child relationship (only if not inverted)
         if (source === '5' || target === '5') {
           console.log(`  ADDING to maps: ${source} -> ${target}`);
         }
-        
+
         addedToMaps++;
         if (!parentToChildren.has(source)) {
           parentToChildren.set(source, new Set());
         }
         parentToChildren.get(source).add(target);
-        
+
         if (!childToParents.has(target)) {
           childToParents.set(target, new Set());
         }
@@ -393,8 +424,50 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   // Group persons by generation
   persons.forEach(person => {
     const id = String(person.id);
-    const generation = generations.get(id) || 0;
-    
+    let generation = generations.get(id) || 0;
+
+    // --- ENHANCED WORKAROUND: Always group a deceased grandparent (like Molly) in the grandparent generation if:
+    // 1. They are a spouse of a grandparent (spouse is in grandparent generation)
+    // 2. OR they are a parent of a parent of the root (i.e., a true biological grandparent)
+    let forceGrandparentGen = null;
+    if (rootPersonId && childToParents) {
+      const rootId = String(rootPersonId);
+      // Get root's parents
+      const rootParentIds = childToParents.get(rootId) ? Array.from(childToParents.get(rootId)) : [];
+      // For each parent, get their parents (grandparents)
+      let grandparentIds = [];
+      rootParentIds.forEach(parentId => {
+        const gps = childToParents.get(parentId);
+        if (gps) grandparentIds.push(...Array.from(gps));
+      });
+      // If this person is a grandparent of the root, force their generation to match their spouse (if spouse is also a grandparent)
+      if (grandparentIds.includes(id)) {
+        // Find the minimum generation among all grandparents
+        let minGrandGen = generation;
+        grandparentIds.forEach(gpid => {
+          if (generations.has(gpid)) {
+            minGrandGen = Math.min(minGrandGen, generations.get(gpid));
+          }
+        });
+        forceGrandparentGen = minGrandGen;
+      }
+    }
+
+    // Also, if person is deceased and their spouse is in a lower generation, group them together
+    if ((person.is_deceased || person.date_of_death) && spouseMap) {
+      const spouseId = spouseMap.get(id);
+      if (spouseId && generations.has(spouseId)) {
+        const spouseGen = generations.get(spouseId);
+        if (spouseGen < generation) {
+          forceGrandparentGen = forceGrandparentGen !== null ? Math.min(forceGrandparentGen, spouseGen) : spouseGen;
+        }
+      }
+    }
+
+    if (forceGrandparentGen !== null) {
+      generation = forceGrandparentGen;
+    }
+
     if (!generationGroups.has(generation)) {
       generationGroups.set(generation, []);
     }
@@ -634,7 +707,10 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
   relationshipMaps.parentToChildren.forEach((children, parentId) => {
     children.forEach(childId => {
       const connectionKey = `parent-${parentId}-${childId}`;
-
+      // DEBUG: Log parent/child edge creation
+      if (typeof window !== 'undefined' && window.console) {
+        console.log('[FAMILY TREE DEBUG] Creating parent edge:', { parentId, childId });
+      }
       if (!processedConnections.has(connectionKey)) {
         edges.push({
           id: connectionKey,
@@ -668,7 +744,6 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
       // Determine the relationship status and color
       const isEx = relationship.is_ex === true;
       const isDeceased = relationship.is_deceased === true;
-      
       // Choose color based on relationship status
       let strokeColor = '#ec4899'; // Default: pink for current spouse
       if (isDeceased) {
@@ -676,7 +751,6 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
       } else if (isEx) {
         strokeColor = '#9ca3af'; // Grey for ex-spouse
       }
-      
       edges.push({
         id: connectionKey,
         source,
@@ -692,6 +766,11 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
       processedConnections.add(connectionKey);
     }
   });
+
+  // REMOVED: AUTO-INFER STEP-GRANDPARENT EDGES
+  // Step-grandparent relationships should only be shown in text labels via the relationship calculator,
+  // not as visual connectors. Visual connectors should only represent direct biological relationships
+  // and formal spouse relationships. Step-relationships are inferred and displayed as text only.
 
   // Note: Sibling relationships are not visually connected with edges
   // Sibling relationships are inferred from the hierarchical layout positioning
