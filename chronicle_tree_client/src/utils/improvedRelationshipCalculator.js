@@ -619,7 +619,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
  * @returns {string|null} - Blood relationship or null
  */
 const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  const { parentToChildren, childToParents, siblingMap } = relationshipMaps;
+  const { parentToChildren, childToParents, siblingMap, spouseMap, deceasedSpouseMap } = relationshipMaps;
   
   // Check for grandparent relationship
   const rootParents = childToParents.get(rootId) || new Set();
