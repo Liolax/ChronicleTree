@@ -32,11 +32,11 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   // Check if lifespans overlapped
   if (personBirth && rootDeath && personBirth > rootDeath) {
     // Person was born after root died - they never coexisted
-    // Only allow direct blood relationships (parent-child, grandparent-grandchild)
+    // Only allow direct blood relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.)
     const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
     const { childToParents, parentToChildren } = relationshipMaps;
     
-    // Check if they are direct blood relatives (parent-child or grandparent-grandchild)
+    // Check if they are direct blood relatives (any ancestor-descendant relationship)
     const personParents = childToParents.get(String(person.id)) || new Set();
     const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
     
@@ -50,13 +50,27 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       return getGenderSpecificRelation(person.id, 'Son', 'Daughter', allPeople, 'Child');
     }
     
+    // Check for grandparent-grandchild relationship (person is grandparent of root)
+    for (const child of personChildren) {
+      if (parentToChildren.has(child) && parentToChildren.get(child).has(String(rootPerson.id))) {
+        return getGenderSpecificRelation(person.id, 'Grandfather', 'Grandmother', allPeople, 'Grandparent');
+      }
+    }
+    
+    // Check for grandchild-grandparent relationship (root is grandparent of person)
+    for (const parent of personParents) {
+      if (childToParents.has(parent) && childToParents.get(parent).has(String(rootPerson.id))) {
+        return getGenderSpecificRelation(person.id, 'Grandson', 'Granddaughter', allPeople, 'Grandchild');
+      }
+    }
+    
     // No direct blood relationship and they never coexisted = Unrelated
     return 'Unrelated';
   }
   
   if (rootBirth && personDeath && rootBirth > personDeath) {
     // Root was born after person died - they never coexisted
-    // Only allow direct blood relationships (parent-child, grandparent-grandchild)
+    // Only allow direct blood relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.) 
     const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
     const { childToParents, parentToChildren } = relationshipMaps;
     
@@ -72,6 +86,20 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     // If root is person's child (root born after person died - impossible but check anyway)
     if (personChildren.has(String(rootPerson.id))) {
       return getGenderSpecificRelation(rootPerson.id, 'Son', 'Daughter', allPeople, 'Child');
+    }
+    
+    // Check for grandparent-grandchild relationship (person is grandparent of root)
+    for (const child of personChildren) {
+      if (parentToChildren.has(child) && parentToChildren.get(child).has(String(rootPerson.id))) {
+        return getGenderSpecificRelation(person.id, 'Grandfather', 'Grandmother', allPeople, 'Grandparent');
+      }
+    }
+    
+    // Check for grandchild-grandparent relationship (root is grandparent of person)  
+    for (const parent of rootParents) {
+      if (parentToChildren.has(parent) && parentToChildren.get(parent).has(String(person.id))) {
+        return getGenderSpecificRelation(rootPerson.id, 'Grandfather', 'Grandmother', allPeople, 'Grandparent');
+      }
     }
     
     // No direct blood relationship and they never coexisted = Unrelated
@@ -489,6 +517,21 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
       if (!rootParents.has(stepParent)) { // Make sure it's actually a step-parent
         const stepParentParents = childToParents.get(stepParent) || new Set();
         if (stepParentParents.has(personId)) {
+          // CRITICAL FIX: Check if deceased step-parent was alive when root was born
+          // A deceased person's parents cannot be step-grandparents to someone born after their death
+          const stepParentPerson = allPeople.find(p => String(p.id) === String(stepParent));
+          const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
+          
+          if (stepParentPerson && rootPerson && stepParentPerson.date_of_death && rootPerson.date_of_birth) {
+            const deathDate = new Date(stepParentPerson.date_of_death);
+            const birthDate = new Date(rootPerson.date_of_birth);
+            
+            // If root was born after step-parent's death, no step-grandparent relationship exists
+            if (birthDate > deathDate) {
+              continue; // Skip this deceased step-parent, not a valid step-grandparent relationship
+            }
+          }
+          
           return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
         }
       }
@@ -620,11 +663,56 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, "Parent's sibling");
     }
   }
+  
+  // Check for step-aunt/step-uncle relationship (person is step-sibling of root's parent)
+  for (const parent of rootParents) {
+    // Find step-siblings of this parent (through parent's parent's spouse)
+    const parentParents = childToParents.get(parent) || new Set();
+    for (const grandparent of parentParents) {
+      const grandparentSpouses = spouseMap.get(grandparent) || new Set();
+      const grandparentDeceasedSpouses = deceasedSpouseMap.get(grandparent) || new Set();
+      for (const spouse of [...grandparentSpouses, ...grandparentDeceasedSpouses]) {
+        if (!parentParents.has(spouse)) {
+          // This spouse is a step-parent of parent, find their children who are parent's step-siblings
+          const stepParentChildren = parentToChildren.get(spouse) || new Set();
+          if (stepParentChildren.has(personId) && personId !== parent) {
+            return getGenderSpecificRelation(personId, 'Step-Uncle', 'Step-Aunt', allPeople, "Parent's step-sibling");
+          }
+        }
+      }
+    }
+  }
 
   // Check for niece/nephew relationship (person is niece/nephew of root)
   for (const sibling of rootSiblings) {
     if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
       return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
+    }
+  }
+  
+  // Check for step-niece/step-nephew relationship (person is child of root's step-sibling)
+  // First, find root's step-siblings
+  const rootStepSiblings = new Set();
+  for (const parent of rootParents) {
+    const parentSpouses = spouseMap.get(parent) || new Set();
+    const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
+    [...parentSpouses, ...parentDeceasedSpouses].forEach(spouse => {
+      if (!rootParents.has(spouse)) {
+        // This spouse is a step-parent of root, find their children who are root's step-siblings
+        const stepParentChildren = parentToChildren.get(spouse) || new Set();
+        stepParentChildren.forEach(stepSibling => {
+          if (stepSibling !== rootId) { // Don't include root themselves
+            rootStepSiblings.add(stepSibling);
+          }
+        });
+      }
+    });
+  }
+  
+  // Check if person is child of any step-sibling
+  for (const stepSibling of rootStepSiblings) {
+    if (parentToChildren.has(stepSibling) && parentToChildren.get(stepSibling).has(personId)) {
+      return getGenderSpecificRelation(personId, 'Step-Nephew', 'Step-Niece', allPeople, "Step-Sibling's child");
     }
   }
 
