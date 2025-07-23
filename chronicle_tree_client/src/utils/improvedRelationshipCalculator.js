@@ -558,6 +558,15 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         if (stepChildChildren.has(rootId)) {
           return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
         }
+        
+        // ADDITIONAL: Check for step-great-grandparent relationship
+        // Person is step-great-grandparent of root if: root is child of person's step-grandchild
+        for (const stepGrandchild of stepChildChildren) {
+          const stepGrandchildChildren = parentToChildren.get(stepGrandchild) || new Set();
+          if (stepGrandchildChildren.has(rootId)) {
+            return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Great-Grandparent');
+          }
+        }
       }
     }
   }
@@ -596,6 +605,15 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         const stepChildChildren = parentToChildren.get(spouseChild) || new Set();
         if (stepChildChildren.has(personId)) {
           return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
+        }
+        
+        // ADDITIONAL: Check for step-great-grandchild relationship
+        // Person is step-great-grandchild of root if: person is child of root's step-grandchild
+        for (const stepGrandchild of stepChildChildren) {
+          const stepGrandchildChildren = parentToChildren.get(stepGrandchild) || new Set();
+          if (stepGrandchildChildren.has(personId)) {
+            return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
+          }
         }
       }
     }
