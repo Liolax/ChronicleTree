@@ -39,6 +39,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     // Check if they are direct blood relatives (any ancestor-descendant relationship)
     const personParents = childToParents.get(String(person.id)) || new Set();
     const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
+    const personChildren = parentToChildren.get(String(person.id)) || new Set();
     
     // If root is person's parent (person born after root died - impossible but check anyway)
     if (personParents.has(String(rootPerson.id))) {
@@ -77,6 +78,8 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     // Check if they are direct blood relatives
     const rootParents = childToParents.get(String(rootPerson.id)) || new Set();
     const personChildren = parentToChildren.get(String(person.id)) || new Set();
+    const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
+    const personParents = childToParents.get(String(person.id)) || new Set();
     
     // If person is root's parent (root born after person died - impossible but check anyway)
     if (rootParents.has(String(person.id))) {
