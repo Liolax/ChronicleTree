@@ -542,16 +542,16 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   }
   
   // ADDITIONAL: Check for step-grandparent relationship (reverse)
-  // Person is step-grandparent of root if: person is married to parent of root's children, where root's children are not person's biological children
+  // Person is step-grandparent of root if: person is married to parent of person's step-children, and root is child of those step-children
   const personSpouses = spouseMap.get(personId) || new Set();
   const personDeceasedSpouses = deceasedSpouseMap.get(personId) || new Set();
   
   for (const spouse of [...personSpouses, ...personDeceasedSpouses]) {
-    // Check if this spouse has children
+    // Check if this spouse has children that are not person's biological children (person's step-children)
     const spouseChildren = parentToChildren.get(spouse) || new Set();
     for (const spouseChild of spouseChildren) {
-      // Check if person is not a biological parent of this child (making it person's step-child)
       const childParents = childToParents.get(spouseChild) || new Set();
+      // If person is not a biological parent of this child, it's person's step-child
       if (!childParents.has(personId) && childParents.has(spouse)) {
         // This is person's step-child, check if root is their child (making root person's step-grandchild)
         const stepChildChildren = parentToChildren.get(spouseChild) || new Set();
@@ -581,26 +581,21 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // ADDITIONAL: Check for step-grandchild relationship (reverse)
   // Person is step-grandchild of root if: person is child of root's step-child
-  const rootChildren = parentToChildren.get(rootId) || new Set();
-  for (const child of rootChildren) {
-    // Check if this child is a step-child of root (child has step-parent relationship with root)
-    const childParents = childToParents.get(child) || new Set();
-    const childSpouses = spouseMap.get(child) || new Set();
-    const childDeceasedSpouses = deceasedSpouseMap.get(child) || new Set();
-    
-    // If root is not a biological parent of this child, but root's spouse is a parent, then this is root's step-child
-    if (!childParents.has(rootId)) {
-      // Check if root's current or deceased spouse is a parent of this child
-      const rootSpouses = spouseMap.get(rootId) || new Set();
-      const rootDeceasedSpouses = deceasedSpouseMap.get(rootId) || new Set();
-      
-      for (const rootSpouse of [...rootSpouses, ...rootDeceasedSpouses]) {
-        if (childParents.has(rootSpouse)) {
-          // This child is root's step-child, check if person is their child
-          const stepChildChildren = parentToChildren.get(child) || new Set();
-          if (stepChildChildren.has(personId)) {
-            return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
-          }
+  // Find root's spouses and their children who are not root's biological children (root's step-children)
+  const rootSpouses = spouseMap.get(rootId) || new Set();
+  const rootDeceasedSpouses = deceasedSpouseMap.get(rootId) || new Set();
+  
+  for (const spouse of [...rootSpouses, ...rootDeceasedSpouses]) {
+    // Get all children of this spouse
+    const spouseChildren = parentToChildren.get(spouse) || new Set();
+    for (const spouseChild of spouseChildren) {
+      // Check if this child is not root's biological child (making it root's step-child)
+      const spouseChildParents = childToParents.get(spouseChild) || new Set();
+      if (!spouseChildParents.has(rootId) && spouseChildParents.has(spouse)) {
+        // This is root's step-child, check if person is their child (making person root's step-grandchild)
+        const stepChildChildren = parentToChildren.get(spouseChild) || new Set();
+        if (stepChildChildren.has(personId)) {
+          return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
         }
       }
     }
