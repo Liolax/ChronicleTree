@@ -687,9 +687,18 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
 
   // Check for niece/nephew relationship (person is niece/nephew of root)
+  // Only count biological siblings, not step-siblings
   for (const sibling of rootSiblings) {
     if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
-      return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
+      // Check if this is a biological sibling (shares all parents with root) vs step-sibling
+      const siblingParents = childToParents.get(sibling) || new Set();
+      const sharedParents = [...rootParents].filter(parent => siblingParents.has(parent));
+      
+      // If they share ALL parents, they're biological siblings
+      if (sharedParents.length === rootParents.size && sharedParents.length === siblingParents.size && sharedParents.length > 0) {
+        return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
+      }
+      // If they're step-siblings, this will be handled by the step-nephew/niece logic below
     }
   }
   
