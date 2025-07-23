@@ -571,6 +571,31 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
+  // ADDITIONAL: Check for step-great-grandparent relationship through person's biological children
+  // Person is step-great-grandparent of root if: person's child has step-grandchildren, and root is one of them
+  const personChildren = parentToChildren.get(personId) || new Set();
+  for (const personChild of personChildren) {
+    // Check if this child has step-relationships (through marriage)
+    const childSpouses = spouseMap.get(personChild) || new Set();
+    const childDeceasedSpouses = deceasedSpouseMap.get(personChild) || new Set();
+    
+    for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
+      // Find childSpouse's children who are not personChild's biological children (personChild's step-children)
+      const childSpouseChildren = parentToChildren.get(childSpouse) || new Set();
+      for (const stepChild of childSpouseChildren) {
+        const stepChildParents = childToParents.get(stepChild) || new Set();
+        // If personChild is not biological parent of this stepChild, it's personChild's step-child
+        if (!stepChildParents.has(personChild) && stepChildParents.has(childSpouse)) {
+          // This is personChild's step-child, check if root is their child (making root person's step-great-grandchild)
+          const stepChildChildren = parentToChildren.get(stepChild) || new Set();
+          if (stepChildChildren.has(rootId)) {
+            return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Great-Grandparent');
+          }
+        }
+      }
+    }
+  }
+  
   // Check for step-grandchild relationship
   // Person is step-grandchild of root if: root is parent of person's step-parent
   for (const parent of personParents) {
@@ -612,6 +637,31 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         for (const stepGrandchild of stepChildChildren) {
           const stepGrandchildChildren = parentToChildren.get(stepGrandchild) || new Set();
           if (stepGrandchildChildren.has(personId)) {
+            return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
+          }
+        }
+      }
+    }
+  }
+  
+  // ADDITIONAL: Check for step-great-grandchild relationship through root's biological children
+  // Person is step-great-grandchild of root if: root's child has step-grandchildren, and person is one of them
+  const rootChildren = parentToChildren.get(rootId) || new Set();
+  for (const rootChild of rootChildren) {
+    // Check if this child has step-relationships (through marriage)
+    const childSpouses = spouseMap.get(rootChild) || new Set();
+    const childDeceasedSpouses = deceasedSpouseMap.get(rootChild) || new Set();
+    
+    for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
+      // Find childSpouse's children who are not rootChild's biological children (rootChild's step-children)
+      const childSpouseChildren = parentToChildren.get(childSpouse) || new Set();
+      for (const stepChild of childSpouseChildren) {
+        const stepChildParents = childToParents.get(stepChild) || new Set();
+        // If rootChild is not biological parent of this stepChild, it's rootChild's step-child
+        if (!stepChildParents.has(rootChild) && stepChildParents.has(childSpouse)) {
+          // This is rootChild's step-child, check if person is their child (making person root's step-great-grandchild)
+          const stepChildChildren = parentToChildren.get(stepChild) || new Set();
+          if (stepChildChildren.has(personId)) {
             return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
           }
         }
