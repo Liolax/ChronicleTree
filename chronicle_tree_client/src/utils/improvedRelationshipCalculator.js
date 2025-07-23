@@ -580,6 +580,21 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     const childDeceasedSpouses = deceasedSpouseMap.get(personChild) || new Set();
     
     for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
+      // CRITICAL TIMELINE CHECK: If personChild is deceased, check if they were alive when root was born
+      // A deceased person cannot have step-relationships with people born after their death
+      const personChildObj = allPeople.find(p => String(p.id) === String(personChild));
+      const rootObj = allPeople.find(p => String(p.id) === String(rootId));
+      
+      if (personChildObj && rootObj && personChildObj.date_of_death && rootObj.date_of_birth) {
+        const deathDate = new Date(personChildObj.date_of_death);
+        const birthDate = new Date(rootObj.date_of_birth);
+        
+        // If root was born after personChild's death, no step-relationship can exist
+        if (birthDate > deathDate) {
+          continue; // Skip this deceased child, no valid step-relationship possible
+        }
+      }
+      
       // Find childSpouse's children who are not personChild's biological children (personChild's step-children)
       const childSpouseChildren = parentToChildren.get(childSpouse) || new Set();
       for (const stepChild of childSpouseChildren) {
@@ -653,6 +668,21 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     const childDeceasedSpouses = deceasedSpouseMap.get(rootChild) || new Set();
     
     for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
+      // CRITICAL TIMELINE CHECK: If rootChild is deceased, check if they were alive when person was born
+      // A deceased person cannot have step-relationships with people born after their death
+      const rootChildObj = allPeople.find(p => String(p.id) === String(rootChild));
+      const personObj = allPeople.find(p => String(p.id) === String(personId));
+      
+      if (rootChildObj && personObj && rootChildObj.date_of_death && personObj.date_of_birth) {
+        const deathDate = new Date(rootChildObj.date_of_death);
+        const birthDate = new Date(personObj.date_of_birth);
+        
+        // If person was born after rootChild's death, no step-relationship can exist
+        if (birthDate > deathDate) {
+          continue; // Skip this deceased child, no valid step-relationship possible
+        }
+      }
+      
       // Find childSpouse's children who are not rootChild's biological children (rootChild's step-children)
       const childSpouseChildren = parentToChildren.get(childSpouse) || new Set();
       for (const stepChild of childSpouseChildren) {
