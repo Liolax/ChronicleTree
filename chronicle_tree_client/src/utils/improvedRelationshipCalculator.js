@@ -437,7 +437,7 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
  * @returns {string|null} - Step relationship or null
  */
 const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  const { childToParents, spouseMap, deceasedSpouseMap } = relationshipMaps;
+  const { childToParents, parentToChildren, spouseMap, deceasedSpouseMap } = relationshipMaps;
   
   // Check for step-parent relationship
   // Person is step-parent of root if: person is spouse of root's parent, but not root's biological parent
