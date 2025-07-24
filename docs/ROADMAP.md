@@ -1,3 +1,18 @@
+## Step-Relationships: Comprehensive Timeline Validation
+
+**Goal:**
+Prevent all step-relationships (step-parent, step-grandparent, step-sibling, etc.) from being inferred or displayed if the deceased connecting person (e.g., a spouse or parent) died before the target person was born. This addresses issues where step-relationships are shown between people who could not have overlapped in time, such as Richard Sharma and Michael Doe being shown as step-relatives despite Jane Doe (the connecting person) dying before Michael was born.
+
+**Planned Changes:**
+- Add `isDeceasedPersonConnectingPersonAndRoot` helper function to check if the connecting person (e.g., spouse or parent) is deceased and whether their death predates the birth of the target person.
+- Add `isDescendantOf` helper function for ancestry checking to support timeline validation and relationship directionality.
+- Implement comprehensive deceased spouse timeline validation in all step-relationship inference logic (step-parent, step-grandparent, step-sibling, step-grandchild, etc.).
+- Fix timeline validation direction in step-grandparent logic to ensure no step-grandparent edge is created if the connecting spouse died before the root was born.
+- Add timeline validation to step-grandchild logic paths to prevent invalid step-grandchild relationships.
+- Ensure bidirectional relationship consistency: if a step-relationship is blocked in one direction due to timeline, it should not appear in the other direction either.
+
+**Outcome:**
+All step-relationships will be timeline-consistent, and no step-relationship will be shown if the connecting person died before the target person was born. This will prevent visual and logical errors in the family tree, especially for cases involving late spouses and step-relatives.
 # ChronicleTree Development Roadmap
 
 This document outlines the current state, recent progress, and future plans for the ChronicleTree full-stack application, including both the Rails API backend and the React client frontend.

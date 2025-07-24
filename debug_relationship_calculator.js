@@ -425,6 +425,7 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     // If no shared parents, this is an incorrect sibling relationship - ignore it and continue to blood relationship calculation
   }
   
+  console.log('[DEBUG STEP-SIBLING] ❌ No step-sibling relationship found, returning null');
   return null;
 };
 
@@ -523,10 +524,6 @@ const isDescendantOf = (descendantId, ancestorId, parentToChildren) => {
  */
 const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => {
   const { childToParents, parentToChildren, spouseMap, deceasedSpouseMap } = relationshipMaps;
-  
-  console.log('[DEBUG MAPS] childToParents keys:', Array.from(childToParents.keys()));
-  console.log('[DEBUG MAPS] childToParents for person ' + personId + ':', childToParents.has(personId) ? Array.from(childToParents.get(personId)) : 'NOT FOUND');
-  console.log('[DEBUG MAPS] childToParents for root ' + rootId + ':', childToParents.has(rootId) ? Array.from(childToParents.get(rootId)) : 'NOT FOUND');
   
   // COMPREHENSIVE TIMELINE VALIDATION: Block ALL step-relationships when connecting person died before target was born
   // This prevents step-relationships through deceased connecting persons in all bidirectional cases
@@ -845,14 +842,17 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
+  console.log('[DEBUG STEP-SIBLING] Starting step-sibling check for person=' + personId + ', root=' + rootId);
+  
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents
-  console.log('[DEBUG STEP-SIBLING] Starting check for person=' + personId + ', root=' + rootId);
-  console.log('[DEBUG STEP-SIBLING] rootParents:', Array.from(rootParents));
-  console.log('[DEBUG STEP-SIBLING] personParents:', Array.from(personParents));
-  
   const rootStepParents = new Set();
   const personStepParents = new Set();
+  
+  const rootParents = childToParents.get(rootId) || new Set();
+  const personParents = childToParents.get(personId) || new Set();
+  console.log('[DEBUG STEP-SIBLING] rootParents:', Array.from(rootParents));
+  console.log('[DEBUG STEP-SIBLING] personParents:', Array.from(personParents));
   
   // Find root's step-parents
   for (const parent of rootParents) {
@@ -876,19 +876,23 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     });
   }
   
-  // Check if person is child of any of root's step-parents
   console.log('[DEBUG STEP-SIBLING] rootStepParents:', Array.from(rootStepParents));
   console.log('[DEBUG STEP-SIBLING] personStepParents:', Array.from(personStepParents));
   
+  // Check if person is child of any of root's step-parents
   for (const stepParent of rootStepParents) {
     if (personParents.has(stepParent)) {
       console.log('[DEBUG STEP-SIBLING] Found step-parent match:', stepParent);
+      console.log('[DEBUG STEP-SIBLING] personParents.has(stepParent):', personParents.has(stepParent));
+      
       // Make sure they don't share ALL biological parents (if they do, they're full siblings)
       const sharedBioParents = [...rootParents].filter(parent => personParents.has(parent));
       console.log('[DEBUG STEP-SIBLING] sharedBioParents:', sharedBioParents);
-      console.log('[DEBUG STEP-SIBLING] condition:', sharedBioParents.length, '<', Math.max(rootParents.size, personParents.size), '=', sharedBioParents.length < Math.max(rootParents.size, personParents.size));
+      console.log('[DEBUG STEP-SIBLING] rootParents.size:', rootParents.size, 'personParents.size:', personParents.size);
+      console.log('[DEBUG STEP-SIBLING] condition check:', sharedBioParents.length, '<', Math.max(rootParents.size, personParents.size), '=', sharedBioParents.length < Math.max(rootParents.size, personParents.size));
+      
       if (sharedBioParents.length < Math.max(rootParents.size, personParents.size)) {
-        console.log('[DEBUG STEP-SIBLING] ✅ RETURNING STEP-SIBLING!');
+        console.log('[DEBUG STEP-SIBLING] ✅ RETURNING STEP-SIBLING RELATIONSHIP!');
         return getGenderSpecificRelation(personId, 'Step-Brother', 'Step-Sister', allPeople, 'Step-Sibling');
       }
     }
@@ -905,7 +909,6 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  console.log('[DEBUG STEP-SIBLING] ❌ No step-sibling found, returning null');
   return null;
 };
 

@@ -31,7 +31,10 @@
       "WebFetch(domain:github.com)",
       "Bash(bundle exec rake:*)",
       "Bash(BUNDLE_GEMFILE=chronicle_tree_api/Gemfile bundle exec rake -f chronicle_tree_api/Rakefile test:robust_sibling_filtering)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(ruby test:*)"
     ],
     "deny": []
   }
