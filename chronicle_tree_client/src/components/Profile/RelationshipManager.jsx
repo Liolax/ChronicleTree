@@ -77,9 +77,17 @@ function findStepRelationships(person, allPeople, relationships) {
   
   // Find step-parents: People who are married to person's biological parents but are not person's biological parents
   const personParents = childToParents.get(String(person.id)) || new Set();
+  
+  console.log('[findStepRelationships] Person parents found:', Array.from(personParents));
+  console.log('[findStepRelationships] All parent-child relationships sample:', {
+    totalMaps: childToParents.size,
+    sampleEntries: Array.from(childToParents.entries()).slice(0, 5)
+  });
   for (const parent of personParents) {
     // Check current spouses of this parent
     const parentCurrentSpouses = spouseMap.get(parent) || new Set();
+    console.log('[findStepRelationships] Parent', parent, 'current spouses:', Array.from(parentCurrentSpouses));
+    
     for (const spouse of parentCurrentSpouses) {
       // Make sure the spouse is not a biological parent of the person
       if (!personParents.has(spouse)) {
@@ -647,7 +655,64 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
-      // 5. Timeline validation - siblings should have overlapping lifespans or reasonable birth timing
+      // 5. CRITICAL: Check for step-relationship conflicts using tree data
+      console.log('[checkRelationshipConstraints] Checking step relationships:', {
+        hasTreeData: !!treeData,
+        hasNodes: !!treeData?.nodes,
+        hasEdges: !!treeData?.edges,
+        candidateId: candidate.id,
+        personId: person.id
+      });
+      
+      if (treeData && treeData.nodes && treeData.edges) {
+        // Use the same relationship mapping format as the display logic
+        const relationships = treeData.edges.map(edge => ({
+          from: edge.source,
+          to: edge.target, 
+          relationship_type: edge.type || edge.relationship_type,
+          is_ex: edge.is_ex,
+          is_deceased: edge.is_deceased
+        }));
+        
+        console.log('[checkRelationshipConstraints] Using relationships data:', {
+          edgeCount: treeData.edges.length,
+          relationshipCount: relationships.length,
+          sampleRelationships: relationships.slice(0, 3)
+        });
+        
+        const { stepParents, stepChildren } = findStepRelationships(person, treeData.nodes, relationships);
+        
+        console.log('[checkRelationshipConstraints] Step relationships found:', {
+          stepParents: stepParents.map(sp => ({ id: sp.id, name: sp.full_name })),
+          stepChildren: stepChildren.map(sc => ({ id: sc.id, name: sc.full_name })),
+          candidateId: candidate.id,
+          candidateName: `${candidate.first_name} ${candidate.last_name}`
+        });
+        
+        // Check if candidate is a step-parent
+        const isStepParent = stepParents.some(sp => sp.id === candidate.id);
+        if (isStepParent) {
+          console.log('[checkRelationshipConstraints] BLOCKING: Candidate is step-parent');
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${candidate.first_name} ${candidate.last_name} - they are your step-parent` 
+          };
+        }
+        
+        // Check if candidate is a step-child
+        const isStepChild = stepChildren.some(sc => sc.id === candidate.id);
+        if (isStepChild) {
+          console.log('[checkRelationshipConstraints] BLOCKING: Candidate is step-child');
+          return { 
+            valid: false, 
+            reason: `Cannot be siblings with ${candidate.first_name} ${candidate.last_name} - they are your step-child` 
+          };
+        }
+      } else {
+        console.log('[checkRelationshipConstraints] No tree data available for step relationship check');
+      }
+      
+      // 6. Timeline validation - siblings should have overlapping lifespans or reasonable birth timing
       if (person.date_of_birth && candidate.date_of_birth) {
         const personBirth = new Date(person.date_of_birth);
         const candidateBirth = new Date(candidate.date_of_birth);
