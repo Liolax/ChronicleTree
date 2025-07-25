@@ -235,7 +235,9 @@ def shared_parent?(a, b, parent_child_pairs)
 end
 
 sibling_pairs = [
-  [bob, emily], [charlie, alice], [alice, michael], [charlie, michael]
+  [bob, emily], [charlie, alice]
+  # Removed [alice, michael] and [charlie, michael] - these should be step-siblings, not regular siblings
+  # Alice/Charlie (John+Jane children) and Michael (John+Lisa child) should be detected as step-siblings automatically
 ]
 sibling_pairs.each do |a, b|
   if shared_parent?(a, b, parent_child_pairs)

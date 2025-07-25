@@ -524,9 +524,7 @@ const isDescendantOf = (descendantId, ancestorId, parentToChildren) => {
 const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => {
   const { childToParents, parentToChildren, spouseMap, deceasedSpouseMap } = relationshipMaps;
   
-  console.log('[DEBUG MAPS] childToParents keys:', Array.from(childToParents.keys()));
-  console.log('[DEBUG MAPS] childToParents for person ' + personId + ':', childToParents.has(personId) ? Array.from(childToParents.get(personId)) : 'NOT FOUND');
-  console.log('[DEBUG MAPS] childToParents for root ' + rootId + ':', childToParents.has(rootId) ? Array.from(childToParents.get(rootId)) : 'NOT FOUND');
+  // Relationship maps debugging removed for cleaner output
   
   // COMPREHENSIVE TIMELINE VALIDATION: Block ALL step-relationships when connecting person died before target was born
   // This prevents step-relationships through deceased connecting persons in all bidirectional cases
@@ -676,55 +674,17 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   // The reverse step-grandparent logic was creating false relationships.
   // Step-grandparent relationships should only be created through the primary logic above.
   
-  // ADDITIONAL: Check for step-great-grandparent relationship through person's biological children
-  // Person is step-great-grandparent of root if: person's child has step-grandchildren, and root is one of them
-  const personChildren = parentToChildren.get(personId) || new Set();
-  for (const personChild of personChildren) {
-    // Check if this child has step-relationships (through marriage)
-    const childSpouses = spouseMap.get(personChild) || new Set();
-    const childDeceasedSpouses = deceasedSpouseMap.get(personChild) || new Set();
-    
-    for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
-      // CRITICAL TIMELINE CHECK: If personChild is deceased, check if they were alive when the step-grandchild was born
-      // A deceased person cannot have step-relationships with people born after their death
-      const personChildObj = allPeople.find(p => String(p.id) === String(personChild));
-      
-      // For step-great-grandparent logic: check timeline against the step-grandchild (found later in the logic)
-      // Since we don't know the step-grandchild yet, we'll do this check inside the inner loop
-      if (personChildObj && personChildObj.date_of_death) {
-        // We'll validate this timeline later when we find the actual step-grandchild
-      }
-      
-      // Find childSpouse's children who are not personChild's biological children (personChild's step-children)
-      const childSpouseChildren = parentToChildren.get(childSpouse) || new Set();
-      for (const stepChild of childSpouseChildren) {
-        const stepChildParents = childToParents.get(stepChild) || new Set();
-        // If personChild is not biological parent of this stepChild, it's personChild's step-child
-        if (!stepChildParents.has(personChild) && stepChildParents.has(childSpouse)) {
-          // This is personChild's step-child, check if root is their child (making root person's step-great-grandchild)
-          const stepChildChildren = parentToChildren.get(stepChild) || new Set();
-          if (stepChildChildren.has(rootId)) {
-            // CRITICAL TIMELINE CHECK: If personChild is deceased, verify they were alive when root was born
-            // A deceased person cannot create step-great-grandparent relationships for people born after their death
-            if (personChildObj && personChildObj.date_of_death) {
-              const rootObj = allPeople.find(p => String(p.id) === String(rootId));
-              if (rootObj && rootObj.date_of_birth) {
-                const deathDate = new Date(personChildObj.date_of_death);
-                const birthDate = new Date(rootObj.date_of_birth);
-                
-                // If root was born after personChild's death, no step-great-grandparent relationship exists
-                if (birthDate > deathDate) {
-                  continue; // Skip this deceased step-relationship, not valid
-                }
-              }
-            }
-            
-            return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Great-Grandparent');
-          }
-        }
-      }
-    }
-  }
+  // REMOVED: Overly permissive step-great-grandparent logic
+  // The previous logic created incorrect step-great-grandparent relationships.
+  // In real-life family logic, the biological grandparents of your step-siblings 
+  // should be "Unrelated" to you, not step-great-grandparents.
+  //
+  // Example issue: If Jane's father William would be considered Emma's step-great-grandfather
+  // just because Jane married John, and John had a child Alice with someone else, 
+  // and Alice had Emma. But William has no meaningful relationship to Emma.
+  //
+  // Step-great-grandparent relationships should only exist through direct step-grandparent chains,
+  // which are already handled by the main step-grandparent logic above.
   
   // Check for step-grandchild relationship
   // Person is step-grandchild of root if: root is parent of person's step-parent
@@ -805,51 +765,14 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  // ADDITIONAL: Check for step-great-grandchild relationship through root's biological children
-  // Person is step-great-grandchild of root if: root's child has step-grandchildren, and person is one of them
-  const rootChildren = parentToChildren.get(rootId) || new Set();
-  for (const rootChild of rootChildren) {
-    // Check if this child has step-relationships (through marriage)
-    const childSpouses = spouseMap.get(rootChild) || new Set();
-    const childDeceasedSpouses = deceasedSpouseMap.get(rootChild) || new Set();
-    
-    for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
-      // CRITICAL TIMELINE CHECK: If rootChild is deceased, check if they were alive when person was born
-      // A deceased person cannot have step-relationships with people born after their death
-      const rootChildObj = allPeople.find(p => String(p.id) === String(rootChild));
-      const personObj = allPeople.find(p => String(p.id) === String(personId));
-      
-      if (rootChildObj && personObj && rootChildObj.date_of_death && personObj.date_of_birth) {
-        const deathDate = new Date(rootChildObj.date_of_death);
-        const birthDate = new Date(personObj.date_of_birth);
-        
-        // If person was born after rootChild's death, no step-relationship can exist
-        if (birthDate > deathDate) {
-          continue; // Skip this deceased child, no valid step-relationship possible
-        }
-      }
-      
-      // Find childSpouse's children who are not rootChild's biological children (rootChild's step-children)
-      const childSpouseChildren = parentToChildren.get(childSpouse) || new Set();
-      for (const stepChild of childSpouseChildren) {
-        const stepChildParents = childToParents.get(stepChild) || new Set();
-        // If rootChild is not biological parent of this stepChild, it's rootChild's step-child
-        if (!stepChildParents.has(rootChild) && stepChildParents.has(childSpouse)) {
-          // This is rootChild's step-child, check if person is their child (making person root's step-great-grandchild)
-          const stepChildChildren = parentToChildren.get(stepChild) || new Set();
-          if (stepChildChildren.has(personId)) {
-            return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
-          }
-        }
-      }
-    }
-  }
+  // REMOVED: Overly permissive step-great-grandchild logic
+  // The previous logic created incorrect step-great-grandchild relationships.
+  // This is the reverse of the step-great-grandparent logic that was also removed.
+  // Same principle: biological grandparents/grandchildren of step-siblings should be "Unrelated".
   
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents
-  console.log('[DEBUG STEP-SIBLING] Starting check for person=' + personId + ', root=' + rootId);
-  console.log('[DEBUG STEP-SIBLING] rootParents:', Array.from(rootParents));
-  console.log('[DEBUG STEP-SIBLING] personParents:', Array.from(personParents));
+  // Step-sibling debugging removed for cleaner output
   
   const rootStepParents = new Set();
   const personStepParents = new Set();
@@ -877,18 +800,13 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   }
   
   // Check if person is child of any of root's step-parents
-  console.log('[DEBUG STEP-SIBLING] rootStepParents:', Array.from(rootStepParents));
-  console.log('[DEBUG STEP-SIBLING] personStepParents:', Array.from(personStepParents));
+  // Debug logging removed
   
   for (const stepParent of rootStepParents) {
     if (personParents.has(stepParent)) {
-      console.log('[DEBUG STEP-SIBLING] Found step-parent match:', stepParent);
       // Make sure they don't share ALL biological parents (if they do, they're full siblings)
       const sharedBioParents = [...rootParents].filter(parent => personParents.has(parent));
-      console.log('[DEBUG STEP-SIBLING] sharedBioParents:', sharedBioParents);
-      console.log('[DEBUG STEP-SIBLING] condition:', sharedBioParents.length, '<', Math.max(rootParents.size, personParents.size), '=', sharedBioParents.length < Math.max(rootParents.size, personParents.size));
       if (sharedBioParents.length < Math.max(rootParents.size, personParents.size)) {
-        console.log('[DEBUG STEP-SIBLING] ✅ RETURNING STEP-SIBLING!');
         return getGenderSpecificRelation(personId, 'Step-Brother', 'Step-Sister', allPeople, 'Step-Sibling');
       }
     }
@@ -905,8 +823,158 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  console.log('[DEBUG STEP-SIBLING] ❌ No step-sibling found, returning null');
   return null;
+};
+
+/**
+ * Find generational cousin relationships using systematic loop approach
+ * @param {string} personId - The person's ID
+ * @param {string} rootId - The root person's ID
+ * @param {Map} childToParents - Child to parents map
+ * @param {Map} siblingMap - Sibling relationships map
+ * @returns {string|null} - Cousin relationship or null
+ */
+const findGenerationalCousinRelationship = (personId, rootId, childToParents, siblingMap) => {
+  console.log('[DEBUG COUSIN] Checking cousin relationship between person=' + personId + ' and root=' + rootId);
+  
+  // Maximum generations to check (prevents infinite loops and handles practical family tree depth)
+  const MAX_GENERATIONS = 10;
+  
+  // Build ancestor chains for both person and root
+  const personAncestorChains = buildAncestorChains(personId, childToParents, MAX_GENERATIONS);
+  const rootAncestorChains = buildAncestorChains(rootId, childToParents, MAX_GENERATIONS);
+  
+  console.log('[DEBUG COUSIN] Person ancestor chains:', personAncestorChains);
+  console.log('[DEBUG COUSIN] Root ancestor chains:', rootAncestorChains);
+  
+  // For each generation level, check if they share ancestors who are siblings
+  for (let generation = 2; generation <= MAX_GENERATIONS; generation++) {
+    const personAncestorsAtLevel = personAncestorChains[generation] || [];
+    const rootAncestorsAtLevel = rootAncestorChains[generation] || [];
+    
+    // Check if any ancestors at this level are siblings
+    for (const personAncestor of personAncestorsAtLevel) {
+      const personAncestorSiblings = siblingMap.get(personAncestor) || new Set();
+      
+      for (const rootAncestor of rootAncestorsAtLevel) {
+        if (personAncestorSiblings.has(rootAncestor)) {
+          const cousinDegree = generation - 1; // 2nd generation = 1st cousins, 3rd generation = 2nd cousins, etc.
+          console.log('[DEBUG COUSIN] Found ' + cousinDegree + ' degree cousin relationship at generation ' + generation);
+          
+          // Generate appropriate cousin label
+          return generateCousinLabel(cousinDegree);
+        }
+      }
+    }
+  }
+  
+  // Check for "removed" cousin relationships (different generation levels)
+  for (let personGen = 2; personGen <= MAX_GENERATIONS; personGen++) {
+    for (let rootGen = 2; rootGen <= MAX_GENERATIONS; rootGen++) {
+      if (personGen === rootGen) continue; // Same level already checked above
+      
+      const personAncestorsAtLevel = personAncestorChains[personGen] || [];
+      const rootAncestorsAtLevel = rootAncestorChains[rootGen] || [];
+      
+      for (const personAncestor of personAncestorsAtLevel) {
+        const personAncestorSiblings = siblingMap.get(personAncestor) || new Set();
+        
+        for (const rootAncestor of rootAncestorsAtLevel) {
+          if (personAncestorSiblings.has(rootAncestor)) {
+            const baseDegree = Math.min(personGen, rootGen) - 1;
+            const removedCount = Math.abs(personGen - rootGen);
+            
+            console.log('[DEBUG COUSIN] Found ' + baseDegree + ' degree cousin ' + removedCount + ' times removed');
+            
+            return generateCousinRemovedLabel(baseDegree, removedCount);
+          }
+        }
+      }
+    }
+  }
+  
+  console.log('[DEBUG COUSIN] No cousin relationship found');
+  return null;
+};
+
+/**
+ * Build ancestor chains for a person up to specified number of generations
+ * @param {string} personId - The person's ID
+ * @param {Map} childToParents - Child to parents map
+ * @param {number} maxGenerations - Maximum generations to traverse
+ * @returns {Object} - Object with generation levels as keys and ancestor arrays as values
+ */
+const buildAncestorChains = (personId, childToParents, maxGenerations) => {
+  console.log('[DEBUG ANCESTOR] Building chains for person:', personId);
+  console.log('[DEBUG ANCESTOR] childToParents has person?', childToParents.has(personId));
+  console.log('[DEBUG ANCESTOR] childToParents for person:', childToParents.has(personId) ? Array.from(childToParents.get(personId)) : 'NOT FOUND');
+  
+  const ancestorChains = {};
+  const visited = new Set();
+  
+  // Generation 1 is the person themselves
+  ancestorChains[1] = [personId];
+  
+  // Build each generation level
+  for (let generation = 2; generation <= maxGenerations; generation++) {
+    const previousGeneration = ancestorChains[generation - 1] || [];
+    const currentGeneration = [];
+    
+    for (const ancestor of previousGeneration) {
+      if (visited.has(ancestor)) continue;
+      visited.add(ancestor);
+      
+      const parents = childToParents.get(ancestor) || new Set();
+      for (const parent of parents) {
+        if (!currentGeneration.includes(parent) && !visited.has(parent)) {
+          currentGeneration.push(parent);
+        }
+      }
+    }
+    
+    if (currentGeneration.length === 0) {
+      break; // No more ancestors found
+    }
+    
+    ancestorChains[generation] = currentGeneration;
+  }
+  
+  return ancestorChains;
+};
+
+/**
+ * Generate appropriate cousin label for given degree
+ * @param {number} degree - Cousin degree (1 = 1st cousin, 2 = 2nd cousin, etc.)
+ * @returns {string} - Formatted cousin label
+ */
+const generateCousinLabel = (degree) => {
+  const ordinals = {
+    1: '1st',
+    2: '2nd', 
+    3: '3rd',
+    4: '4th',
+    5: '5th',
+    6: '6th',
+    7: '7th',
+    8: '8th',
+    9: '9th',
+    10: '10th'
+  };
+  
+  const ordinal = ordinals[degree] || degree + 'th';
+  return ordinal + ' Cousin';
+};
+
+/**
+ * Generate cousin removed label
+ * @param {number} baseDegree - Base cousin degree
+ * @param {number} removedCount - Number of times removed
+ * @returns {string} - Formatted cousin removed label
+ */
+const generateCousinRemovedLabel = (baseDegree, removedCount) => {
+  const baseLabel = generateCousinLabel(baseDegree);
+  const timesText = removedCount === 1 ? 'time' : 'times';
+  return baseLabel + ' ' + removedCount + ' ' + timesText + ' removed';
 };
 
 /**
@@ -985,6 +1053,51 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     }
   }
 
+  // Check for great-uncle/great-aunt relationship (multiple levels)
+  // Person is root's ancestor's sibling (grandparent, great-grandparent, etc.)
+  const MAX_GREAT_LEVELS = 5; // Support up to great-great-great-great-uncle/aunt
+  
+  for (let level = 2; level <= MAX_GREAT_LEVELS; level++) {
+    // Build ancestors at this level
+    const rootAncestorsAtLevel = new Set();
+    
+    // Start with root
+    let currentGeneration = new Set([rootId]);
+    
+    // Go up 'level' generations to find ancestors
+    for (let i = 0; i < level; i++) {
+      const nextGeneration = new Set();
+      for (const currentPerson of currentGeneration) {
+        const parents = childToParents.get(currentPerson) || new Set();
+        for (const parent of parents) {
+          nextGeneration.add(parent);
+        }
+      }
+      currentGeneration = nextGeneration;
+      
+      // If we've reached the target level, these are our ancestors
+      if (i === level - 1) {
+        for (const ancestor of currentGeneration) {
+          rootAncestorsAtLevel.add(ancestor);
+        }
+      }
+    }
+    
+    // Check if person is sibling of any ancestor at this level
+    for (const ancestor of rootAncestorsAtLevel) {
+      if (siblingMap.has(ancestor) && siblingMap.get(ancestor).has(personId)) {
+        // Generate the correct relationship label based on level
+        const greats = 'Great-'.repeat(level - 1);
+        const maleRelation = greats + 'Uncle';
+        const femaleRelation = greats + 'Aunt';
+        const description = level === 2 ? "Grandparent's sibling" : 
+                          `${greats.slice(0, -1).replace(/-/g, '-').toLowerCase()}grandparent's sibling`;
+        
+        return getGenderSpecificRelation(personId, maleRelation, femaleRelation, allPeople, description);
+      }
+    }
+  }
+
   // Check for niece/nephew relationship (person is niece/nephew of root)
   // Only count biological siblings, not step-siblings
   for (const sibling of rootSiblings) {
@@ -1026,32 +1139,75 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       return getGenderSpecificRelation(personId, 'Step-Nephew', 'Step-Niece', allPeople, "Step-Sibling's child");
     }
   }
-
-  // Check for cousin relationship (person and root are cousins if their parents are siblings)
-  const personParents = childToParents.get(personId) || new Set();
-  for (const personParent of personParents) {
-    const personParentSiblings = siblingMap.get(personParent) || new Set();
-    for (const rootParent of rootParents) {
-      if (personParentSiblings.has(rootParent)) {
-        return '1st Cousin';
-      }
-    }
-  }
   
-  // Check for 2nd cousin relationship (person and root share great-grandparents)
-  for (const personParent of personParents) {
-    const personGrandparents = childToParents.get(personParent) || new Set();
-    for (const personGrandparent of personGrandparents) {
-      const personGrandparentSiblings = siblingMap.get(personGrandparent) || new Set();
-      for (const rootParent of rootParents) {
-        const rootGrandparents = childToParents.get(rootParent) || new Set();
-        for (const rootGrandparent of rootGrandparents) {
-          if (personGrandparentSiblings.has(rootGrandparent)) {
-            return '2nd Cousin';
+  // Check for great-niece/great-nephew relationship (multiple levels)
+  // Person is descendant of root's sibling (sibling's grandchild, great-grandchild, etc.)
+  for (let level = 2; level <= MAX_GREAT_LEVELS; level++) {
+    for (const sibling of rootSiblings) {
+      // Verify this is a biological sibling relationship (not step-sibling)
+      const siblingParents = childToParents.get(sibling) || new Set();
+      const sharedParents = [...rootParents].filter(parent => siblingParents.has(parent));
+      
+      // If they share ALL parents, they're biological siblings
+      if (sharedParents.length === rootParents.size && sharedParents.length === siblingParents.size && sharedParents.length > 0) {
+        
+        // Build descendants at this level from the sibling
+        let currentGeneration = new Set([sibling]);
+        
+        // Go down 'level' generations to find descendants
+        for (let i = 0; i < level; i++) {
+          const nextGeneration = new Set();
+          for (const currentPerson of currentGeneration) {
+            const children = parentToChildren.get(currentPerson) || new Set();
+            for (const child of children) {
+              nextGeneration.add(child);
+            }
+          }
+          currentGeneration = nextGeneration;
+          
+          // If we've reached the target level and person is in this generation
+          if (i === level - 1 && currentGeneration.has(personId)) {
+            // Generate the correct relationship label based on level
+            const greats = 'Great-'.repeat(level - 1);
+            const maleRelation = greats + 'Nephew';
+            const femaleRelation = greats + 'Niece';
+            const description = level === 2 ? "Sibling's grandchild" : 
+                              `Sibling's ${greats.slice(0, -1).replace(/-/g, '-').toLowerCase()}grandchild`;
+            
+            return getGenderSpecificRelation(personId, maleRelation, femaleRelation, allPeople, description);
           }
         }
       }
     }
+  }
+  
+  // REVERSE STEP-UNCLE/AUNT LOGIC: Check if root is step-uncle/aunt of person
+  // Person is child, root is person's parent's step-sibling
+  const personParents = childToParents.get(personId) || new Set();
+  for (const personParent of personParents) {
+    // Find person's parent's step-siblings
+    const personParentParents = childToParents.get(personParent) || new Set();
+    for (const grandparent of personParentParents) {
+      const grandparentSpouses = spouseMap.get(grandparent) || new Set();
+      const grandparentDeceasedSpouses = deceasedSpouseMap.get(grandparent) || new Set();
+      for (const spouse of [...grandparentSpouses, ...grandparentDeceasedSpouses]) {
+        if (!personParentParents.has(spouse)) {
+          // This spouse is step-parent of person's parent, find their children (person's parent's step-siblings)
+          const stepParentChildren = parentToChildren.get(spouse) || new Set();
+          if (stepParentChildren.has(rootId) && rootId !== personParent) {
+            // Root is person's parent's step-sibling = Root is person's step-uncle/aunt
+            return getGenderSpecificRelation(rootId, 'Step-Uncle', 'Step-Aunt', allPeople, "Parent's step-sibling");
+          }
+        }
+      }
+    }
+  }
+
+  // GENERATIONAL COUSIN RELATIONSHIPS: Systematic detection of multi-generational cousins
+  // This loop-based approach can detect cousins of any degree (1st, 2nd, 3rd, etc.)
+  const cousinResult = findGenerationalCousinRelationship(personId, rootId, childToParents, siblingMap);
+  if (cousinResult) {
+    return cousinResult;
   }
 
   // No fallback to 'Distant Relative' for key relations. If not found, return null.
