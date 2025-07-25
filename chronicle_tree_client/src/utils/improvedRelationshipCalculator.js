@@ -670,11 +670,159 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  // REMOVED: Incorrect step-grandparent reverse logic
-  // The reverse step-grandparent logic was creating false relationships.
-  // Step-grandparent relationships should only be created through the primary logic above.
+  // Check for reverse step-grandparent relationship
+  // Person is step-grandparent of root if: person is spouse of root's grandparent
+  const rootGrandparents = new Set();
+  for (const parent of rootParents) {
+    const grandparents = childToParents.get(parent) || new Set();
+    for (const grandparent of grandparents) {
+      rootGrandparents.add(grandparent);
+    }
+  }
   
-  // REMOVED: Overly permissive step-great-grandparent logic
+  for (const grandparent of rootGrandparents) {
+    // Check if person is current spouse of this grandparent
+    if (spouseMap.has(grandparent) && spouseMap.get(grandparent).has(personId)) {
+      // Make sure person is not a biological grandparent of root
+      if (!rootGrandparents.has(personId)) {
+        return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
+      }
+    }
+    
+    // Check if person is deceased spouse of this grandparent
+    if (deceasedSpouseMap.has(grandparent) && deceasedSpouseMap.get(grandparent).has(personId)) {
+      // Make sure person is not a biological grandparent of root
+      if (!rootGrandparents.has(personId)) {
+        // Check timeline: deceased spouse must have been alive when root was born
+        const personObj = allPeople.find(p => String(p.id) === String(personId));
+        const rootObj = allPeople.find(p => String(p.id) === String(rootId));
+        
+        if (personObj && rootObj && personObj.date_of_death && rootObj.date_of_birth) {
+          const deathDate = new Date(personObj.date_of_death);
+          const birthDate = new Date(rootObj.date_of_birth);
+          
+          // If root was born after person's death, no step-grandparent relationship exists
+          if (birthDate > deathDate) {
+            continue; // Skip this deceased spouse, not a valid step-grandparent
+          }
+        }
+        
+        return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
+      }
+    }
+  }
+  
+  // Check for step-great-grandparent relationship through step-grandparent's parents
+  // Person is step-great-grandparent of root if: person is parent of root's step-grandparent
+  for (const grandparent of rootGrandparents) {
+    // Check if this grandparent has step-spouses (root's step-grandparents)
+    const grandparentSpouses = spouseMap.get(grandparent) || new Set();
+    const grandparentDeceasedSpouses = deceasedSpouseMap.get(grandparent) || new Set();
+    
+    for (const stepGrandparent of [...grandparentSpouses, ...grandparentDeceasedSpouses]) {
+      if (!rootGrandparents.has(stepGrandparent)) { // Make sure it's actually a step-grandparent
+        // Find the parents of this step-grandparent
+        const stepGrandparentParents = childToParents.get(stepGrandparent) || new Set();
+        if (stepGrandparentParents.has(personId)) {
+          // Check timeline for deceased step-grandparent
+          const stepGrandparentObj = allPeople.find(p => String(p.id) === String(stepGrandparent));
+          const rootObj = allPeople.find(p => String(p.id) === String(rootId));
+          
+          if (stepGrandparentObj && rootObj && stepGrandparentObj.date_of_death && rootObj.date_of_birth) {
+            const deathDate = new Date(stepGrandparentObj.date_of_death);
+            const birthDate = new Date(rootObj.date_of_birth);
+            
+            // If root was born after step-grandparent's death, no step-great-grandparent relationship exists
+            if (birthDate > deathDate) {
+              continue; // Skip this deceased step-grandparent, not a valid relationship
+            }
+          }
+          
+          return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Grandparent\'s parent');
+        }
+      }
+    }
+  }
+  
+  // Check for step-great-grandparent relationship (and higher levels)
+  // Person is step-great-grandparent of root if: person is spouse of root's great-grandparent (etc.)
+  const MAX_STEP_GRAND_LEVELS = 3; // Support up to step-great-great-grandparent
+  
+  for (let level = 3; level <= MAX_STEP_GRAND_LEVELS; level++) {
+    // Build ancestors at this level
+    const rootAncestorsAtLevel = new Set();
+    
+    // Start with root
+    let currentGeneration = new Set([rootId]);
+    
+    // Go up 'level' generations to find ancestors
+    for (let i = 0; i < level; i++) {
+      const nextGeneration = new Set();
+      for (const currentPerson of currentGeneration) {
+        const parents = childToParents.get(currentPerson) || new Set();
+        for (const parent of parents) {
+          nextGeneration.add(parent);
+        }
+      }
+      currentGeneration = nextGeneration;
+      
+      // If we've reached the target level, these are our ancestors
+      if (i === level - 1) {
+        for (const ancestor of currentGeneration) {
+          rootAncestorsAtLevel.add(ancestor);
+        }
+      }
+    }
+    
+    // Check if person is spouse of any ancestor at this level
+    for (const ancestor of rootAncestorsAtLevel) {
+      // Check if person is current spouse of this ancestor
+      if (spouseMap.has(ancestor) && spouseMap.get(ancestor).has(personId)) {
+        // Make sure person is not a biological ancestor of root
+        if (!rootAncestorsAtLevel.has(personId)) {
+          // Generate the correct relationship label based on level
+          const greats = 'Great-'.repeat(level - 2);
+          const maleRelation = 'Step-' + greats + 'Grandfather';
+          const femaleRelation = 'Step-' + greats + 'Grandmother';
+          const description = level === 3 ? "Great-grandparent's spouse" : 
+                            `${greats.slice(0, -1).replace(/-/g, '-').toLowerCase()}great-grandparent's spouse`;
+          
+          return getGenderSpecificRelation(personId, maleRelation, femaleRelation, allPeople, description);
+        }
+      }
+      
+      // Check if person is deceased spouse of this ancestor
+      if (deceasedSpouseMap.has(ancestor) && deceasedSpouseMap.get(ancestor).has(personId)) {
+        // Make sure person is not a biological ancestor of root
+        if (!rootAncestorsAtLevel.has(personId)) {
+          // Check timeline: deceased spouse must have been alive when root was born
+          const personObj = allPeople.find(p => String(p.id) === String(personId));
+          const rootObj = allPeople.find(p => String(p.id) === String(rootId));
+          
+          if (personObj && rootObj && personObj.date_of_death && rootObj.date_of_birth) {
+            const deathDate = new Date(personObj.date_of_death);
+            const birthDate = new Date(rootObj.date_of_birth);
+            
+            // If root was born after person's death, no step-relationship exists
+            if (birthDate > deathDate) {
+              continue; // Skip this deceased spouse, not a valid step-great-grandparent
+            }
+          }
+          
+          // Generate the correct relationship label based on level
+          const greats = 'Great-'.repeat(level - 2);
+          const maleRelation = 'Step-' + greats + 'Grandfather';
+          const femaleRelation = 'Step-' + greats + 'Grandmother';
+          const description = level === 3 ? "Great-grandparent's spouse" : 
+                            `${greats.slice(0, -1).replace(/-/g, '-').toLowerCase()}great-grandparent's spouse`;
+          
+          return getGenderSpecificRelation(personId, maleRelation, femaleRelation, allPeople, description);
+        }
+      }
+    }
+  }
+  
+  // REMOVED: Previous overly permissive step-great-grandparent logic
   // The previous logic created incorrect step-great-grandparent relationships.
   // In real-life family logic, the biological grandparents of your step-siblings 
   // should be "Unrelated" to you, not step-great-grandparents.

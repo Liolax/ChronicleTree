@@ -167,7 +167,67 @@ function findStepRelationships(person, allPeople, relationships) {
     }
   }
 
-  return { stepParents, stepChildren };
+  // Find step-siblings: People who share at least one parent (step or biological) with this person, 
+  // but don't share ALL biological parents (making them step-siblings, not full siblings)
+  const stepSiblings = [];
+  
+  // Get all parents of this person (biological parents)
+  const allPersonParents = [...personParents];
+  
+  // Also check children of person's biological parents' spouses (step-siblings through person's biological parent)
+  for (const parentId of personParents) {
+    // Get current and deceased spouses of this biological parent
+    const parentSpouses = new Set([
+      ...(spouseMap.get(parentId) || new Set()),
+      ...(deceasedSpouseMap.get(parentId) || new Set())
+    ]);
+    
+    for (const spouseId of parentSpouses) {
+      // Find children of this spouse who are not children of the biological parent
+      const spouseChildren = parentToChildren.get(spouseId) || new Set();
+      for (const childId of spouseChildren) {
+        if (String(childId) !== String(person.id)) {
+          const childParents = childToParents.get(String(childId)) || new Set();
+          // This child is a step-sibling if they have the spouse as parent but not the biological parent
+          if (childParents.has(spouseId) && !childParents.has(parentId)) {
+            const siblingPerson = allPeople.find(p => String(p.id) === String(childId));
+            if (siblingPerson && !stepSiblings.find(s => s.id === siblingPerson.id)) {
+              stepSiblings.push({
+                ...siblingPerson,
+                id: siblingPerson.id,
+                full_name: `${siblingPerson.first_name} ${siblingPerson.last_name}`,
+                relationship_type: 'sibling',
+                isStep: true
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  // Also check step-parents' other children (step-siblings through person's step-parent)
+  for (const stepParent of stepParents) {
+    const stepParentChildren = parentToChildren.get(String(stepParent.id)) || new Set();
+    for (const siblingId of stepParentChildren) {
+      if (String(siblingId) !== String(person.id)) {
+        const siblingPerson = allPeople.find(p => String(p.id) === String(siblingId));
+        if (siblingPerson && !stepSiblings.find(s => s.id === siblingPerson.id)) {
+          stepSiblings.push({
+            ...siblingPerson,
+            id: siblingPerson.id,
+            full_name: `${siblingPerson.first_name} ${siblingPerson.last_name}`,
+            relationship_type: 'sibling',
+            isStep: true
+          });
+        }
+      }
+    }
+  }
+
+  console.log('[findStepRelationships] Final step siblings found:', stepSiblings);
+  
+  return { stepParents, stepChildren, stepSiblings };
 }
 
 const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelationshipDeleted }) => {
@@ -1111,9 +1171,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       is_deceased: edge.is_deceased
     }));
     
-    const { stepParents, stepChildren } = findStepRelationships(person, treeData.nodes, relationships);
+    const { stepParents, stepChildren, stepSiblings } = findStepRelationships(person, treeData.nodes, relationships);
     
-    console.log('[RelationshipManager] Found step relationships:', { stepParents, stepChildren });
+    console.log('[RelationshipManager] Found step relationships:', { stepParents, stepChildren, stepSiblings });
     
     // Add step-parents to parent group
     if (stepParents.length > 0) {
@@ -1125,6 +1185,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     if (stepChildren.length > 0) {
       console.log('[RelationshipManager] Adding step-children:', stepChildren);
       mergedGroups.child = [...mergedGroups.child, ...stepChildren];
+    }
+    
+    // Add step-siblings to sibling group
+    if (stepSiblings.length > 0) {
+      console.log('[RelationshipManager] Adding step-siblings:', stepSiblings);
+      mergedGroups.sibling = [...mergedGroups.sibling, ...stepSiblings];
     }
   } else {
     console.log('[RelationshipManager] Missing data for step calculations:', {
