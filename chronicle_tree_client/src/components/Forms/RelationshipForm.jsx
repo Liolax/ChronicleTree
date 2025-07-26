@@ -12,38 +12,61 @@ const LABELS = {
 const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, forceEx, selectedPerson, allPeople = [] }) => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm();
   const [sharedParents, setSharedParents] = useState([]);
-  const [requiresParentSelection, setRequiresParentSelection] = useState(false);
+  const [showMarkAsHalf, setShowMarkAsHalf] = useState(false);
+  const [isHalfSibling, setIsHalfSibling] = useState(false);
+  const [showSharedParentSelection, setShowSharedParentSelection] = useState(false);
   
   const selectedId = watch('selectedId');
   
-  // Check if parent selection is needed for sibling relationships
+  // Check if "Mark as half" option should be shown for sibling relationships
   useEffect(() => {
     if (type === 'sibling' && selectedId && selectedPerson) {
       const selectedSibling = allPeople.find(p => p.id === parseInt(selectedId));
+      
       if (selectedSibling) {
         // Get parents for both people
         const personParents = selectedPerson.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
         const siblingParents = selectedSibling.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
         
-        // Find shared parents
-        const personParentIds = personParents.map(p => p.id);
-        const siblingParentIds = siblingParents.map(p => p.id);
-        const shared = personParents.filter(p => siblingParentIds.includes(p.id));
+        // Get all available parents from both people (for half-sibling relationships)
+        const allAvailableParents = [];
         
-        if (shared.length > 0 && shared.length < Math.max(personParents.length, siblingParents.length)) {
-          // They have some shared parents but not all - this is a half-sibling situation
-          setSharedParents(shared);
-          setRequiresParentSelection(shared.length > 1); // Only require selection if multiple shared parents
-        } else {
-          setSharedParents([]);
-          setRequiresParentSelection(false);
-        }
+        // Add person's parents
+        personParents.forEach(parent => {
+          if (!allAvailableParents.find(p => p.id === parent.id)) {
+            allAvailableParents.push(parent);
+          }
+        });
+        
+        // Add sibling's parents
+        siblingParents.forEach(parent => {
+          if (!allAvailableParents.find(p => p.id === parent.id)) {
+            allAvailableParents.push(parent);
+          }
+        });
+        
+        // Always show "Mark as half" option when adding siblings
+        setSharedParents(allAvailableParents);
+        setShowMarkAsHalf(true);
       }
     } else {
       setSharedParents([]);
-      setRequiresParentSelection(false);
+      setShowMarkAsHalf(false);
+      setIsHalfSibling(false);
+      setShowSharedParentSelection(false);
     }
   }, [selectedId, selectedPerson, allPeople, type]);
+
+  // Handle "Mark as half" checkbox
+  const handleMarkAsHalfChange = (checked) => {
+    setIsHalfSibling(checked);
+    if (checked && sharedParents.length > 0) {
+      // Only show parent selection if there are actually parents to choose from
+      setShowSharedParentSelection(true);
+    } else {
+      setShowSharedParentSelection(false);
+    }
+  };
 
   const handleFormSubmit = (data) => {
     const submissionData = { 
@@ -52,8 +75,8 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
       is_ex: type === 'spouse' ? (forceEx ? true : !!data.is_ex) : undefined 
     };
     
-    // Add shared parent if needed for half-siblings
-    if (type === 'sibling' && data.shared_parent_id) {
+    // Add shared parent if marking as half-sibling
+    if (type === 'sibling' && isHalfSibling && data.shared_parent_id) {
       submissionData.shared_parent_id = data.shared_parent_id;
     }
     
@@ -108,50 +131,69 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
         )}
       </div>
       
-      {/* Half-sibling parent selection */}
-      {type === 'sibling' && sharedParents.length > 0 && (
+
+      {/* Mark as half-sibling option */}
+      {type === 'sibling' && showMarkAsHalf && (
+        <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
+          <label className="inline-flex items-center">
+            <input 
+              type="checkbox" 
+              className="form-checkbox text-blue-600" 
+              onChange={(e) => handleMarkAsHalfChange(e.target.checked)}
+              checked={isHalfSibling}
+            />
+            <span className="ml-2 text-sm font-medium text-blue-800">Mark as half-sibling</span>
+          </label>
+          <p className="text-xs text-blue-600 mt-1">
+            Check this if they share only one parent instead of both parents.
+          </p>
+        </div>
+      )}
+
+      {/* Shared parent selection for half-siblings */}
+      {type === 'sibling' && showSharedParentSelection && (
         <div className="bg-orange-50 p-3 rounded-lg border border-orange-200">
-          <div className="mb-2">
-            <p className="text-sm font-medium text-orange-800">Half-sibling relationship detected</p>
+          <div className="mb-3">
+            <p className="text-sm font-medium text-orange-800">Who is the shared parent?</p>
             <p className="text-xs text-orange-700">
-              This person shares {sharedParents.length} parent{sharedParents.length > 1 ? 's' : ''} with {selectedPerson?.first_name}
-              {sharedParents.length > 1 ? ', but please specify which parent to use for this half-sibling relationship.' : '.'}
+              Select which parent {selectedPerson?.first_name} and {allPeople.find(p => p.id === parseInt(selectedId))?.first_name} share.
             </p>
           </div>
           
-          {requiresParentSelection ? (
-            <div>
-              <label htmlFor="shared_parent_id" className="block text-sm font-medium text-orange-800">
-                Select shared parent for this half-sibling relationship
-              </label>
-              <select
-                id="shared_parent_id"
-                {...register('shared_parent_id', { required: 'Please select the shared parent' })}
-                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-orange-300 focus:outline-none focus:ring-orange-500 focus:border-orange-500 sm:text-sm rounded-md"
-              >
-                <option value="">Select shared parent</option>
-                {sharedParents.map(parent => (
-                  <option key={parent.id} value={parent.id}>
-                    {parent.full_name}
-                  </option>
-                ))}
-              </select>
-              {errors.shared_parent_id && (
-                <p className="mt-2 text-sm text-red-600">{errors.shared_parent_id.message}</p>
-              )}
+          {sharedParents.length > 0 ? (
+            <div className="space-y-2">
+              {sharedParents.map(parent => (
+                <label key={parent.id} className="inline-flex items-center">
+                  <input
+                    type="radio"
+                    value={parent.id}
+                    {...register('shared_parent_id', { 
+                      required: isHalfSibling ? 'Please select the shared parent' : false 
+                    })}
+                    className="text-orange-600 focus:ring-orange-500"
+                  />
+                  <span className="ml-2 text-sm text-orange-800">{parent.full_name}</span>
+                </label>
+              ))}
             </div>
           ) : (
-            <div>
-              <input 
-                type="hidden" 
-                value={sharedParents[0]?.id || ''} 
-                {...register('shared_parent_id')} 
-              />
-              <p className="text-xs text-orange-700">
-                Shared parent: <span className="font-medium">{sharedParents[0]?.full_name}</span>
-              </p>
+            <div className="text-sm text-orange-700 italic">
+              No parents available to select. The half-sibling relationship will be created without specifying a shared parent.
             </div>
           )}
+          
+          {errors.shared_parent_id && (
+            <p className="mt-2 text-sm text-red-600">{errors.shared_parent_id.message}</p>
+          )}
+        </div>
+      )}
+
+      {/* Show message when half-sibling is checked but no parent selection shown */}
+      {type === 'sibling' && isHalfSibling && !showSharedParentSelection && (
+        <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-700">
+            Half-sibling relationship will be created. No shared parent information available to specify.
+          </p>
         </div>
       )}
       
