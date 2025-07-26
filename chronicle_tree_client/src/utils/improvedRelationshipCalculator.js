@@ -1011,7 +1011,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
  * @returns {string|null} - Cousin relationship or null
  */
 const findGenerationalCousinRelationship = (personId, rootId, childToParents, siblingMap) => {
-  console.log('[DEBUG COUSIN] Checking cousin relationship between person=' + personId + ' and root=' + rootId);
+  
   
   // Maximum generations to check (prevents infinite loops and handles practical family tree depth)
   const MAX_GENERATIONS = 10;
@@ -1020,8 +1020,8 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
   const personAncestorChains = buildAncestorChains(personId, childToParents, MAX_GENERATIONS);
   const rootAncestorChains = buildAncestorChains(rootId, childToParents, MAX_GENERATIONS);
   
-  console.log('[DEBUG COUSIN] Person ancestor chains:', personAncestorChains);
-  console.log('[DEBUG COUSIN] Root ancestor chains:', rootAncestorChains);
+  
+  
   
   // For each generation level, check if they share ancestors who are siblings
   for (let generation = 2; generation <= MAX_GENERATIONS; generation++) {
@@ -1035,7 +1035,7 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
       for (const rootAncestor of rootAncestorsAtLevel) {
         if (personAncestorSiblings.has(rootAncestor)) {
           const cousinDegree = generation - 1; // 2nd generation = 1st cousins, 3rd generation = 2nd cousins, etc.
-          console.log('[DEBUG COUSIN] Found ' + cousinDegree + ' degree cousin relationship at generation ' + generation);
+          
           
           // Generate appropriate cousin label
           return generateCousinLabel(cousinDegree);
@@ -1060,7 +1060,7 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
             const baseDegree = Math.min(personGen, rootGen) - 1;
             const removedCount = Math.abs(personGen - rootGen);
             
-            console.log('[DEBUG COUSIN] Found ' + baseDegree + ' degree cousin ' + removedCount + ' times removed');
+            
             
             return generateCousinRemovedLabel(baseDegree, removedCount);
           }
@@ -1069,7 +1069,7 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
     }
   }
   
-  console.log('[DEBUG COUSIN] No cousin relationship found');
+  
   return null;
 };
 
@@ -1081,9 +1081,9 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
  * @returns {Object} - Object with generation levels as keys and ancestor arrays as values
  */
 const buildAncestorChains = (personId, childToParents, maxGenerations) => {
-  console.log('[DEBUG ANCESTOR] Building chains for person:', personId);
-  console.log('[DEBUG ANCESTOR] childToParents has person?', childToParents.has(personId));
-  console.log('[DEBUG ANCESTOR] childToParents for person:', childToParents.has(personId) ? Array.from(childToParents.get(personId)) : 'NOT FOUND');
+  
+  
+  
   
   const ancestorChains = {};
   const visited = new Set();

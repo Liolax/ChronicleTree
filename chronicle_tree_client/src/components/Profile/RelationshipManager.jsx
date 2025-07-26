@@ -80,20 +80,13 @@ function mergeInLaws(groups, inLaws) {
 // Helper function to find step relationships for a person
 function findStepRelationships(person, allPeople, relationships) {
   if (!person || !allPeople || !relationships) {
-    console.log('[findStepRelationships] Missing required data');
     return { stepParents: [], stepChildren: [] };
   }
 
-  console.log('[findStepRelationships] Processing for:', person.full_name, 'ID:', person.id);
   
   const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
   const { childToParents, parentToChildren, spouseMap, deceasedSpouseMap, exSpouseMap } = relationshipMaps;
   
-  console.log('[findStepRelationships] Relationship maps:', {
-    spouseMapSize: spouseMap.size,
-    exSpouseMapSize: exSpouseMap.size,
-    deceasedSpouseMapSize: deceasedSpouseMap.size
-  });
   
   const stepParents = [];
   const stepChildren = [];
@@ -101,15 +94,9 @@ function findStepRelationships(person, allPeople, relationships) {
   // Find step-parents: People who are married to person's biological parents but are not person's biological parents
   const personParents = childToParents.get(String(person.id)) || new Set();
   
-  console.log('[findStepRelationships] Person parents found:', Array.from(personParents));
-  console.log('[findStepRelationships] All parent-child relationships sample:', {
-    totalMaps: childToParents.size,
-    sampleEntries: Array.from(childToParents.entries()).slice(0, 5)
-  });
   for (const parent of personParents) {
     // Check current spouses of this parent
     const parentCurrentSpouses = spouseMap.get(parent) || new Set();
-    console.log('[findStepRelationships] Parent', parent, 'current spouses:', Array.from(parentCurrentSpouses));
     
     for (const spouse of parentCurrentSpouses) {
       // Make sure the spouse is not a biological parent of the person
@@ -161,13 +148,6 @@ function findStepRelationships(person, allPeople, relationships) {
   const personExSpouses = exSpouseMap.get(String(person.id)) || new Set();
   const allPersonSpouses = new Set([...personCurrentSpouses, ...personDeceasedSpouses]);
   
-  console.log('[findStepRelationships] Person spouses:', {
-    personId: person.id,
-    currentSpouses: Array.from(personCurrentSpouses),
-    exSpouses: Array.from(personExSpouses),
-    deceasedSpouses: Array.from(personDeceasedSpouses),
-    allSpouses: Array.from(allPersonSpouses)
-  });
   
   for (const spouse of allPersonSpouses) {
     const spouseChildren = parentToChildren.get(spouse) || new Set();
@@ -256,7 +236,6 @@ function findStepRelationships(person, allPeople, relationships) {
     }
   }
 
-  console.log('[findStepRelationships] Final step siblings found:', stepSiblings);
   
   return { stepParents, stepChildren, stepSiblings };
 }
@@ -303,7 +282,6 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     const bloodResult = detectAnyBloodRelationship(person1Id, person2Id, relationships, treeData.nodes);
     
     if (bloodResult.isBloodRelated) {
-      console.log(`🩸 BLOOD RELATIONSHIP DETECTED: Person ${person1Id} and ${person2Id} are related as ${bloodResult.relationship} (depth: ${bloodResult.depth})`);
       return {
         isBloodRelated: true,
         relationship: bloodResult.relationship,
@@ -328,7 +306,6 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           lowerRelation.includes('step-') ||
           lowerRelation.includes('ex-') ||
           lowerRelation.includes('late ')) {
-        console.log(`✅ IN-LAW RELATIONSHIP ALLOWED: Person ${person1Id} and ${person2Id} are related as ${calculatedRelation} - NOT blood relatives`);
         return { isBloodRelated: false, relationship: calculatedRelation, degree: null };
       }
     }
@@ -396,16 +373,16 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     const ageGapInYears = Math.abs(person1Birth.getTime() - person2Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
     
     if (relationshipType === 'parent') {
-      // When adding parent: selected person (child) should be at least 12 years younger
-      if (person2Birth <= person1Birth) {
+      // When adding parent: candidate (person2) should be older than current person (person1)
+      if (person2Birth >= person1Birth) {
         return { valid: false, reason: 'Parent must be older than child' };
       }
       if (ageGapInYears < 12) {
         return { valid: false, reason: 'Parent must be at least 12 years older than child' };
       }
     } else if (relationshipType === 'child') {
-      // When adding child: selected person (parent) should be at least 12 years older  
-      if (person1Birth <= person2Birth) {
+      // When adding child: current person (person1) should be older than candidate (person2)  
+      if (person1Birth >= person2Birth) {
         return { valid: false, reason: 'Child must be younger than parent' };
       }
       if (ageGapInYears < 12) {
@@ -589,6 +566,19 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
+      // 1a. CRITICAL: Prevent people who share children from becoming siblings
+      // If two people have shared children, they've been in a romantic relationship
+      const personChildren = personRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+      const candidateChildren = candidateRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+      const sharedChildren = personChildren.filter(childId => candidateChildren.includes(childId));
+      
+      if (sharedChildren.length > 0) {
+        return { 
+          valid: false, 
+          reason: `Cannot be siblings with ${candidate.first_name} ${candidate.last_name} - they share children, indicating a past romantic relationship` 
+        };
+      }
+      
       // 2. CRITICAL: Check for downstream relationship conflicts
       // If making this person a sibling would create incestuous relationships elsewhere, block it
       const wouldCreateIncest = checkSiblingRelationshipConflicts(person, candidate, people);
@@ -762,9 +752,38 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         }
       }
       
-      // 6. IMPORTANT NOTE: We cannot validate shared parents here because we don't have 
-      // complete parent information at validation time. This validation should happen 
-      // at the API level during relationship creation.
+      // 6. Parent compatibility validation  
+      // Only block if BOTH people have 2 complete different blood parents
+      const personParents = person.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
+      const candidateParents = candidate.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
+      
+      if (personParents.length === 2 && candidateParents.length === 2) {
+        const personParentIds = personParents.map(p => p.id).sort();
+        const candidateParentIds = candidateParents.map(p => p.id).sort();
+        const sharedParents = personParentIds.filter(id => candidateParentIds.includes(id));
+        
+        if (sharedParents.length === 0) {
+          // No shared parents - let backend handle detailed step-relationship validation
+          return { 
+            valid: false, 
+            reason: `${candidate.first_name} ${candidate.last_name} has 2 complete different blood parents - cannot be siblings unless their parents are married to each other` 
+          };
+        }
+      }
+      
+      // Age compatibility check for all cases
+      if (person.date_of_birth && candidate.date_of_birth) {
+        const personBirth = new Date(person.date_of_birth);
+        const candidateBirth = new Date(candidate.date_of_birth);
+        const ageGapYears = Math.abs((candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+        
+        if (ageGapYears > 25) {
+          return { 
+            valid: false, 
+            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) for sibling relationship` 
+          };
+        }
+      }
     }
     
     // ENHANCED PARENT VALIDATION - Much more robust filtering
@@ -813,21 +832,34 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       if (person.date_of_birth && candidate.date_of_birth) {
         const personBirth = new Date(person.date_of_birth);
         const candidateBirth = new Date(candidate.date_of_birth);
-        const ageGapYears = (personBirth.getTime() - candidateBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
+        const ageGapYears = (candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
         
-        // Parent must be at least 12 years older
+        // Parent must be at least 12 years older than child (negative means parent is older)
         if (ageGapYears < 12) {
-          return { 
-            valid: false, 
-            reason: `${candidate.first_name} ${candidate.last_name} is not old enough to be parent (${ageGapYears.toFixed(1)} year age gap, minimum 12 years required)` 
-          };
+          if (ageGapYears < 0) {
+            // Negative means candidate is older than person - this should be ALLOWED for parents!
+            // Only block if the age gap is not large enough
+            if (Math.abs(ageGapYears) < 12) {
+              return { 
+                valid: false, 
+                reason: `${candidate.first_name} ${candidate.last_name} is only ${Math.abs(ageGapYears).toFixed(1)} years older than child (minimum 12 years required)` 
+              };
+            }
+            // If age gap is >= 12 years, this should pass (don't return false here)
+          } else {
+            // Positive means candidate is younger than person - definitely wrong for parent
+            return { 
+              valid: false, 
+              reason: `${candidate.first_name} ${candidate.last_name} is ${ageGapYears.toFixed(1)} years younger than child - cannot be parent` 
+            };
+          }
         }
         
         // Prevent unrealistic age gaps (over 60 years)
-        if (ageGapYears > 60) {
+        if (Math.abs(ageGapYears) > 60) {
           return { 
             valid: false, 
-            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) - unlikely parent-child relationship` 
+            reason: `Age gap too large (${Math.abs(ageGapYears).toFixed(1)} years) - unlikely parent-child relationship` 
           };
         }
       }
@@ -1006,15 +1038,17 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       });
     }
     
-    return people.filter(p => {
+    const filtered = people.filter(p => {
       // Basic exclusion (self and already related)
       if (excludeIds.includes(p.id)) return false;
       
       // Full relationship constraints check when tree data is available
       const constraintCheck = checkRelationshipConstraints(p.id, type);
-      
       return constraintCheck.valid;
     });
+    
+    
+    return filtered;
   };
 
   // CRITICAL: Check if making two people siblings would create incestuous relationships elsewhere
@@ -1177,6 +1211,11 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           relative_id: data.selectedId,
           relationship_type: 'sibling',
         };
+        
+        // Add shared parent for half-siblings
+        if (data.shared_parent_id) {
+          payload.shared_parent_id = data.shared_parent_id;
+        }
       }
       await createRelationship(payload);
       setShowAdd(false);
@@ -1243,14 +1282,35 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const inLaws = getInLaws();
   let mergedGroups = mergeInLaws(groups, inLaws);
   
-  // Step relationships are now provided by the backend in person.step_siblings
-  // No need to calculate them on the frontend
-  
-  // For debugging: log what step siblings the backend provides
-  if (person?.step_siblings?.length > 0) {
-    console.log('[RelationshipManager] Backend provided step siblings:', person.step_siblings);
-  } else {
-    console.log('[RelationshipManager] No step siblings provided by backend');
+  // Calculate step-parents and step-children (but not step-siblings - those come from backend)
+  if (treeData?.nodes && treeData?.edges && person) {
+    
+    // Convert edges to relationships format that buildRelationshipMaps expects
+    const relationships = treeData.edges.map(edge => ({
+      from: edge.source,
+      to: edge.target, 
+      relationship_type: edge.type || edge.relationship_type,
+      is_ex: edge.is_ex,
+      is_deceased: edge.is_deceased
+    }));
+    
+    const { stepParents, stepChildren, stepSiblings } = findStepRelationships(person, treeData.nodes, relationships);
+    
+    
+    // Add step-parents to parent group
+    if (stepParents.length > 0) {
+      mergedGroups.parent = [...mergedGroups.parent, ...stepParents];
+    }
+    
+    // Add step-children to child group
+    if (stepChildren.length > 0) {
+      mergedGroups.child = [...mergedGroups.child, ...stepChildren];
+    }
+    
+    // NOTE: We do NOT add step-siblings here because they're now provided by the backend
+    // and we had issues with Michael being incorrectly classified as a step-sibling
+    // when he should be a half-sibling
+    
   }
 
   return (

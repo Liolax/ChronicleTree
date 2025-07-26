@@ -10,6 +10,11 @@ class Relationship < ApplicationRecord
              foreign_key: "relative_id",
              inverse_of: :related_by_relationships
 
+  belongs_to :shared_parent,
+             class_name: "Person",
+             foreign_key: "shared_parent_id",
+             optional: true
+
   validates :relationship_type, presence: true
   validate  :person_is_not_relative
   validate  :valid_relationship_type
@@ -46,10 +51,30 @@ class Relationship < ApplicationRecord
         errors.add(:base, "Blood relatives cannot marry.")
       end
     when "sibling"
-      # Siblings must share at least one parent
-      shared_parents = person.parents & relative.parents
-      if shared_parents.empty?
-        errors.add(:base, "Siblings must share at least one parent.")
+      # Only block if BOTH people have 2 complete different blood parents
+      person_parents = person.parents.pluck(:id)
+      relative_parents = relative.parents.pluck(:id)
+      
+      if person_parents.count == 2 && relative_parents.count == 2
+        shared_parents = person_parents & relative_parents
+        has_step_relationship = false
+        
+        if shared_parents.empty?
+          # Check for step-sibling relationship (parents married to each other)
+          person.parents.each do |person_parent|
+            relative.parents.each do |relative_parent|
+              if person_parent.spouses.include?(relative_parent)
+                has_step_relationship = true
+                break
+              end
+            end
+            break if has_step_relationship
+          end
+          
+          unless has_step_relationship
+            errors.add(:base, "People with 2 complete different blood parents cannot be siblings unless their parents are married to each other.")
+          end
+        end
       end
     end
   end

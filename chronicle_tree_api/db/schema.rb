@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_20_163104) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_26_005348) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -107,9 +107,11 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_163104) do
     t.datetime "updated_at", null: false
     t.boolean "is_ex", default: false, null: false
     t.boolean "is_deceased", default: false, null: false
+    t.integer "shared_parent_id"
     t.index ["person_id"], name: "index_relationships_on_person_id"
     t.index ["relationship_type", "is_deceased"], name: "index_relationships_on_type_and_deceased"
     t.index ["relative_id"], name: "index_relationships_on_relative_id"
+    t.index ["shared_parent_id"], name: "index_relationships_on_shared_parent_id"
   end
 
   create_table "share_images", force: :cascade do |t|
@@ -127,7 +129,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_163104) do
     t.index ["person_id", "image_type"], name: "index_share_images_on_person_id_and_image_type"
     t.index ["person_id"], name: "index_share_images_on_person_id"
     t.check_constraint "expires_at > created_at", name: "valid_expiry_date"
-    t.check_constraint "image_type::text = ANY (ARRAY['profile'::character varying, 'tree'::character varying]::text[])", name: "valid_image_type"
+    t.check_constraint "image_type::text = ANY (ARRAY['profile'::character varying::text, 'tree'::character varying::text])", name: "valid_image_type"
   end
 
   create_table "shares", force: :cascade do |t|
@@ -180,6 +182,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_20_163104) do
   add_foreign_key "profiles", "people"
   add_foreign_key "relationships", "people"
   add_foreign_key "relationships", "people", column: "relative_id"
+  add_foreign_key "relationships", "people", column: "shared_parent_id"
   add_foreign_key "share_images", "people"
   add_foreign_key "shares", "users"
   add_foreign_key "timeline_items", "people"

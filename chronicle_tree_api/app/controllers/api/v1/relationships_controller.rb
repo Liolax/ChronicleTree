@@ -42,35 +42,57 @@ module Api
             return
           end
           
-          # CRITICAL: Validate that siblings share at least one parent
-          # This is the most important validation for biological siblings
+          # CRITICAL: Prevent people who share children from becoming siblings
+          person_children = person.children.pluck(:id)
+          relative_children = relative.children.pluck(:id)
+          shared_children = person_children & relative_children
+          
+          if shared_children.any?
+            shared_child_names = Person.where(id: shared_children).pluck(:first_name, :last_name).map { |f, l| "#{f} #{l}" }
+            render json: { 
+              errors: [ "Cannot add sibling relationship - #{person.first_name} #{person.last_name} and #{relative.first_name} #{relative.last_name} share children (#{shared_child_names.join(', ')}), indicating a past romantic relationship" ] 
+            }, status: :unprocessable_entity
+            return
+          end
+          
+          # CRITICAL: Validate sibling relationship compatibility
           person_parents = person.parents.pluck(:id).sort
           relative_parents = relative.parents.pluck(:id).sort
           
-          # Check if they share any parents
-          shared_parents = person_parents & relative_parents
-          
-          # For biological siblings, they must share at least one parent
-          # For step-siblings, one person's parent must be married to the other person's parent
-          has_shared_biological_parent = shared_parents.any?
-          has_step_relationship = false
-          
-          unless has_shared_biological_parent
-            # Check for step-sibling relationship
-            person.parents.each do |person_parent|
-              relative.parents.each do |relative_parent|
-                # Check if person's parent is married to relative's parent
-                if person_parent.spouses.include?(relative_parent)
-                  has_step_relationship = true
-                  break
-                end
-              end
-              break if has_step_relationship
-            end
+          # Only block if BOTH people have 2 complete different blood parents
+          if person_parents.count == 2 && relative_parents.count == 2
+            # Check if they share any parents (full or half siblings)
+            shared_parents = person_parents & relative_parents
+            has_shared_biological_parent = shared_parents.any?
+            has_step_relationship = false
             
-            unless has_step_relationship
+            unless has_shared_biological_parent
+              # Check for step-sibling relationship (parents married to each other)
+              person.parents.each do |person_parent|
+                relative.parents.each do |relative_parent|
+                  if person_parent.spouses.include?(relative_parent)
+                    has_step_relationship = true
+                    break
+                  end
+                end
+                break if has_step_relationship
+              end
+              
+              unless has_step_relationship
+                render json: { 
+                  errors: [ "Cannot add sibling relationship - people with 2 complete different blood parents cannot be siblings unless their parents are married to each other" ] 
+                }, status: :unprocessable_entity
+                return
+              end
+            end
+          end
+          
+          # Age compatibility check for all cases
+          if person.date_of_birth && relative.date_of_birth
+            age_gap = ((person.date_of_birth - relative.date_of_birth).abs / 365.25).round(1)
+            if age_gap > 25
               render json: { 
-                errors: [ "Cannot add sibling relationship - siblings must share at least one parent or have parents married to each other" ] 
+                errors: [ "Age gap too large (#{age_gap} years) for sibling relationship" ] 
               }, status: :unprocessable_entity
               return
             end
@@ -135,7 +157,7 @@ module Api
 
       def relationship_params
         params.require(:relationship)
-              .permit(:person_id, :relative_id, :relationship_type, :is_ex, :is_deceased)
+              .permit(:person_id, :relative_id, :relationship_type, :is_ex, :is_deceased, :shared_parent_id)
       end
     end
   end

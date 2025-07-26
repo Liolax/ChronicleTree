@@ -27,10 +27,7 @@ export function usePeople() {
 }
 
 const getFullTree = async () => {
-  console.log('=== API CALL DEBUG ===');
-  console.log('Calling endpoint: /people/full_tree');
   const { data } = await api.get('/people/full_tree');
-  console.log('API response:', data);
   return data;
 };
 
