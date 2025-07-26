@@ -261,13 +261,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const getRelatedIds = (type) => {
     if (!person?.relatives) return [];
     
-    // For spouses, don't exclude deceased ones (they can be remarried as "late spouse")
+    // For spouses, exclude anyone who was ever married to this person (including deceased spouses)
     if (type === 'spouse') {
-      return person.relatives.filter(rel => 
-        rel.relationship_type === type && 
-        !rel.is_ex && 
-        !people.find(p => p.id === rel.id)?.date_of_death
-      ).map(rel => rel.id);
+      return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
     }
     
     return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
@@ -510,6 +506,28 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           valid: false, 
           reason: `${candidate.first_name} ${candidate.last_name} already has maximum number of biological parents (2)` 
         };
+      }
+      
+      // 7. CRITICAL: Prevent adding someone as child if their children are married to person's children
+      // This would create impossible family structures (grandchild being both great-grandchild and grandchild)
+      const personChildren = existingRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+      const candidateChildren = (candidate.relatives || []).filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+      
+      for (const personChildId of personChildren) {
+        const personChild = people.find(p => p.id === personChildId);
+        if (personChild) {
+          // Check if person's child is married to candidate's child
+          const personChildSpouses = (personChild.relatives || []).filter(rel => rel.relationship_type === 'spouse').map(rel => rel.id);
+          const marriedToCandidateChild = personChildSpouses.some(spouseId => candidateChildren.includes(spouseId));
+          
+          if (marriedToCandidateChild) {
+            const candidateChild = people.find(p => candidateChildren.includes(p.id) && personChildSpouses.includes(p.id));
+            return { 
+              valid: false, 
+              reason: `Cannot add ${candidate.first_name} ${candidate.last_name} as child - your child ${personChild.first_name} is married to their child ${candidateChild?.first_name || 'someone'}. This would create impossible family relationships where the same person has conflicting generational positions.` 
+            };
+          }
+        }
       }
     }
     
@@ -1387,8 +1405,11 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           } else if (type === 'spouse') {
             // Always show add button for spouse, but force ex if a current spouse exists
             canAdd = true;
-            // Only consider biological spouses (not step-spouses) for forcing ex status
-            forceEx = rels.some(rel => !rel.is_ex && !rel.isStep);
+            // Only force ex if there's a living current spouse (not deceased)
+            forceEx = rels.some(rel => {
+              const spousePerson = people.find(p => p.id === rel.id);
+              return !rel.is_ex && !rel.isStep && !spousePerson?.date_of_death;
+            });
           } else {
             canAdd = true;
           }
