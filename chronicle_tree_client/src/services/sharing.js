@@ -17,7 +17,6 @@ export const createShare = async (shareData) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error creating share:', error);
     throw error;
   }
 };
@@ -32,7 +31,6 @@ export const getShare = async (shareToken) => {
     const response = await api.get(`/shares/${shareToken}`);
     return response.data;
   } catch (error) {
-    console.error('Error getting share:', error);
     throw error;
   }
 };
@@ -112,7 +110,6 @@ export const handleSocialShare = async (platform, shareContent) => {
       throw new Error(response.error || 'Failed to create share');
     }
   } catch (error) {
-    console.error('Error in social share:', error);
     throw error;
   }
 };

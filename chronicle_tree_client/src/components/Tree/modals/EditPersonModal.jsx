@@ -19,18 +19,16 @@ const EditPersonModal = ({ person, isOpen = true, onClose }) => {
     
     updatePersonMutation.mutate(personData, {
       onSuccess: (response) => {
-        // Show success message
+        // Display a success message to confirm the update
         if (response?.message) {
-          alert(`✅ ${response.message}`);
+          alert(response.message);
         } else {
-          alert(`✅ ${data.firstName} ${data.lastName} has been successfully updated!`);
+          alert(`${data.firstName} ${data.lastName} has been successfully updated!`);
         }
         onClose();
       },
       onError: (error) => {
-        console.error("Error updating person:", error);
-        
-        // Use centralized error handling
+        // Handle any errors that occur during the update
         handleBackendError(error);
       },
     });

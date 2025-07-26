@@ -36,24 +36,22 @@ const FamilyTreeDemo = () => {
 
   // Event handlers
   const handleEditPerson = useCallback((person) => {
-    console.log('Edit person:', person);
+    // Edit person logic would go here
   }, []);
 
   const handleDeletePerson = useCallback((person) => {
-    console.log('Delete person:', person);
+    // Delete person logic would go here
   }, []);
 
   const handleCenterPerson = useCallback((personId) => {
-    console.log('Center on person:', personId);
+    // Center on person logic would go here
   }, []);
 
   const handleRestructureTree = useCallback((personId) => {
-    console.log('Set new root person:', personId);
     setRootPersonId(personId);
   }, []);
 
   const handleResetTree = useCallback(() => {
-    console.log('Reset tree to show all people');
     setRootPersonId(null);
   }, []);
 
@@ -71,19 +69,6 @@ const FamilyTreeDemo = () => {
       ? mockFamilyData.nodes.find(n => n.id === rootPersonId)
       : null;
     
-    // DEBUG LOGGING: Log data being passed to relationship calculator  
-    if (rootPerson && (rootPerson.id === 5 || rootPerson.id === '5')) { // Charlie C
-      console.log('=== DEBUG: Family Tree Demo Relationship Calculator Data ===');
-      console.log('Root Person (Charlie):', rootPerson);
-      console.log('All People:', mockFamilyData.nodes);
-      console.log('All Edges:', mockFamilyData.edges);
-      console.log('Edges involving Charlie (5) or David (4):');
-      const relevantEdges = mockFamilyData.edges.filter(edge => 
-        edge.from === 5 || edge.to === 5 || edge.from === 4 || edge.to === 4 ||
-        edge.from === '5' || edge.to === '5' || edge.from === '4' || edge.to === '4'
-      );
-      relevantEdges.forEach(edge => console.log('  ', edge));
-    }
     
     // Add relationship information to all people
     const peopleWithRelations = getAllRelationshipsToRoot(
@@ -92,15 +77,6 @@ const FamilyTreeDemo = () => {
       mockFamilyData.edges
     );
     
-    // DEBUG LOGGING: Log the calculated relationships for Charlie
-    if (rootPerson && (rootPerson.id === 5 || rootPerson.id === '5')) { // Charlie C
-      console.log('=== DEBUG: Calculated Relationships for Charlie (Demo) ===');
-      peopleWithRelations.forEach(person => {
-        if (person.id === 4 || person.id === '4') { // David A
-          console.log(`David A → Charlie C: "${person.relation}"`);
-        }
-      });
-    }
     
     return {
       nodes: peopleWithRelations,

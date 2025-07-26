@@ -22,8 +22,8 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     return 'Root';
   }
 
-  // CRITICAL TIMELINE VALIDATION: Check if the two people's lifespans overlapped
-  // People who never coexisted cannot have family relationships (except direct blood relationships)
+  // Important timeline check: Verify if these two people were alive at the same time
+  // People who never lived at the same time cannot have family relationships (except direct blood relationships)
   const personBirth = person.date_of_birth ? new Date(person.date_of_birth) : null;
   const personDeath = person.date_of_death ? new Date(person.date_of_death) : null;
   const rootBirth = rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth) : null;
@@ -32,21 +32,21 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   // Check if lifespans overlapped
   if (personBirth && rootDeath && personBirth > rootDeath) {
     // Person was born after root died - they never coexisted
-    // Only allow direct blood relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.)
+    // Only allow direct biological relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.)
     const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
     const { childToParents, parentToChildren } = relationshipMaps;
     
-    // Check if they are direct blood relatives (any ancestor-descendant relationship)
+    // Check if they are direct biological relatives (any ancestor-descendant relationship)
     const personParents = childToParents.get(String(person.id)) || new Set();
     const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
     const personChildren = parentToChildren.get(String(person.id)) || new Set();
     
-    // If root is person's parent (person born after root died - impossible but check anyway)
+    // Check if root is person's parent (would be impossible if person born after root died, but we check anyway)
     if (personParents.has(String(rootPerson.id))) {
       return getGenderSpecificRelation(rootPerson.id, 'Father', 'Mother', allPeople, 'Parent');
     }
     
-    // If person is root's child (person born after root died - impossible but check anyway)  
+    // Check if person is root's child (would be impossible if person born after root died, but we check anyway)  
     if (rootChildren.has(String(person.id))) {
       return getGenderSpecificRelation(person.id, 'Son', 'Daughter', allPeople, 'Child');
     }
@@ -65,28 +65,28 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       }
     }
     
-    // No direct blood relationship and they never coexisted = Unrelated
+    // No direct biological relationship and they never lived at the same time = Unrelated
     return 'Unrelated';
   }
   
   if (rootBirth && personDeath && rootBirth > personDeath) {
-    // Root was born after person died - they never coexisted
-    // Only allow direct blood relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.) 
+    // Root was born after person died - they never lived at the same time
+    // Only allow direct biological relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.) 
     const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
     const { childToParents, parentToChildren } = relationshipMaps;
     
-    // Check if they are direct blood relatives
+    // Check if they are direct biological relatives
     const rootParents = childToParents.get(String(rootPerson.id)) || new Set();
     const personChildren = parentToChildren.get(String(person.id)) || new Set();
     const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
     const personParents = childToParents.get(String(person.id)) || new Set();
     
-    // If person is root's parent (root born after person died - impossible but check anyway)
+    // Check if person is root's parent (would be impossible if root born after person died, but we check anyway)
     if (rootParents.has(String(person.id))) {
       return getGenderSpecificRelation(person.id, 'Father', 'Mother', allPeople, 'Parent');
     }
     
-    // If root is person's child (root born after person died - impossible but check anyway)
+    // Check if root is person's child (would be impossible if root born after person died, but we check anyway)
     if (personChildren.has(String(rootPerson.id))) {
       return getGenderSpecificRelation(rootPerson.id, 'Son', 'Daughter', allPeople, 'Child');
     }
@@ -105,11 +105,11 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       }
     }
     
-    // No direct blood relationship and they never coexisted = Unrelated
+    // No direct biological relationship and they never lived at the same time = Unrelated
     return 'Unrelated';
   }
 
-  // Enhanced sibling detection - automatically finds siblings through shared parents
+  // Automatically find siblings by looking for people who share the same parents
 
   // Build comprehensive relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
@@ -122,7 +122,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     allPeople
   );
 
-  // Enhanced sibling detection: if primary algorithm shows "Unrelated" but sibling relationship exists, use it
+  // Additional check: if the main algorithm says "Unrelated" but we know they're siblings, show the sibling relationship
   if (
     relationship === 'Unrelated' && (
       (relationshipMaps.siblingMap.has(String(person.id)) && relationshipMaps.siblingMap.get(String(person.id)).has(String(rootPerson.id))) ||
@@ -261,7 +261,7 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
     }
   });
 
-  // CRITICAL FIX: After building parent-child relationships, automatically detect biological siblings through shared parents
+  // Important: After building parent-child relationships, automatically detect biological siblings through shared parents
   const allPersonIds = new Set();
   relationships.forEach(rel => {
     allPersonIds.add(String(rel.source || rel.from));
@@ -448,7 +448,7 @@ const isDeceasedPersonConnectingPersonAndRoot = (deceasedId, personId, rootId, c
   // Check if root is descendant of deceased
   const isRootDescendant = isDescendantOf(rootId, deceasedId, parentToChildren);
   
-  // CRITICAL: Only block if the deceased is a NECESSARY connecting link
+  // Important: Only block the relationship if the deceased person is a necessary connecting link
   // For step-siblings sharing a living parent, the deceased parent of one sibling
   // is NOT a connecting person - the living shared parent is the connection
   
@@ -572,7 +572,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Check for step-parent relationship
   // Person is step-parent of root if: person is spouse of root's parent, but not root's biological parent
-  // CRITICAL: Step-relationships only exist with current or deceased spouses, NOT ex-spouses
+  // Important: Step-relationships only exist with current or deceased spouses, NOT ex-spouses
   const rootParents = childToParents.get(rootId) || new Set();
   for (const parent of rootParents) {
     // Check if person is current spouse of this parent
@@ -582,7 +582,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         return getGenderSpecificRelation(personId, 'Step-Father', 'Step-Mother', allPeople, 'Step-Parent');
       }
     }
-    // CRITICAL FIX: Deceased people cannot be step-parents
+    // Important: Deceased people cannot be step-parents
     // Step-relationships can only be formed by living people
     // If someone dies, they lose the ability to form new family relationships
     // This section is removed - deceased spouses do not create step-parent relationships
@@ -593,7 +593,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
     */
     
-    // CRITICAL FIX: Ex-spouses do NOT create step-relationships
+    // Important: Ex-spouses do NOT create step-relationships
     // Step-relationships end with divorce - ex-spouses and their relatives become unrelated
     // This is commented out to ensure ex-spouses don't create step-relationships:
     /*
@@ -606,7 +606,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Check for step-child relationship
   // Person is step-child of root if: root is spouse of person's parent, but not person's biological parent
-  // CRITICAL: Step-relationships only exist with current or deceased spouses, NOT ex-spouses
+  // Important: Step-relationships only exist with current or deceased spouses, NOT ex-spouses
   const personParents = childToParents.get(personId) || new Set();
   for (const parent of personParents) {
     // Check if root is current spouse of this parent
@@ -616,7 +616,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         return getGenderSpecificRelation(personId, 'Step-Son', 'Step-Daughter', allPeople, 'Step-Child');
       }
     }
-    // CRITICAL FIX: Deceased people cannot be step-parents  
+    // Important: Deceased people cannot be step-parents  
     // Step-relationships can only be formed by living people
     // This section is removed - deceased spouses do not create step-parent relationships
     /*
@@ -626,7 +626,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
     */
     
-    // CRITICAL FIX: Ex-spouses do NOT create step-relationships
+    // Important: Ex-spouses do NOT create step-relationships
     // Step-relationships end with divorce - ex-spouses and their relatives become unrelated
     // This is commented out to ensure ex-spouses don't create step-relationships:
     /*
@@ -648,7 +648,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
       if (!rootParents.has(stepParent)) { // Make sure it's actually a step-parent
         const stepParentParents = childToParents.get(stepParent) || new Set();
         if (stepParentParents.has(personId)) {
-          // CRITICAL FIX: Check if deceased step-parent was alive when the person being evaluated was born
+          // Important check: Verify if deceased step-parent was alive when the person being evaluated was born
           // A deceased step-parent cannot create step-grandparent relationships for people born after their death
           const stepParentPerson = allPeople.find(p => String(p.id) === String(stepParent));
           const personObj = allPeople.find(p => String(p.id) === String(personId));
@@ -842,7 +842,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     // Check all step-parents of person
     for (const stepParent of [...parentSpouses, ...parentDeceasedSpouses]) {
       if (!personParents.has(stepParent)) { // Make sure it's actually a step-parent
-        // CRITICAL TIMELINE CHECK: If the step-parent is deceased, check if they were alive when person was born
+        // Important timeline check: If the step-parent is deceased, verify if they were alive when person was born
         // A deceased step-parent cannot create step-grandchild relationships for people born after their death
         const stepParentPerson = allPeople.find(p => String(p.id) === String(stepParent));
         const personObj = allPeople.find(p => String(p.id) === String(personId));
@@ -867,7 +867,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // ADDITIONAL: Check for step-grandchild relationship (reverse)
   // Person is step-grandchild of root if: person is child of root's step-child
-  // CRITICAL: Only applies when the connecting person is root's spouse, not root's child
+  // Important: This only applies when the connecting person is root's spouse, not root's child
   // Find root's spouses and their children who are not root's biological children (root's step-children)
   const rootSpouses = spouseMap.get(rootId) || new Set();
   const rootDeceasedSpouses = deceasedSpouseMap.get(rootId) || new Set();
@@ -879,7 +879,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
       // Check if this child is not root's biological child (making it root's step-child)
       const spouseChildParents = childToParents.get(spouseChild) || new Set();
       if (!spouseChildParents.has(rootId) && spouseChildParents.has(spouse)) {
-        // CRITICAL TIMELINE CHECK: If the step-child is deceased, check if they were alive when person was born
+        // Important timeline check: If the step-child is deceased, verify if they were alive when person was born
         // A deceased step-child cannot create step-grandchild relationships for people born after their death
         const stepChildPerson = allPeople.find(p => String(p.id) === String(spouseChild));
         const personObj = allPeople.find(p => String(p.id) === String(personId));
@@ -944,7 +944,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents
-  // CRITICAL: Step-siblings only exist through current or deceased spouses, NOT ex-spouses
+  // Important: Step-siblings only exist through current or deceased spouses, NOT ex-spouses
   
   const rootStepParents = new Set();
   const personStepParents = new Set();
@@ -952,7 +952,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   // Find root's step-parents (only current spouses - exclude deceased and ex-spouses)
   for (const parent of rootParents) {
     const parentSpouses = spouseMap.get(parent) || new Set();
-    // CRITICAL: Only use current living spouses - deceased people cannot be step-parents
+    // Important: Only use current living spouses - deceased people cannot be step-parents
     parentSpouses.forEach(spouse => {
       if (!rootParents.has(spouse)) {
         rootStepParents.add(spouse);
@@ -963,7 +963,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   // Find person's step-parents (only current spouses - exclude deceased and ex-spouses)
   for (const parent of personParents) {
     const parentSpouses = spouseMap.get(parent) || new Set();
-    // CRITICAL: Only use current living spouses - deceased people cannot be step-parents
+    // Important: Only use current living spouses - deceased people cannot be step-parents
     parentSpouses.forEach(spouse => {
       if (!personParents.has(spouse)) {
         personStepParents.add(spouse);
@@ -972,7 +972,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   }
   
   // Check if person is child of any of root's step-parents
-  // IMPORTANT: Must NOT share ANY biological parents (excludes half-siblings)
+  // Important: Step-siblings must NOT share ANY biological parents (this excludes half-siblings)
   
   for (const stepParent of rootStepParents) {
     if (personParents.has(stepParent)) {
@@ -1585,7 +1585,7 @@ const findDeceasedSpouseRelationship = (personId, rootId, relationshipMaps, allP
   // Get all deceased spouses of root
   const rootDeceasedSpouses = deceasedSpouseMap.get(rootId) || new Set();
   
-  // IMPORTANT: Deceased spouse's parents have NO relationship to the surviving spouse
+  // Important: A deceased spouse's parents have NO relationship to the surviving spouse
   // They are "Unrelated" because the connecting person (deceased spouse) is gone
   // However, they maintain blood relationships to their grandchildren
   
@@ -1606,7 +1606,7 @@ const findDeceasedSpouseRelationship = (personId, rootId, relationshipMaps, allP
       // If they share the deceased spouse as a parent with root, they're already siblings/step-siblings
       const rootParents = childToParents.get(rootId) || new Set();
       if (!rootParents.has(deceasedSpouse)) {
-        // CRITICAL FIX: Check if deceased spouse was alive when person was born
+        // Important check: Verify if deceased spouse was alive when person was born
         // A deceased person cannot have a relationship with someone born after their death
         const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
         const person = allPeople.find(p => String(p.id) === String(personId));

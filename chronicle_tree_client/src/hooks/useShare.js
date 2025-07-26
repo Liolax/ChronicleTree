@@ -23,7 +23,6 @@ export const useShare = () => {
       setShareData(data);
       return data;
     } catch (err) {
-      console.error('Failed to generate share content:', err);
       const errorMessage = err.response?.data?.message || 'Failed to generate shareable content';
       setError(errorMessage);
       alert(errorMessage);
@@ -46,14 +45,12 @@ export const useShare = () => {
           text: data.description,
           url: data.share_url
         });
-        console.log('Shared successfully!');
         return true;
       } catch (err) {
         if (err.name === 'AbortError') {
           // User cancelled sharing
           return false;
         }
-        console.error('Web Share failed:', err);
         // Fallback to copying link
         return await copyToClipboard(data.share_url);
       }
@@ -69,8 +66,6 @@ export const useShare = () => {
       alert('Link copied to clipboard!');
       return true;
     } catch (err) {
-      console.error('Failed to copy to clipboard:', err);
-      
       // Fallback for older browsers
       try {
         const textArea = document.createElement('textarea');
@@ -118,7 +113,6 @@ export const useShare = () => {
     const shareUrl = shareUrls[platform];
     
     if (!shareUrl) {
-      console.error('Unknown sharing platform:', platform);
       alert('Unknown sharing platform');
       return;
     }
@@ -135,13 +129,9 @@ export const useShare = () => {
         
         if (!popup) {
           alert('Please allow popups to share on social media');
-        } else {
-          // Optional: Track successful shares
-          console.log(`Sharing to ${platform}...`);
         }
       }
     } catch (err) {
-      console.error('Failed to open sharing window:', err);
       alert('Failed to open sharing window');
     }
   }, []);
@@ -164,10 +154,7 @@ export const useShare = () => {
       link.click();
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
-      
-      console.log('Image downloaded successfully!');
     } catch (err) {
-      console.error('Failed to download image:', err);
       alert('Failed to download image');
     }
   }, []);

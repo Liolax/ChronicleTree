@@ -35,7 +35,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(ruby test:*)",
-      "Bash(ruby:*)"
+      "Bash(ruby:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }

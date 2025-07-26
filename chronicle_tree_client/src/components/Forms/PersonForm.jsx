@@ -104,14 +104,6 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
     return true;
   });
 
-  // Debug logging to help troubleshoot
-  console.log('PersonForm Debug:', {
-    isFirstPerson,
-    peopleCount: people.length,
-    filteredPeopleCount: filteredPeople.length,
-    currentUser: currentUser?.id,
-    showRelationshipFields: !isFirstPerson && filteredPeople.length > 0
-  });
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 max-h-[340px] overflow-y-auto">

@@ -320,10 +320,10 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   };
 
   // Helper to check if a person is an ex or deceased spouse's relative (but not blood related to current person)
-  // ✅ COMPLEX REMARRIAGE SCENARIOS SUPPORTED:
-  // - Marrying ex-spouse's sibling (if no blood relation)
-  // - Marrying deceased spouse's relative (if no blood relation)
-  // ❌ ALWAYS PREVENTED: Any blood relative regardless of previous marriages
+  // This function handles complex remarriage scenarios where someone might marry:
+  // - An ex-spouse's sibling (if no blood relation exists)
+  // - A deceased spouse's relative (if no blood relation exists)
+  // Note: Blood relatives are always prevented from marrying regardless of previous marriages
   const isAllowedRemarriageRelative = (candidateId) => {
     if (!person?.relatives) return false;
     
@@ -341,17 +341,15 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         // Check if candidate is a relative of this ex/deceased spouse
         const isRelativeOfSpouse = spousePerson.relatives.some(rel => rel.id === candidateId);
         if (isRelativeOfSpouse) {
-          // CRITICAL: Ensure candidate is not blood related to current person
+          // Important: Ensure candidate is not blood related to current person
           const bloodCheck = detectBloodRelationship(person.id, candidateId);
           if (!bloodCheck.isBloodRelated) {
             const spouseStatus = spouse.is_ex ? 'ex-spouse' : 'deceased spouse';
             const candidatePerson = people.find(p => p.id === candidateId);
             const spouseRelType = spousePerson.relatives.find(rel => rel.id === candidateId)?.relationship_type;
             
-            console.log(`✅ ALLOWED REMARRIAGE: ${candidatePerson?.first_name} ${candidatePerson?.last_name} is ${spouseRelType} of ${spouseStatus} ${spousePerson.first_name} ${spousePerson.last_name}, with no blood relation to current person`);
-            return true; // ✅ Allowed - relative of ex/deceased spouse but not blood related to current person
+            return true; // Allowed - relative of ex/deceased spouse but not blood related to current person
           } else {
-            console.log(`❌ BLOCKED REMARRIAGE: Blood relationship detected - ${bloodCheck.relationship}`);
           }
         }
       }
@@ -428,9 +426,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     // Check for existing relationships that would prevent this new relationship
     const existingRels = person.relatives || [];
     
-    // ENHANCED CHILD VALIDATION - Much more robust filtering  
+    // Child relationship validation with comprehensive filtering  
     if (type === 'child') {
-      // 1. CRITICAL: Prevent any blood relative from becoming a child
+      // 1. Prevent any blood relative from becoming a child
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
@@ -508,7 +506,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
-      // 7. CRITICAL: Prevent adding someone as child if their children are married to person's children
+      // 7. Prevent adding someone as child if their children are married to person's children
       // This would create impossible family structures (grandchild being both great-grandchild and grandchild)
       const personChildren = existingRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
       const candidateChildren = (candidate.relatives || []).filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
@@ -556,9 +554,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       return { valid: true };
     }
     
-    // ENHANCED SIBLING VALIDATION - Much more robust filtering
+    // Sibling relationship validation with comprehensive filtering
     if (type === 'sibling') {
-      // 1. CRITICAL: Prevent any current/former spouse from becoming sibling (incestuous)
+      // 1. Prevent any current/former spouse from becoming sibling (would be inappropriate)
       const candidateRels = candidate.relatives || [];
       const personRels = person.relatives || [];
       
@@ -576,7 +574,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
-      // 1a. CRITICAL: Prevent people who share children from becoming siblings
+      // 1a. Prevent people who share children from becoming siblings
       // If two people have shared children, they've been in a romantic relationship
       const personChildren = personRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
       const candidateChildren = candidateRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
@@ -589,8 +587,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
-      // 2. CRITICAL: Check for downstream relationship conflicts
-      // If making this person a sibling would create incestuous relationships elsewhere, block it
+      // 2. Check for downstream relationship conflicts
+      // If making this person a sibling would create inappropriate relationships elsewhere, block it
       const wouldCreateIncest = checkSiblingRelationshipConflicts(person, candidate, people);
       if (wouldCreateIncest.hasConflict) {
         return { 
@@ -678,14 +676,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
-      // 5. CRITICAL: Check for step-relationship conflicts using tree data
-      console.log('[checkRelationshipConstraints] Checking step relationships:', {
-        hasTreeData: !!treeData,
-        hasNodes: !!treeData?.nodes,
-        hasEdges: !!treeData?.edges,
-        candidateId: candidate.id,
-        personId: person.id
-      });
+      // 5. Check for step-relationship conflicts using tree data
       
       if (treeData && treeData.nodes && treeData.edges) {
         // Use the same relationship mapping format as the display logic
@@ -697,25 +688,11 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           is_deceased: edge.is_deceased
         }));
         
-        console.log('[checkRelationshipConstraints] Using relationships data:', {
-          edgeCount: treeData.edges.length,
-          relationshipCount: relationships.length,
-          sampleRelationships: relationships.slice(0, 3)
-        });
-        
         const { stepParents, stepChildren } = findStepRelationships(person, treeData.nodes, relationships);
-        
-        console.log('[checkRelationshipConstraints] Step relationships found:', {
-          stepParents: stepParents.map(sp => ({ id: sp.id, name: sp.full_name })),
-          stepChildren: stepChildren.map(sc => ({ id: sc.id, name: sc.full_name })),
-          candidateId: candidate.id,
-          candidateName: `${candidate.first_name} ${candidate.last_name}`
-        });
         
         // Check if candidate is a step-parent
         const isStepParent = stepParents.some(sp => sp.id === candidate.id);
         if (isStepParent) {
-          console.log('[checkRelationshipConstraints] BLOCKING: Candidate is step-parent');
           return { 
             valid: false, 
             reason: `Cannot be siblings with ${candidate.first_name} ${candidate.last_name} - they are your step-parent` 
@@ -725,14 +702,11 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         // Check if candidate is a step-child
         const isStepChild = stepChildren.some(sc => sc.id === candidate.id);
         if (isStepChild) {
-          console.log('[checkRelationshipConstraints] BLOCKING: Candidate is step-child');
           return { 
             valid: false, 
             reason: `Cannot be siblings with ${candidate.first_name} ${candidate.last_name} - they are your step-child` 
           };
         }
-      } else {
-        console.log('[checkRelationshipConstraints] No tree data available for step relationship check');
       }
       
       // 6. Timeline validation - siblings should have overlapping lifespans or reasonable birth timing
@@ -796,7 +770,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // ENHANCED PARENT VALIDATION - Much more robust filtering
+    // Parent relationship validation with comprehensive filtering
     if (type === 'parent') {
       // 1. Check if current person already has 2 biological parents
       const currentPersonParents = existingRels.filter(rel => rel.relationship_type === 'parent' && !rel.isStep);
@@ -804,7 +778,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         return { valid: false, reason: 'Person already has maximum number of biological parents (2)' };
       }
       
-      // 2. CRITICAL: Prevent any blood relative from becoming a parent
+      // 2. Prevent any blood relative from becoming a parent
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
@@ -812,7 +786,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
-      // 2a. CRITICAL: Prevent co-parents-in-law from becoming parents (would create inappropriate family structure)
+      // 2a. Prevent co-parents-in-law from becoming parents (would create inappropriate family structure)
       // Scenario 1: Direct co-parents - If this candidate shares children with the current person
       const personChildren = existingRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
       const candidateChildren = (candidate.relatives || []).filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
@@ -1101,7 +1075,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     return filtered;
   };
 
-  // CRITICAL: Check if making two people siblings would create incestuous relationships elsewhere
+  // Check if making two people siblings would create inappropriate relationships elsewhere
   const checkSiblingRelationshipConflicts = (person1, person2, allPeople) => {
     // If person1 and person2 become siblings, then:
     // - person1's children become person2's nephews/nieces
@@ -1129,7 +1103,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // CRITICAL: Check if person2 is married to any of person1's descendants
+    // Check if person2 is married to any of person1's descendants
     // This catches cases like Robert's granddaughter Alice being married to David
     const person2Rels = person2.relatives || [];
     for (const descendant of person1Descendants) {
@@ -1145,7 +1119,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // CRITICAL: Check if person1 is married to any of person2's descendants
+    // Check if person1 is married to any of person2's descendants
     // This catches the reverse case
     const person1Rels = person1.relatives || [];
     for (const descendant of person2Descendants) {

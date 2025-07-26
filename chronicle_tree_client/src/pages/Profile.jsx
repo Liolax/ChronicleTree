@@ -203,17 +203,13 @@ export default function Profile() {
   // Handler to toggle ex/current spouse in DeletePersonModal
   const handleToggleSpouseEx = async (relationshipId) => {
     if (!relationshipId) return;
-    console.log('[Profile] Toggling spouse relationshipId:', relationshipId);
     try {
       const resp = await toggleSpouseExMutation.mutateAsync(relationshipId);
-      console.log('[Profile] Toggle API response:', resp);
       // Refresh the person and relationships for the modal
       const data = await getPerson(person.id);
-      console.log('[Profile] Refreshed person data:', data);
       setDeletePersonData(data);
       setDeleteRelationships(groupRelationships(data));
     } catch (err) {
-      console.error('[Profile] Error toggling spouse ex status:', err);
       alert('Failed to toggle spouse status.');
     }
   };
@@ -234,7 +230,6 @@ export default function Profile() {
         alert('Profile link copied to clipboard!');
       }
     } catch (error) {
-      console.error('Share failed:', error);
       alert('Share failed: ' + error.message);
     }
   };

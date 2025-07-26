@@ -86,15 +86,6 @@ const FamilyTree = () => {
       filteredEdges
     );
     
-    // DEBUG LOGGING: Log the calculated relationships for Charlie
-    if (rootPerson && (rootPerson.id === 5 || rootPerson.id === '5')) { // Charlie C
-      console.log('=== DEBUG: Calculated Relationships for Charlie ===');
-      peopleWithRelations.forEach(person => {
-        if (person.id === 4 || person.id === '4') { // David A
-          console.log(`David A → Charlie C: "${person.relation}"`);
-        }
-      });
-    }
 
     // Filter out unrelated nodes if showUnrelated is false
     const finalNodes = showUnrelated 
@@ -163,12 +154,10 @@ const FamilyTree = () => {
   }, []);
 
   const handleRestructureTree = useCallback((personId) => {
-    console.log('Set new root person:', personId);
     setRootPersonId(personId);
   }, []);
 
   const handleResetTree = useCallback(() => {
-    console.log('Reset tree to show all people');
     setRootPersonId(null);
     setHasSetDefaultRoot(false);
   }, []);
@@ -192,7 +181,6 @@ const FamilyTree = () => {
         alert('Tree link copied to clipboard!');
       }
     } catch (error) {
-      console.error('Share failed:', error);
       // Fallback to simple sharing if API fails
       const treeTitle = rootPersonId 
         ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
@@ -503,7 +491,6 @@ const FamilyTree = () => {
                   setSelectedPerson(null); // Close person card if open
                 },
                 onError: (error) => {
-                  console.error('Failed to delete person:', error);
                   // Keep modal open on error so user can retry
                 }
               });

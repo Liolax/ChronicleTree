@@ -16,7 +16,6 @@ const ShareModal = ({
 
   useEffect(() => {
     if (isOpen && personId) {
-      console.log('ShareModal opened with personId:', personId, 'shareType:', currentShareType);
       // Test if API is working first
       testApiConnection();
       generateShareContent();
@@ -25,13 +24,9 @@ const ShareModal = ({
 
   const testApiConnection = async () => {
     try {
-      console.log('Testing API connection...');
       const response = await api.get('/people');
-      console.log('API connection test successful:', response.data?.length, 'people found');
     } catch (error) {
-      console.error('API connection test failed:', error);
-      console.error('Status:', error.response?.status);
-      console.error('Token in localStorage:', !!localStorage.getItem('token'));
+      // API connection test failed
     }
   };
 
@@ -44,15 +39,9 @@ const ShareModal = ({
         ? `/share/profile/${personId}`
         : `/share/tree/${personId}?generations=${generations}`;
 
-      console.log('Making API call to:', endpoint);
-      console.log('Person ID:', personId);
       const response = await api.get(endpoint);
-      console.log('API response:', response.data);
       setShareData(response.data);
     } catch (error) {
-      console.error('Failed to generate share content:', error);
-      console.error('Error details:', error.response?.data);
-      console.error('Status:', error.response?.status);
       const errorMsg = error.response?.data?.error || 'Failed to generate shareable content';
       alert(errorMsg);
     } finally {
@@ -70,10 +59,8 @@ const ShareModal = ({
           text: shareData.description,
           url: shareData.share_url
         });
-        console.log('Shared successfully!');
       } catch (error) {
         if (error.name !== 'AbortError') {
-          console.error('Web Share failed:', error);
           await copyToClipboard(shareData.share_url);
         }
       }
@@ -87,7 +74,6 @@ const ShareModal = ({
       await navigator.clipboard.writeText(text);
       alert('Link copied to clipboard!');
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
       alert('Failed to copy link');
     }
   };
@@ -106,7 +92,6 @@ const ShareModal = ({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    console.log('Image download started!');
   };
 
   const shareToSocial = (platform) => {

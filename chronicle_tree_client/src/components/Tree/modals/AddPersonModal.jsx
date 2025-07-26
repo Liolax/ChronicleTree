@@ -31,22 +31,19 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
       payload.relation_type = data.relationType;
       payload.related_person_id = data.relatedPersonId;
     }
-    console.log('AddPersonModal payload:', { person: payload }); // Debug log
     try {
       const response = await addPerson.mutateAsync(payload);
       
-      // Enhanced success alert with person name
+      // Show a success message to the user after adding the person
       if (response?.message) {
-        alert(`✅ ${response.message}`);
+        alert(response.message);
       } else {
-        alert(`✅ ${data.firstName} ${data.lastName} has been successfully added to the family tree!`);
+        alert(`${data.firstName} ${data.lastName} has been successfully added to the family tree!`);
       }
       
       onClose();
     } catch (err) {
-      console.error('AddPersonModal error:', err?.response || err);
-      
-      // Use centralized error handling
+      // Handle any errors that occur when adding the person
       handleBackendError(err);
     }
   };

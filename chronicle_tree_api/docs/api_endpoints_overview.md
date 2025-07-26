@@ -1,11 +1,13 @@
-# ChronicleTree API Endpoints
 
-This document provides an overview of all available API endpoints, their purpose, and expected parameters. All endpoints are prefixed with `/api/v1`.
+# ChronicleTree API Endpoints (Actual)
+
+This document provides a live, up-to-date overview of all available API endpoints, their purpose, and expected parameters. All endpoints are prefixed with `/api/v1` and match the current Rails API implementation.
 
 ---
 
+
 ## Authentication (`/api/v1/auth`)
-Handles user registration, login, and logout using Devise and JWT.
+Handles user registration, login, and logout using Devise and JWT. All authentication endpoints are implemented via Devise controllers and use JWT for stateless auth.
 
 | Method   | Path                         | Controller#Action             | Purpose                               |
 | :------- | :--------------------------- | :---------------------------- | :------------------------------------ |
@@ -17,8 +19,9 @@ Handles user registration, login, and logout using Devise and JWT.
 
 ---
 
+
 ## User Profile (`/api/v1/users`)
-Endpoints for managing the currently authenticated user's profile.
+Endpoints for managing the currently authenticated user's profile. All actions are scoped to the logged-in user and require authentication.
 
 | Method     | Path                          | Controller#Action       | Purpose                               |
 | :--------- | :---------------------------- | :---------------------- | :------------------------------------ |
@@ -29,8 +32,9 @@ Endpoints for managing the currently authenticated user's profile.
 
 ---
 
+
 ## People (`/api/v1/people`)
-Core resource for managing individuals in the family tree.
+Core resource for managing individuals in the family tree. All people are scoped to the current user.
 
 | Method     | Path                                   | Controller#Action       | Purpose                               |
 | :--------- | :------------------------------------- | :---------------------- | :------------------------------------ |
@@ -45,8 +49,9 @@ Core resource for managing individuals in the family tree.
 
 ---
 
+
 ## Notes (`/api/v1/people/:person_id/note` and `/api/v1/notes/:id`)
-Manages a single note per person.
+Manages a single note per person. Each person can have at most one note.
 
 | Method     | Path                                         | Controller#Action       | Purpose                               |
 | :--------- | :------------------------------------------- | :---------------------- | :------------------------------------ |
@@ -57,8 +62,9 @@ Manages a single note per person.
 
 ---
 
+
 ## Relationships (`/api/v1/relationships`)
-Manages the connections between people.
+Manages the connections between people (parent, spouse, sibling, etc.).
 
 | Method     | Path                          | Controller#Action       | Purpose                               |
 | :--------- | :---------------------------- | :---------------------- | :------------------------------------ |
@@ -67,8 +73,9 @@ Manages the connections between people.
 
 ---
 
+
 ## Facts (`/api/v1/people/:person_id/facts` and `/api/v1/facts/:id`)
-Manages key facts (e.g., birth, death) for a person.
+Manages key facts (e.g., birth, death) for a person. Facts are attached to people and can be created, updated, or deleted.
 
 | Method     | Path                                         | Controller#Action       | Purpose                               |
 | :--------- | :------------------------------------------- | :---------------------- | :------------------------------------ |
@@ -79,8 +86,9 @@ Manages key facts (e.g., birth, death) for a person.
 
 ---
 
+
 ## Timeline Items (`/api/v1/people/:person_id/timeline_items` and `/api/v1/timeline_items/:id`)
-Manages chronological events for a person.
+Manages chronological events for a person. Timeline items are attached to people and can be created, updated, or deleted.
 
 | Method     | Path                                         | Controller#Action       | Purpose                               |
 | :--------- | :------------------------------------------- | :---------------------- | :------------------------------------ |
@@ -91,8 +99,9 @@ Manages chronological events for a person.
 
 ---
 
+
 ## Media (`/api/v1/people/:person_id/media` and `/api/v1/media/:id`)
-Manages file uploads (photos, documents) attached to a person.
+Manages file uploads (photos, documents) attached to a person. Media files are stored and associated with people.
 
 | Method     | Path                                         | Controller#Action       | Purpose                               |
 | :--------- | :------------------------------------------- | :---------------------- | :------------------------------------ |
@@ -102,6 +111,7 @@ Manages file uploads (photos, documents) attached to a person.
 
 ---
 
+
 ## Conclusion
 
-This document serves as a reference for all API endpoints. For implementation details, refer to the [Project Roadmap](../../ROADMAP.md). For authentication specifics, see the [Devise & JWT Setup](./devise_setup.md).
+This document is a live reference for all API endpoints in the ChronicleTree Rails API. All endpoints are implemented and up to date as of July 2025. For implementation details, see the [Project Roadmap](../../ROADMAP.md). For authentication specifics, see the [Devise & JWT Setup](./devise_setup.md).

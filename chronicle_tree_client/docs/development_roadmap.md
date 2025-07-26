@@ -1,62 +1,75 @@
+
 # Frontend Development Roadmap
 
-This document outlines the plan for building the ChronicleTree React client, from converting static mockups to creating a dynamic, data-driven single-page application (SPA).
+This document reflects the current state and plan for the ChronicleTree React client, including the actual component structure, API integration, and testing strategy as implemented.
+
 
 ## 1. Component Architecture
 
-The primary goal is to translate the static HTML mockups into a reusable and stateful component architecture. The project is organized by feature, with generic, reusable components placed in centralized directories.
+The ChronicleTree React client is organized by feature, with generic, reusable components in centralized directories. The actual structure includes:
 
--   **Core Directories**:
-    -   `pages/`: Top-level components that correspond to a page view (e.g., `TreeView.jsx`, `Profile.jsx`).
-    -   `components/`: Contains all reusable components, organized into subdirectories.
-    -   `services/`: Houses API interaction logic and React Query hooks.
-    -   `context/`: Provides shared state management across the application.
+- **pages/**: Top-level page views (e.g., `TreeView.jsx`, `Profile.jsx`, `Settings.jsx`).
+- **components/**: All reusable components, organized into:
+  - **UI/**: Generic, application-agnostic components (`Button`, `Card`, `Input`, `Modal`, etc.)
+  - **Layout/**: Page structure components (`NavBar`, `PageHeader`, `Tabs`)
+  - **Forms/**: Reusable form components (`PersonForm`, `RelationshipForm`, `FactForm`, etc.)
+  - **Tree/**: Family tree visualization (`Tree`, `CustomNode`, `AddPersonModal`, `PersonCard`, etc.)
+  - **Profile/**: Profile page components (`ProfileHeader`, `ProfileDetails`, `FactList`, `MediaGallery`, etc.)
+  - **Settings/**: User settings components (`ProfileSettings`, `PasswordSettings`)
+- **services/**: API interaction logic and React Query hooks
+- **context/**: Shared state management (e.g., `AuthContext`, `TreeStateContext`)
+- **utils/**: Utility functions (e.g., `familyTreeHierarchicalLayout.js`, validation helpers)
 
--   **Component Breakdown**:
-    -   **`components/UI`**: Generic, application-agnostic components (`Button`, `Card`, `Input`, `Modal`).
-    -   **`components/Layout`**: Components that define the page structure (`NavBar`, `PageHeader`, `Tabs`).
-    -   **`components/Forms`**: Reusable form components used for creating and editing data (`PersonForm`, `RelationshipForm`, `FactForm`).
-    -   **`components/Tree`**: Components specifically for the family tree visualization (`Tree`, `CustomNode`, `AddPersonModal`).
-    -   **`components/Profile`**: Components used within the user profile page (`ProfileHeader`, `ProfileDetails`, `FactList`).
-    -   **`components/Settings`**: Components for the user settings page (`ProfileSettings`, `PasswordSettings`).
 
--   **Styling**: Continue using Tailwind CSS as established in the mockups.
--   **Routing**: Implement client-side routing using `react-router-dom` to create a seamless SPA experience.
+**Styling:** Tailwind CSS is used throughout for utility-first styling.
+**Routing:** Client-side routing is implemented with `react-router-dom` for a seamless SPA experience.
+
+
 
 ## 2. API Integration & State Management
 
-Connect the React components to the Rails backend to handle live data.
+The React client is fully integrated with the Rails API backend and uses modern best practices for authentication and data management:
 
--   **API Client**: Use `axios` for making HTTP requests. A centralized API client is configured with the base URL and authentication headers.
--   **Authentication Flow**:
-    -   On login/registration, store the received JWT in `localStorage`.
-    -   Attach the JWT as a `Bearer` token in the `Authorization` header for all authenticated API requests.
-    -   Implement an auto-logout mechanism upon receiving a `401 Unauthorized` response.
--   **Data Fetching**: Use `@tanstack/react-query` for server state management, including caching, refetching, and optimistic updates.
--   **Authentication**: Implement context-based authentication using `AuthContext` to manage JWTs and user state.
+- **API Client:**
+  - Uses `axios` for all HTTP requests.
+  - Centralized API client is configured with the Rails API base URL and automatically attaches JWT tokens.
+- **Authentication:**
+  - JWT is stored in `localStorage` after login or registration.
+  - All API requests include the JWT as a `Bearer` token in the `Authorization` header.
+  - Auto-logout is triggered on `401 Unauthorized` responses, clearing the token and user state.
+  - `AuthContext` provides authentication state, user info, and login/logout helpers to all components.
+- **Data Fetching:**
+  - `@tanstack/react-query` manages all server state, including caching, background refetching, and optimistic UI updates.
+  - All profile, tree, and relationship data is fetched live from the backend and kept in sync with the server.
+  - Query keys are organized by resource (e.g., `['person', id]`, `['tree', id]`) for efficient cache invalidation.
+  - Error handling and loading states are managed at the query and mutation level for robust UX.
 
-## 3. Tree Visualization with reactflow (React Flow)
 
-Implement the interactive family tree view.
+## 3. Tree Visualization with React Flow
 
--   **Library**: Use `reactflow` to render the tree structure from the `GET /api/v1/people/:id/tree` endpoint data (nodes and edges).
--   **Layouting**: Use the `dagre` library to automatically calculate and apply a hierarchical layout to the nodes and edges.
--   **Custom Nodes**: A `CustomNode` component displays person details (name, photo, dates) and contains its own logic for triggering edit and delete modals, making it a self-contained and reusable unit.
--   **Interaction**:
-    -   Implement pan and zoom functionality using React Flow's built-in controls.
-    -   Modals for adding, editing, and deleting people and relationships are managed via context and local state.
+- **Library:** Uses `reactflow` (xyflow) for advanced family tree visualization.
+- **Data:** Tree structure is rendered from `/api/v1/people/:id/tree` endpoint (nodes and edges).
+- **Layout:** Hierarchical layout is calculated with `dagre` and custom logic in `familyTreeHierarchicalLayout.js`.
+- **Custom Nodes:** `CustomNode` displays person details and handles edit/delete modals.
+- **Interaction:**
+  - Pan/zoom with React Flow controls
+  - Add/edit/delete people and relationships via modals managed by context/local state
+  - MiniMap viewport rectangle for navigation
+
 
 ## 4. Forms and User Input
 
-Build robust forms for creating and editing data.
+- **Form Library:** Uses `react-hook-form` for form state, validation, and submission.
+- **Centralized Forms:** All forms (`PersonForm`, `RelationshipForm`, `FactForm`, etc.) are reusable and located in `components/Forms`.
+- **Validation:** Includes robust validation for age, blood relationship, timeline, and logical constraints, with user-friendly error messages.
 
--   **Form Library**: Use `react-hook-form` for efficient form state management, submission, and validation.
--   **Centralized Forms**: Reusable forms (`PersonForm`, `RelationshipForm`, `FactForm`) are located in `src/components/Forms` and are used by modal components to perform create/update operations.
 
 ## 5. Testing Strategy
 
-Ensure the frontend is reliable and bug-free.
+- **Unit/Component Tests:** All major components and forms are covered by `Vitest` and `React Testing Library`.
+- **Integration Tests:** Key user flows (login, profile updates, adding family members) are tested.
+- **CI/CD:** GitHub Actions runs all tests and linting on every pull request.
 
--   **Unit/Component Tests**: Use `Vitest` and `React Testing Library` to write tests for individual components, especially forms and components with complex logic.
--   **Integration Tests**: Create integration tests for key user flows, such as login, profile updates, and adding a family member.
--   **CI/CD**: Configure GitHub Actions to run `npm test` and `npm run lint` on every pull request.
+---
+
+This roadmap reflects the current, implemented state of the ChronicleTree React client as of July 2025.

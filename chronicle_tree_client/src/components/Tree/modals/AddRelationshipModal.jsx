@@ -30,19 +30,18 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       onClose();
     },
     onError: (error) => {
-      console.error("Error creating relationship:", error);
       const errorMessage = error?.response?.data?.errors?.[0] || 'Failed to create relationship. Please try again.';
       setWarning(errorMessage);
     },
   });
 
-  // Enhanced blood relationship detection using comprehensive algorithm
+  // Check if two people are blood relatives (sharing genetic material)
   const detectBloodRelationship = (person1Id, person2Id) => {
     if (!treeData?.nodes || !treeData?.edges) {
       return { isBloodRelated: false, relationship: null, degree: null };
     }
 
-    // Convert edges to relationships format for the enhanced detector
+    // Convert the tree structure data into a format our calculator can use
     const relationships = treeData.edges.map(edge => ({
       from: edge.source,
       to: edge.target, 
@@ -51,11 +50,10 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       is_deceased: edge.is_deceased
     }));
 
-    // Use the comprehensive blood relationship detector that catches ALL blood relations
+    // Check for any blood relationship between these two people
     const bloodResult = detectAnyBloodRelationship(person1Id, person2Id, relationships, treeData.nodes);
     
     if (bloodResult.isBloodRelated) {
-      console.log(`🩸 BLOOD RELATIONSHIP DETECTED (Modal): Person ${person1Id} and ${person2Id} are related as ${bloodResult.relationship} (depth: ${bloodResult.depth})`);
       return {
         isBloodRelated: true,
         relationship: bloodResult.relationship,
@@ -63,7 +61,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       };
     }
 
-    // Additional check: Use the traditional relationship calculator and verify it's not incorrectly flagging in-laws
+    // Double-check our results using a different calculation method
     const calculatedRelation = calculateRelationshipToRoot(
       { id: person2Id }, 
       { id: person1Id }, 
@@ -71,16 +69,15 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       relationships
     );
     
-    // Double-check that in-law relationships are not being flagged as blood relationships
+    // Make sure we're not mistaking in-law relationships for blood relationships
     if (calculatedRelation && calculatedRelation !== 'Unrelated') {
       const lowerRelation = calculatedRelation.toLowerCase();
-      // If it contains in-law, co-, step-, ex-, or late - it's NOT a blood relationship
+      // These relationship types are not blood relationships
       if (lowerRelation.includes('in-law') || 
           lowerRelation.includes('co-') || 
           lowerRelation.includes('step-') ||
           lowerRelation.includes('ex-') ||
           lowerRelation.includes('late ')) {
-        console.log(`✅ IN-LAW RELATIONSHIP ALLOWED (Modal): Person ${person1Id} and ${person2Id} are related as ${calculatedRelation} - NOT blood relatives`);
         return { isBloodRelated: false, relationship: calculatedRelation, degree: null };
       }
     }
@@ -88,11 +85,11 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     return { isBloodRelated: false, relationship: null, degree: null };
   };
 
-  // Helper to check if a person is an ex or deceased spouse's relative (but not blood related to current person)
-  // ✅ COMPLEX REMARRIAGE SCENARIOS SUPPORTED:
-  // - Marrying ex-spouse's sibling (if no blood relation)
-  // - Marrying deceased spouse's relative (if no blood relation)
-  // ❌ ALWAYS PREVENTED: Any blood relative regardless of previous marriages
+  // Helper function to determine if someone can marry a relative of their ex or deceased spouse
+  // This handles complex remarriage situations like:
+  // - Marrying an ex-spouse's sibling (allowed if no blood relation exists)
+  // - Marrying a deceased spouse's relative (allowed if no blood relation exists)
+  // Note: Blood relatives are always prevented from marrying, regardless of previous marriages
   const isAllowedRemarriageRelative = (currentPersonId, candidateId) => {
     const currentPerson = people.find(p => p.id === parseInt(currentPersonId));
     if (!currentPerson?.relatives) return false;
@@ -114,14 +111,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           // CRITICAL: Ensure candidate is not blood related to current person
           const bloodCheck = detectBloodRelationship(currentPersonId, candidateId);
           if (!bloodCheck.isBloodRelated) {
-            const spouseStatus = spouse.is_ex ? 'ex-spouse' : 'deceased spouse';
-            const candidatePerson = people.find(p => p.id === candidateId);
-            const spouseRelType = spousePerson.relatives.find(rel => rel.id === candidateId)?.relationship_type;
-            
-            console.log(`✅ ALLOWED REMARRIAGE: ${candidatePerson?.first_name} ${candidatePerson?.last_name} is ${spouseRelType} of ${spouseStatus} ${spousePerson.first_name} ${spousePerson.last_name}, with no blood relation to current person`);
-            return true; // ✅ Allowed - relative of ex/deceased spouse but not blood related to current person
-          } else {
-            console.log(`❌ BLOCKED REMARRIAGE: Blood relationship detected - ${bloodCheck.relationship}`);
+            return true; // Allowed - relative of ex/deceased spouse but not blood related to current person
           }
         }
       }
@@ -164,7 +154,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     return { valid: true };
   };
 
-  // Enhanced relationship constraint validation
+  // Validate whether a relationship is allowed based on various rules and constraints
   const validateRelationshipConstraints = (person1Id, person2Id, type) => {
     const person1 = people.find(p => p.id === parseInt(person1Id));
     const person2 = people.find(p => p.id === parseInt(person2Id));
@@ -180,9 +170,9 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     // Blood relationship detection
     const bloodCheck = detectBloodRelationship(person1Id, person2Id);
     
-    // ENHANCED CHILD VALIDATION - Much more robust filtering  
+    // Validation for parent-child relationships
     if (type === 'child') {
-      // 1. CRITICAL: Prevent any blood relative from becoming a child
+      // 1. Important: Prevent any blood relative from becoming a child
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
@@ -190,7 +180,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         };
       }
       
-      // 2. Enhanced age validation for child relationships
+      // 2. Check that the ages make sense for a parent-child relationship
       if (person1.date_of_birth && person2.date_of_birth) {
         const person1Birth = new Date(person1.date_of_birth);
         const person2Birth = new Date(person2.date_of_birth);
@@ -204,7 +194,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           };
         }
         
-        // Prevent unrealistic age gaps (over 60 years)
+        // Prevent unrealistic age gaps (over 60 years between parent and child)
         if (ageGapYears > 60) {
           return { 
             valid: false, 
@@ -223,9 +213,9 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
     }
     
-    // Enhanced validation for spouses - complex remarriage scenarios
+    // Validation for spouse relationships, including complex remarriage situations
     if (type === 'spouse') {
-      // ALWAYS prevent marriage between blood relatives regardless of previous marriages
+      // Always prevent marriage between blood relatives regardless of previous marriages
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
@@ -233,12 +223,12 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         };
       }
       
-      // ✅ COMPLEX REMARRIAGE SCENARIOS - Allow these specific cases:
+      // Allow these specific remarriage scenarios:
       // 1. Marrying ex-spouse's sibling (if no blood relation to current person)
       // 2. Marrying deceased spouse's relative (if no blood relation to current person)
       const isRemarriageRelative = isAllowedRemarriageRelative(person1Id, person2Id);
       if (isRemarriageRelative) {
-        // Double-check no blood relationship exists (this should already be verified in isAllowedRemarriageRelative)
+        // Double-check no blood relationship exists (safety check)
         const finalBloodCheck = detectBloodRelationship(person1Id, person2Id);
         if (finalBloodCheck.isBloodRelated) {
           return { 
@@ -251,14 +241,14 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
     }
     
-    // ENHANCED SIBLING VALIDATION - Much more robust filtering
+    // Validation for sibling relationships
     if (type === 'sibling') {
-      // 1. Prevent direct ancestors/descendants from being siblings
+      // 1. Prevent people from different generations from being siblings
       if (bloodCheck.isBloodRelated) {
         const relationship = bloodCheck.relationship || '';
         const lowerRel = relationship.toLowerCase();
         
-        // Block all ancestor-descendant relationships
+        // Block all relationships between different generations
         if (lowerRel.includes('parent') || lowerRel.includes('child') || 
             lowerRel.includes('father') || lowerRel.includes('mother') ||
             lowerRel.includes('son') || lowerRel.includes('daughter') ||
@@ -281,7 +271,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           };
         }
         
-        // Block existing siblings
+        // Block people who are already siblings
         if (lowerRel.includes('sibling') || lowerRel.includes('brother') || lowerRel.includes('sister')) {
           return { 
             valid: false, 
@@ -289,7 +279,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           };
         }
         
-        // Block cousin relationships for now (conservative approach)
+        // Block cousin relationships (conservative approach to avoid confusion)
         if (lowerRel.includes('cousin')) {
           return { 
             valid: false, 
@@ -298,13 +288,13 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         }
       }
       
-      // 2. Age validation for siblings - should be within reasonable range
+      // 2. Check that the age difference is reasonable for siblings
       if (person1.date_of_birth && person2.date_of_birth) {
         const person1Birth = new Date(person1.date_of_birth);
         const person2Birth = new Date(person2.date_of_birth);
         const ageGapYears = Math.abs((person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
         
-        // Siblings should not have more than 25-year age gap
+        // Siblings typically don't have more than a 25-year age gap
         if (ageGapYears > 25) {
           return { 
             valid: false, 
@@ -313,12 +303,12 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         }
       }
       
-      // 3. Timeline validation for siblings
+      // 3. Check that both people were alive at the same time (for biological siblings)
       if (person1.date_of_birth && person2.date_of_birth) {
         const person1Birth = new Date(person1.date_of_birth);
         const person2Birth = new Date(person2.date_of_birth);
         
-        // Check if one died before the other was born
+        // Check if one person died before the other was born
         if (person1.date_of_death) {
           const person1Death = new Date(person1.date_of_death);
           if (person2Birth > person1Death) {
@@ -341,7 +331,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
     }
     
-    // ENHANCED PARENT VALIDATION - Much more robust filtering
+    // Validation for parent-child relationships
     if (type === 'parent') {
       // 1. Check if person2 already has 2 biological parents
       const person2Parents = person2.relatives?.filter(rel => rel.relationship_type === 'parent' && !rel.isStep) || [];
@@ -349,7 +339,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         return { valid: false, reason: 'Person already has maximum number of biological parents (2)' };
       }
       
-      // 2. CRITICAL: Prevent any blood relative from becoming a parent
+      // 2. Important: Prevent any blood relative from becoming a parent
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
@@ -357,13 +347,13 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         };
       }
       
-      // 3. Enhanced age validation for parent relationships
+      // 3. Check that the ages make sense for a parent-child relationship
       if (person1.date_of_birth && person2.date_of_birth) {
         const person1Birth = new Date(person1.date_of_birth);
         const person2Birth = new Date(person2.date_of_birth);
         const ageGapYears = (person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25);
         
-        // Parent must be at least 12 years older
+        // Parent must be at least 12 years older than the child
         if (ageGapYears < 12) {
           return { 
             valid: false, 
@@ -371,7 +361,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           };
         }
         
-        // Prevent unrealistic age gaps (over 60 years)
+        // Prevent unrealistic age gaps (over 60 years between parent and child)
         if (ageGapYears > 60) {
           return { 
             valid: false, 
@@ -413,7 +403,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     // Validate relationship constraints before submitting
     const validation = validateRelationshipConstraints(data.selectedId, selectedPerson?.id, selectedType);
     if (!validation.valid) {
-      // Determine alert type based on validation reason
+      // Determine what type of error message to show based on the validation failure
       let alertType = 'invalidRelationship';
       let alertDetails = {};
       

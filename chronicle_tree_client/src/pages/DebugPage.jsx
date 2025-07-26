@@ -4,7 +4,6 @@ import React, { useEffect } from 'react';
 function DebugPage() {
   useEffect(() => {
     // debugRelationships();
-    console.log('Debug page loaded - import removed to fix build error');
   }, []);
 
   return (

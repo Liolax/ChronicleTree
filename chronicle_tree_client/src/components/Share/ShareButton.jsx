@@ -25,7 +25,6 @@ const ShareButton = ({
       setShareData(data);
       return data;
     } catch (error) {
-      console.error('Failed to generate share content:', error);
       alert('Failed to generate shareable content');
       throw error;
     } finally {
@@ -41,10 +40,8 @@ const ShareButton = ({
           text: data.description,
           url: data.share_url
         });
-        console.log('Shared successfully!');
       } catch (error) {
         if (error.name !== 'AbortError') {
-          console.error('Web Share failed:', error);
           // Fallback to copy URL
           await copyToClipboard(data.share_url);
         }
@@ -60,7 +57,6 @@ const ShareButton = ({
       await navigator.clipboard.writeText(text);
       alert('Link copied to clipboard!');
     } catch (error) {
-      console.error('Failed to copy to clipboard:', error);
       alert('Failed to copy link');
     }
   };
@@ -233,7 +229,6 @@ const copyToClipboard = async (text) => {
     await navigator.clipboard.writeText(text);
     alert('Link copied to clipboard!');
   } catch (error) {
-    console.error('Failed to copy to clipboard:', error);
     alert('Failed to copy link');
   }
 };
