@@ -3,9 +3,9 @@
 Rails.application.configure do
   # Settings specified here will take precedence over those in config/application.rb.
 
-  # Do not eager load code on boot. This avoids loading your whole application
-  # just for running a single test. If you are using a tool that preloads Rails
-  # for running tests, you may want to set it to true.
+  # Do not eager load code on boot. This avoids loading the whole application
+  # just for running a single test. If using a tool that preloads Rails
+  # for running tests, may want to set it to true.
   config.eager_load = ENV["CI"].present?
 
   # Configure public file server for tests with Cache-Control for performance.

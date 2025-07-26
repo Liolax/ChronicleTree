@@ -1,6 +1,8 @@
+
 # Devise & JWT Authentication Setup
 
-This document provides a comprehensive overview of the Devise and `devise-jwt` setup for authentication in the ChronicleTree API.
+This document provides a live, up-to-date overview of the Devise and `devise-jwt` setup for authentication in the ChronicleTree API, matching the current Rails implementation.
+
 
 ## 1. Gems
 
@@ -9,11 +11,13 @@ The authentication system relies on two core gems:
 - `devise`: The primary engine for user authentication in Rails.
 - `devise-jwt`: An extension for Devise that provides JWT-based authentication.
 
+
 ```ruby
 # Gemfile
 gem "devise"
 gem "devise-jwt"
 ```
+
 
 ## 2. Configuration
 
@@ -21,14 +25,15 @@ gem "devise-jwt"
 
 This file contains the main configuration for Devise and `devise-jwt`.
 
-- **Authentication Strategy**: The API is configured to be stateless (`skip_session_storage`).
-- **JWT Dispatch/Revocation**: The `dispatch_requests` and `revocation_requests` arrays are configured to match the API's namespaced sign-in and sign-out routes.
-- **JWT Secret**: The secret key is loaded from Rails' encrypted credentials (`Rails.application.credentials.devise_jwt_secret_key`).
-- **Expiration**: Tokens are set to expire after 1 day.
+- **Authentication Strategy**: The API is stateless (`skip_session_storage`).
+- **JWT Dispatch/Revocation**: `dispatch_requests` and `revocation_requests` are set for `/api/v1/auth/sign_in` and `/api/v1/auth/sign_out`.
+- **JWT Secret**: Loaded from `Rails.application.credentials.devise_jwt_secret_key`.
+- **Expiration**: Tokens expire after 1 day.
+
 
 ### `config/routes.rb`
 
-The routes are configured to place Devise's endpoints under `/api/v1/auth`. This provides a clean, versioned API structure.
+Devise endpoints are under `/api/v1/auth` for a clean, versioned API structure.
 
 ```ruby
 # config/routes.rb
@@ -46,14 +51,16 @@ devise_for :users,
            }
 ```
 
+
 ## 3. Models
 
 ### `User` Model
 
 The `User` model is the core of the authentication system.
 
-- **Modules**: It includes standard Devise modules like `:database_authenticatable`, `:registerable`, and `:recoverable`.
-- **JWT Strategy**: It is configured with `:jwt_authenticatable` and specifies `JwtDenylist` as the revocation strategy. This ensures that JWTs can be invalidated upon logout.
+- **Modules**: Includes `:database_authenticatable`, `:registerable`, `:recoverable`, `:rememberable`, `:validatable`, and `:jwt_authenticatable`.
+- **JWT Strategy**: Uses `JwtDenylist` as the revocation strategy, so JWTs are invalidated on logout.
+
 
 ```ruby
 # app/models/user.rb
@@ -66,9 +73,10 @@ class User < ApplicationRecord
 end
 ```
 
+
 ### `JwtDenylist` Model
 
-This model implements the denylist strategy for `devise-jwt`. When a user signs out, their token's `jti` (JWT ID) is added to the `jwt_denylists` table, effectively revoking it.
+Implements the denylist strategy for `devise-jwt`. When a user signs out, their token's `jti` is added to the `jwt_denylists` table.
 
 ```ruby
 # app/models/jwt_denylist.rb
@@ -78,12 +86,13 @@ class JwtDenylist < ApplicationRecord
 end
 ```
 
+
 ## 4. Controllers
 
 ### Custom Controllers
 
-- **`Api::V1::Auth::SessionsController`**: Inherits directly from `Devise::SessionsController`. `devise-jwt` automatically handles token dispatch on login and revocation on logout.
-- **`Api::V1::Auth::RegistrationsController`**: Overrides the `create` action to provide a custom JSON response upon successful registration, returning the user data and a JWT.
+- **`Api::V1::Auth::SessionsController`**: Inherits from `Devise::SessionsController`. Handles JWT token dispatch on login and revocation on logout.
+- **`Api::V1::Auth::RegistrationsController`**: Overrides `create` to return user data and JWT in the JSON response.
 
 ### Authentication Enforcement
 
@@ -97,6 +106,7 @@ class BaseController < ApplicationController
 end
 ```
 
+
 ## 5. Conclusion
 
-This setup provides a secure, token-based authentication system that is well-integrated with the Rails framework and follows API design best practices. It forms the foundation for all protected endpoints in the application. For details on all available endpoints, see the [API Endpoints Overview](./api_endpoints_overview.md).
+This setup provides a secure, token-based authentication system that is fully integrated with the Rails framework and follows API design best practices. It forms the foundation for all protected endpoints in the application. For a full list of endpoints, see the [API Endpoints Overview](./api_endpoints_overview.md).

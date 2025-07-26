@@ -1,5 +1,5 @@
 
-# ChronicleTree API Endpoints (Actual)
+# ChronicleTree API Endpoints
 
 This document provides a live, up-to-date overview of all available API endpoints, their purpose, and expected parameters. All endpoints are prefixed with `/api/v1` and match the current Rails API implementation.
 

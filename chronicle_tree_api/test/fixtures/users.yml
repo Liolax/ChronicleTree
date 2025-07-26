@@ -1,5 +1,0 @@
-default_user:
-  name: Test User
-  email: test@example.com
-  # This password is "Password123!"
-  encrypted_password: <%= Devise::Encryptor.digest(User, 'Password123!') %>
