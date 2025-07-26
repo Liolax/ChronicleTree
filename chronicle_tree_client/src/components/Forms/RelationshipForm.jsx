@@ -15,6 +15,7 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
   const [showMarkAsHalf, setShowMarkAsHalf] = useState(false);
   const [isHalfSibling, setIsHalfSibling] = useState(false);
   const [showSharedParentSelection, setShowSharedParentSelection] = useState(false);
+  const [dynamicForceEx, setDynamicForceEx] = useState(false);
   
   const selectedId = watch('selectedId');
   
@@ -56,6 +57,23 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
       setShowSharedParentSelection(false);
     }
   }, [selectedId, selectedPerson, allPeople, type]);
+
+  // Check if selected spouse already has a current spouse (for auto-forcing ex status)
+  useEffect(() => {
+    if (type === 'spouse' && selectedId && allPeople) {
+      const selectedSpouse = allPeople.find(p => p.id === parseInt(selectedId));
+      if (selectedSpouse) {
+        const selectedSpouseSpouses = (selectedSpouse.relatives || []).filter(rel => rel.relationship_type === 'spouse');
+        const hasCurrentSpouse = selectedSpouseSpouses.some(rel => {
+          const spousePerson = allPeople.find(p => p.id === rel.id);
+          return !rel.is_ex && !rel.is_deceased && !spousePerson?.date_of_death;
+        });
+        setDynamicForceEx(hasCurrentSpouse);
+      }
+    } else {
+      setDynamicForceEx(false);
+    }
+  }, [selectedId, allPeople, type]);
 
   // Handle "Mark as half" checkbox
   const handleMarkAsHalfChange = (checked) => {
@@ -197,13 +215,25 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
         </div>
       )}
       
+
       {type === 'spouse' && (
         <div>
           <label className="inline-flex items-center">
-            <input type="checkbox" {...register('is_ex')} className="form-checkbox" checked={forceEx ? true : undefined} disabled={forceEx} />
+            <input 
+              type="checkbox" 
+              {...register('is_ex')} 
+              className="form-checkbox" 
+              checked={(forceEx || dynamicForceEx) || false} 
+              disabled={forceEx || dynamicForceEx} 
+            />
             <span className="ml-2 text-red-500">Mark as ex-spouse</span>
           </label>
-          {forceEx && <span className="ml-2 text-xs text-gray-500">(Current spouse exists, only ex-spouse can be added)</span>}
+          {(forceEx || dynamicForceEx) && (
+            <div className="ml-2 text-xs text-gray-500 mt-1">
+              {forceEx && <div>(Current person has spouse, only ex-spouse can be added)</div>}
+              {dynamicForceEx && <div>(Selected person has current spouse, must be marked as ex)</div>}
+            </div>
+          )}
         </div>
       )}
       <div className="flex justify-end space-x-2">

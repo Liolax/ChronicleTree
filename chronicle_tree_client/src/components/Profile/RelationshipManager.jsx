@@ -260,6 +260,16 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   // Helper to get IDs of already-related people for a given type
   const getRelatedIds = (type) => {
     if (!person?.relatives) return [];
+    
+    // For spouses, don't exclude deceased ones (they can be remarried as "late spouse")
+    if (type === 'spouse') {
+      return person.relatives.filter(rel => 
+        rel.relationship_type === type && 
+        !rel.is_ex && 
+        !people.find(p => p.id === rel.id)?.date_of_death
+      ).map(rel => rel.id);
+    }
+    
     return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
   };
 
@@ -503,9 +513,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // Enhanced validation for spouses - complex remarriage scenarios
+    // Enhanced validation for spouses - allow marriage unless blood-related or other conflicts
     if (type === 'spouse') {
-      // ALWAYS prevent marriage between blood relatives regardless of previous marriages
+      // ALWAYS prevent marriage between blood relatives
       if (bloodCheck.isBloodRelated) {
         return { 
           valid: false, 
@@ -520,30 +530,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         return { valid: false, reason: 'Cannot marry parent or child' };
       }
       
-      // Check for deceased spouse constraint for current spouses
-      const candidateRels = candidate.relatives || [];
-      const candidateSpouses = candidateRels.filter(rel => rel.relationship_type === 'spouse');
-      const hasCurrentSpouse = candidateSpouses.some(rel => !rel.is_ex && !people.find(p => p.id === rel.id)?.date_of_death);
-      if (hasCurrentSpouse) {
-        return { valid: false, reason: 'Person already has a current spouse' };
-      }
+      // Allow people with current spouses (they'll be marked as ex automatically)
+      // No need to filter them out - the UI will handle forcing ex status
       
-      // ✅ COMPLEX REMARRIAGE SCENARIOS - Allow these specific cases:
-      // 1. Marrying ex-spouse's sibling (if no blood relation to current person)
-      // 2. Marrying deceased spouse's relative (if no blood relation to current person)
-      const isRemarriageRelative = isAllowedRemarriageRelative(candidateId);
-      if (isRemarriageRelative) {
-        // Double-check no blood relationship exists (this should already be verified in isAllowedRemarriageRelative)
-        const finalBloodCheck = detectBloodRelationship(person.id, candidateId);
-        if (finalBloodCheck.isBloodRelated) {
-          return { 
-            valid: false, 
-            reason: `Cannot marry ${candidate.first_name} ${candidate.last_name} - blood relationship detected (${finalBloodCheck.relationship})` 
-          };
-        }
-        // If we reach here, this is an allowed remarriage scenario
-        return { valid: true };
-      }
+      // If no blood relationship and no current spouse conflict, marriage is allowed
+      // This includes deceased people, ex-spouse relatives, and anyone else without blood relations
+      return { valid: true };
     }
     
     // ENHANCED SIBLING VALIDATION - Much more robust filtering
@@ -1083,9 +1075,10 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       
       // Full relationship constraints check when tree data is available
       const constraintCheck = checkRelationshipConstraints(p.id, type);
+      
+      
       return constraintCheck.valid;
     });
-    
     
     return filtered;
   };
@@ -1239,11 +1232,33 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
           relationship_type: 'child',
         };
       } else if (addType === 'spouse') {
+        const selectedPerson = people.find(p => p.id === parseInt(data.selectedId));
+        
         payload = {
           person_id: person.id,
           relative_id: data.selectedId,
           relationship_type: 'spouse',
         };
+        
+        // Automatically handle special spouse scenarios
+        if (selectedPerson) {
+          // If the person is deceased, mark as deceased spouse
+          if (selectedPerson.date_of_death) {
+            payload.is_deceased = true;
+          }
+          
+          // If the person has a current spouse, mark as ex-spouse
+          const selectedPersonSpouses = (selectedPerson.relatives || []).filter(rel => rel.relationship_type === 'spouse');
+          const hasCurrentSpouse = selectedPersonSpouses.some(rel => {
+            const spousePerson = people.find(p => p.id === rel.id);
+            // Current spouse = not ex, not deceased, and the spouse person is not deceased
+            return !rel.is_ex && !rel.is_deceased && !spousePerson?.date_of_death;
+          });
+          
+          if (hasCurrentSpouse || data.forceEx) {
+            payload.is_ex = true;
+          }
+        }
       } else if (addType === 'sibling') {
         payload = {
           person_id: person.id,
