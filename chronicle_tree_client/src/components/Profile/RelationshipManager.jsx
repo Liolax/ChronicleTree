@@ -802,6 +802,45 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         };
       }
       
+      // 2a. CRITICAL: Prevent co-parents-in-law from becoming parents (would create inappropriate family structure)
+      // Scenario 1: Direct co-parents - If this candidate shares children with the current person
+      const personChildren = existingRels.filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+      const candidateChildren = (candidate.relatives || []).filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+      const sharedChildren = personChildren.filter(childId => candidateChildren.includes(childId));
+      
+      if (sharedChildren.length > 0) {
+        const sharedChildNames = people.filter(p => sharedChildren.includes(p.id)).map(p => `${p.first_name} ${p.last_name}`);
+        return { 
+          valid: false, 
+          reason: `Cannot add ${candidate.first_name} ${candidate.last_name} as parent - you are co-parents of ${sharedChildNames.join(', ')}. If they became your parent, it would mean siblings' children have children together, which is inappropriate.` 
+        };
+      }
+
+      // Scenario 2: Parent of someone who shares children with person's children
+      // If candidate's child shares children with person's child, candidate cannot be person's parent
+      for (const personChildId of personChildren) {
+        const personChild = people.find(p => p.id === personChildId);
+        if (personChild) {
+          const personChildChildren = (personChild.relatives || []).filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+          
+          for (const candidateChildId of candidateChildren) {
+            const candidateChild = people.find(p => p.id === candidateChildId);
+            if (candidateChild) {
+              const candidateChildChildren = (candidateChild.relatives || []).filter(rel => rel.relationship_type === 'child').map(rel => rel.id);
+              const sharedGrandchildren = personChildChildren.filter(grandchildId => candidateChildChildren.includes(grandchildId));
+              
+              if (sharedGrandchildren.length > 0) {
+                const sharedGrandchildNames = people.filter(p => sharedGrandchildren.includes(p.id)).map(p => `${p.first_name} ${p.last_name}`);
+                return { 
+                  valid: false, 
+                  reason: `Cannot add ${candidate.first_name} ${candidate.last_name} as parent - your child ${personChild.first_name} and their child ${candidateChild.first_name} share children (${sharedGrandchildNames.join(', ')}). If they became your parent, it would mean cousins have children together, which is inappropriate.` 
+                };
+              }
+            }
+          }
+        }
+      }
+      
       // 3. Prevent anyone who is already a descendant from becoming a parent (generational impossibility)
       const candidateRels = candidate.relatives || [];
       const isAlreadyDescendant = candidateRels.some(rel => 
