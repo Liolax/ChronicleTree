@@ -3,7 +3,7 @@
  * Tests various edge cases and ensures the fix is comprehensive
  */
 
-import { calculateRelationshipToRoot } from './src/utils/improvedRelationshipCalculator.js';
+import { calculateRelationshipToRoot } from '../src/utils/improvedRelationshipCalculator.js';
 
 // Extended test data
 const testPeople = [

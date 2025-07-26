@@ -631,28 +631,42 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   });
   const unrelatedNodeIds = nodes.map(n => n.id).filter(id => !connectedIds.has(id));
 
-  // Overlap avoidance function
-  function avoidNodeOverlap(nodes, unrelatedNodeIds, nodeWidth = 220, nodeHeight = 150, margin = 30) {
+  // Enhanced overlap avoidance function
+  function avoidNodeOverlap(nodes, unrelatedNodeIds, nodeWidth = 240, nodeHeight = 180, margin = 40) {
     const isOverlapping = (nodeA, nodeB) => {
       return (
         Math.abs(nodeA.position.x - nodeB.position.x) < nodeWidth + margin &&
         Math.abs(nodeA.position.y - nodeB.position.y) < nodeHeight + margin
       );
     };
-    unrelatedNodeIds.forEach((unrelatedId) => {
-      const node = nodes.find((n) => n.id === unrelatedId);
+    
+    // Apply overlap detection to all nodes, not just unrelated ones
+    const allNodeIds = nodes.map(n => n.id);
+    
+    allNodeIds.forEach((nodeId) => {
+      const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
       let overlapped;
+      let attempts = 0;
+      const maxAttempts = 10; // Prevent infinite loops
+      
       do {
         overlapped = nodes.some(
           (other) =>
             other.id !== node.id && isOverlapping(node, other)
         );
         if (overlapped) {
-          // Nudge to the right
-          node.position.x += nodeWidth + margin;
+          // Try different nudge directions to better distribute nodes
+          if (attempts % 3 === 0) {
+            node.position.x += nodeWidth + margin;
+          } else if (attempts % 3 === 1) {
+            node.position.y += nodeHeight + margin;
+          } else {
+            node.position.x -= nodeWidth + margin;
+          }
+          attempts++;
         }
-      } while (overlapped);
+      } while (overlapped && attempts < maxAttempts);
     });
     return nodes;
   }

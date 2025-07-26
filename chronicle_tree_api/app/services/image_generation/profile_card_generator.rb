@@ -281,49 +281,98 @@ module ImageGeneration
     def get_family_relationships
       relationships = []
       
-      # Parents
-      parents = @person.parents
-      if parents.any?
-        parent_names = parents.map(&:full_name).join(', ')
-        parent_label = parents.count == 1 ? 'Parent' : 'Parents'
-        relationships << "#{parent_label}: #{parent_names}"
+      # Get comprehensive relationship data using the same logic as frontend
+      all_people = @person.user.people.to_a
+      all_relationships = []
+      
+      all_people.each do |person|
+        person.relationships.each do |rel|
+          if all_people.map(&:id).include?(rel.relative_id)
+            all_relationships << {
+              source: person.id,
+              target: rel.relative_id,
+              relationship_type: rel.relationship_type,
+              is_ex: rel.is_ex || false,
+              is_deceased: rel.is_deceased || false
+            }
+          end
+        end
+      end
+      
+      # Get step-relationship statistics
+      step_stats = calculate_step_relationships_for_profile(@person, all_people, all_relationships)
+      
+      # Parents (biological + step-parents)
+      biological_parents = @person.parents
+      if biological_parents.any?
+        biological_parents.each do |parent|
+          parent_type = get_parent_relationship_type(parent)
+          relationships << "#{parent_type}: #{parent.full_name}"
+        end
+      end
+      
+      # Add step-parents
+      step_stats[:step_parents].each do |step_parent|
+        parent_type = get_step_parent_relationship_type(step_parent)
+        relationships << "#{parent_type}: #{step_parent[:full_name]}"
       end
       
       # Current spouses
       spouses = @person.current_spouses
       if spouses.any?
-        spouse_names = spouses.map(&:full_name).join(', ')
-        spouse_label = spouses.count == 1 ? 'Spouse' : 'Spouses'
-        relationships << "#{spouse_label}: #{spouse_names}"
+        spouses.each do |spouse|
+          spouse_type = get_spouse_relationship_type(spouse)
+          relationships << "#{spouse_type}: #{spouse.full_name}"
+        end
       end
       
-      # Children with gender-specific labels
-      children = @person.children
-      if children.any?
-        if children.count <= 3
-          # Show individual children with gender-specific labels
-          children.each do |child|
+      # Children (biological + step-children)
+      biological_children = @person.children
+      if biological_children.any?
+        if biological_children.count <= 3
+          biological_children.each do |child|
             child_type = get_child_relationship_type(child)
             relationships << "#{child_type}: #{child.full_name}"
           end
         else
-          # Show summary for many children
-          children_text = "Children: #{children.limit(2).map(&:full_name).join(', ')} +#{children.count - 2} more"
+          children_text = "Children: #{biological_children.limit(2).map(&:full_name).join(', ')} +#{biological_children.count - 2} more"
           relationships << children_text
         end
       end
       
-      # Siblings
-      siblings = @person.siblings
-      if siblings.any? && relationships.count < 5  # Only add if we have space
-        if siblings.count <= 2
-          siblings.each do |sibling|
+      # Add step-children
+      step_stats[:step_children].each do |step_child|
+        child_type = get_step_child_relationship_type(step_child)
+        relationships << "#{child_type}: #{step_child[:full_name]}" if relationships.count < 9
+      end
+      
+      # Siblings (biological + step-siblings)
+      biological_siblings = @person.siblings
+      if biological_siblings.any? && relationships.count < 9
+        if biological_siblings.count <= 2
+          biological_siblings.each do |sibling|
             sibling_type = get_sibling_relationship_type(sibling)
             relationships << "#{sibling_type}: #{sibling.full_name}"
           end
         else
-          sibling_text = "Siblings: #{siblings.limit(2).map(&:full_name).join(', ')} +#{siblings.count - 2} more"
+          sibling_text = "Siblings: #{biological_siblings.limit(2).map(&:full_name).join(', ')} +#{biological_siblings.count - 2} more"
           relationships << sibling_text
+        end
+      end
+      
+      # Add step-siblings (this is the key fix for Michael Doe showing as Step-brother)
+      step_stats[:step_siblings].each do |step_sibling|
+        if relationships.count < 9
+          sibling_type = get_step_sibling_relationship_type(step_sibling)
+          relationships << "#{sibling_type}: #{step_sibling[:full_name]}"
+        end
+      end
+      
+      # Add step-grandparents
+      step_stats[:step_grandparents].each do |step_grandparent|
+        if relationships.count < 9
+          grandparent_type = get_step_grandparent_relationship_type(step_grandparent)
+          relationships << "#{grandparent_type}: #{step_grandparent[:full_name]}"
         end
       end
       
@@ -336,8 +385,220 @@ module ImageGeneration
     end
     
     def get_sibling_relationship_type(sibling)
+      # Check if this is a half-sibling (shares exactly one parent)
+      if is_half_sibling?(sibling)
+        return get_half_sibling_relationship_type(sibling)
+      end
+      
+      # Full sibling (shares both parents)
       return 'Sibling' unless sibling.gender.present?
       sibling.gender.downcase == 'male' ? 'Brother' : 'Sister'
+    end
+    
+    def is_half_sibling?(sibling)
+      person_parents = @person.parents
+      sibling_parents = sibling.parents
+      shared_parents = person_parents & sibling_parents
+      
+      # Half-sibling: shares exactly 1 parent
+      shared_parents.length == 1
+    end
+    
+    def get_half_sibling_relationship_type(sibling)
+      return 'Half-Sibling' unless sibling.gender.present?
+      sibling.gender.downcase == 'male' ? 'Half-Brother' : 'Half-Sister'
+    end
+
+    def get_parent_relationship_type(parent)
+      return 'Parent' unless parent.gender.present?
+      parent.gender.downcase == 'male' ? 'Father' : 'Mother'
+    end
+
+    def get_spouse_relationship_type(spouse)
+      return 'Spouse' unless spouse.gender.present?
+      spouse.gender.downcase == 'male' ? 'Husband' : 'Wife'
+    end
+
+    def get_step_parent_relationship_type(step_parent)
+      return 'Step-Parent' unless step_parent[:gender].present?
+      step_parent[:gender].downcase == 'male' ? 'Step-Father' : 'Step-Mother'
+    end
+
+    def get_step_child_relationship_type(step_child)
+      return 'Step-Child' unless step_child[:gender].present?
+      step_child[:gender].downcase == 'male' ? 'Step-Son' : 'Step-Daughter'
+    end
+
+    def get_step_sibling_relationship_type(step_sibling)
+      return 'Step-Sibling' unless step_sibling[:gender].present?
+      step_sibling[:gender].downcase == 'male' ? 'Step-Brother' : 'Step-Sister'
+    end
+    
+    def get_step_grandparent_relationship_type(step_grandparent)
+      return 'Step-Grandparent' unless step_grandparent[:gender].present?
+      step_grandparent[:gender].downcase == 'male' ? 'Step-Grandfather' : 'Step-Grandmother'
+    end
+
+    # Calculate step-relationships for profile sharing
+    def calculate_step_relationships_for_profile(person, all_people, relationships)
+      step_parents = []
+      step_children = []
+      step_siblings = []
+
+      # Find step-parents (current/deceased spouses of biological parents who aren't biological parents)
+      biological_parents = relationships.select { |rel| rel[:source] == person.id && rel[:relationship_type] == 'parent' }
+      
+      biological_parents.each do |parent_rel|
+        parent_id = parent_rel[:target]
+        
+        # Get parent's current/deceased spouses (exclude ex-spouses)
+        parent_spouses = relationships.select do |rel|
+          rel[:source] == parent_id && 
+          rel[:relationship_type] == 'spouse' && 
+          !rel[:is_ex]  # Only current and deceased, not ex
+        end
+        
+        parent_spouses.each do |spouse_rel|
+          spouse_id = spouse_rel[:target]
+          
+          # Check if this spouse is also person's biological parent
+          is_biological_parent = biological_parents.any? { |bp| bp[:target] == spouse_id }
+          
+          unless is_biological_parent
+            spouse_person = all_people.find { |p| p.id == spouse_id }
+            if spouse_person
+              step_parents << {
+                id: spouse_person.id,
+                full_name: spouse_person.full_name,
+                gender: spouse_person.gender
+              }
+            end
+          end
+        end
+      end
+
+      # Find step-children (children of current/deceased spouses who aren't biological children)
+      current_and_deceased_spouses = relationships.select do |rel|
+        rel[:source] == person.id && 
+        rel[:relationship_type] == 'spouse' && 
+        !rel[:is_ex]  # Only current and deceased, not ex
+      end
+
+      biological_children = relationships.select { |rel| rel[:source] == person.id && rel[:relationship_type] == 'child' }
+
+      current_and_deceased_spouses.each do |spouse_rel|
+        spouse_id = spouse_rel[:target]
+        
+        # Find spouse's children who are not also person's biological children
+        spouse_children = relationships.select do |rel|
+          rel[:source] == spouse_id && rel[:relationship_type] == 'child'
+        end
+        
+        spouse_children.each do |child_rel|
+          # Check if this child is also person's biological child
+          is_biological_child = biological_children.any? { |bc| bc[:target] == child_rel[:target] }
+          
+          unless is_biological_child
+            child_person = all_people.find { |p| p.id == child_rel[:target] }
+            if child_person
+              step_children << {
+                id: child_person.id,
+                full_name: child_person.full_name,
+                gender: child_person.gender
+              }
+            end
+          end
+        end
+      end
+
+      # Find step-siblings (children of parents' spouses who aren't biological siblings)
+      biological_siblings = relationships.select { |rel| rel[:source] == person.id && rel[:relationship_type] == 'sibling' }
+      
+      biological_parents.each do |parent_rel|
+        parent_id = parent_rel[:target]
+        
+        # Get parent's current/deceased spouses (exclude ex-spouses)
+        parent_spouses = relationships.select do |rel|
+          rel[:source] == parent_id && 
+          rel[:relationship_type] == 'spouse' && 
+          !rel[:is_ex]
+        end
+        
+        parent_spouses.each do |spouse_rel|
+          spouse_id = spouse_rel[:target]
+          
+          # Find spouse's children who are not person's biological siblings
+          spouse_children = relationships.select do |rel|
+            rel[:source] == spouse_id && 
+            rel[:relationship_type] == 'child' &&
+            rel[:target] != person.id  # Skip self
+          end
+          
+          spouse_children.each do |child_rel|
+            # Check if this is a biological sibling (explicit relationship)
+            is_biological_sibling = biological_siblings.any? { |bs| bs[:target] == child_rel[:target] }
+            
+            # Check if this is a half-sibling (shares exactly one parent)
+            is_half_sibling = false
+            if !is_biological_sibling
+              sibling_person = all_people.find { |p| p.id == child_rel[:target] }
+              if sibling_person
+                # Get person's parents
+                person_parent_ids = biological_parents.map { |bp| bp[:target] }
+                # Get potential sibling's parents
+                sibling_parent_rels = relationships.select { |rel| rel[:source] == sibling_person.id && rel[:relationship_type] == 'parent' }
+                sibling_parent_ids = sibling_parent_rels.map { |sp| sp[:target] }
+                
+                # Check for shared parents
+                shared_parents = person_parent_ids & sibling_parent_ids
+                is_half_sibling = shared_parents.length == 1
+              end
+            end
+            
+            # Only add as step-sibling if not biological sibling AND not half-sibling
+            unless is_biological_sibling || is_half_sibling
+              sibling_person = all_people.find { |p| p.id == child_rel[:target] }
+              if sibling_person
+                step_siblings << {
+                  id: sibling_person.id,
+                  full_name: sibling_person.full_name,
+                  gender: sibling_person.gender
+                }
+              end
+            end
+          end
+        end
+      end
+
+      # Find step-grandparents (parents of step-parents)
+      step_grandparents = []
+      
+      step_parents.each do |step_parent|
+        step_parent_id = step_parent[:id]
+        
+        # Find step-parent's parents
+        step_parent_parents = relationships.select do |rel|
+          rel[:source] == step_parent_id && rel[:relationship_type] == 'parent'
+        end
+        
+        step_parent_parents.each do |gp_rel|
+          grandparent_person = all_people.find { |p| p.id == gp_rel[:target] }
+          if grandparent_person
+            step_grandparents << {
+              id: grandparent_person.id,
+              full_name: grandparent_person.full_name,
+              gender: grandparent_person.gender
+            }
+          end
+        end
+      end
+
+      {
+        step_parents: step_parents.uniq { |sp| sp[:id] },
+        step_children: step_children.uniq { |sc| sc[:id] },
+        step_siblings: step_siblings.uniq { |ss| ss[:id] },
+        step_grandparents: step_grandparents.uniq { |sg| sg[:id] }
+      }
     end
     
     def get_timeline_events

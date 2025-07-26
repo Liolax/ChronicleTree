@@ -75,9 +75,10 @@ console.log('- Lisa is John\'s current wife');
 console.log('- Therefore: Lisa should be Bob\'s STEP-GRANDMOTHER');
 console.log('');
 
-console.log('Expected "Unrelated" Relationships:');
-console.log('- William should be Unrelated to Bob (Lisa\'s father)');
-console.log('- Patricia should be Unrelated to Bob (Lisa\'s mother)');
+console.log('Expected Step-Great-Grandparent Relationships:');
+console.log('- William should be Bob\'s Step-Great-Grandfather (Lisa\'s father)');
+console.log('- Patricia should be Bob\'s Step-Great-Grandmother (Lisa\'s mother)');
+console.log('- This follows the logical extension: Lisa is Bob\'s step-grandmother, so Lisa\'s parents are Bob\'s step-great-grandparents');
 console.log('');
 
 const bob = allPeople.find(p => p.first_name === 'Bob');
@@ -118,8 +119,8 @@ try {
     console.log('Expected vs Actual:');
     console.log(`- Lisa → Bob: Expected "Step-Grandmother", Got "${result1}"`);
     console.log(`- Bob → Lisa: Expected "Step-Grandson", Got "${result2}"`);
-    console.log(`- William → Bob: Expected "Unrelated", Got "${result3}"`);
-    console.log(`- Patricia → Bob: Expected "Unrelated", Got "${result4}"`);
+    console.log(`- William → Bob: Expected "Step-Great-Grandfather", Got "${result3}"`);
+    console.log(`- Patricia → Bob: Expected "Step-Great-Grandmother", Got "${result4}"`);
     console.log(`- John → Bob: Expected "Grandfather", Got "${result5}"`);
     console.log(`- Alice → Bob: Expected "Mother", Got "${result6}"`);
     
@@ -127,15 +128,15 @@ try {
     console.log('Analysis:');
     const isStepGrandmother = result1 === 'Step-Grandmother';
     const isStepGrandson = result2 === 'Step-Grandson';
-    const isWilliamUnrelated = result3 === 'Unrelated';
-    const isPatriciaUnrelated = result4 === 'Unrelated';
+    const isWilliamStepGreatGrandfather = result3 === 'Step-Great-Grandfather';
+    const isPatriciaStepGreatGrandmother = result4 === 'Step-Great-Grandmother';
     const isJohnGrandfather = result5 === 'Grandfather';
     const isAliceMother = result6 === 'Mother';
     
     console.log(`- Lisa as Step-Grandmother: ${isStepGrandmother ? '✅ CORRECT' : '❌ INCORRECT'}`);
     console.log(`- Bob as Step-Grandson: ${isStepGrandson ? '✅ CORRECT' : '❌ INCORRECT'}`);
-    console.log(`- William as Unrelated: ${isWilliamUnrelated ? '✅ CORRECT' : '❌ INCORRECT'}`);
-    console.log(`- Patricia as Unrelated: ${isPatriciaUnrelated ? '✅ CORRECT' : '❌ INCORRECT'}`);
+    console.log(`- William as Step-Great-Grandfather: ${isWilliamStepGreatGrandfather ? '✅ CORRECT' : '❌ INCORRECT'}`);
+    console.log(`- Patricia as Step-Great-Grandmother: ${isPatriciaStepGreatGrandmother ? '✅ CORRECT' : '❌ INCORRECT'}`);
     console.log(`- John as Grandfather: ${isJohnGrandfather ? '✅ CORRECT' : '❌ INCORRECT'}`);
     console.log(`- Alice as Mother: ${isAliceMother ? '✅ CORRECT' : '❌ INCORRECT'}`);
     
@@ -147,9 +148,10 @@ try {
         console.log('so Lisa should be Bob\'s step-grandmother.');
     }
     
-    if (isStepGrandmother && isStepGrandson && isWilliamUnrelated && isPatriciaUnrelated) {
+    if (isStepGrandmother && isStepGrandson && isWilliamStepGreatGrandfather && isPatriciaStepGreatGrandmother && isJohnGrandfather && isAliceMother) {
         console.log('');
-        console.log('🎉 SUCCESS: All step-grandparent relationships are working correctly!');
+        console.log('🎉 SUCCESS: All step-grandparent and step-great-grandparent relationships are working correctly!');
+        console.log('The relationship calculator now properly handles extended step-family connections.');
     }
     
 } catch (error) {

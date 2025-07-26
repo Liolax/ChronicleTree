@@ -181,14 +181,79 @@ class Person < ApplicationRecord
   end
 
   def siblings
-    # Siblings share at least one parent
-    parent_ids = parents.pluck(:id)
-    return Person.none if parent_ids.empty?
+    # Only full siblings (share exactly 2 parents)
+    full_siblings
+  end
 
-    Person.joins(:relationships)
-          .where(relationships: { relationship_type: "child", relative_id: parent_ids })
+  def full_siblings
+    # Full siblings share exactly 2 parents
+    parent_ids = parents.pluck(:id)
+    return [] if parent_ids.size != 2  # Must have exactly 2 parents
+
+    # Get all potential siblings first (people who share at least one parent)
+    potential_siblings = Person.joins(:related_by_relationships)
+          .where(related_by_relationships: { relationship_type: "child", person_id: parent_ids })
           .where.not(id: id)
-          .distinct
+          .distinct.to_a
+
+    # Filter to only those who share exactly the same 2 parents
+    potential_siblings.select do |sibling|
+      sibling_parent_ids = sibling.parents.pluck(:id).sort
+      parent_ids.sort == sibling_parent_ids && sibling_parent_ids.size == 2
+    end
+  end
+
+  def half_siblings
+    # Half siblings share exactly 1 parent
+    parent_ids = parents.pluck(:id)
+    return [] if parent_ids.empty?
+
+    # Get all potential siblings first (people who share at least one parent)
+    potential_siblings = Person.joins(:related_by_relationships)
+          .where(related_by_relationships: { relationship_type: "child", person_id: parent_ids })
+          .where.not(id: id)
+          .distinct.to_a
+
+    # Filter to only those who share exactly 1 parent
+    potential_siblings.select do |sibling|
+      sibling_parent_ids = sibling.parents.pluck(:id)
+      shared_parents = (parent_ids & sibling_parent_ids).size
+      # Half sibling: shares exactly 1 parent
+      shared_parents == 1
+    end
+  end
+
+  def step_siblings
+    # Step siblings share no blood parents, only through current marriage of parents
+    parent_ids = parents.pluck(:id)
+    return [] if parent_ids.empty?
+
+    step_siblings = []
+    
+    # Check each parent's current spouses (not ex-spouses)
+    parents.each do |parent|
+      current_spouses = parent.current_spouses
+      
+      current_spouses.each do |spouse|
+        # Get spouse's children who are not this person's blood siblings
+        spouse_children = spouse.children.to_a
+        
+        spouse_children.each do |child|
+          next if child.id == self.id  # Skip self
+          
+          # Check if this child shares any blood parents with this person
+          child_parent_ids = child.parents.pluck(:id)
+          shared_blood_parents = (parent_ids & child_parent_ids).size
+          
+          # Step sibling: no shared blood parents
+          if shared_blood_parents == 0
+            step_siblings << child unless step_siblings.include?(child)
+          end
+        end
+      end
+    end
+    
+    step_siblings
   end
 
   def parents_in_law

@@ -27,6 +27,29 @@ function groupRelatives(person) {
       }
     });
   }
+  
+  // Add half-siblings to the siblings group with (half) annotation
+  if (person?.half_siblings) {
+    const halfSiblingsWithAnnotation = person.half_siblings.map(hs => ({
+      ...hs,
+      relationship_type: 'sibling',
+      full_name: `${hs.first_name} ${hs.last_name} (half)`,
+      isHalfSibling: true
+    }));
+    groups.sibling = [...groups.sibling, ...halfSiblingsWithAnnotation];
+  }
+  
+  // Add step-siblings to the siblings group with (step) annotation
+  if (person?.step_siblings) {
+    const stepSiblingsWithAnnotation = person.step_siblings.map(ss => ({
+      ...ss,
+      relationship_type: 'sibling',
+      full_name: `${ss.first_name} ${ss.last_name} (step)`,
+      isStepSibling: true
+    }));
+    groups.sibling = [...groups.sibling, ...stepSiblingsWithAnnotation];
+  }
+  
   return groups;
 }
 
@@ -1220,50 +1243,14 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   const inLaws = getInLaws();
   let mergedGroups = mergeInLaws(groups, inLaws);
   
-  // Calculate and add step relationships
-  console.log('[RelationshipManager] Debug treeData structure:', treeData);
-  if (treeData?.nodes && treeData?.edges && person) {
-    console.log('[RelationshipManager] Calculating step relationships for:', person.full_name);
-    console.log('[RelationshipManager] TreeData:', { peopleCount: treeData.nodes.length, relationshipsCount: treeData.edges.length });
-    console.log('[RelationshipManager] Sample edges:', treeData.edges.slice(0, 3));
-    
-    // Convert edges to relationships format that buildRelationshipMaps expects
-    const relationships = treeData.edges.map(edge => ({
-      from: edge.source,
-      to: edge.target, 
-      relationship_type: edge.type || edge.relationship_type,
-      is_ex: edge.is_ex,
-      is_deceased: edge.is_deceased
-    }));
-    
-    const { stepParents, stepChildren, stepSiblings } = findStepRelationships(person, treeData.nodes, relationships);
-    
-    console.log('[RelationshipManager] Found step relationships:', { stepParents, stepChildren, stepSiblings });
-    
-    // Add step-parents to parent group
-    if (stepParents.length > 0) {
-      console.log('[RelationshipManager] Adding step-parents:', stepParents);
-      mergedGroups.parent = [...mergedGroups.parent, ...stepParents];
-    }
-    
-    // Add step-children to child group  
-    if (stepChildren.length > 0) {
-      console.log('[RelationshipManager] Adding step-children:', stepChildren);
-      mergedGroups.child = [...mergedGroups.child, ...stepChildren];
-    }
-    
-    // Add step-siblings to sibling group
-    if (stepSiblings.length > 0) {
-      console.log('[RelationshipManager] Adding step-siblings:', stepSiblings);
-      mergedGroups.sibling = [...mergedGroups.sibling, ...stepSiblings];
-    }
+  // Step relationships are now provided by the backend in person.step_siblings
+  // No need to calculate them on the frontend
+  
+  // For debugging: log what step siblings the backend provides
+  if (person?.step_siblings?.length > 0) {
+    console.log('[RelationshipManager] Backend provided step siblings:', person.step_siblings);
   } else {
-    console.log('[RelationshipManager] Missing data for step calculations:', {
-      hasTreeData: !!treeData,
-      hasPeople: !!treeData?.nodes,
-      hasRelationships: !!treeData?.edges,
-      hasPerson: !!person
-    });
+    console.log('[RelationshipManager] No step siblings provided by backend');
   }
 
   return (

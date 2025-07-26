@@ -139,12 +139,28 @@ module ImageGeneration
           #{escape_xml(name)}
         </text>
         
-        <!-- Birth Year -->
-        #{birth_year ? %{<text x="#{box_x + 10}" y="#{box_y + (relationship_label ? 55 : 45)}" font-family="Arial, sans-serif" font-size="12" fill="#{text_color}">b. #{birth_year}</text>} : ''}
-        
-        <!-- Death Year -->
-        #{death_year ? %{<text x="#{box_x + 10}" y="#{box_y + (relationship_label ? 75 : 65)}" font-family="Arial, sans-serif" font-size="12" fill="#{text_color}">d. #{death_year}</text>} : ''}
+        <!-- Life Dates Container (prevents overlap) -->
+        #{life_dates_svg(box_x, box_y, birth_year, death_year, relationship_label, text_color)}
       BOX
+    end
+
+    def life_dates_svg(box_x, box_y, birth_year, death_year, relationship_label, text_color)
+      content = ""
+      base_y = box_y + (relationship_label ? 55 : 45)
+      
+      if birth_year && death_year
+        # Both birth and death - show on same line to prevent overlap
+        dates_text = "#{birth_year} - #{death_year}"
+        content += %{<text x="#{box_x + 10}" y="#{base_y}" font-family="Arial, sans-serif" font-size="12" fill="#{text_color}">#{dates_text}</text>}
+      elsif birth_year
+        # Only birth year
+        content += %{<text x="#{box_x + 10}" y="#{base_y}" font-family="Arial, sans-serif" font-size="12" fill="#{text_color}">b. #{birth_year}</text>}
+      elsif death_year
+        # Only death year (rare case)
+        content += %{<text x="#{box_x + 10}" y="#{base_y}" font-family="Arial, sans-serif" font-size="12" fill="#{text_color}">d. #{death_year}</text>}
+      end
+      
+      content
     end
     
     def get_relationship_to_root(person)
@@ -182,12 +198,12 @@ module ImageGeneration
       if reverse_rel
         base_label = case reverse_rel.relationship_type
         when 'child' 
-          # This means person is child of root, so root is parent
-          # Check if root is step-parent (spouse of person's parent but not biological parent)
-          if is_step_parent_of?(person, @root_person)
-            get_step_parent_type(@root_person)
+          # This means person is child of root, so person is root's parent
+          # Check if person is step-parent (spouse of root's parent but not biological parent)
+          if is_step_parent_of?(@root_person, person)
+            get_step_parent_type(person)
           else
-            get_parent_type(@root_person)
+            get_parent_type(person)
           end
         when 'spouse' then reverse_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
         when 'sibling' 
@@ -205,9 +221,11 @@ module ImageGeneration
       step_relationship = detect_step_relationship(person)
       return add_deceased_prefix(step_relationship, person) if step_relationship
       
-      # Check for grandparent/grandchild relationships
+      # Check for grandparent/grandchild relationships (including step-grandparents)
       if is_grandparent_of_root?(person)
         return add_deceased_prefix(get_grandparent_type(person), person)
+      elsif is_step_grandparent_of_root?(person)
+        return add_deceased_prefix(get_step_grandparent_type(person), person)
       elsif is_grandchild_of_root?(person)
         grandchild_label = person.gender.present? ? 
           (person.gender.downcase == 'male' ? 'Grandson' : 'Granddaughter') : 'Grandchild'
@@ -251,13 +269,38 @@ module ImageGeneration
     end
     
     def get_sibling_type(person)
+      # Check if this is a half-sibling (shares exactly one parent)
+      if is_half_sibling_of_root?(person)
+        return get_half_sibling_type(person)
+      end
+      
+      # Full sibling (shares both parents)
       return 'Sibling' unless person.gender.present?
       person.gender.downcase == 'male' ? 'Brother' : 'Sister'
+    end
+    
+    def is_half_sibling_of_root?(person)
+      root_parents = get_parents(@root_person)
+      person_parents = get_parents(person)
+      shared_parents = root_parents & person_parents
+      
+      # Half-sibling: shares exactly 1 parent
+      shared_parents.length == 1
+    end
+    
+    def get_half_sibling_type(person)
+      return 'Half-Sibling' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Half-Brother' : 'Half-Sister'
     end
     
     def get_grandparent_type(person)
       return 'Grandparent' unless person.gender.present?
       person.gender.downcase == 'male' ? 'Grandfather' : 'Grandmother'
+    end
+
+    def get_step_grandparent_type(person)
+      return 'Step-Grandparent' unless person.gender.present?
+      person.gender.downcase == 'male' ? 'Step-Grandfather' : 'Step-Grandmother'
     end
     
     def is_grandparent_of_root?(person)
@@ -268,6 +311,60 @@ module ImageGeneration
       root_parents.any? do |parent|
         parent.parents.include?(person)
       end
+    end
+
+    def is_step_grandparent_of_root?(person)
+      # A step-grandparent is someone who is married to root's grandparent but is not a biological grandparent
+      # OR someone who is a parent of root's step-parent
+      # OR someone who is a parent of someone married to root's parent
+      
+      root_parents = @root_person.parents
+      return false if root_parents.empty?
+      
+      # Check if person is spouse of any biological grandparent
+      root_parents.each do |parent|
+        biological_grandparents = parent.parents
+        biological_grandparents.each do |grandparent|
+          grandparent_spouses = get_spouses(grandparent)
+          # Check if person is spouse of grandparent and not a biological grandparent
+          if grandparent_spouses.include?(person) && !biological_grandparents.include?(person)
+            return true
+          end
+        end
+      end
+      
+      # Check if person is parent of a step-parent
+      root_parents.each do |parent|
+        # Check if parent is step-parent by seeing if they're spouse of other parent
+        other_parents = @root_person.parents - [parent]
+        other_parents.each do |other_parent|
+          other_parent_spouses = get_spouses(other_parent)
+          if other_parent_spouses.include?(parent)
+            # Parent is step-parent, check if person is parent of this step-parent
+            step_parent_parents = get_parents(parent)
+            if step_parent_parents.include?(person)
+              return true
+            end
+          end
+        end
+      end
+      
+      # NEW: Check if person is parent of someone married to root's parent
+      # This covers the case where Lisa (John's spouse) has parents William/Patricia
+      root_parents.each do |parent|
+        parent_spouses = get_spouses(parent)
+        parent_spouses.each do |spouse|
+          # Skip if spouse is also a parent of root (biological parent)
+          next if root_parents.include?(spouse)
+          
+          spouse_parents = get_parents(spouse)
+          if spouse_parents.include?(person)
+            return true
+          end
+        end
+      end
+      
+      false
     end
     
     def is_grandchild_of_root?(person)
@@ -416,16 +513,25 @@ module ImageGeneration
     end
     
     def is_step_sibling_of_root?(person)
-      # A step-sibling shares one parent through marriage but not biological parents
+      # A step-sibling shares NO biological parents but is connected through parent's marriage
       root_parents = get_parents(@root_person)
       person_parents = get_parents(person)
       
-      # Check if they share any step-parents
-      root_spouses = get_spouses(@root_person).flat_map { |spouse| get_parents(spouse) }
-      person_spouses = get_spouses(person).flat_map { |spouse| get_parents(spouse) }
+      # First check: Must NOT share any biological parents (excludes half-siblings)
+      shared_biological_parents = root_parents & person_parents
+      return false if shared_biological_parents.any?
       
-      # Step-siblings: one parent is married to the other's parent
-      (root_parents & person_spouses).any? || (person_parents & root_spouses).any?
+      # Second check: Must be connected through parent's marriage
+      # Person is step-sibling if: person is child of someone married to root's parent
+      root_parents.each do |root_parent|
+        root_parent_spouses = get_spouses(root_parent)
+        # Check if person is child of any of root's parent's spouses
+        root_parent_spouses.each do |spouse|
+          return true if person_parents.include?(spouse)
+        end
+      end
+      
+      false
     end
     
     def detect_step_relationship(person)
@@ -448,6 +554,24 @@ module ImageGeneration
       end
       
       nil
+    end
+
+    # Helper methods for relationship detection
+    def get_parents(person)
+      person.parents.to_a
+    end
+
+    def get_children(person)
+      person.children.to_a
+    end
+
+    def get_spouses(person)
+      # Get current spouses (not ex-spouses)
+      person.relationships
+            .where(relationship_type: 'spouse')
+            .where.not(is_ex: true)
+            .includes(:relative)
+            .map(&:relative)
     end
     
     def add_content_to_vips_image(image)

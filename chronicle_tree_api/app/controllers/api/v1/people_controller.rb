@@ -224,9 +224,57 @@ module Api
         rels = {
           parents:  @person.parents,
           spouses:  @person.spouses,
-          children: @person.children
+          children: @person.children,
+          full_siblings: @person.full_siblings,
+          half_siblings: @person.half_siblings,
+          step_siblings: @person.step_siblings
         }
         render json: rels, status: :ok
+      end
+
+      # GET /api/v1/people/:id/relationship_stats
+      # Provides relationship statistics using the same logic as the frontend calculator
+      # This endpoint is used by sharing functionality to avoid duplicating relationship logic
+      def relationship_stats
+        begin
+          # Get all people and relationships data for calculation
+          people = current_user.people
+          
+          # Build relationships array in the format expected by the frontend calculator
+          relationships = []
+          people.each do |person|
+            person.relationships.each do |rel|
+              # Only include relationships where both people exist in the user's tree
+              if people.map(&:id).include?(rel.relative_id)
+                relationships << {
+                  source: person.id,
+                  target: rel.relative_id,
+                  relationship_type: rel.relationship_type,
+                  is_ex: rel.is_ex || false,
+                  is_deceased: rel.is_deceased || false
+                }
+              end
+            end
+          end
+
+          # Calculate relationship statistics using the same logic as frontend
+          stats = calculate_relationship_statistics(@person, people.to_a, relationships)
+          
+          render json: {
+            person_id: @person.id,
+            statistics: stats,
+            success: true
+          }, status: :ok
+          
+        rescue StandardError => e
+          Rails.logger.error "Relationship stats calculation failed: #{e.message}"
+          Rails.logger.error e.backtrace.join("\n")
+          render json: { 
+            error: 'Failed to calculate relationship statistics',
+            message: e.message,
+            person_id: params[:id]
+          }, status: :internal_server_error
+        end
       end
 
       # GET /api/v1/people/tree
@@ -286,6 +334,142 @@ module Api
           :date_of_birth, :date_of_death,
           :gender, :is_deceased
         )
+      end
+
+      # Calculate relationship statistics using the same core logic as the frontend
+      # This avoids duplicating relationship calculation logic in the backend
+      def calculate_relationship_statistics(person, all_people, relationships)
+        stats = {
+          children: 0,
+          step_children: 0,
+          spouses: 0,
+          ex_spouses: 0,
+          siblings: 0,
+          step_siblings: 0,
+          parents: 0,
+          step_parents: 0,
+          total_relatives: 0
+        }
+
+        # Count biological children
+        biological_children = relationships.select do |rel|
+          rel[:source] == person.id && rel[:relationship_type] == 'child'
+        end
+        stats[:children] = biological_children.count
+
+        # Count step-children through current/deceased spouses (NOT ex-spouses)
+        current_and_deceased_spouses = relationships.select do |rel|
+          rel[:source] == person.id && 
+          rel[:relationship_type] == 'spouse' && 
+          !rel[:is_ex]  # Only current and deceased, not ex
+        end
+
+        step_children_count = 0
+        current_and_deceased_spouses.each do |spouse_rel|
+          spouse_id = spouse_rel[:target]
+          
+          # Find spouse's children who are not also person's biological children
+          spouse_children = relationships.select do |rel|
+            rel[:source] == spouse_id && rel[:relationship_type] == 'child'
+          end
+          
+          spouse_children.each do |child_rel|
+            # Check if this child is also person's biological child
+            is_biological_child = biological_children.any? { |bio_rel| bio_rel[:target] == child_rel[:target] }
+            step_children_count += 1 unless is_biological_child
+          end
+        end
+        stats[:step_children] = step_children_count
+
+        # Count current spouses (not ex-spouses)
+        current_spouses = relationships.select do |rel|
+          rel[:source] == person.id && 
+          rel[:relationship_type] == 'spouse' && 
+          !rel[:is_ex]
+        end
+        stats[:spouses] = current_spouses.count
+
+        # Count ex-spouses
+        ex_spouses = relationships.select do |rel|
+          rel[:source] == person.id && 
+          rel[:relationship_type] == 'spouse' && 
+          rel[:is_ex]
+        end
+        stats[:ex_spouses] = ex_spouses.count
+
+        # Count biological siblings
+        biological_siblings = relationships.select do |rel|
+          rel[:source] == person.id && rel[:relationship_type] == 'sibling'
+        end
+        stats[:siblings] = biological_siblings.count
+
+        # Count step-siblings through parents' current/deceased spouses (NOT ex-spouses)
+        parents = relationships.select do |rel|
+          rel[:source] == person.id && rel[:relationship_type] == 'parent'
+        end
+
+        step_siblings_count = 0
+        parents.each do |parent_rel|
+          parent_id = parent_rel[:target]
+          
+          # Get parent's current/deceased spouses (exclude ex-spouses)
+          parent_spouses = relationships.select do |rel|
+            rel[:source] == parent_id && 
+            rel[:relationship_type] == 'spouse' && 
+            !rel[:is_ex]  # Only current and deceased, not ex
+          end
+          
+          parent_spouses.each do |spouse_rel|
+            spouse_id = spouse_rel[:target]
+            
+            # Find spouse's children who are not person's biological siblings
+            spouse_children = relationships.select do |rel|
+              rel[:source] == spouse_id && 
+              rel[:relationship_type] == 'child' &&
+              rel[:target] != person.id  # Skip self
+            end
+            
+            spouse_children.each do |child_rel|
+              # Check if this is a biological sibling
+              is_biological_sibling = biological_siblings.any? { |sib_rel| sib_rel[:target] == child_rel[:target] }
+              step_siblings_count += 1 unless is_biological_sibling
+            end
+          end
+        end
+        stats[:step_siblings] = step_siblings_count
+
+        # Count parents
+        stats[:parents] = parents.count
+
+        # Count step-parents (parents' spouses who are not biological parents)
+        step_parents_count = 0
+        parents.each do |parent_rel|
+          parent_id = parent_rel[:target]
+          
+          # Get parent's current/deceased spouses (exclude ex-spouses)
+          parent_spouses = relationships.select do |rel|
+            rel[:source] == parent_id && 
+            rel[:relationship_type] == 'spouse' && 
+            !rel[:is_ex]  # Only current and deceased, not ex
+          end
+          
+          parent_spouses.each do |spouse_rel|
+            spouse_id = spouse_rel[:target]
+            
+            # Check if this spouse is also person's biological parent
+            is_biological_parent = parents.any? { |par_rel| par_rel[:target] == spouse_id }
+            step_parents_count += 1 unless is_biological_parent
+          end
+        end
+        stats[:step_parents] = step_parents_count
+
+        # Calculate total relatives
+        stats[:total_relatives] = stats[:children] + stats[:step_children] + 
+                                 stats[:spouses] + stats[:siblings] + 
+                                 stats[:step_siblings] + stats[:parents] + 
+                                 stats[:step_parents]
+
+        stats
       end
     end
   end

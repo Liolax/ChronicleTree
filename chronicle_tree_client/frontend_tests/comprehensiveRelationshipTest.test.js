@@ -70,7 +70,7 @@ describe('Comprehensive Relationship Testing - Problem Statement Requirements', 
 
   describe('Problem Statement Requirement 1: Sibling Gender Handling', () => {
     it('should display "Brother" for male siblings', () => {
-      const john = testPeople[0];
+      // const john = testPeople[0]; // Unused variable
       const tom = testPeople[2];
       const lisa = testPeople[3];
       

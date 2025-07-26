@@ -69,13 +69,15 @@ const CustomNode = ({ data, id, selected }) => {
         <div className={`text-xs font-semibold mt-1 ${statusColor}`}>
           {status}
         </div>
-        {age !== null && (
-          <div className="text-xs text-gray-700 mt-1">{age} y.o.</div>
-        )}
-        {/* Show year of birth if available */}
-        {birthYear && (
-          <div className="text-xs text-black font-semibold mt-1">{birthYear}</div>
-        )}
+        {/* Combined age and birth year display to prevent overlapping */}
+        <div className="text-xs text-gray-700 mt-1 min-h-[16px] flex flex-col items-center">
+          {age !== null && (
+            <div>{age} y.o.</div>
+          )}
+          {birthYear && (
+            <div className="text-black font-semibold">{birthYear}</div>
+          )}
+        </div>
       </div>
       {/* Action buttons (edit, delete, center, restructure) */}
       <div className="flex justify-center gap-2 mt-2">

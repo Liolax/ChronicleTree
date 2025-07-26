@@ -66,6 +66,7 @@ Rails.application.routes.draw do
         member do
           get :tree
           get :relatives
+          get :relationship_stats
         end
 
         resources :facts,          only: %i[index create]

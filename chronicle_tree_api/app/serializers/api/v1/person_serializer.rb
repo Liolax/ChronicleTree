@@ -11,6 +11,8 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
              :avatar_url,
              :note,
              :relatives,
+             :half_siblings,
+             :step_siblings,
              :parents_in_law,
              :children_in_law,
              :siblings_in_law
@@ -46,16 +48,35 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
   # Custom relatives array with relationship_type
   def relatives
     object.relationships.includes(:relative).map do |rel|
-      rel.relative.as_json(only: [ :id, :first_name, :last_name ]).merge({
-        full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
-        relationship_type: rel.relationship_type,
-        id: rel.relative.id,
-        is_ex: rel.try(:is_ex), # Only present for spouse relationships
-        is_deceased: rel.relative.date_of_death.present?, # Include deceased status
-        date_of_death: rel.relative.date_of_death, # Include death date for status display
-        relationship_id: rel.id
-      })
-    end
+      # For siblings, only include full siblings (others are handled by half_siblings and step_siblings)
+      if rel.relationship_type == 'sibling'
+        # Check if this is a full sibling (shares exactly 2 parents)
+        if object.full_siblings.include?(rel.relative)
+          rel.relative.as_json(only: [ :id, :first_name, :last_name ]).merge({
+            full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
+            relationship_type: rel.relationship_type,
+            id: rel.relative.id,
+            is_ex: rel.try(:is_ex),
+            is_deceased: rel.relative.date_of_death.present?,
+            date_of_death: rel.relative.date_of_death,
+            relationship_id: rel.id
+          })
+        else
+          nil # Skip half/step siblings - they're handled separately
+        end
+      else
+        # For non-sibling relationships, include them normally
+        rel.relative.as_json(only: [ :id, :first_name, :last_name ]).merge({
+          full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
+          relationship_type: rel.relationship_type,
+          id: rel.relative.id,
+          is_ex: rel.try(:is_ex),
+          is_deceased: rel.relative.date_of_death.present?,
+          date_of_death: rel.relative.date_of_death,
+          relationship_id: rel.id
+        })
+      end
+    end.compact # Remove nil entries
   end
 
   def parents_in_law
@@ -72,6 +93,28 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
       c.as_json(only: [ :id, :first_name, :last_name ]).merge({
         full_name: "#{c.first_name} #{c.last_name}",
         id: c.id
+      })
+    end
+  end
+
+  def half_siblings
+    object.half_siblings.map do |hs|
+      hs.as_json(only: [ :id, :first_name, :last_name ]).merge({
+        full_name: "#{hs.first_name} #{hs.last_name}",
+        id: hs.id,
+        is_deceased: hs.date_of_death.present?,
+        date_of_death: hs.date_of_death
+      })
+    end
+  end
+
+  def step_siblings
+    object.step_siblings.map do |ss|
+      ss.as_json(only: [ :id, :first_name, :last_name ]).merge({
+        full_name: "#{ss.first_name} #{ss.last_name}",
+        id: ss.id,
+        is_deceased: ss.date_of_death.present?,
+        date_of_death: ss.date_of_death
       })
     end
   end

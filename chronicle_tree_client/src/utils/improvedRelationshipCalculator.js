@@ -413,13 +413,15 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     const sharedParents = [...rootParents].filter(parent => personParents.has(parent));
     
     if (sharedParents.length > 0) {
-      // For biological siblings, they should have the same number of parents and share all of them
-      // For step-siblings, they share some but not all parents (handled in step-relationship logic)
-      if (rootParents.size === personParents.size && sharedParents.length === rootParents.size) {
-        // They share all parents - biological siblings
+      // Full siblings: must share exactly 2 parents (both have exactly 2 parents and share all)
+      if (rootParents.size === 2 && personParents.size === 2 && sharedParents.length === 2) {
+        // They share exactly 2 parents - full biological siblings
         return getGenderSpecificRelation(personId, 'Brother', 'Sister', allPeople, 'Sibling');
+      } else if (sharedParents.length === 1) {
+        // They share exactly one parent - half siblings
+        return getGenderSpecificRelation(personId, 'Half-Brother', 'Half-Sister', allPeople, 'Half-Sibling');
       }
-      // If they don't share all parents, this might be a step-sibling relationship
+      // If they don't share exactly 1 or exactly 2 parents, this might be a step-sibling relationship
       // Let that be handled by the step-relationship logic
     }
     // If no shared parents, this is an incorrect sibling relationship - ignore it and continue to blood relationship calculation
@@ -570,6 +572,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Check for step-parent relationship
   // Person is step-parent of root if: person is spouse of root's parent, but not root's biological parent
+  // CRITICAL: Step-relationships only exist with current or deceased spouses, NOT ex-spouses
   const rootParents = childToParents.get(rootId) || new Set();
   for (const parent of rootParents) {
     // Check if person is current spouse of this parent
@@ -579,32 +582,31 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         return getGenderSpecificRelation(personId, 'Step-Father', 'Step-Mother', allPeople, 'Step-Parent');
       }
     }
-    // Check if person is deceased spouse of this parent
+    // CRITICAL FIX: Deceased people cannot be step-parents
+    // Step-relationships can only be formed by living people
+    // If someone dies, they lose the ability to form new family relationships
+    // This section is removed - deceased spouses do not create step-parent relationships
+    /*
     if (deceasedSpouseMap.has(parent) && deceasedSpouseMap.get(parent).has(personId)) {
-      // Make sure person is not a biological parent of root
-      if (!rootParents.has(personId)) {
-        // CRITICAL FIX: Check if deceased spouse was alive when root was born
-        // A deceased person cannot be a step-parent to someone born after their death
-        const person = allPeople.find(p => String(p.id) === String(personId));
-        const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
-        
-        if (person && rootPerson && person.date_of_death && rootPerson.date_of_birth) {
-          const deathDate = new Date(person.date_of_death);
-          const birthDate = new Date(rootPerson.date_of_birth);
-          
-          // If root was born after person's death, they cannot have a step-relationship
-          if (birthDate > deathDate) {
-            continue; // Skip this deceased spouse, not a valid step-parent
-          }
-        }
-        
-        return getGenderSpecificRelation(personId, 'Late Step-Father', 'Late Step-Mother', allPeople, 'Late Step-Parent');
-      }
+      // REMOVED: Dead people cannot be step-parents
+      // Step-relationships require active participation from living people
     }
+    */
+    
+    // CRITICAL FIX: Ex-spouses do NOT create step-relationships
+    // Step-relationships end with divorce - ex-spouses and their relatives become unrelated
+    // This is commented out to ensure ex-spouses don't create step-relationships:
+    /*
+    if (exSpouseMap.has(parent) && exSpouseMap.get(parent).has(personId)) {
+      // Ex-spouses do not create step-relationships - they become unrelated after divorce
+      // This prevents Lisa Doe from being Michael's step-mother if she divorced his father
+    }
+    */
   }
   
   // Check for step-child relationship
   // Person is step-child of root if: root is spouse of person's parent, but not person's biological parent
+  // CRITICAL: Step-relationships only exist with current or deceased spouses, NOT ex-spouses
   const personParents = childToParents.get(personId) || new Set();
   for (const parent of personParents) {
     // Check if root is current spouse of this parent
@@ -614,28 +616,25 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         return getGenderSpecificRelation(personId, 'Step-Son', 'Step-Daughter', allPeople, 'Step-Child');
       }
     }
-    // Check if root is deceased spouse of this parent
+    // CRITICAL FIX: Deceased people cannot be step-parents  
+    // Step-relationships can only be formed by living people
+    // This section is removed - deceased spouses do not create step-parent relationships
+    /*
     if (deceasedSpouseMap.has(parent) && deceasedSpouseMap.get(parent).has(rootId)) {
-      // Make sure root is not a biological parent of person
-      if (!personParents.has(rootId)) {
-        // CRITICAL FIX: Check if deceased spouse was alive when person was born
-        // A deceased person cannot be a step-parent to someone born after their death
-        const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
-        const person = allPeople.find(p => String(p.id) === String(personId));
-        
-        if (rootPerson && person && rootPerson.date_of_death && person.date_of_birth) {
-          const deathDate = new Date(rootPerson.date_of_death);
-          const birthDate = new Date(person.date_of_birth);
-          
-          // If person was born after root's death, they cannot have a step-relationship
-          if (birthDate > deathDate) {
-            continue; // Skip this deceased spouse, not a valid step-parent
-          }
-        }
-        
-        return getGenderSpecificRelation(personId, 'Step-Son', 'Step-Daughter', allPeople, 'Step-Child');
-      }
+      // REMOVED: Dead people cannot be step-parents from reverse direction either
+      // Step-relationships require active participation from living people
     }
+    */
+    
+    // CRITICAL FIX: Ex-spouses do NOT create step-relationships
+    // Step-relationships end with divorce - ex-spouses and their relatives become unrelated
+    // This is commented out to ensure ex-spouses don't create step-relationships:
+    /*
+    if (exSpouseMap.has(parent) && exSpouseMap.get(parent).has(rootId)) {
+      // Ex-spouses do not create step-relationships - they become unrelated after divorce
+      // This prevents step-children relationships when parents divorce
+    }
+    */
   }
   
   // Check for step-grandparent relationship
@@ -913,6 +912,31 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
+  // ADDITIONAL: Check for step-great-grandchild relationship through person's biological children
+  // Person is step-great-grandchild of root if: root's child has step-grandchildren, and person is one of them
+  const rootChildren = parentToChildren.get(rootId) || new Set();
+  for (const rootChild of rootChildren) {
+    // Check if this child has step-relationships (through marriage)
+    const childSpouses = spouseMap.get(rootChild) || new Set();
+    const childDeceasedSpouses = deceasedSpouseMap.get(rootChild) || new Set();
+    
+    for (const childSpouse of [...childSpouses, ...childDeceasedSpouses]) {
+      // Get all children of the spouse
+      const spouseChildren = parentToChildren.get(childSpouse) || new Set();
+      for (const stepChild of spouseChildren) {
+        const stepChildParents = childToParents.get(stepChild) || new Set();
+        // If rootChild is not biological parent of this stepChild, it's rootChild's step-child
+        if (!stepChildParents.has(rootChild) && stepChildParents.has(childSpouse)) {
+          // This is rootChild's step-child, check if person is their child (making person root's step-great-grandchild)
+          const stepChildChildren = parentToChildren.get(stepChild) || new Set();
+          if (stepChildChildren.has(personId)) {
+            return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
+          }
+        }
+      }
+    }
+  }
+
   // REMOVED: Overly permissive step-great-grandchild logic
   // The previous logic created incorrect step-great-grandchild relationships.
   // This is the reverse of the step-great-grandparent logic that was also removed.
@@ -920,27 +944,27 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents
-  // Step-sibling debugging removed for cleaner output
+  // CRITICAL: Step-siblings only exist through current or deceased spouses, NOT ex-spouses
   
   const rootStepParents = new Set();
   const personStepParents = new Set();
   
-  // Find root's step-parents
+  // Find root's step-parents (only current spouses - exclude deceased and ex-spouses)
   for (const parent of rootParents) {
     const parentSpouses = spouseMap.get(parent) || new Set();
-    const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
-    [...parentSpouses, ...parentDeceasedSpouses].forEach(spouse => {
+    // CRITICAL: Only use current living spouses - deceased people cannot be step-parents
+    parentSpouses.forEach(spouse => {
       if (!rootParents.has(spouse)) {
         rootStepParents.add(spouse);
       }
     });
   }
   
-  // Find person's step-parents
+  // Find person's step-parents (only current spouses - exclude deceased and ex-spouses)
   for (const parent of personParents) {
     const parentSpouses = spouseMap.get(parent) || new Set();
-    const parentDeceasedSpouses = deceasedSpouseMap.get(parent) || new Set();
-    [...parentSpouses, ...parentDeceasedSpouses].forEach(spouse => {
+    // CRITICAL: Only use current living spouses - deceased people cannot be step-parents
+    parentSpouses.forEach(spouse => {
       if (!personParents.has(spouse)) {
         personStepParents.add(spouse);
       }
@@ -948,13 +972,15 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   }
   
   // Check if person is child of any of root's step-parents
-  // Debug logging removed
+  // IMPORTANT: Must NOT share ANY biological parents (excludes half-siblings)
   
   for (const stepParent of rootStepParents) {
     if (personParents.has(stepParent)) {
-      // Make sure they don't share ALL biological parents (if they do, they're full siblings)
+      // Make sure they don't share ANY biological parents
+      // If they share exactly 1 parent, they're half-siblings, not step-siblings
       const sharedBioParents = [...rootParents].filter(parent => personParents.has(parent));
-      if (sharedBioParents.length < Math.max(rootParents.size, personParents.size)) {
+      if (sharedBioParents.length === 0) {
+        // No shared biological parents - this is a true step-sibling relationship
         return getGenderSpecificRelation(personId, 'Step-Brother', 'Step-Sister', allPeople, 'Step-Sibling');
       }
     }
@@ -963,9 +989,11 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   // Check if root is child of any of person's step-parents
   for (const stepParent of personStepParents) {
     if (rootParents.has(stepParent)) {
-      // Make sure they don't share ALL biological parents (if they do, they're full siblings)
+      // Make sure they don't share ANY biological parents
+      // If they share exactly 1 parent, they're half-siblings, not step-siblings
       const sharedBioParents = [...rootParents].filter(parent => personParents.has(parent));
-      if (sharedBioParents.length < Math.max(rootParents.size, personParents.size)) {
+      if (sharedBioParents.length === 0) {
+        // No shared biological parents - this is a true step-sibling relationship
         return getGenderSpecificRelation(personId, 'Step-Brother', 'Step-Sister', allPeople, 'Step-Sibling');
       }
     }
@@ -1178,7 +1206,18 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Check if person is root's parent's sibling (person is root's aunt/uncle)
   for (const parent of rootParents) {
     if (siblingMap.has(parent) && siblingMap.get(parent).has(personId)) {
-      return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, "Parent's sibling");
+      // Check if this is a full sibling or half sibling relationship
+      const parentParents = childToParents.get(parent) || new Set();
+      const personParents = childToParents.get(personId) || new Set();
+      const sharedParents = [...parentParents].filter(p => personParents.has(p));
+      
+      if (parentParents.size === 2 && personParents.size === 2 && sharedParents.length === 2) {
+        // Full siblings - regular aunt/uncle
+        return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, "Parent's sibling");
+      } else if (sharedParents.length === 1) {
+        // Half siblings - half aunt/uncle
+        return getGenderSpecificRelation(personId, 'Half-Uncle', 'Half-Aunt', allPeople, "Parent's half-sibling");
+      }
     }
   }
   
@@ -1247,18 +1286,22 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
 
   // Check for niece/nephew relationship (person is niece/nephew of root)
-  // Only count biological siblings, not step-siblings
+  // Handle full siblings, half siblings, and step siblings separately
   for (const sibling of rootSiblings) {
     if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
-      // Check if this is a biological sibling (shares all parents with root) vs step-sibling
+      // Check if this is a full sibling, half sibling, or step-sibling
       const siblingParents = childToParents.get(sibling) || new Set();
       const sharedParents = [...rootParents].filter(parent => siblingParents.has(parent));
       
-      // If they share ALL parents, they're biological siblings
-      if (sharedParents.length === rootParents.size && sharedParents.length === siblingParents.size && sharedParents.length > 0) {
+      // Full siblings: share exactly 2 parents
+      if (rootParents.size === 2 && siblingParents.size === 2 && sharedParents.length === 2) {
         return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
       }
-      // If they're step-siblings, this will be handled by the step-nephew/niece logic below
+      // Half siblings: share exactly 1 parent
+      else if (sharedParents.length === 1) {
+        return getGenderSpecificRelation(personId, 'Half-Nephew', 'Half-Niece', allPeople, "Half-sibling's child");
+      }
+      // Step siblings (no shared parents) will be handled by the step-nephew/niece logic below
     }
   }
   
