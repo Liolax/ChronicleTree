@@ -113,7 +113,7 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   }
 
   // Step 3: Calculate generations for each person
-  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap);
+  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap, relationshipMaps.exSpouseMap);
 
   // Step 4: Create nodes with hierarchical positioning (prioritize rootPersonId)
   const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId, relationshipMaps.childToParents);
@@ -134,6 +134,7 @@ const buildRelationshipMaps = (relationships, persons) => {
   const parentToChildren = new Map();
   const childToParents = new Map();
   const spouseMap = new Map();
+  const exSpouseMap = new Map();
   const siblingMap = new Map();
   
   
@@ -225,6 +226,16 @@ const buildRelationshipMaps = (relationships, persons) => {
         if (!rel.is_ex && !rel.is_deceased && !isActuallyDeceased) {
           spouseMap.set(source, target);
           spouseMap.set(target, source);
+        } else if (rel.is_ex || isActuallyDeceased) {
+          // Add ex-spouses and posthumous marriages to exSpouseMap
+          if (!exSpouseMap.has(source)) {
+            exSpouseMap.set(source, new Set());
+          }
+          if (!exSpouseMap.has(target)) {
+            exSpouseMap.set(target, new Set());
+          }
+          exSpouseMap.get(source).add(target);
+          exSpouseMap.get(target).add(source);
         }
         break;
         
@@ -249,6 +260,7 @@ const buildRelationshipMaps = (relationships, persons) => {
     parentToChildren,
     childToParents,
     spouseMap,
+    exSpouseMap,
     siblingMap
   };
 };
@@ -270,9 +282,12 @@ const findRootNodes = (persons, childToParents) => {
  * @param {Array} persons - Array of person objects
  * @param {Map} childToParents - Map of child to parents
  * @param {Array} rootNodes - Array of root node IDs
+ * @param {Map} parentToChildren - Map of parent to children
+ * @param {Map} spouseMap - Map of current spouse relationships
+ * @param {Map} exSpouseMap - Map of ex-spouse relationships
  * @returns {Map} - Map of person ID to generation level
  */
-const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren, spouseMap = null) => {
+const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren, spouseMap = null, exSpouseMap = null) => {
   const generations = new Map();
   const visited = new Set();
   const queue = [];
@@ -299,6 +314,16 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       if (!visited.has(spouseId)) {
         queue.push({ id: spouseId, generation: generation }); // Same generation as spouse
       }
+    }
+    
+    // Add ex-spouses to SAME generation (they should also be at same level based on age)
+    if (exSpouseMap && exSpouseMap.has(id)) {
+      const exSpouses = exSpouseMap.get(id);
+      exSpouses.forEach(exSpouseId => {
+        if (!visited.has(exSpouseId)) {
+          queue.push({ id: exSpouseId, generation: generation }); // Same generation as ex-spouse
+        }
+      });
     }
     
     // Add children to next generation (lower/positive generations)
