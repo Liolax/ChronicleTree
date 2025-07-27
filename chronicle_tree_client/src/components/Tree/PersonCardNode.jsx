@@ -70,6 +70,7 @@ const PersonCard = ({ data, selected }) => {
           </div>
         )}
         
+        
         {/* Birth/Death Info */}
         <div className="card-info">
           <div className="info-row">
@@ -209,5 +210,6 @@ const getGenderIcon = (gender) => {
   }
   return null;
 };
+
 
 export default memo(PersonCard);

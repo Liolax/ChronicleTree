@@ -103,19 +103,28 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   // Step 1: Build relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships, persons);
 
-
   // Step 2: Determine root nodes - use selected root person if provided, otherwise find natural roots
   let rootNodes;
+  let useAgeBasedGenerations = false;
+  
   if (rootPersonId) {
     // Use the selected root person as the only root
     rootNodes = [String(rootPersonId)];
   } else {
-    // Find root nodes (people with no parents)
+    // Full tree mode: Use age-based generational grouping for better organization
+    useAgeBasedGenerations = true;
     rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
   }
 
   // Step 3: Calculate generations for each person
-  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap, relationshipMaps.exSpouseMap, relationships);
+  let generations;
+  if (useAgeBasedGenerations) {
+    // Full tree mode: Use age-based generational grouping
+    generations = calculateAgeBasedGenerations(persons, relationships);
+  } else {
+    // Root-based mode: Use relationship-based generations
+    generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap, relationshipMaps.exSpouseMap, relationships);
+  }
 
   // Step 4: Create nodes with hierarchical positioning (prioritize rootPersonId)
   const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId, relationshipMaps.childToParents);
@@ -142,6 +151,240 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 
   return { nodes: enhancedNodes, edges: enhancedEdges };
 };
+
+/**
+ * Calculate age-based generations for full tree mode
+ * Groups people by birth year ranges for better visual organization
+ * Ensures spouses are at same level and parents are above children
+ * @param {Array} persons - Array of all persons
+ * @param {Array} relationships - Array of relationship objects
+ * @returns {Map} - Map of personId -> generation level
+ */
+function calculateAgeBasedGenerations(persons, relationships) {
+  const generations = new Map();
+  
+  // Build relationship maps for spouse and parent-child handling
+  const spouseMap = new Map();
+  const parentToChildren = new Map();
+  const childToParents = new Map();
+  
+  relationships.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    const relationshipType = rel.type || rel.relationship_type;
+    
+    if (relationshipType === 'spouse' && !rel.is_ex) {
+      spouseMap.set(source, target);
+      spouseMap.set(target, source);
+    } else if (relationshipType === 'parent') {
+      // Handle bidirectional parent relationships
+      const sourcePerson = persons.find(p => String(p.id) === source);
+      const targetPerson = persons.find(p => String(p.id) === target);
+      
+      // Validate and potentially swap based on birth dates
+      if (sourcePerson && targetPerson && sourcePerson.date_of_birth && targetPerson.date_of_birth) {
+        const sourceBirthYear = new Date(sourcePerson.date_of_birth).getFullYear();
+        const targetBirthYear = new Date(targetPerson.date_of_birth).getFullYear();
+        
+        // If source is younger than target, this is inverted - swap them
+        if (sourceBirthYear > targetBirthYear) {
+          // Check if we already have the correct relationship
+          const alreadyCorrect = relationships.some(r => {
+            const rType = r.type || r.relationship_type;
+            const rSource = String(r.source || r.from);
+            const rTarget = String(r.target || r.to);
+            return rType === 'parent' && rSource === target && rTarget === source;
+          });
+          
+          if (!alreadyCorrect) {
+            // Swap to correct the relationship
+            const tempSource = source;
+            const correctedParent = target;
+            const correctedChild = tempSource;
+            
+            if (!parentToChildren.has(correctedParent)) {
+              parentToChildren.set(correctedParent, new Set());
+            }
+            parentToChildren.get(correctedParent).add(correctedChild);
+            
+            if (!childToParents.has(correctedChild)) {
+              childToParents.set(correctedChild, new Set());
+            }
+            childToParents.get(correctedChild).add(correctedParent);
+            return;
+          }
+        }
+      }
+      
+      // Normal case - parent is older than child
+      if (!parentToChildren.has(source)) {
+        parentToChildren.set(source, new Set());
+      }
+      parentToChildren.get(source).add(target);
+      
+      if (!childToParents.has(target)) {
+        childToParents.set(target, new Set());
+      }
+      childToParents.get(target).add(source);
+    } else if (relationshipType === 'child') {
+      // Child relationship (reverse of parent)
+      if (!parentToChildren.has(target)) {
+        parentToChildren.set(target, new Set());
+      }
+      parentToChildren.get(target).add(source);
+      
+      if (!childToParents.has(source)) {
+        childToParents.set(source, new Set());
+      }
+      childToParents.get(source).add(target);
+    }
+  });
+  
+  // Get birth years for all people with dates
+  const birthYears = persons
+    .filter(person => person.date_of_birth)
+    .map(person => ({
+      id: String(person.id),
+      birthYear: new Date(person.date_of_birth).getFullYear(),
+      person
+    }))
+    .sort((a, b) => a.birthYear - b.birthYear);
+  
+  if (birthYears.length === 0) {
+    // If no birth dates, assign all to same generation
+    persons.forEach(person => {
+      generations.set(String(person.id), 0);
+    });
+    return generations;
+  }
+  
+  // Group by ~25-year generations (typical generational gap)
+  const GENERATION_SPAN = 25;
+  const oldestYear = birthYears[0].birthYear;
+  
+  // Initial assignment based on birth year
+  birthYears.forEach(({ id, birthYear }) => {
+    const generationLevel = Math.floor((birthYear - oldestYear) / GENERATION_SPAN);
+    generations.set(id, generationLevel);
+  });
+  
+  // Assign people without birth dates to appropriate generations based on relationships
+  persons.forEach(person => {
+    const personId = String(person.id);
+    if (!generations.has(personId)) {
+      // Try to infer generation from spouse or parent-child relationships
+      const spouse = spouseMap.get(personId);
+      if (spouse && generations.has(spouse)) {
+        generations.set(personId, generations.get(spouse));
+      } else {
+        // Assign to middle generation as fallback
+        const maxGeneration = Math.max(...Array.from(generations.values()));
+        generations.set(personId, Math.floor(maxGeneration / 2));
+      }
+    }
+  });
+  
+  // CRITICAL: Align spouses to same generation level
+  let spouseAlignmentChanged = true;
+  let iterations = 0;
+  const maxIterations = 10;
+  
+  while (spouseAlignmentChanged && iterations < maxIterations) {
+    spouseAlignmentChanged = false;
+    iterations++;
+    
+    spouseMap.forEach((spouseId, personId) => {
+      if (generations.has(personId) && generations.has(spouseId)) {
+        const personGen = generations.get(personId);
+        const spouseGen = generations.get(spouseId);
+        
+        if (personGen !== spouseGen) {
+          // Use the generation that's more appropriate based on birth year
+          const person = persons.find(p => String(p.id) === personId);
+          const spouse = persons.find(p => String(p.id) === spouseId);
+          
+          let targetGen = Math.min(personGen, spouseGen); // Default to older generation
+          
+          // If both have birth dates, use the one that makes more chronological sense
+          if (person?.date_of_birth && spouse?.date_of_birth) {
+            const personBirthYear = new Date(person.date_of_birth).getFullYear();
+            const spouseBirthYear = new Date(spouse.date_of_birth).getFullYear();
+            const avgBirthYear = (personBirthYear + spouseBirthYear) / 2;
+            targetGen = Math.floor((avgBirthYear - oldestYear) / GENERATION_SPAN);
+          }
+          
+          generations.set(personId, targetGen);
+          generations.set(spouseId, targetGen);
+          spouseAlignmentChanged = true;
+        }
+      }
+    });
+  }
+  
+  // CRITICAL: Ensure parents are above children (lower generation number = higher in tree)
+  // BUT only adjust if the age difference is significant to preserve age-based grouping
+  let parentChildAlignmentChanged = true;
+  iterations = 0;
+  
+  while (parentChildAlignmentChanged && iterations < maxIterations) {
+    parentChildAlignmentChanged = false;
+    iterations++;
+    
+    parentToChildren.forEach((children, parentId) => {
+      if (!generations.has(parentId)) return;
+      
+      const parentGen = generations.get(parentId);
+      const parent = persons.find(p => String(p.id) === parentId);
+      
+      children.forEach(childId => {
+        if (!generations.has(childId)) return;
+        
+        const childGen = generations.get(childId);
+        const child = persons.find(p => String(p.id) === childId);
+        
+        // Only adjust if parent is not actually above child in generation hierarchy
+        if (parentGen >= childGen) {
+          // Check if there's a significant age difference to justify the adjustment
+          let shouldAdjust = true;
+          
+          if (parent?.date_of_birth && child?.date_of_birth) {
+            const parentBirthYear = new Date(parent.date_of_birth).getFullYear();
+            const childBirthYear = new Date(child.date_of_birth).getFullYear();
+            const ageDifference = childBirthYear - parentBirthYear;
+            
+            // Only adjust if there's at least a 15-year age difference
+            // This preserves age-based grouping for people close in age
+            if (ageDifference < 15) {
+              shouldAdjust = false;
+            }
+          }
+          
+          if (shouldAdjust) {
+            const newParentGen = Math.max(0, childGen - 1);
+            generations.set(parentId, newParentGen);
+            parentChildAlignmentChanged = true;
+            
+            // Also adjust parent's spouse if they exist
+            const parentSpouse = spouseMap.get(parentId);
+            if (parentSpouse && generations.has(parentSpouse)) {
+              generations.set(parentSpouse, newParentGen);
+            }
+          }
+        }
+      });
+    });
+  }
+  
+  console.log('Age-based generations assigned:', 
+    Array.from(generations.entries()).map(([id, gen]) => {
+      const person = persons.find(p => String(p.id) === id);
+      const birthYear = person?.date_of_birth ? new Date(person.date_of_birth).getFullYear() : 'unknown';
+      return `${person?.first_name} (${birthYear}): gen ${gen}`;
+    })
+  );
+  
+  return generations;
+}
 
 /**
  * Build relationship maps for efficient lookups
