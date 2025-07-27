@@ -1,3 +1,10 @@
+.social-button.x {
+  color: #3b4252;
+  background: #f8f9fa;
+  border: 1px solid #ecf0f1;
+  transition: all 0.2s;
+}
+
 /* Share Modal Styles */
 .share-modal-overlay {
   position: fixed;
@@ -318,10 +325,10 @@
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.social-button.twitter:hover {
-  background: #1da1f2;
+.social-button.x:hover {
+  background: #000000;
   color: white;
-  border-color: #1da1f2;
+  border-color: #000000;
 }
 
 .social-button.facebook:hover {

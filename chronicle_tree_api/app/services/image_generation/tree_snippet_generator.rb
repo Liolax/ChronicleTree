@@ -166,15 +166,12 @@ module ImageGeneration
     def get_relationship_to_root(person)
       return nil if person == @root_person
       
-      # Check direct relationships from root person's perspective
       root_relationships = @root_person.relationships.includes(:relative)
       
-      # Check if this person is directly related to root
       direct_rel = root_relationships.find { |rel| rel.relative == person }
       if direct_rel
         base_label = case direct_rel.relationship_type
         when 'child' 
-          # Check if this is a step-child (child of root's spouse but not root's biological child)
           if is_step_child_of_root?(person)
             get_step_child_type(person)
           else
@@ -182,7 +179,6 @@ module ImageGeneration
           end
         when 'spouse' then direct_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
         when 'sibling' 
-          # Check if this is a step-sibling
           if is_step_sibling_of_root?(person)
             get_step_sibling_type(person)
           else
@@ -192,14 +188,11 @@ module ImageGeneration
         return add_deceased_prefix(base_label, person) if base_label
       end
       
-      # Check reverse relationships (from person to root)
       person_relationships = person.relationships.includes(:relative)
       reverse_rel = person_relationships.find { |rel| rel.relative == @root_person }
       if reverse_rel
         base_label = case reverse_rel.relationship_type
         when 'child' 
-          # This means person is child of root, so person is root's parent
-          # Check if person is step-parent (spouse of root's parent but not biological parent)
           if is_step_parent_of?(@root_person, person)
             get_step_parent_type(person)
           else
@@ -207,7 +200,6 @@ module ImageGeneration
           end
         when 'spouse' then reverse_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
         when 'sibling' 
-          # Check if this is a step-sibling
           if is_step_sibling_of_root?(person)
             get_step_sibling_type(person)
           else
@@ -217,11 +209,9 @@ module ImageGeneration
         return add_deceased_prefix(base_label, person) if base_label
       end
       
-      # Check for step relationships without direct relationship
       step_relationship = detect_step_relationship(person)
       return add_deceased_prefix(step_relationship, person) if step_relationship
       
-      # Check for grandparent/grandchild relationships (including step-grandparents)
       if is_grandparent_of_root?(person)
         return add_deceased_prefix(get_grandparent_type(person), person)
       elsif is_step_grandparent_of_root?(person)
@@ -232,7 +222,6 @@ module ImageGeneration
         return add_deceased_prefix(grandchild_label, person)
       end
       
-      # Check for great-grandparent/great-grandchild relationships
       if is_great_grandparent_of_root?(person)
         return add_deceased_prefix(get_great_grandparent_type(person), person)
       elsif is_great_grandchild_of_root?(person)
@@ -241,7 +230,6 @@ module ImageGeneration
         return add_deceased_prefix(great_grandchild_label, person)
       end
       
-      # Check for great-great-grandparent/great-great-grandchild relationships
       if is_great_great_grandparent_of_root?(person)
         return add_deceased_prefix(get_great_great_grandparent_type(person), person)
       elsif is_great_great_grandchild_of_root?(person)
@@ -250,11 +238,9 @@ module ImageGeneration
         return add_deceased_prefix(great_great_grandchild_label, person)
       end
       
-      # Check for in-law relationships
       in_law_rel = get_in_law_relationship(person)
       return add_deceased_prefix(in_law_rel, person) if in_law_rel
       
-      # Default for extended family
       'Family'
     end
     
@@ -269,12 +255,10 @@ module ImageGeneration
     end
     
     def get_sibling_type(person)
-      # Check if this is a half-sibling (shares exactly one parent)
       if is_half_sibling_of_root?(person)
         return get_half_sibling_type(person)
       end
       
-      # Full sibling (shares both parents)
       return 'Sibling' unless person.gender.present?
       person.gender.downcase == 'male' ? 'Brother' : 'Sister'
     end
@@ -284,7 +268,6 @@ module ImageGeneration
       person_parents = get_parents(person)
       shared_parents = root_parents & person_parents
       
-      # Half-sibling: shares exactly 1 parent
       shared_parents.length == 1
     end
     
@@ -314,33 +297,24 @@ module ImageGeneration
     end
 
     def is_step_grandparent_of_root?(person)
-      # A step-grandparent is someone who is married to root's grandparent but is not a biological grandparent
-      # OR someone who is a parent of root's step-parent
-      # OR someone who is a parent of someone married to root's parent
-      
       root_parents = @root_person.parents
       return false if root_parents.empty?
       
-      # Check if person is spouse of any biological grandparent
       root_parents.each do |parent|
         biological_grandparents = parent.parents
         biological_grandparents.each do |grandparent|
           grandparent_spouses = get_spouses(grandparent)
-          # Check if person is spouse of grandparent and not a biological grandparent
           if grandparent_spouses.include?(person) && !biological_grandparents.include?(person)
             return true
           end
         end
       end
       
-      # Check if person is parent of a step-parent
       root_parents.each do |parent|
-        # Check if parent is step-parent by seeing if they're spouse of other parent
         other_parents = @root_person.parents - [parent]
         other_parents.each do |other_parent|
           other_parent_spouses = get_spouses(other_parent)
           if other_parent_spouses.include?(parent)
-            # Parent is step-parent, check if person is parent of this step-parent
             step_parent_parents = get_parents(parent)
             if step_parent_parents.include?(person)
               return true
@@ -349,12 +323,9 @@ module ImageGeneration
         end
       end
       
-      # NEW: Check if person is parent of someone married to root's parent
-      # This covers the case where Lisa (John's spouse) has parents William/Patricia
       root_parents.each do |parent|
         parent_spouses = get_spouses(parent)
         parent_spouses.each do |spouse|
-          # Skip if spouse is also a parent of root (biological parent)
           next if root_parents.include?(spouse)
           
           spouse_parents = get_parents(spouse)
@@ -368,7 +339,6 @@ module ImageGeneration
     end
     
     def is_grandchild_of_root?(person)
-      # Check if person is child of root's children
       root_children = @root_person.children
       return false if root_children.empty?
       
@@ -378,7 +348,6 @@ module ImageGeneration
     end
     
     def is_great_grandparent_of_root?(person)
-      # Check if person is parent of root's grandparents
       root_grandparents = get_parents(@root_person).flat_map { |p| get_parents(p) }
       return false if root_grandparents.empty?
       
@@ -388,7 +357,6 @@ module ImageGeneration
     end
     
     def is_great_grandchild_of_root?(person)
-      # Check if person is child of root's grandchildren
       root_grandchildren = get_children(@root_person).flat_map { |c| get_children(c) }
       return false if root_grandchildren.empty?
       
@@ -398,7 +366,6 @@ module ImageGeneration
     end
     
     def is_great_great_grandparent_of_root?(person)
-      # Check if person is parent of root's great-grandparents
       root_great_grandparents = get_parents(@root_person).flat_map { |p| 
         get_parents(p).flat_map { |gp| get_parents(gp) }
       }
@@ -410,7 +377,6 @@ module ImageGeneration
     end
     
     def is_great_great_grandchild_of_root?(person)
-      # Check if person is child of root's great-grandchildren
       root_great_grandchildren = get_children(@root_person).flat_map { |c| 
         get_children(c).flat_map { |gc| get_children(gc) }
       }
@@ -487,13 +453,10 @@ module ImageGeneration
       "Late #{label}"
     end
     
-    # Methods to detect step relationships logically
     def is_step_child_of_root?(person)
-      # A step-child is someone who is a child of root's spouse but not a biological child of root
       root_spouses = get_spouses(@root_person)
       return false if root_spouses.empty?
       
-      # Check if person is a child of any of root's spouses
       root_spouses.any? do |spouse|
         spouse_children = get_children(spouse)
         spouse_children.include?(person) && !get_children(@root_person).include?(person)
@@ -501,11 +464,9 @@ module ImageGeneration
     end
     
     def is_step_parent_of?(child, potential_step_parent)
-      # A step-parent is someone who is married to the child's parent but is not the biological parent
       child_parents = get_parents(child)
       return false if child_parents.include?(potential_step_parent)
       
-      # Check if potential_step_parent is spouse of any of child's parents
       child_parents.any? do |parent|
         parent_spouses = get_spouses(parent)
         parent_spouses.include?(potential_step_parent)
@@ -513,19 +474,14 @@ module ImageGeneration
     end
     
     def is_step_sibling_of_root?(person)
-      # A step-sibling shares NO biological parents but is connected through parent's marriage
       root_parents = get_parents(@root_person)
       person_parents = get_parents(person)
       
-      # First check: Must NOT share any biological parents (excludes half-siblings)
       shared_biological_parents = root_parents & person_parents
       return false if shared_biological_parents.any?
       
-      # Second check: Must be connected through parent's marriage
-      # Person is step-sibling if: person is child of someone married to root's parent
       root_parents.each do |root_parent|
         root_parent_spouses = get_spouses(root_parent)
-        # Check if person is child of any of root's parent's spouses
         root_parent_spouses.each do |spouse|
           return true if person_parents.include?(spouse)
         end
@@ -535,7 +491,6 @@ module ImageGeneration
     end
     
     def detect_step_relationship(person)
-      # Check if person is a step-child through spouse relationships
       root_spouses = get_spouses(@root_person)
       root_spouses.each do |spouse|
         spouse_children = get_children(spouse)
@@ -544,7 +499,6 @@ module ImageGeneration
         end
       end
       
-      # Check if person is a step-parent through their spouse having root as child
       person_spouses = get_spouses(person)
       person_spouses.each do |spouse|
         spouse_children = get_children(spouse)
@@ -555,8 +509,6 @@ module ImageGeneration
       
       nil
     end
-
-    # Helper methods for relationship detection
     def get_parents(person)
       person.parents.to_a
     end
@@ -575,41 +527,27 @@ module ImageGeneration
     end
     
     def add_content_to_vips_image(image)
-      # Override base method to add comprehensive and robust tree content
       begin
         require 'vips'
         
-        Rails.logger.info "Creating comprehensive family tree for #{@root_person.full_name}"
-        
-        # Add prominent title
         title_text = "#{@root_person.full_name}'s Family Tree"
         title_display = Vips::Image.text title_text, font: 'sans bold 36'
         image = image.composite title_display, 'over', x: 100, y: 40
-        Rails.logger.info "Added title: #{title_text}"
         
-        # Add subtitle with comprehensive stats
         stats_text = "#{@generations} generations • #{total_people_count} family members • #{get_relationship_summary}"
         stats_display = Vips::Image.text stats_text, font: 'sans 20'
         image = image.composite stats_display, 'over', x: 100, y: 90
-        Rails.logger.info "Added stats: #{stats_text}"
         
-        # Add detailed family tree structure
         image = add_comprehensive_tree_layout(image)
-        
-        # Add family statistics sidebar
         image = add_detailed_stats_sidebar(image)
         
-        # Add enhanced footer
         footer_text = "Generated by ChronicleTree • #{Date.current.strftime('%B %Y')} • Comprehensive Family Visualization"
         footer_display = Vips::Image.text footer_text, font: 'sans 16'
         image = image.composite footer_display, 'over', x: 80, y: CANVAS_HEIGHT - 50
         
-        Rails.logger.info "Comprehensive tree generation completed successfully"
         image
       rescue => e
         Rails.logger.error "Comprehensive tree generation failed: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
-        # Fall back to base implementation
         super(image)
       end
     end
@@ -628,14 +566,12 @@ module ImageGeneration
         y_position = y_start + (generation_offset * generation_spacing)
         next if y_position < 130 || y_position > CANVAS_HEIGHT - 120
         
-        # Add generation label
         gen_label = get_generation_label(generation_offset)
         if gen_label
           label_display = Vips::Image.text gen_label, font: 'sans bold 18'
           image = image.composite label_display, 'over', x: 50, y: y_position - 20
         end
         
-        # Layout people in this generation
         person_spacing = 280
         if people.length == 1
           x_start = 150
@@ -646,9 +582,8 @@ module ImageGeneration
         
         people.each_with_index do |person, index|
           x_position = x_start + (index * person_spacing)
-          next if x_position > 750  # Keep within visible area
+          next if x_position > 750
           
-          # Add detailed person info
           image = add_detailed_person_info(image, person, x_position, y_position, generation_offset == 0)
         end
       end
@@ -657,7 +592,6 @@ module ImageGeneration
     end
     
     def add_detailed_person_info(image, person, x, y, is_root = false)
-      # Add person's name with special formatting for root
       name = person.full_name
       name = "#{name[0..18]}..." if name.length > 20
       
@@ -667,7 +601,6 @@ module ImageGeneration
       
       info_y = y + 25
       
-      # Birth information
       if person.date_of_birth
         birth_info = "Born: #{person.date_of_birth.year}"
         birth_display = Vips::Image.text birth_info, font: 'sans 14'
@@ -675,7 +608,6 @@ module ImageGeneration
         info_y += 20
       end
       
-      # Death information or current age
       if person.date_of_death
         death_info = "Died: #{person.date_of_death.year}"
         death_display = Vips::Image.text death_info, font: 'sans 14'
@@ -689,7 +621,6 @@ module ImageGeneration
         info_y += 20
       end
       
-      # Relationship count for this person
       rel_count = person.relationships.count
       if rel_count > 0
         rel_info = "#{rel_count} connections"
@@ -701,18 +632,15 @@ module ImageGeneration
     end
     
     def add_detailed_stats_sidebar(image)
-      # Add comprehensive statistics on the right side
       sidebar_x = 950
       sidebar_y = 160
       
-      # Sidebar title
       stats_title = Vips::Image.text "Family Statistics", font: 'sans bold 18'
       image = image.composite stats_title, 'over', x: sidebar_x, y: sidebar_y
       
       stats_y = sidebar_y + 40
       line_spacing = 25
       
-      # Total statistics
       stats_info = get_comprehensive_stats
       stats_info.each do |stat_line|
         stat_display = Vips::Image.text stat_line, font: 'sans 14'

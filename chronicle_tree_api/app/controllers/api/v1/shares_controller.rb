@@ -1,11 +1,12 @@
+# Family tree sharing functionality
+# Enables users to share their genealogical research and family profiles
 class Api::V1::SharesController < Api::V1::BaseController
   before_action :authenticate_user!
 
-  # POST /api/v1/shares
   def create
     share_params = params.require(:share).permit(:content_type, :content_id, :platform, :caption)
     
-    # Generate share content based on content type
+    # Generate share content
     share_content = generate_share_content(share_params)
     
     if share_content
@@ -22,13 +23,9 @@ class Api::V1::SharesController < Api::V1::BaseController
     end
   end
 
-  # GET /api/v1/shares/:id
   def show
-    # This could be used for public sharing links
     share_token = params[:id]
     
-    # For demo purposes, we'll return basic share info
-    # In a real app, you'd store share tokens and retrieve the associated content
     
     render json: { 
       success: true, 
@@ -63,7 +60,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description = "Discover our complete family tree with #{current_user.people.count} family members across multiple generations! 🌳"
     end
     
-    # Add more engaging elements based on tree statistics
+    # Add tree statistics
     generations = calculate_tree_generations
     oldest_person = current_user.people.where.not(date_of_birth: nil).order(:date_of_birth).first
     youngest_person = current_user.people.where.not(date_of_birth: nil).order(date_of_birth: :desc).first
@@ -76,7 +73,7 @@ class Api::V1::SharesController < Api::V1::BaseController
     {
       title: title,
       description: description,
-      image_url: nil, # TODO: Generate tree image
+      image_url: nil,
       caption: share_params[:caption],
       stats: {
         total_people: current_user.people.count,
@@ -90,7 +87,7 @@ class Api::V1::SharesController < Api::V1::BaseController
   def generate_profile_share_content(share_params)
     person = current_user.people.find(share_params[:content_id])
     
-    # Build a more comprehensive description
+    # Build description
     description = "Meet #{person.first_name} #{person.last_name}"
     
     # Add birth year if available

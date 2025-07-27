@@ -5,13 +5,11 @@ module Api
       before_action :set_person, only: [ :index, :create ]
       before_action :set_fact, only: [ :update, :destroy ]
 
-      # GET /api/v1/people/:person_id/facts
       def index
         @facts = @person.facts.order(date: :asc)
         render json: @facts
       end
 
-      # POST /api/v1/people/:person_id/facts
       def create
         @fact = @person.facts.build(fact_params)
         if @fact.save
@@ -21,7 +19,6 @@ module Api
         end
       end
 
-      # PATCH/PUT /api/v1/facts/:id
       def update
         if @fact.update(fact_params)
           render json: @fact
@@ -30,7 +27,6 @@ module Api
         end
       end
 
-      # DELETE /api/v1/facts/:id
       def destroy
         @fact.destroy
         head :no_content

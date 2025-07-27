@@ -281,7 +281,6 @@ module ImageGeneration
     def get_family_relationships
       relationships = []
       
-      # Get comprehensive relationship data using the same logic as frontend
       all_people = @person.user.people.to_a
       all_relationships = []
       
@@ -299,10 +298,8 @@ module ImageGeneration
         end
       end
       
-      # Get step-relationship statistics
       step_stats = calculate_step_relationships_for_profile(@person, all_people, all_relationships)
       
-      # Parents (biological + step-parents)
       biological_parents = @person.parents
       if biological_parents.any?
         biological_parents.each do |parent|
@@ -311,13 +308,11 @@ module ImageGeneration
         end
       end
       
-      # Add step-parents
       step_stats[:step_parents].each do |step_parent|
         parent_type = get_step_parent_relationship_type(step_parent)
         relationships << "#{parent_type}: #{step_parent[:full_name]}"
       end
       
-      # Current spouses
       spouses = @person.current_spouses
       if spouses.any?
         spouses.each do |spouse|
@@ -326,7 +321,6 @@ module ImageGeneration
         end
       end
       
-      # Children (biological + step-children)
       biological_children = @person.children
       if biological_children.any?
         if biological_children.count <= 3
@@ -340,13 +334,11 @@ module ImageGeneration
         end
       end
       
-      # Add step-children
       step_stats[:step_children].each do |step_child|
         child_type = get_step_child_relationship_type(step_child)
         relationships << "#{child_type}: #{step_child[:full_name]}" if relationships.count < 9
       end
       
-      # Siblings (biological + step-siblings)
       biological_siblings = @person.siblings
       if biological_siblings.any? && relationships.count < 9
         if biological_siblings.count <= 2
@@ -360,7 +352,6 @@ module ImageGeneration
         end
       end
       
-      # Add step-siblings (this is the key fix for Michael Doe showing as Step-brother)
       step_stats[:step_siblings].each do |step_sibling|
         if relationships.count < 9
           sibling_type = get_step_sibling_relationship_type(step_sibling)
@@ -368,7 +359,6 @@ module ImageGeneration
         end
       end
       
-      # Add step-grandparents
       step_stats[:step_grandparents].each do |step_grandparent|
         if relationships.count < 9
           grandparent_type = get_step_grandparent_relationship_type(step_grandparent)
@@ -385,12 +375,10 @@ module ImageGeneration
     end
     
     def get_sibling_relationship_type(sibling)
-      # Check if this is a half-sibling (shares exactly one parent)
       if is_half_sibling?(sibling)
         return get_half_sibling_relationship_type(sibling)
       end
       
-      # Full sibling (shares both parents)
       return 'Sibling' unless sibling.gender.present?
       sibling.gender.downcase == 'male' ? 'Brother' : 'Sister'
     end
@@ -400,7 +388,6 @@ module ImageGeneration
       sibling_parents = sibling.parents
       shared_parents = person_parents & sibling_parents
       
-      # Half-sibling: shares exactly 1 parent
       shared_parents.length == 1
     end
     
@@ -439,29 +426,25 @@ module ImageGeneration
       step_grandparent[:gender].downcase == 'male' ? 'Step-Grandfather' : 'Step-Grandmother'
     end
 
-    # Calculate step-relationships for profile sharing
     def calculate_step_relationships_for_profile(person, all_people, relationships)
       step_parents = []
       step_children = []
       step_siblings = []
 
-      # Find step-parents (current/deceased spouses of biological parents who aren't biological parents)
       biological_parents = relationships.select { |rel| rel[:source] == person.id && rel[:relationship_type] == 'parent' }
       
       biological_parents.each do |parent_rel|
         parent_id = parent_rel[:target]
         
-        # Get parent's current/deceased spouses (exclude ex-spouses)
         parent_spouses = relationships.select do |rel|
           rel[:source] == parent_id && 
           rel[:relationship_type] == 'spouse' && 
-          !rel[:is_ex]  # Only current and deceased, not ex
+          !rel[:is_ex]
         end
         
         parent_spouses.each do |spouse_rel|
           spouse_id = spouse_rel[:target]
           
-          # Check if this spouse is also person's biological parent
           is_biological_parent = biological_parents.any? { |bp| bp[:target] == spouse_id }
           
           unless is_biological_parent
@@ -477,11 +460,10 @@ module ImageGeneration
         end
       end
 
-      # Find step-children (children of current/deceased spouses who aren't biological children)
       current_and_deceased_spouses = relationships.select do |rel|
         rel[:source] == person.id && 
         rel[:relationship_type] == 'spouse' && 
-        !rel[:is_ex]  # Only current and deceased, not ex
+        !rel[:is_ex]
       end
 
       biological_children = relationships.select { |rel| rel[:source] == person.id && rel[:relationship_type] == 'child' }
@@ -489,13 +471,11 @@ module ImageGeneration
       current_and_deceased_spouses.each do |spouse_rel|
         spouse_id = spouse_rel[:target]
         
-        # Find spouse's children who are not also person's biological children
         spouse_children = relationships.select do |rel|
           rel[:source] == spouse_id && rel[:relationship_type] == 'child'
         end
         
         spouse_children.each do |child_rel|
-          # Check if this child is also person's biological child
           is_biological_child = biological_children.any? { |bc| bc[:target] == child_rel[:target] }
           
           unless is_biological_child
@@ -511,13 +491,11 @@ module ImageGeneration
         end
       end
 
-      # Find step-siblings (children of parents' spouses who aren't biological siblings)
       biological_siblings = relationships.select { |rel| rel[:source] == person.id && rel[:relationship_type] == 'sibling' }
       
       biological_parents.each do |parent_rel|
         parent_id = parent_rel[:target]
         
-        # Get parent's current/deceased spouses (exclude ex-spouses)
         parent_spouses = relationships.select do |rel|
           rel[:source] == parent_id && 
           rel[:relationship_type] == 'spouse' && 
@@ -527,35 +505,28 @@ module ImageGeneration
         parent_spouses.each do |spouse_rel|
           spouse_id = spouse_rel[:target]
           
-          # Find spouse's children who are not person's biological siblings
           spouse_children = relationships.select do |rel|
             rel[:source] == spouse_id && 
             rel[:relationship_type] == 'child' &&
-            rel[:target] != person.id  # Skip self
+            rel[:target] != person.id
           end
           
           spouse_children.each do |child_rel|
-            # Check if this is a biological sibling (explicit relationship)
             is_biological_sibling = biological_siblings.any? { |bs| bs[:target] == child_rel[:target] }
             
-            # Check if this is a half-sibling (shares exactly one parent)
             is_half_sibling = false
             if !is_biological_sibling
               sibling_person = all_people.find { |p| p.id == child_rel[:target] }
               if sibling_person
-                # Get person's parents
                 person_parent_ids = biological_parents.map { |bp| bp[:target] }
-                # Get potential sibling's parents
                 sibling_parent_rels = relationships.select { |rel| rel[:source] == sibling_person.id && rel[:relationship_type] == 'parent' }
                 sibling_parent_ids = sibling_parent_rels.map { |sp| sp[:target] }
                 
-                # Check for shared parents
                 shared_parents = person_parent_ids & sibling_parent_ids
                 is_half_sibling = shared_parents.length == 1
               end
             end
             
-            # Only add as step-sibling if not biological sibling AND not half-sibling
             unless is_biological_sibling || is_half_sibling
               sibling_person = all_people.find { |p| p.id == child_rel[:target] }
               if sibling_person
@@ -570,13 +541,11 @@ module ImageGeneration
         end
       end
 
-      # Find step-grandparents (parents of step-parents)
       step_grandparents = []
       
       step_parents.each do |step_parent|
         step_parent_id = step_parent[:id]
         
-        # Find step-parent's parents
         step_parent_parents = relationships.select do |rel|
           rel[:source] == step_parent_id && rel[:relationship_type] == 'parent'
         end
@@ -604,7 +573,6 @@ module ImageGeneration
     def get_timeline_events
       events = []
       
-      # Prioritize actual timeline items from database
       if @person.timeline_items.any?
         @person.timeline_items.order(:date).limit(5).each do |item|
           year_prefix = item.date ? "#{item.date.year}: " : ""
@@ -614,7 +582,6 @@ module ImageGeneration
         end
       end
       
-      # Add facts as timeline events if we have space
       if events.length < 5 && @person.facts.any?
         remaining_slots = 5 - events.length
         @person.facts.order(:date).limit(remaining_slots).each do |fact|
@@ -628,7 +595,7 @@ module ImageGeneration
           elsif fact.value.present?
             event_text = "#{date_prefix}#{fact.value}#{location_suffix}"
           else
-            next # Skip empty facts
+            next
           end
           
           events << event_text
@@ -639,18 +606,12 @@ module ImageGeneration
     end
     
     def add_content_to_vips_image(image)
-      # Override base method to add attractive and robust profile content
       begin
         require 'vips'
         
-        Rails.logger.info "Creating enhanced profile card for #{@person.full_name}"
-        
-        # Add person's name prominently at the top
         name_text = Vips::Image.text @person.full_name, font: 'sans bold 40'
         image = image.composite name_text, 'over', x: 100, y: 100
-        Rails.logger.info "Added name: #{@person.full_name}"
         
-        # Add life information
         y_position = 170
         
         if @person.date_of_birth
@@ -665,34 +626,26 @@ module ImageGeneration
           life_text = Vips::Image.text life_span, font: 'sans 24'
           image = image.composite life_text, 'over', x: 100, y: y_position
           y_position += 60
-          Rails.logger.info "Added life span: #{life_span}"
         end
         
-        # Add Family section title
         family_title = Vips::Image.text "Family Connections", font: 'sans bold 28'
         image = image.composite family_title, 'over', x: 100, y: y_position
         y_position += 50
         
-        # Add comprehensive family information
         family_info = build_comprehensive_family_info
         family_info.each do |info_line|
           family_text = Vips::Image.text info_line, font: 'sans 20'
           image = image.composite family_text, 'over', x: 120, y: y_position
           y_position += 35
-          Rails.logger.info "Added family info: #{info_line}"
         end
         
-        # Add footer with branding
         footer_text = "Generated by ChronicleTree • #{Date.current.strftime('%B %Y')}"
         footer_display = Vips::Image.text footer_text, font: 'sans 16'
         image = image.composite footer_display, 'over', x: 100, y: CANVAS_HEIGHT - 80
         
-        Rails.logger.info "Enhanced profile card completed successfully"
         image
       rescue => e
         Rails.logger.error "Enhanced profile generation failed: #{e.message}"
-        Rails.logger.error e.backtrace.join("\n")
-        # Fall back to base implementation
         super(image)
       end
     end
@@ -700,21 +653,18 @@ module ImageGeneration
     def build_comprehensive_family_info
       info_lines = []
       
-      # Parents
       parents = @person.parents
       if parents.any?
         parents_names = parents.map(&:full_name).join(', ')
         info_lines << "Parents: #{parents_names}"
       end
       
-      # Spouses
       spouses = @person.current_spouses
       if spouses.any?
         spouse_names = spouses.map(&:full_name).join(', ')
         info_lines << "Spouse: #{spouse_names}"
       end
       
-      # Children
       children = @person.children
       if children.any?
         if children.count > 5
@@ -725,7 +675,6 @@ module ImageGeneration
         info_lines << "Children: #{children_text}"
       end
       
-      # Siblings
       siblings = @person.siblings
       if siblings.any?
         if siblings.count > 4
@@ -736,13 +685,11 @@ module ImageGeneration
         info_lines << "Siblings: #{siblings_text}"
       end
       
-      # Add summary stats
       total_relatives = (parents.count + spouses.count + children.count + siblings.count)
       if total_relatives > 0
-        info_lines << ""  # Empty line for spacing
+        info_lines << ""
         info_lines << "Total family connections: #{total_relatives}"
         
-        # Living vs deceased
         all_relatives = parents + spouses + children + siblings
         living_count = all_relatives.count { |p| p.date_of_death.nil? }
         info_lines << "Living relatives: #{living_count}"
@@ -752,42 +699,29 @@ module ImageGeneration
     end
     
     def add_main_card_background(image)
-      # Add a white card with rounded corners effect and subtle shadow
       card_margin = 60
       card_width = CANVAS_WIDTH - (card_margin * 2)
       card_height = CANVAS_HEIGHT - (card_margin * 2)
       
-      # Create main white card
       white_card = Vips::Image.new_from_array [[255, 255, 255]]
       white_card = white_card.embed 0, 0, card_width, card_height, extend: :copy
       
-      # Composite the card onto the background
       image = image.composite white_card, 'over', x: card_margin, y: card_margin
       
       image
     end
     
     def add_profile_header(image)
-      # Add colorful header section with person's main info
       header_height = 150
       
-      # Create header background with blue gradient
-      header_bg = Vips::Image.new_from_array [[59, 130, 246]] # Blue
+      header_bg = Vips::Image.new_from_array [[59, 130, 246]]
       header_bg = header_bg.embed 0, 0, CANVAS_WIDTH - 120, header_height, extend: :copy
       
-      # Add header background
       image = image.composite header_bg, 'over', x: 60, y: 60
       
-      # Add person's name in white text
-      name_text = Vips::Image.text @person.full_name, 
-                                  font: 'sans bold 36',
-                                  rgba: true,
-                                  align: :centre
-      # Make text white by creating a white version
       white_name = create_white_text(@person.full_name, 'sans bold 36')
       image = image.composite white_name, 'over', x: 100, y: 90
       
-      # Add life dates in header
       if @person.date_of_birth
         birth_year = @person.date_of_birth.year
         age_text = @person.date_of_death ? 
@@ -806,27 +740,22 @@ module ImageGeneration
       section_spacing = 45
       current_y = y_start
       
-      # Family Connections Title with blue color
       blue_title = create_colored_text('Family Connections', 'sans bold 24', [59, 130, 246])
       image = image.composite blue_title, 'over', x: 100, y: current_y
       current_y += 50
       
-      # Parents section
       parents = @person.parents
       if parents.any?
-        # Section icon and title
         parents_title = create_colored_text('👨‍👩‍👧‍👦 Parents', 'sans bold 18', [107, 114, 128])
         image = image.composite parents_title, 'over', x: 120, y: current_y
         current_y += 30
         
-        # Parents list
         parents_text = parents.map(&:full_name).join(', ')
         parents_content = create_colored_text(parents_text, 'sans 16', [75, 85, 99])
         image = image.composite parents_content, 'over', x: 140, y: current_y
         current_y += section_spacing
       end
       
-      # Spouse section
       spouses = @person.current_spouses
       if spouses.any?
         spouse_title = create_colored_text('💑 Spouse', 'sans bold 18', [107, 114, 128])
@@ -839,7 +768,6 @@ module ImageGeneration
         current_y += section_spacing
       end
       
-      # Children section
       children = @person.children
       if children.any?
         children_title = create_colored_text('👶 Children', 'sans bold 18', [107, 114, 128])
@@ -854,7 +782,6 @@ module ImageGeneration
         current_y += section_spacing
       end
       
-      # Siblings section
       siblings = @person.siblings
       if siblings.any?
         siblings_title = create_colored_text('👫 Siblings', 'sans bold 18', [107, 114, 128])
@@ -872,15 +799,12 @@ module ImageGeneration
     end
     
     def add_styled_footer(image)
-      # Add attractive footer with branding
       footer_y = CANVAS_HEIGHT - 60
       
-      # Create footer background
-      footer_bg = Vips::Image.new_from_array [[249, 250, 251]] # Very light gray
+      footer_bg = Vips::Image.new_from_array [[249, 250, 251]]
       footer_bg = footer_bg.embed 0, 0, CANVAS_WIDTH - 120, 40, extend: :copy
       image = image.composite footer_bg, 'over', x: 60, y: footer_y - 10
       
-      # Footer text with brand color
       footer_text = "🌳 Generated by ChronicleTree • #{Date.current.strftime('%B %Y')}"
       footer_styled = create_colored_text(footer_text, 'sans 14', [107, 114, 128])
       image = image.composite footer_styled, 'over', x: 100, y: footer_y
@@ -889,23 +813,19 @@ module ImageGeneration
     end
     
     def create_white_text(text, font)
-      # Create white text by manipulating the text image
       begin
         text_img = Vips::Image.text text, font: font, rgba: true
-        # Convert to white by inverting and adjusting
         text_img = text_img.invert.extract_band(0, n: 3)
         white_bg = Vips::Image.new_from_array [[255, 255, 255]]
         white_bg = white_bg.embed 0, 0, text_img.width, text_img.height, extend: :copy
         white_bg
       rescue => e
         Rails.logger.warn "White text creation failed: #{e.message}"
-        # Fallback to regular text
         Vips::Image.text text, font: font
       end
     end
     
     def create_colored_text(text, font, color_rgb)
-      # Create colored text (simplified approach)
       begin
         Vips::Image.text text, font: font
       rescue => e

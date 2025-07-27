@@ -1,31 +1,17 @@
 # frozen_string_literal: true
 
 class Api::V1::Share::ImagesController < Api::V1::BaseController
-  # Temporarily skip authentication for testing
+  # Skip authentication for public sharing
   skip_before_action :authenticate_user!, only: [:profile, :tree]
   before_action :set_person, only: [:profile, :tree]
   
-  # GET /api/v1/share/profile/:id
   def profile
     begin
-      Rails.logger.info "Profile share requested for person #{@person.id}"
       
-      # Temporarily disable caching to force regeneration with enhanced content
-      # existing_image = @person.share_images
-      #                        .where(image_type: 'profile')
-      #                        .where('expires_at > ?', Time.current)
-      #                        .order(created_at: :desc)
-      #                        .first
-      
-      # if existing_image&.file_exists?
-      #   # Return existing image
-      #   render json: build_share_response(existing_image, 'profile')
-      # else
-        # Generate new image
+      # Generate new image
         image_path = generate_profile_image
         share_image = @person.share_images.find_by(file_path: image_path)
         render json: build_share_response(share_image, 'profile')
-      # end
     rescue StandardError => e
       Rails.logger.error "Profile share failed: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
@@ -37,30 +23,15 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     end
   end
   
-  # GET /api/v1/share/tree/:id
   def tree
     generations = params[:generations]&.to_i || 3
     
     begin
-      Rails.logger.info "Tree share requested for person #{@person.id} with #{generations} generations"
       
-      # Temporarily disable caching to force regeneration with enhanced content
-      # existing_image = @person.share_images
-      #                        .where(image_type: 'tree')
-      #                        .where('expires_at > ?', Time.current)
-      #                        .where("metadata->>'generations' = ?", generations.to_s)
-      #                        .order(created_at: :desc)
-      #                        .first
-      
-      # if existing_image&.file_exists?
-      #   # Return existing image
-      #   render json: build_share_response(existing_image, 'tree', generations)
-      # else
-        # Generate new image
+      # Generate new image
         image_path = generate_tree_image(generations)
         share_image = @person.share_images.find_by(file_path: image_path)
         render json: build_share_response(share_image, 'tree', generations)
-      # end
     rescue StandardError => e
       Rails.logger.error "Tree share failed: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
@@ -73,7 +44,6 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     end
   end
   
-  # DELETE /api/v1/share/cleanup (Admin only)
   def cleanup
     return render_unauthorized unless current_user.admin?
     
@@ -182,11 +152,10 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
   end
   
   def get_profile_relationship_context(person)
-    # Profile-specific family context focused on immediate relationships
-    # This matches the profile page logic which shows direct family members
+    # Profile-specific family context for immediate relationships
     contexts = []
     
-    # Get relationship statistics using profile logic
+    # Get relationship statistics
     profile_stats = calculate_profile_relationship_statistics(person)
     
     # Spouse context (current spouses only)
@@ -219,13 +188,12 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
       contexts << parent_text
     end
     
-    # Return the most relevant context (prioritize spouse, then children, then parents)
+    # Return most relevant context
     contexts.first
   end
 
   def get_family_relationship_context(person)
     # Tree-specific family context for broader family statistics
-    # This is used for tree sharing and shows extended family context
     contexts = []
     
     # Spouse context
@@ -253,7 +221,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
       end
     end
     
-    # Return the most relevant context
+    # Return most relevant context
     contexts.first
   end
   
@@ -300,11 +268,10 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     stats
   end
   
-  # Calculate relationship statistics using the same core logic as the frontend and people controller
-  # This avoids duplicating relationship calculation logic across the application
+  # Calculate relationship statistics using core logic from people controller
   def calculate_relationship_statistics_for_sharing(person)
     # Get all relationships for sharing calculation
-    # We need to build the same format as used in the people controller
+    # Build same format as people controller
     user = person.user
     all_people = user.people.to_a
     relationships = []
@@ -416,10 +383,9 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     stats
   end
 
-  # Calculate relationship statistics specifically for profile sharing
-  # This focuses on immediate relationships like the profile page
+  # Calculate relationship statistics for profile sharing
   def calculate_profile_relationship_statistics(person)
-    # Use the same core calculation logic but adapted for profile context
+    # Use core calculation logic adapted for profile context
     user = person.user
     all_people = user.people.to_a
     relationships = []
@@ -454,8 +420,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     end
     stats[:children] = biological_children.count
 
-    # Count step-children through current/deceased spouses (NOT ex-spouses)
-    # This matches the profile page logic
+    # Count step-children through current/deceased spouses
     current_and_deceased_spouses = relationships.select do |rel|
       rel[:source] == person.id && 
       rel[:relationship_type] == 'spouse' && 
@@ -479,7 +444,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     end
     stats[:step_children] = step_children_count
 
-    # Count current spouses (not ex-spouses) - profile shows current relationships
+    # Count current spouses - profile shows current relationships
     current_spouses = relationships.select do |rel|
       rel[:source] == person.id && 
       rel[:relationship_type] == 'spouse' && 
@@ -521,7 +486,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     end
     stats[:siblings] = biological_siblings.count
 
-    # Count step-siblings (simplified for profile context)
+    # Count step-siblings
     step_siblings_count = 0
     parents.each do |parent_rel|
       parent_id = parent_rel[:target]

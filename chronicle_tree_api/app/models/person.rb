@@ -1,4 +1,5 @@
-# app/models/person.rb
+# Central person model for Chronicle Tree family tree project
+# Manages family relationships, genealogical connections, and demographic data
 class Person < ApplicationRecord
   belongs_to :user
 
@@ -29,7 +30,6 @@ class Person < ApplicationRecord
 
   after_create :ensure_profile
 
-  # Display methods
   def full_name
     "#{first_name} #{last_name}".strip
   end
@@ -38,7 +38,6 @@ class Person < ApplicationRecord
     full_name.present? ? full_name : name
   end
 
-  # Methods to query relationships
   def parents
     Person.joins(:relationships)
           .where(relationships: { relative_id: id, relationship_type: "child" })
@@ -59,8 +58,6 @@ class Person < ApplicationRecord
   end
 
   def all_spouses_including_deceased
-    # For living people, show both current and deceased spouses
-    # For deceased people, show all spouses (they maintain their historical relationships)
     Person.joins(:relationships)
           .where(
             "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false",
@@ -76,7 +73,7 @@ class Person < ApplicationRecord
             "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false",
             id: id
           )
-          .where(date_of_death: nil) # Exclude spouses who have died
+          .where(date_of_death: nil)
           .where.not(id: id)
           .distinct
   end
@@ -97,7 +94,7 @@ class Person < ApplicationRecord
             "(relationships.person_id = :id OR relationships.relative_id = :id) AND relationships.relationship_type = 'spouse' AND relationships.is_ex = false",
             id: id
           )
-          .where.not(date_of_death: nil) # Only spouses who have died
+          .where.not(date_of_death: nil)
           .where.not(id: id)
           .distinct
   end
@@ -106,14 +103,12 @@ class Person < ApplicationRecord
     date_of_death.present?
   end
 
-  # Validation method for marriage age
   def marriage_age_valid?
     return { valid: true } unless date_of_birth.present?
     
     current_date = Date.current
     age = ((current_date - date_of_birth).to_f / 365.25).round(1)
     
-    # Check if this person has any spouse relationships
     spouse_relationships = relationships.where(relationship_type: "spouse") + 
                           related_by_relationships.where(relationship_type: "spouse")
     
@@ -127,12 +122,10 @@ class Person < ApplicationRecord
     { valid: true }
   end
 
-  # Validation methods for parent-child relationships
   def can_be_parent_of?(child)
     return { valid: false, error: "Child person is required" } if child.nil?
     return { valid: false, error: "Parent cannot be same as child" } if self == child
 
-    # Check age difference - parent must be at least 12 years older
     if self.date_of_birth.present? && child.date_of_birth.present?
       parent_birth = Date.parse(self.date_of_birth.to_s)
       child_birth = Date.parse(child.date_of_birth.to_s)
@@ -140,13 +133,11 @@ class Person < ApplicationRecord
 
       if age_difference < 12
         if age_difference < 0
-          # Parent is younger than child
           return { 
             valid: false, 
             error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is #{age_difference.abs.round(1)} years YOUNGER than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent cannot be younger than their child."
           }
         else
-          # Parent is older but not enough
           return { 
             valid: false, 
             error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is only #{age_difference.round(1)} years older than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent must be at least 12 years older than their child."
@@ -155,7 +146,6 @@ class Person < ApplicationRecord
       end
     end
 
-    # Check if parent died before child was born
     if self.date_of_death.present? && child.date_of_birth.present?
       parent_death = Date.parse(self.date_of_death.to_s)
       child_birth = Date.parse(child.date_of_birth.to_s)
@@ -168,7 +158,6 @@ class Person < ApplicationRecord
       end
     end
 
-    # Check if child already has 2 parents
     if child.parents.count >= 2
       existing_parents = child.parents.map { |p| "#{p.first_name} #{p.last_name}" }.join(' and ')
       return { 
@@ -181,22 +170,18 @@ class Person < ApplicationRecord
   end
 
   def siblings
-    # Only full siblings (share exactly 2 parents)
     full_siblings
   end
 
   def full_siblings
-    # Full siblings share exactly 2 parents
     parent_ids = parents.pluck(:id)
-    return [] if parent_ids.size != 2  # Must have exactly 2 parents
+    return [] if parent_ids.size != 2
 
-    # Get all potential siblings first (people who share at least one parent)
     potential_siblings = Person.joins(:related_by_relationships)
           .where(related_by_relationships: { relationship_type: "child", person_id: parent_ids })
           .where.not(id: id)
           .distinct.to_a
 
-    # Filter to only those who share exactly the same 2 parents
     potential_siblings.select do |sibling|
       sibling_parent_ids = sibling.parents.pluck(:id).sort
       parent_ids.sort == sibling_parent_ids && sibling_parent_ids.size == 2
@@ -204,48 +189,39 @@ class Person < ApplicationRecord
   end
 
   def half_siblings
-    # Half siblings share exactly 1 parent
     parent_ids = parents.pluck(:id)
     return [] if parent_ids.empty?
 
-    # Get all potential siblings first (people who share at least one parent)
     potential_siblings = Person.joins(:related_by_relationships)
           .where(related_by_relationships: { relationship_type: "child", person_id: parent_ids })
           .where.not(id: id)
           .distinct.to_a
 
-    # Filter to only those who share exactly 1 parent
     potential_siblings.select do |sibling|
       sibling_parent_ids = sibling.parents.pluck(:id)
       shared_parents = (parent_ids & sibling_parent_ids).size
-      # Half sibling: shares exactly 1 parent
       shared_parents == 1
     end
   end
 
   def step_siblings
-    # Step siblings share no blood parents, only through current marriage of parents
     parent_ids = parents.pluck(:id)
     return [] if parent_ids.empty?
 
     step_siblings = []
     
-    # Check each parent's current spouses (not ex-spouses)
     parents.each do |parent|
       current_spouses = parent.current_spouses
       
       current_spouses.each do |spouse|
-        # Get spouse's children who are not this person's blood siblings
         spouse_children = spouse.children.to_a
         
         spouse_children.each do |child|
-          next if child.id == self.id  # Skip self
+          next if child.id == self.id
           
-          # Check if this child shares any blood parents with this person
           child_parent_ids = child.parents.pluck(:id)
           shared_blood_parents = (parent_ids & child_parent_ids).size
           
-          # Step sibling: no shared blood parents
           if shared_blood_parents == 0
             step_siblings << child unless step_siblings.include?(child)
           end
@@ -257,46 +233,28 @@ class Person < ApplicationRecord
   end
 
   def parents_in_law
-    # Deceased people don't have active in-law relationships
     return [] if is_deceased?
     
-    # DEBUG: Print current spouses and their parents for this person
-    Rails.logger.debug "[parents_in_law] Person: #{self.first_name} #{self.last_name} (id=#{self.id})"
-    Rails.logger.debug "[parents_in_law] Current Spouses: #{current_spouses.map { |s| "#{s.first_name} #{s.last_name} (id=#{s.id})" }.inspect}"
     all_parents = current_spouses.flat_map do |spouse|
-      prnts = spouse.parents
-      Rails.logger.debug "[parents_in_law] Spouse: #{spouse.first_name} #{spouse.last_name} (id=#{spouse.id}) Parents: #{prnts.map { |p| "#{p.first_name} #{p.last_name} (id=#{p.id})" }.inspect}"
-      prnts
+      spouse.parents
     end
     all_parents.uniq.reject { |p| p == self || current_spouses.include?(p) }
   end
 
   def children_in_law
-    # Deceased people don't have active in-law relationships
     return [] if is_deceased?
     
-    # DEBUG: Print children and their current spouses for this person
-    Rails.logger.debug "[children_in_law] Person: #{self.first_name} #{self.last_name} (id=#{self.id})"
-    Rails.logger.debug "[children_in_law] Children: #{children.map { |c| "#{c.first_name} #{c.last_name} (id=#{c.id})" }.inspect}"
     all_spouses = children.flat_map do |child|
-      sps = child.current_spouses
-      Rails.logger.debug "[children_in_law] Child: #{child.first_name} #{child.last_name} (id=#{child.id}) Current Spouses: #{sps.map { |s| "#{s.first_name} #{s.last_name} (id=#{s.id})" }.inspect}"
-      sps
+      child.current_spouses
     end
     all_spouses.uniq.reject { |p| p == self || children.include?(p) }
   end
 
   def siblings_in_law
-    # Deceased people don't have active in-law relationships
     return [] if is_deceased?
     
-    # DEBUG: Print current spouses and their siblings for this person
-    Rails.logger.debug "[siblings_in_law] Person: #{self.first_name} #{self.last_name} (id=#{self.id})"
-    Rails.logger.debug "[siblings_in_law] Current Spouses: #{current_spouses.map { |s| "#{s.first_name} #{s.last_name} (id=#{s.id})" }.inspect}"
     all_siblings = current_spouses.flat_map do |spouse|
-      sibs = spouse.siblings
-      Rails.logger.debug "[siblings_in_law] Spouse: #{spouse.first_name} #{spouse.last_name} (id=#{spouse.id}) Siblings: #{sibs.map { |s| "#{s.first_name} #{s.last_name} (id=#{s.id})" }.inspect}"
-      sibs
+      spouse.siblings
     end
     all_siblings.uniq.reject { |p| p == self || current_spouses.include?(p) }
   end

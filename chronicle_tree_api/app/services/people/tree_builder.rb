@@ -5,7 +5,6 @@ module People
       @center = person
     end
 
-    # returns [nodes_array, edges_array]
     def as_json
       nodes = collect_tree_nodes
       edges = collect_tree_edges(nodes)
@@ -14,7 +13,6 @@ module People
 
     private
 
-    # Recursively collect all ancestors, descendants, spouses, and siblings
     def collect_tree_nodes
       seen = {}
       queue = [@center]
@@ -22,7 +20,6 @@ module People
         person = queue.shift
         next if seen[person.id]
         seen[person.id] = person
-        # Add parents, spouses, and children recursively
         if person.respond_to?(:parents)
           queue.concat(person.parents.reject { |p| seen[p.id] })
         end
@@ -43,7 +40,6 @@ module People
       edges = []
       node_ids = nodes.map(&:id)
       nodes.each do |n|
-        # Parent-child edges
         if n.respond_to?(:parents)
           n.parents.each do |parent|
             edges << { source: parent.id, target: n.id, relationship_type: 'parent' } if node_ids.include?(parent.id)
@@ -54,12 +50,9 @@ module People
             edges << { source: n.id, target: child.id, relationship_type: 'parent' } if node_ids.include?(child.id)
           end
         end
-        # Spouse edges
         if n.respond_to?(:spouses)
           n.spouses.each do |spouse|
-            # Only add one edge per pair
             if n.id < spouse.id && node_ids.include?(spouse.id)
-              # Find the relationship to get the is_ex and is_deceased attributes
               relationship = n.relationships.find { |r| r.relative_id == spouse.id && r.relationship_type == 'spouse' }
               edge = { source: n.id, target: spouse.id, relationship_type: 'spouse' }
               if relationship
@@ -70,7 +63,6 @@ module People
             end
           end
         end
-        # Sibling edges (optional, for visualization)
         if n.respond_to?(:siblings)
           n.siblings.each do |sib|
             if n.id < sib.id && node_ids.include?(sib.id)

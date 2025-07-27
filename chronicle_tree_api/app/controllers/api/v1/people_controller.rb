@@ -1,45 +1,38 @@
-# app/controllers/api/v1/people_controller.rb
+# Chronicle Tree Project - Main API controller for family tree management
+# Handles person creation, relationship building, and genealogical data validation
 module Api
   module V1
     class PeopleController < BaseController
       before_action :set_person, only: %i[show update destroy tree relatives]
 
-      # GET /api/v1/people
       def index
         people = current_user.people
         render json: people, each_serializer: Api::V1::PersonSerializer, status: :ok
       end
 
-      # GET /api/v1/people/:id
       def show
         render json: @person, serializer: Api::V1::PersonSerializer, status: :ok
       end
 
-      # POST /api/v1/people
       def create
-        Rails.logger.info "[PeopleController#create] Params: \n#{params.inspect}"
         ActiveRecord::Base.transaction do
           person = current_user.people.build(person_params)
           is_first_person = current_user.people.count == 0
           rel_type = params[:person][:relation_type]
           rel_person_id = params[:person][:related_person_id]
-          # Require relationship fields unless first person
           if !is_first_person && (rel_type.blank? || rel_person_id.blank?)
             render json: { errors: [ "Relationship Type and Selected Person are required" ] }, status: :unprocessable_entity
             raise ActiveRecord::Rollback
           end
           if person.save
-            # If relationship_type and related_person_id are provided, create relationship
             if rel_type.present? && rel_person_id.present?
               related_person = current_user.people.find(rel_person_id)
               
-              # COMPREHENSIVE PARENT-CHILD VALIDATION
+              # Parent-child age validation
               if ['child', 'parent'].include?(rel_type)
                 if rel_type == 'child'
-                  # New person is child, selected person is parent
                   validation_result = related_person.can_be_parent_of?(person)
                 elsif rel_type == 'parent'
-                  # New person is parent, selected person is child
                   validation_result = person.can_be_parent_of?(related_person)
                 end
 
@@ -51,57 +44,42 @@ module Api
                 end
               end
               
-              # Create the correct relationship based on what the user selected
               case rel_type
               when 'child'
-                # New person is a child of the selected person
-                # So the selected person is the parent of the new person
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'child')
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'parent')
-                # Sibling relationships will be automatically created via the Relationship model callback
               when 'parent'
-                # New person is a parent of the selected person
-                # So the new person is the parent of the selected person
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'child')
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'parent')
-                # Sibling relationships will be automatically created via the Relationship model callback
               when 'spouse'
-                # Bidirectional spouse relationship
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'spouse')
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'spouse')
               when 'sibling'
-                # Bidirectional sibling relationship
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'sibling')
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'sibling')
               end
             end
-            Rails.logger.info "[PeopleController#create] Person created: \n#{person.inspect}"
             
-            # Success response with person data and success message
             render json: {
               person: Api::V1::PersonSerializer.new(person).as_json,
               message: "#{person.first_name} #{person.last_name} has been successfully added to the family tree!",
               success: true
             }, status: :created
           else
-            Rails.logger.error "[PeopleController#create] Failed to create person: \n#{person.errors.full_messages}"
             render json: { errors: person.errors.full_messages }, status: :unprocessable_entity
           end
         end
       end
 
-      # PATCH /api/v1/people/:id
       def update
         ActiveRecord::Base.transaction do
-          # RELATIONSHIP-AWARE DATE VALIDATION for existing person
+          # Date validation logic
           new_birth_date = params[:person][:date_of_birth]
           new_death_date = params[:person][:date_of_death]
           
-          # Validate birth date against existing relationships
           if new_birth_date.present?
             birth_date = Date.parse(new_birth_date.to_s)
             
-            # Check if new birth date conflicts with children (must be at least 12 years before children's birth)
             @person.children.each do |child|
               if child.date_of_birth.present?
                 child_birth = Date.parse(child.date_of_birth.to_s)
@@ -120,7 +98,6 @@ module Api
               end
             end
             
-            # Check if new birth date conflicts with parents (must be at least 12 years after parents' birth)
             @person.parents.each do |parent|
               if parent.date_of_birth.present?
                 parent_birth = Date.parse(parent.date_of_birth.to_s)
@@ -139,7 +116,6 @@ module Api
               end
             end
             
-            # Check if new birth date is after current death date
             current_death_date = @person.date_of_death || (new_death_date.present? ? Date.parse(new_death_date.to_s) : nil)
             if current_death_date && birth_date > current_death_date
               render json: { 
@@ -148,7 +124,6 @@ module Api
               raise ActiveRecord::Rollback
             end
             
-            # Check marriage age validation if person has spouses
             spouse_relationships = @person.relationships.where(relationship_type: "spouse") + 
                                  @person.related_by_relationships.where(relationship_type: "spouse")
             
@@ -162,11 +137,10 @@ module Api
             end
           end
           
-          # Validate death date against existing relationships  
+  
           if new_death_date.present?
             death_date = Date.parse(new_death_date.to_s)
             
-            # Check if new death date is before children's birth dates
             @person.children.each do |child|
               if child.date_of_birth.present?
                 child_birth = Date.parse(child.date_of_birth.to_s)
@@ -180,7 +154,6 @@ module Api
               end
             end
             
-            # Check if new death date is before current birth date
             current_birth_date = @person.date_of_birth || (new_birth_date.present? ? Date.parse(new_birth_date.to_s) : nil)
             if current_birth_date && death_date < current_birth_date
               render json: { 
@@ -190,7 +163,6 @@ module Api
             end
           end
           
-          # If all validations pass, update the person
           if @person.update(person_params)
             render json: {
               person: Api::V1::PersonSerializer.new(@person).as_json,
@@ -203,15 +175,12 @@ module Api
         end
       end
 
-      # DELETE /api/v1/people/:id
       def destroy
         @person.destroy
         head :no_content
       end
 
-      # GET /api/v1/people/:id/tree
       def tree
-        # return the full subtree of ancestors, spouses, siblings, children
         nodes, edges = People::TreeBuilder.new(@person).as_json
         render json: {
           nodes: ActiveModelSerializers::SerializableResource.new(nodes, each_serializer: Api::V1::PersonSerializer),
@@ -219,7 +188,6 @@ module Api
         }, status: :ok
       end
 
-      # GET /api/v1/people/:id/relatives
       def relatives
         rels = {
           parents:  @person.parents,
@@ -232,20 +200,15 @@ module Api
         render json: rels, status: :ok
       end
 
-      # GET /api/v1/people/:id/relationship_stats
-      # Provides relationship statistics using the same logic as the frontend calculator
-      # This endpoint is used by sharing functionality to avoid duplicating relationship logic
+      # Relationship statistics endpoint
       def relationship_stats
         begin
-          # Get all people and relationships data for calculation
           people = current_user.people
           
-          # Build relationships array in the format expected by the frontend calculator
           relationships = []
           people.each do |person|
             person.relationships.each do |rel|
-              # Only include relationships where both people exist in the user's tree
-              if people.map(&:id).include?(rel.relative_id)
+                if people.map(&:id).include?(rel.relative_id)
                 relationships << {
                   source: person.id,
                   target: rel.relative_id,
@@ -257,7 +220,6 @@ module Api
             end
           end
 
-          # Calculate relationship statistics using the same logic as frontend
           stats = calculate_relationship_statistics(@person, people.to_a, relationships)
           
           render json: {
@@ -277,30 +239,22 @@ module Api
         end
       end
 
-      # GET /api/v1/people/tree
       def full_tree
-        Rails.logger.info "=== FULL_TREE ENDPOINT CALLED ==="
         people = current_user.people
         nodes = people.to_a
         edges = []
         
-        Rails.logger.info "=== FULL TREE DEBUG ==="
-        Rails.logger.info "User #{current_user.id} has #{people.count} people"
-        Rails.logger.info "Total relationships in database: #{Relationship.count}"
         
         people.each do |person|
           person_relationships = person.relationships
-          Rails.logger.info "Person #{person.id} (#{person.first_name} #{person.last_name}) has #{person_relationships.count} relationships"
           
           person_relationships.each do |rel|
-            # Only include edges where both people are in the user's tree
             if people.map(&:id).include?(rel.relative_id)
               edge = {
                 source: person.id,
                 target: rel.relative_id,
                 relationship_type: rel.relationship_type
               }
-              # Include is_ex and is_deceased attributes for spouse relationships
               if rel.relationship_type == 'spouse'
                 edge[:is_ex] = rel.is_ex
                 edge[:is_deceased] = rel.is_deceased
@@ -310,9 +264,7 @@ module Api
           end
         end
         
-        # Find the oldest person with relationships to use as default root
         oldest_person = people.joins(:relationships).where.not(date_of_birth: nil).order(:date_of_birth).first
-        # Fallback to oldest person if no one has relationships
         oldest_person ||= people.where.not(date_of_birth: nil).order(:date_of_birth).first
         
         render json: {
@@ -336,8 +288,7 @@ module Api
         )
       end
 
-      # Calculate relationship statistics using the same core logic as the frontend
-      # This avoids duplicating relationship calculation logic in the backend
+      # Relationship statistics calculation
       def calculate_relationship_statistics(person, all_people, relationships)
         stats = {
           children: 0,

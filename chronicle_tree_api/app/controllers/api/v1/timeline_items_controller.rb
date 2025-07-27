@@ -1,18 +1,15 @@
-# app/controllers/api/v1/timeline_items_controller.rb
 module Api
   module V1
     class TimelineItemsController < BaseController
       before_action :set_person,        only: %i[index create]
       before_action :set_timeline_item, only: %i[update destroy]
 
-      # GET /api/v1/people/:person_id/timeline_items
       def index
         render json: @person.timeline_items,
                each_serializer: Api::V1::TimelineItemSerializer,
                status: :ok
       end
 
-      # POST /api/v1/people/:person_id/timeline_items
       def create
         item = @person.timeline_items.build(timeline_item_params)
         if item.save
@@ -25,7 +22,6 @@ module Api
         end
       end
 
-      # PATCH /api/v1/timeline_items/:id
       def update
         if @timeline_item.update(timeline_item_params)
           render json: @timeline_item,
@@ -37,7 +33,6 @@ module Api
         end
       end
 
-      # DELETE /api/v1/timeline_items/:id
       def destroy
         @timeline_item.destroy
         head :no_content

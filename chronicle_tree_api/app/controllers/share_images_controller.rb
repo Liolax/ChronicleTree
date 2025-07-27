@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
 class ShareImagesController < ApplicationController
-  # Skip authentication for serving public share images
+  # Skip authentication for public share images
   skip_before_action :authenticate_user!, if: -> { defined?(authenticate_user!) }
   
   def show
     image_path = Rails.root.join('public', 'generated_shares', params[:path])
     
     if File.exist?(image_path) && image_within_allowed_directory?(image_path)
-      # Determine content type based on file extension
+      # Determine content type
       content_type = case File.extname(params[:path]).downcase
                      when '.jpg', '.jpeg'
                        'image/jpeg'

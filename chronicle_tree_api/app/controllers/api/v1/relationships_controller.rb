@@ -1,11 +1,8 @@
-# app/controllers/api/v1/relationships_controller.rb
 module Api
   module V1
     class RelationshipsController < BaseController
       before_action :set_relationship, only: %i[destroy toggle_ex toggle_deceased]
 
-      # POST /api/v1/relationships
-      # body: { relationship: { person_id:, relative_id:, relationship_type: } }
       def create
         person = current_user.people.find_by(id: relationship_params[:person_id])
         relative = current_user.people.find_by(id: relationship_params[:relative_id])
@@ -16,10 +13,10 @@ module Api
           return
         end
 
-        # ✅ ENHANCED RELATIONSHIP VALIDATION
+        # Enhanced relationship validation
         case relationship_params[:relationship_type]
         when 'spouse'
-          # Use enhanced blood relationship detector that supports complex remarriage scenarios
+          # Check for blood relationship to prevent incestuous marriages
           unless BloodRelationshipDetector.marriage_allowed?(person, relative)
             blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
             render json: { 
@@ -28,7 +25,7 @@ module Api
             return
           end
         when 'sibling'
-          # Use enhanced sibling relationship detector
+          # Validate sibling relationship compatibility
           unless BloodRelationshipDetector.sibling_allowed?(person, relative)
             blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
             error_msg = if blood_relationship
@@ -42,7 +39,7 @@ module Api
             return
           end
           
-          # CRITICAL: Prevent people who share children from becoming siblings
+          # Prevent people who share children from becoming siblings
           person_children = person.children.pluck(:id)
           relative_children = relative.children.pluck(:id)
           shared_children = person_children & relative_children
@@ -55,11 +52,11 @@ module Api
             return
           end
           
-          # CRITICAL: Validate sibling relationship compatibility
+          # Validate parent relationships for sibling compatibility
           person_parents = person.parents.pluck(:id).sort
           relative_parents = relative.parents.pluck(:id).sort
           
-          # Only block if BOTH people have 2 complete different blood parents
+          # Only block if both people have 2 complete different blood parents
           if person_parents.count == 2 && relative_parents.count == 2
             # Check if they share any parents (full or half siblings)
             shared_parents = person_parents & relative_parents
@@ -67,7 +64,7 @@ module Api
             has_step_relationship = false
             
             unless has_shared_biological_parent
-              # Check for step-sibling relationship (parents married to each other)
+              # Check for step-sibling relationship
               person.parents.each do |person_parent|
                 relative.parents.each do |relative_parent|
                   if person_parent.spouses.include?(relative_parent)
@@ -87,7 +84,7 @@ module Api
             end
           end
           
-          # Age compatibility check for all cases
+          # Age compatibility check
           if person.date_of_birth && relative.date_of_birth
             age_gap = ((person.date_of_birth - relative.date_of_birth).abs / 365.25).round(1)
             if age_gap > 25
@@ -110,7 +107,6 @@ module Api
         end
       end
 
-      # DELETE /api/v1/relationships/:id
       def destroy
         if @relationship.person.user == current_user
           @relationship.destroy
@@ -120,7 +116,6 @@ module Api
         end
       end
 
-      # PATCH /api/v1/relationships/:id/toggle_ex
       def toggle_ex
         if @relationship.relationship_type == "spouse"
           @relationship.is_ex = !@relationship.is_ex
@@ -134,7 +129,6 @@ module Api
         end
       end
 
-      # PATCH /api/v1/relationships/:id/toggle_deceased
       def toggle_deceased
         if @relationship.relationship_type == "spouse"
           @relationship.is_deceased = !@relationship.is_deceased

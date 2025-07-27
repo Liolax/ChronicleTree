@@ -1,10 +1,9 @@
 module Api
   module V1
     module Auth
-      # Handles user registration (sign-up) for API clients.
+      # Handles user registration for API clients.
       class RegistrationsController < Devise::RegistrationsController
-        # This controller inherits from Devise. The `create` action is overridden
-        # only to customize the response format for the API.
+        # Inherits from Devise, customizes response format for API.
         def create
           build_resource(sign_up_params)
 

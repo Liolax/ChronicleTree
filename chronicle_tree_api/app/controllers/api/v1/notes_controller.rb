@@ -3,7 +3,6 @@ module Api
     class NotesController < BaseController
       before_action :set_person, only: %i[show create update]
 
-      # GET /api/v1/people/:person_id/note
       def show
         note = @person.note
         if note
@@ -13,7 +12,6 @@ module Api
         end
       end
 
-      # POST /api/v1/people/:person_id/note
       def create
         note = @person.build_note(note_params)
         if note.save
@@ -23,7 +21,6 @@ module Api
         end
       end
 
-      # PATCH/PUT /api/v1/people/:person_id/note
       def update
         note = @person.note
         if note&.update(note_params)

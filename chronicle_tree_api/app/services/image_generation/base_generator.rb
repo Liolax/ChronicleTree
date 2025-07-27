@@ -5,20 +5,18 @@ module ImageGeneration
     require 'vips'
     require 'tempfile'
     
-    # Canvas dimensions optimized for social media sharing
     CANVAS_WIDTH = 1200
     CANVAS_HEIGHT = 630
     
-    # Color palette
     COLORS = {
-      primary: '#3b82f6',       # Blue
-      secondary: '#8b5cf6',     # Purple
-      accent: '#06b6d4',        # Cyan
-      text_primary: '#1f2937',  # Dark gray
-      text_secondary: '#6b7280', # Medium gray
-      text_light: '#ffffff',    # White
-      background: '#f8fafc',    # Light gray
-      card_bg: '#ffffff'        # White
+      primary: '#3b82f6',
+      secondary: '#8b5cf6',
+      accent: '#06b6d4',
+      text_primary: '#1f2937',
+      text_secondary: '#6b7280',
+      text_light: '#ffffff',
+      background: '#f8fafc',
+      card_bg: '#ffffff'
     }.freeze
     
     def initialize
@@ -29,13 +27,10 @@ module ImageGeneration
     protected
     
     def create_base_canvas
-      # Create a simple text-based image as placeholder for now
-      # This bypasses the MiniMagick compatibility issue
       nil
     end
     
     def add_gradient_background
-      # Create a subtle gradient background
       @canvas = @canvas.composite(create_gradient) do |c|
         c.compose "Over"
       end
@@ -54,7 +49,6 @@ module ImageGeneration
       font_weight = options[:weight] || 'normal'
       max_width = options[:max_width]
       
-      # Truncate text if max_width is specified
       if max_width && text.length > max_width
         text = "#{text[0...max_width-3]}..."
       end
@@ -78,7 +72,6 @@ module ImageGeneration
     end
     
     def get_font_path(weight = 'normal')
-      # Use system fonts or fallback to built-in fonts
       case weight
       when 'bold'
         find_system_font('Arial-Bold') || 'Arial-Bold'
@@ -88,11 +81,10 @@ module ImageGeneration
     end
     
     def find_system_font(font_name)
-      # Try to find system fonts
       possible_paths = [
-        "/System/Library/Fonts/#{font_name}.ttf",           # macOS
-        "/usr/share/fonts/truetype/dejavu/#{font_name}.ttf", # Linux
-        "C:/Windows/Fonts/#{font_name.downcase}.ttf"        # Windows
+        "/System/Library/Fonts/#{font_name}.ttf",
+        "/usr/share/fonts/truetype/dejavu/#{font_name}.ttf",
+        "C:/Windows/Fonts/#{font_name.downcase}.ttf"
       ]
       
       possible_paths.find { |path| File.exist?(path) }
@@ -104,7 +96,6 @@ module ImageGeneration
       border_color = options[:border_color]
       border_width = options[:border_width] || 0
       
-      # Create rounded rectangle
       rect = MiniMagick::Image.create do |r|
         r.size "#{width}x#{height}"
         r.canvas color
@@ -131,12 +122,10 @@ module ImageGeneration
       begin
         photo = MiniMagick::Image.open(photo_path)
         
-        # Resize to square
         photo.resize "#{size}x#{size}^"
         photo.gravity "center"
         photo.crop "#{size}x#{size}+0+0"
         
-        # Make it circular
         mask = create_circular_mask(size)
         photo = photo.composite(mask) do |c|
           c.compose "CopyOpacity"
@@ -148,7 +137,6 @@ module ImageGeneration
         end
       rescue => e
         Rails.logger.warn "Failed to add profile photo: #{e.message}"
-        # Add placeholder circle instead
         add_placeholder_avatar(x, y, size)
       end
     end
@@ -163,7 +151,6 @@ module ImageGeneration
     end
     
     def add_placeholder_avatar(x, y, size)
-      # Add a simple circular placeholder
       @canvas = @canvas.composite(create_avatar_placeholder(size)) do |c|
         c.compose "Over"
         c.geometry "+#{x}+#{y}"
@@ -180,7 +167,6 @@ module ImageGeneration
         placeholder.gravity "center"
         placeholder.annotate("+0+0", "👤")
         
-        # Make it circular
         mask = create_circular_mask(size)
         placeholder = placeholder.composite(mask) do |c|
           c.compose "CopyOpacity"
@@ -189,7 +175,6 @@ module ImageGeneration
     end
     
     def add_logo(x = nil, y = nil)
-      # Add small branding/logo
       x ||= CANVAS_WIDTH - 200
       y ||= CANVAS_HEIGHT - 50
       
@@ -201,7 +186,6 @@ module ImageGeneration
     end
     
     def add_decorative_elements
-      # Add some subtle decorative elements
       add_corner_decoration(50, 50)
       add_corner_decoration(CANVAS_WIDTH - 100, 50, flip: true)
     end
@@ -227,36 +211,26 @@ module ImageGeneration
     end
     
     def save_to_file(filename)
-      # Ensure output directory exists
       output_dir = Rails.root.join('public', 'generated_shares')
       FileUtils.mkdir_p(output_dir)
       
-      # Generate unique filename
       timestamp = Time.current.to_i
       unique_filename = "#{timestamp}_#{filename}"
       
-      # For social media compatibility, convert SVG to JPG
       begin
-        # Create JPG filename
         jpg_filename = unique_filename.gsub('.svg', '.jpg')
         output_path = output_dir.join(jpg_filename)
         
-        # Convert SVG to JPG using VIPS
         svg_content = create_placeholder_svg
         svg_buffer = svg_content.encode('UTF-8')
         
-        # Use VIPS to convert SVG to JPG
         image = Vips::Image.new_from_buffer(svg_buffer, "")
         image.write_to_file(output_path.to_s, Q: 95)
         
-        Rails.logger.info "Successfully converted SVG to JPG: #{jpg_filename}"
-        
-        # Return relative path for database storage
         "generated_shares/#{jpg_filename}"
       rescue => e
         Rails.logger.error "JPG conversion failed: #{e.message}, falling back to SVG"
         
-        # Fallback to SVG if conversion fails
         svg_filename = unique_filename.gsub('.jpg', '.svg')
         output_path = output_dir.join(svg_filename)
         svg_content = create_placeholder_svg
@@ -274,7 +248,6 @@ module ImageGeneration
     end
     
     def create_placeholder_svg
-      # This will be overridden by subclasses to create actual content
       create_basic_svg_structure
     end
     
@@ -289,7 +262,6 @@ module ImageGeneration
     end
     
     def svg_content
-      # Override in subclasses
       <<~CONTENT
         <text x="#{CANVAS_WIDTH/2}" y="#{CANVAS_HEIGHT/2}" text-anchor="middle" font-family="Arial, sans-serif" font-size="36" fill="#{COLORS[:text_primary]}">
           ChronicleTree Share
@@ -306,57 +278,40 @@ module ImageGeneration
     
     def convert_svg_to_jpg(svg_content)
       begin
-        # Create JPG using ruby-vips instead of converting SVG
-        Rails.logger.info "Creating JPG directly using ruby-vips"
         create_vips_jpg_with_content
       rescue => e
         Rails.logger.error "VIPS JPG creation failed: #{e.message}"
-        # Fallback: create a simple placeholder JPG with more content
         create_enhanced_fallback_jpg
       end
     end
     
     def create_vips_jpg_with_content
-      # Create JPG with actual content using ruby-vips
       require 'vips'
       
-      # Create a gradient background for visual appeal
       image = create_gradient_background
-      
-      # This method will be overridden by subclasses to add specific content
       image_with_content = add_content_to_vips_image(image)
-      
-      # Convert to JPEG and return binary data
       image_with_content.jpegsave_buffer(Q: 85)
     end
     
     def create_gradient_background
-      # Create a beautiful gradient background
       require 'vips'
       
-      # Create base image with light blue gradient
-      # Start with a light blue color
-      base_color = [59, 130, 246] # Blue from COLORS[:primary]
-      light_color = [248, 250, 252] # Very light blue/white
+      base_color = [59, 130, 246]
+      light_color = [248, 250, 252]
       
-      # Create a simple gradient by blending two colors
       top_half = Vips::Image.new_from_array [light_color]
       top_half = top_half.embed 0, 0, CANVAS_WIDTH, CANVAS_HEIGHT / 2, extend: :copy
       
-      bottom_half = Vips::Image.new_from_array [base_color.map { |c| (c * 0.1 + 240).to_i }] # Very light version
+      bottom_half = Vips::Image.new_from_array [base_color.map { |c| (c * 0.1 + 240).to_i }]
       bottom_half = bottom_half.embed 0, CANVAS_HEIGHT / 2, CANVAS_WIDTH, CANVAS_HEIGHT / 2, extend: :copy
       
-      # Composite the gradient
       gradient = top_half.composite bottom_half, 'over'
       
       gradient
     end
     
     def add_content_to_vips_image(image)
-      # Default implementation - will be overridden by subclasses
-      # Add basic text overlay using VIPS text generation
       begin
-        # Create text image
         text_image = Vips::Image.text 'ChronicleTree', 
                                      width: CANVAS_WIDTH - 100,
                                      height: 100,
@@ -369,20 +324,17 @@ module ImageGeneration
                                    font: 'Arial 18',
                                    rgba: true
         
-        # Composite text onto the image
         image = image.composite text_image, 'over', x: 100, y: CANVAS_HEIGHT/2 - 75
         image = image.composite subtitle, 'over', x: 100, y: CANVAS_HEIGHT/2 + 25
         
         image
       rescue => e
         Rails.logger.warn "VIPS text overlay failed: #{e.message}"
-        image # Return image without text if text fails
+        image
       end
     end
     
     def create_enhanced_fallback_jpg
-      # Enhanced fallback with more readable content
-      # Create a more substantial JPEG with basic structure
       begin
         create_vips_jpg_with_content
       rescue => e
@@ -392,13 +344,11 @@ module ImageGeneration
     end
     
     def create_minimal_fallback_jpg
-      # Minimal JPEG as last resort
       minimal_jpg_content = "\xFF\xD8\xFF\xE0\x00\x10JFIF\x00\x01\x01\x01\x00H\x00H\x00\x00\xFF\xDB\x00C\x00\x08\x06\x06\x07\x06\x05\x08\x07\x07\x07\t\t\x08\n\f\x14\r\f\v\v\f\x19\x12\x13\x0F\x14\x1D\x1A\x1F\x1E\x1D\x1A\x1C\x1C $.' \",#\x1C\x1C(7),01444\x1F'9=82<.342\xFF\xC0\x00\x11\x08\x02v\x04\xB0\x03\x01\"\x00\x02\x11\x01\x03\x11\x01\xFF\xC4\x00\x1F\x00\x00\x01\x05\x01\x01\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\v\xFF\xC4\x00\xB5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05\x04\x04\x00\x00\x01}\x01\x02\x03\x00\x04\x11\x05\x12!1A\x06\x13Qa\x07\"q\x142\x81\x91\xA1\x08#B\xB1\xC1\x15R\xD1\xF0$3br\x82\t\n\x16\x17\x18\x19\x1A%&'()*456789:CDEFGHIJSTUVWXYZcdefghijstuvwxyz\x83\x84\x85\x86\x87\x88\x89\x8A\x92\x93\x94\x95\x96\x97\x98\x99\x9A\xA2\xA3\xA4\xA5\xA6\xA7\xA8\xA9\xAA\xB2\xB3\xB4\xB5\xB6\xB7\xB8\xB9\xBA\xC2\xC3\xC4\xC5\xC6\xC7\xC8\xC9\xCA\xD2\xD3\xD4\xD5\xD6\xD7\xD8\xD9\xDA\xE1\xE2\xE3\xE4\xE5\xE6\xE7\xE8\xE9\xEA\xF1\xF2\xF3\xF4\xF5\xF6\xF7\xF8\xF9\xFA\xFF\xDA\x00\x0C\x03\x01\x00\x02\x11\x03\x11\x00?\x00\xF7\xFA(\xA2\x80\x0F\xFF\xD9"
       minimal_jpg_content
     end
 
     def cleanup
-      # No cleanup needed for SVG generation
     end
   end
 end

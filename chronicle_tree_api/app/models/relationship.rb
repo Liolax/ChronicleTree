@@ -1,4 +1,5 @@
-# app/models/relationship.rb
+# Core relationship model for Chronicle Tree family tree project
+# Handles complex family relationships including step-families, marriages, and divorces
 class Relationship < ApplicationRecord
   belongs_to :person,
              class_name: "Person",
@@ -23,12 +24,10 @@ class Relationship < ApplicationRecord
   validate  :no_blood_relative_marriages, if: -> { relationship_type == "spouse" }
   validate  :no_blood_relative_children, if: -> { relationship_type == "child" }
 
-  # Add scopes for different spouse types
   scope :ex_spouses, -> { where(relationship_type: "spouse", is_ex: true) }
   scope :deceased_spouses, -> { where(relationship_type: "spouse", is_deceased: true) }
   scope :current_spouses, -> { where(relationship_type: "spouse", is_ex: false, is_deceased: false) }
 
-  # After creating/updating parent-child relationships, update sibling relationships
   after_create :update_sibling_relationships, if: -> { relationship_type == "child" || relationship_type == "parent" }
   after_update :sync_reciprocal_spouse_status, if: -> { relationship_type == "spouse" && (saved_change_to_is_ex? || saved_change_to_is_deceased?) }
 
@@ -41,17 +40,14 @@ class Relationship < ApplicationRecord
   def valid_relationship_type
     case relationship_type
     when "parent", "child"
-      # Prevent parent/child relationships between spouses
       if person.spouses.include?(relative)
         errors.add(:base, "Blood relatives cannot marry.")
       end
     when "spouse"
-      # Prevent spouse relationship between parent/child
       if person.parents.include?(relative) || person.children.include?(relative)
         errors.add(:base, "Blood relatives cannot marry.")
       end
     when "sibling"
-      # Only block if BOTH people have 2 complete different blood parents
       person_parents = person.parents.pluck(:id)
       relative_parents = relative.parents.pluck(:id)
       
@@ -60,7 +56,6 @@ class Relationship < ApplicationRecord
         has_step_relationship = false
         
         if shared_parents.empty?
-          # Check for step-sibling relationship (parents married to each other)
           person.parents.each do |person_parent|
             relative.parents.each do |relative_parent|
               if person_parent.spouses.include?(relative_parent)
@@ -80,15 +75,11 @@ class Relationship < ApplicationRecord
   end
 
   def only_one_current_spouse
-    # Check if this is a new record or is being updated to current spouse
-    # Only allow one current spouse per person (per direction)
-    # Also consider spouses with date_of_death as effectively "not current"
     existing = Relationship.joins(:relative)
                           .where(relationship_type: "spouse", is_ex: false, is_deceased: false)
                           .where(person_id: person_id)
-                          .where(people: { date_of_death: nil }) # Exclude deceased spouses
+                          .where(people: { date_of_death: nil })
     
-    # Exclude self if updating
     existing = existing.where.not(id: id) if persisted?
     
     if existing.exists?
@@ -97,7 +88,6 @@ class Relationship < ApplicationRecord
   end
 
   def minimum_marriage_age
-    # Validate that both people in a spouse relationship are at least 16 years old
     return unless person&.date_of_birth && relative&.date_of_birth
     
     current_date = Date.current
@@ -114,7 +104,6 @@ class Relationship < ApplicationRecord
   end
 
   def no_blood_relative_marriages
-    # Prevent marriage between blood relatives
     return unless person && relative
     
     if BloodRelationshipDetector.blood_related?(person, relative)
@@ -124,15 +113,10 @@ class Relationship < ApplicationRecord
   end
 
   def no_blood_relative_children
-    # Prevent blood relatives from having shared children
     return unless person && relative
     
-    # For child relationships, person is the parent and relative is the child
-    # We need to check if the parent (person) and their spouse (other parent) are blood relatives
     parent = person
     child = relative
-    
-    # Get all other parents of this child
     other_parents = child.parents.where.not(id: parent.id)
     
     other_parents.each do |other_parent|
@@ -144,7 +128,6 @@ class Relationship < ApplicationRecord
   end
 
   def sync_reciprocal_spouse_status
-    # Find the reciprocal spouse relationship
     reciprocal = Relationship.find_by(
       person_id: relative_id,
       relative_id: person_id,
@@ -152,7 +135,6 @@ class Relationship < ApplicationRecord
     )
     
     if reciprocal
-      # Update both is_ex and is_deceased without triggering callbacks to avoid infinite loop
       if reciprocal.is_ex != is_ex
         reciprocal.update_column(:is_ex, is_ex)
       end
@@ -164,15 +146,9 @@ class Relationship < ApplicationRecord
   end
 
   def update_sibling_relationships
-    # Update sibling relationships for both the person and the relative
-    # when a parent-child relationship is created
     if relationship_type == "child"
-      # person_id is the parent, relative_id is the child
-      # Update siblings for the child
       SiblingRelationshipManager.update_sibling_relationships_for_person(relative_id)
     elsif relationship_type == "parent"
-      # person_id is the child, relative_id is the parent
-      # Update siblings for the child
       SiblingRelationshipManager.update_sibling_relationships_for_person(person_id)
     end
   end

@@ -2,14 +2,11 @@
 
 class PublicSharesController < ApplicationController
   
-  # No authentication needed for public sharing pages
+  # No authentication needed for public sharing
   before_action :set_person, only: [:profile]
   before_action :set_root_person, only: [:tree]
   
-  # GET /profile/:id
   def profile
-    # Log all requests for debugging
-    Rails.logger.info "PUBLIC SHARE: #{request.user_agent} accessing #{request.original_url}"
     
     # Set meta data for social sharing
     @meta_title = "#{@person.full_name} - Family Profile | ChronicleTree"
@@ -17,13 +14,8 @@ class PublicSharesController < ApplicationController
     @meta_image_url = nil
     @share_url = request.original_url
     
-    # Note: Facebook requires HTTPS URLs in production
-    # Localhost HTTP URLs will not work with Facebook's crawler in production
-    if Rails.env.development? && request.host == 'localhost'
-      Rails.logger.warn "WARNING: Facebook sharing may not work with localhost URLs. Use HTTPS domain in production."
-    end
     
-    # Try to generate share image
+    # Generate share image
     begin
       generator = ImageGeneration::ProfileCardGenerator.new
       image_path = generator.generate(@person)
@@ -33,17 +25,17 @@ class PublicSharesController < ApplicationController
       Rails.logger.error "Failed to generate profile share image: #{e.message}"
     end
     
-    # Redirect to frontend if this is a browser request
+    # Redirect to frontend for browser requests
     if !is_crawler?
       redirect_to frontend_profile_url(@person.id)
     else
-      # Set proper cache headers for Facebook crawler
+      # Set cache headers for crawlers
       if is_crawler?
-        response.headers['Cache-Control'] = 'public, max-age=86400' # 24 hours
+        response.headers['Cache-Control'] = 'public, max-age=86400'
         response.headers['Vary'] = 'User-Agent'
       end
       
-      # Render HTML directly for crawlers
+      # Render HTML for crawlers
       html_content = <<~HTML
         <!DOCTYPE html>
         <html lang="en">
@@ -89,10 +81,7 @@ class PublicSharesController < ApplicationController
     end
   end
   
-  # GET /tree?root=:person_id&generations=:generations
   def tree
-    # Log all requests for debugging
-    Rails.logger.info "PUBLIC TREE SHARE: #{request.user_agent} accessing #{request.original_url}"
     
     @generations = params[:generations]&.to_i || 3
     
@@ -102,7 +91,7 @@ class PublicSharesController < ApplicationController
     @meta_image_url = nil
     @share_url = request.original_url
     
-    # Try to generate share image
+    # Generate share image
     begin
       generator = ImageGeneration::TreeSnippetGenerator.new
       image_path = generator.generate(@root_person, generations: @generations)
@@ -112,17 +101,17 @@ class PublicSharesController < ApplicationController
       Rails.logger.error "Failed to generate tree share image: #{e.message}"
     end
     
-    # Redirect to frontend if this is a browser request
+    # Redirect to frontend for browser requests
     if !is_crawler?
       redirect_to frontend_tree_url(@root_person.id)
     else
-      # Set proper cache headers for Facebook crawler
+      # Set cache headers for crawlers
       if is_crawler?
-        response.headers['Cache-Control'] = 'public, max-age=86400' # 24 hours
+        response.headers['Cache-Control'] = 'public, max-age=86400'
         response.headers['Vary'] = 'User-Agent'
       end
       
-      # Render HTML directly for crawlers
+      # Render HTML for crawlers
       html_content = <<~HTML
         <!DOCTYPE html>
         <html lang="en">
@@ -170,15 +159,12 @@ class PublicSharesController < ApplicationController
   
   protected
   
-  # Make these methods available to views
   def frontend_profile_url(person_id)
-    # Assuming React frontend runs on port 3000 in development
     base_url = Rails.env.development? ? 'http://localhost:3000' : request.base_url
     "#{base_url}/profile/#{person_id}"
   end
   
   def frontend_tree_url(person_id)
-    # Assuming React frontend runs on port 3000 in development
     base_url = Rails.env.development? ? 'http://localhost:3000' : request.base_url
     "#{base_url}/tree?root=#{person_id}"
   end
@@ -186,7 +172,7 @@ class PublicSharesController < ApplicationController
   private
   
   def set_person
-    # For public sharing, access Person directly without user scoping
+    # Access Person directly without user scoping
     @person = Person.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render plain: "Person not found", status: :not_found
@@ -196,14 +182,14 @@ class PublicSharesController < ApplicationController
     person_id = params[:root] || params[:person_id]
     return render(plain: "Missing person ID", status: :bad_request) unless person_id
     
-    # For public sharing, access Person directly without user scoping
+    # Access Person directly without user scoping
     @root_person = Person.find(person_id)
   rescue ActiveRecord::RecordNotFound
     render plain: "Person not found", status: :not_found
   end
   
   def is_crawler?
-    # Detect social media crawlers and bots
+    # Detect social media crawlers
     user_agent = request.user_agent.to_s.downcase
     crawlers = [
       'facebookexternalhit',
@@ -233,7 +219,7 @@ class PublicSharesController < ApplicationController
       end
     end
     
-    # Include more detailed facts (increase from 2 to 4)
+    # Include detailed facts
     if person.respond_to?(:facts) && person.facts.any?
       facts = person.facts.limit(4).map do |f| 
         if f.label.present? && f.value.present?
@@ -259,11 +245,11 @@ class PublicSharesController < ApplicationController
     base = "Discover #{person.full_name}'s family story"
     return base if parts.empty?
     
-    # Join with better formatting - Facebook recommends 2-4 sentences
-    description_parts = parts.first(4) # Limit to prevent too long descriptions for Facebook
+    # Join with better formatting
+    description_parts = parts.first(4)
     description = "#{base} - #{description_parts.join(' • ')}"
     
-    # Ensure description is not too long (Facebook recommends under 300 characters)
+    # Ensure description is not too long
     description.length > 297 ? "#{description[0..293]}..." : description
   end
   
