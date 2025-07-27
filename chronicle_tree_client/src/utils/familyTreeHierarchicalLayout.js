@@ -119,7 +119,7 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId, relationshipMaps.childToParents);
 
   // Step 5: Create simplified edges (no duplication)
-  const edges = createSimplifiedEdges(relationships, relationshipMaps);
+  const edges = createSimplifiedEdges(relationships, relationshipMaps, persons);
 
   return { nodes, edges };
 };
@@ -216,7 +216,13 @@ const buildRelationshipMaps = (relationships, persons) => {
       case 'spouse':
         // Only include current spouses in the spouse map for positioning
         // Ex-spouses and deceased spouses should not be positioned as couples
-        if (!rel.is_ex && !rel.is_deceased) {
+        // Also check if either person is actually deceased
+        const sourcePersonForSpouse = persons.find(p => String(p.id) === source);
+        const targetPersonForSpouse = persons.find(p => String(p.id) === target);
+        const isActuallyDeceased = (sourcePersonForSpouse?.date_of_death || sourcePersonForSpouse?.is_deceased) || 
+                                  (targetPersonForSpouse?.date_of_death || targetPersonForSpouse?.is_deceased);
+        
+        if (!rel.is_ex && !rel.is_deceased && !isActuallyDeceased) {
           spouseMap.set(source, target);
           spouseMap.set(target, source);
         }
@@ -438,8 +444,8 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   const NODE_WIDTH = 280;
   const NODE_MARGIN = 40;
   const currentSpouseSpacing = NODE_WIDTH + 50;  // 330, close spacing for current spouses
-  const exSpouseSpacing = 120;
-  const lateSpouseSpacing = 70;
+  const exSpouseSpacing = NODE_WIDTH + 80;       // 360, more distance for ex-spouses
+  const lateSpouseSpacing = NODE_WIDTH + 70;     // 350, slightly more than current spouse
   const SIBLING_SPACING = 460;    // Comfortable spacing for siblings from same parents
   const COUSIN_SPACING = 420;     // Closer spacing between different families (cousins)
 
@@ -638,9 +644,10 @@ const createPersonNode = (person, x, y, handlers) => {
  * Create simplified edges with no duplication and better visual clarity
  * @param {Array} relationships - Array of relationship objects
  * @param {Object} relationshipMaps - Relationship maps
+ * @param {Array} persons - Array of person objects for checking deceased status
  * @returns {Array} - Array of simplified edges
  */
-const createSimplifiedEdges = (relationships, relationshipMaps) => {
+const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
   const edges = [];
   const processedConnections = new Set();
 
@@ -688,12 +695,26 @@ const createSimplifiedEdges = (relationships, relationshipMaps) => {
       // Determine the relationship status and color
       const isEx = relationship.is_ex === true;
       const isDeceased = relationship.is_deceased === true;
+      
+      // Also check if either person in the relationship is deceased
+      const sourcePerson = persons.find(p => String(p.id) === source);
+      const targetPerson = persons.find(p => String(p.id) === target);
+      const eitherPersonDeceased = (sourcePerson?.date_of_death || sourcePerson?.is_deceased) || 
+                                  (targetPerson?.date_of_death || targetPerson?.is_deceased);
+      
       // Choose color based on relationship status
       let strokeColor = '#ec4899'; // Default: pink for current spouse
-      if (isDeceased) {
-        strokeColor = '#000000'; // Black for deceased spouse
-      } else if (isEx) {
+      
+      // CRITICAL: Only legitimate late spouse relationships (is_deceased === true) get black color
+      // Posthumous marriages should be treated as ex-spouse (grey)
+      if (isEx) {
         strokeColor = '#9ca3af'; // Grey for ex-spouse
+      } else if (isDeceased) {
+        strokeColor = '#000000'; // Black for legitimate late spouse (married before death)
+      } else if (eitherPersonDeceased) {
+        // If either person is deceased but relationship is NOT marked as legitimate late spouse,
+        // treat as ex-spouse (this handles posthumous marriages like Sam-Molly)
+        strokeColor = '#9ca3af'; // Grey for posthumous marriages treated as ex-spouse
       }
       edges.push({
         id: connectionKey,

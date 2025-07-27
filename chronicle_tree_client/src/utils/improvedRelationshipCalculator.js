@@ -224,8 +224,9 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
           }
           exSpouseMap.get(source).add(target);
           exSpouseMap.get(target).add(source);
-        } else if (isDeceasedSpouse) {
-          // Automatically detect deceased spouse relationships based on death_date
+        } else if (rel.is_deceased) {
+          // ONLY relationships explicitly marked as is_deceased are late spouses
+          // This means they were married BEFORE the death occurred
           if (!deceasedSpouseMap.has(source)) {
             deceasedSpouseMap.set(source, new Set());
           }
@@ -234,6 +235,17 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
           }
           deceasedSpouseMap.get(source).add(target);
           deceasedSpouseMap.get(target).add(source);
+        } else if (isDeceasedSpouse) {
+          // CRITICAL: If either person is deceased but relationship is NOT marked as legitimate late spouse,
+          // treat it as ex-spouse (this handles posthumous marriages)
+          if (!exSpouseMap.has(source)) {
+            exSpouseMap.set(source, new Set());
+          }
+          if (!exSpouseMap.has(target)) {
+            exSpouseMap.set(target, new Set());
+          }
+          exSpouseMap.get(source).add(target);
+          exSpouseMap.get(target).add(source);
         } else {
           // Current spouse relationships - use Sets to handle multiple current spouses
           if (!spouseMap.has(source)) {
@@ -379,20 +391,35 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Check if person is root's current spouse
   if (spouseMap.has(rootId) && spouseMap.get(rootId).has(personId)) {
-    return getGenderSpecificRelation(personId, 'Husband', 'Wife', allPeople, 'Spouse');
+    // CRITICAL: Check if either person is deceased - if so, this should not be a "current" spouse
+    const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
+    const person = allPeople.find(p => String(p.id) === String(personId));
+    
+    // If either person is deceased, this relationship should be treated as ex-spouse or late spouse
+    if ((rootPerson && (rootPerson.date_of_death || rootPerson.is_deceased)) || 
+        (person && (person.date_of_death || person.is_deceased))) {
+      // Don't return current spouse relationship for deceased people
+      // Let it fall through to other relationship checks
+    } else {
+      return getGenderSpecificRelation(personId, 'Husband', 'Wife', allPeople, 'Spouse');
+    }
   }
   
   // Check if person is root's deceased spouse
   if (deceasedSpouseMap.has(rootId) && deceasedSpouseMap.get(rootId).has(personId)) {
-    // Check if the root person is deceased - if so, don't use "Late" prefix
+    // CRITICAL: Even if both are deceased, this should still be treated as a late spouse relationship
+    // The key distinction is whether they were married BEFORE the death occurred
+    // Anyone in deceasedSpouseMap should be a legitimate late spouse (married before death)
+    
     const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
     const rootIsDeceased = rootPerson && (rootPerson.date_of_death || rootPerson.is_deceased);
     
     if (rootIsDeceased) {
       // Root is deceased, so person is just their "Husband/Wife" (not "Late")
+      // The "Late" prefix is only used from the perspective of the living person
       return getGenderSpecificRelation(personId, 'Husband', 'Wife', allPeople, 'Spouse');
     } else {
-      // Root is living, so person is their "Late Husband/Wife"
+      // Root is living, so person is their "Late Husband/Wife" 
       return getGenderSpecificRelation(personId, 'Late Husband', 'Late Wife', allPeople, 'Late Spouse');
     }
   }
@@ -400,6 +427,19 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   // Check if person is root's ex-spouse
   if (exSpouseMap.has(rootId) && exSpouseMap.get(rootId).has(personId)) {
     return getGenderSpecificRelation(personId, 'Ex-Husband', 'Ex-Wife', allPeople, 'Ex-Spouse');
+  }
+  
+  // CRITICAL: Check if person is in spouseMap but either person is deceased - treat as ex-spouse
+  // This handles cases where someone was incorrectly added as current spouse to a deceased person
+  if (spouseMap.has(rootId) && spouseMap.get(rootId).has(personId)) {
+    const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
+    const person = allPeople.find(p => String(p.id) === String(personId));
+    
+    if ((rootPerson && (rootPerson.date_of_death || rootPerson.is_deceased)) || 
+        (person && (person.date_of_death || person.is_deceased))) {
+      // Treat posthumous or deceased spouse relationships as ex-spouse
+      return getGenderSpecificRelation(personId, 'Ex-Husband', 'Ex-Wife', allPeople, 'Ex-Spouse');
+    }
   }
   
   // Check if person is root's sibling (with generation validation)
@@ -1639,6 +1679,8 @@ const findDeceasedSpouseRelationship = (personId, rootId, relationshipMaps, allP
   for (const deceasedSpouse of rootDeceasedSpouses) {
     if (siblingMap.has(deceasedSpouse) && siblingMap.get(deceasedSpouse).has(personId)) {
       const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
+      
+      
       const deceasedGender = deceasedSpousePerson?.gender?.toLowerCase();
       
       if (deceasedGender === 'female') {
@@ -1687,6 +1729,8 @@ const findDeceasedSpouseRelationship = (personId, rootId, relationshipMaps, allP
   for (const deceasedSpouse of personDeceasedSpouses) {
     if (siblingMap.has(deceasedSpouse) && siblingMap.get(deceasedSpouse).has(rootId)) {
       const deceasedSpousePerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
+      
+      
       const deceasedGender = deceasedSpousePerson?.gender?.toLowerCase();
       
       if (deceasedGender === 'female') {

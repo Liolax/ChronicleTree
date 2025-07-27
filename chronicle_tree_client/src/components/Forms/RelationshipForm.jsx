@@ -6,6 +6,7 @@ const LABELS = {
   parent: 'Select Parent',
   child: 'Select Child',
   spouse: 'Select Spouse',
+  late_spouse: 'Select Late Spouse',
   sibling: 'Select Sibling',
 };
 
@@ -89,8 +90,9 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
   const handleFormSubmit = (data) => {
     const submissionData = { 
       selectedId: data.selectedId,
-      relationshipType: type,
-      is_ex: type === 'spouse' ? (forceEx ? true : !!data.is_ex) : undefined 
+      relationshipType: type === 'late_spouse' ? 'spouse' : type,
+      is_ex: type === 'spouse' ? (forceEx ? true : !!data.is_ex) : (type === 'late_spouse' ? false : undefined),
+      is_deceased: type === 'late_spouse' ? true : undefined
     };
     
     // Add shared parent if marking as half-sibling
@@ -234,6 +236,14 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
               {dynamicForceEx && <div>(Selected person has current spouse, must be marked as ex)</div>}
             </div>
           )}
+        </div>
+      )}
+
+      {type === 'late_spouse' && (
+        <div className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+          <p className="text-sm text-gray-700">
+            <span className="font-medium">Late Spouse:</span> This relationship will be marked as deceased automatically.
+          </p>
         </div>
       )}
       <div className="flex justify-end space-x-2">

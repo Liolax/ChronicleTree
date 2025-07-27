@@ -390,10 +390,14 @@ const FamilyTree = () => {
             {/* Mini Map */}
             <MiniMap
               nodeColor={(node) => {
-                if (node.data?.person?.gender?.toLowerCase() === 'female') {
+                const gender = node.data?.person?.gender?.toLowerCase();
+                if (gender === 'female') {
                   return '#ec4899';
                 }
-                return '#6366f1';
+                if (gender === 'male') {
+                  return '#6366f1';
+                }
+                return '#9ca3af';
               }}
               nodeStrokeWidth={3}
               nodeBorderRadius={8}

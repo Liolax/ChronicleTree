@@ -9,7 +9,8 @@ import { showValidationAlert } from '../../../utils/validationAlerts';
 const RELATIONSHIP_TYPE_OPTIONS = [
   { value: 'parent', label: 'Parent' },
   { value: 'child', label: 'Child' },
-  { value: 'spouse', label: 'Spouse' },
+  { value: 'spouse', label: 'Current Spouse' },
+  { value: 'late_spouse', label: 'Late Spouse' },
   { value: 'sibling', label: 'Sibling' },
 ];
 
@@ -30,7 +31,25 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       onClose();
     },
     onError: (error) => {
-      const errorMessage = error?.response?.data?.errors?.[0] || 'Failed to create relationship. Please try again.';
+      let errorMessage = 'Failed to create relationship. Please try again.';
+      
+      // Handle specific 422 errors with user-friendly messages
+      if (error?.response?.status === 422) {
+        const serverError = error?.response?.data?.errors?.[0] || error?.response?.data?.message || '';
+        
+        if (serverError.includes('age') || serverError.includes('16') || serverError.includes('marriage')) {
+          errorMessage = 'Both people must be at least 16 years old to marry. Please check their birth dates.';
+        } else if (serverError.includes('deceased') || serverError.includes('death')) {
+          errorMessage = 'Cannot create current spouse relationship with deceased person. Use "Late Spouse" instead.';
+        } else if (serverError.includes('spouse') && serverError.includes('already')) {
+          errorMessage = 'This person already has a current spouse. You can only add an ex-spouse.';
+        } else {
+          errorMessage = serverError || errorMessage;
+        }
+      } else {
+        errorMessage = error?.response?.data?.errors?.[0] || errorMessage;
+      }
+      
       setWarning(errorMessage);
     },
   });
@@ -161,10 +180,86 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     
     if (!person1 || !person2) return { valid: false, reason: 'Person not found' };
 
-    // Age validation
-    const ageCheck = validateAgeConstraint(person1, person2, type);
+    // Age validation - apply to both spouse and late_spouse
+    const spouseType = (type === 'spouse' || type === 'late_spouse') ? 'spouse' : type;
+    const ageCheck = validateAgeConstraint(person1, person2, spouseType);
     if (!ageCheck.valid) {
       return ageCheck;
+    }
+
+    // Additional validations for spouse relationships
+    if (type === 'spouse' || type === 'late_spouse') {
+      // CRITICAL: Deceased people cannot create new marriages
+      if (person1.date_of_death) {
+        return {
+          valid: false,
+          reason: `${person1.first_name} ${person1.last_name} is deceased and cannot create new marriages. Deceased people can only have relationships that existed before their death.`
+        };
+      }
+      
+      if (person2.date_of_death && type === 'spouse') {
+        return {
+          valid: false,
+          reason: `${person2.first_name} ${person2.last_name} is deceased and cannot create new current marriages. Use 'Late Spouse' if they were married before death.`
+        };
+      }
+      
+      // Check if person1 already has a current spouse (not ex, not deceased)
+      const currentSpouses = person1.relatives?.filter(rel => 
+        rel.relationship_type === 'spouse' && !rel.is_ex && !rel.is_deceased
+      ) || [];
+      
+      if (type === 'spouse' && currentSpouses.length > 0) {
+        return {
+          valid: false,
+          reason: `${person1.first_name} ${person1.last_name} already has a current spouse. You can only add an ex-spouse or late spouse.`
+        };
+      }
+      
+      
+      // Check if either person is alive but trying to add as late_spouse
+      if (type === 'late_spouse') {
+        // CRITICAL: Even for late spouse, deceased people cannot create new marriages
+        if (person1.date_of_death) {
+          return {
+            valid: false,
+            reason: `${person1.first_name} ${person1.last_name} is deceased and cannot create new marriages. Deceased people can only have relationships that existed before their death.`
+          };
+        }
+        
+        if (!person1.date_of_death && !person2.date_of_death) {
+          return {
+            valid: false,
+            reason: `Both people are alive. Use 'Current Spouse' relationship type instead.`
+          };
+        }
+        
+        // CRITICAL: Check if person1 already has a late spouse - only one allowed
+        const existingLateSpouses = person1.relatives?.filter(rel => 
+          rel.relationship_type === 'spouse' && rel.is_deceased && !rel.is_ex
+        ) || [];
+        
+        if (existingLateSpouses.length > 0) {
+          const existingLateSpouseName = existingLateSpouses[0].full_name || `${existingLateSpouses[0].first_name} ${existingLateSpouses[0].last_name}`;
+          return {
+            valid: false,
+            reason: `${person1.first_name} ${person1.last_name} already has a late spouse (${existingLateSpouseName}). Only one late spouse is allowed. You can add ${person2.first_name} as an ex-spouse instead.`
+          };
+        }
+        
+        // CRITICAL: Check if person2 already has a late spouse - only one allowed  
+        const person2ExistingLateSpouses = person2.relatives?.filter(rel => 
+          rel.relationship_type === 'spouse' && rel.is_deceased && !rel.is_ex
+        ) || [];
+        
+        if (person2ExistingLateSpouses.length > 0) {
+          const existingLateSpouseName = person2ExistingLateSpouses[0].full_name || `${person2ExistingLateSpouses[0].first_name} ${person2ExistingLateSpouses[0].last_name}`;
+          return {
+            valid: false,
+            reason: `${person2.first_name} ${person2.last_name} already has a late spouse (${existingLateSpouseName}). Only one late spouse is allowed. You can add as an ex-spouse instead.`
+          };
+        }
+      }
     }
 
     // Blood relationship detection
@@ -214,7 +309,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     }
     
     // Validation for spouse relationships, including complex remarriage situations
-    if (type === 'spouse') {
+    if (type === 'spouse' || type === 'late_spouse') {
       // Always prevent marriage between blood relatives regardless of previous marriages
       if (bloodCheck.isBloodRelated) {
         return { 
@@ -418,6 +513,16 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         alertDetails = { targetName: targetPerson ? `${targetPerson.first_name} ${targetPerson.last_name}` : 'Person' };
       } else if (validation.reason.includes('birth date')) {
         alertType = 'missingData';
+      } else if (validation.reason.includes('already has a current spouse')) {
+        alertType = 'currentSpouseExists';
+      } else if (validation.reason.includes('is deceased') && validation.reason.includes('Late Spouse')) {
+        alertType = 'deceasedSpouseType';
+      } else if (validation.reason.includes('is not deceased') && validation.reason.includes('Current Spouse')) {
+        alertType = 'aliveSpouseType';
+      } else if (validation.reason.includes('already has a late spouse')) {
+        alertType = 'multipleLateSpouse';
+      } else if (validation.reason.includes('is deceased and cannot create new marriages')) {
+        alertType = 'deceasedCannotMarry';
       }
       
       showValidationAlert(alertType, alertDetails);
@@ -428,8 +533,9 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     const relationshipData = {
       person_id: selectedPerson?.id,
       relative_id: data.selectedId,
-      relationship_type: selectedType,
+      relationship_type: data.relationshipType || selectedType,
       is_ex: data.is_ex,
+      is_deceased: data.is_deceased,
     };
     mutate(relationshipData);
   };
