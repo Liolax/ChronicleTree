@@ -65,6 +65,30 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       }
     }
     
+    // Check for great-grandparent-great-grandchild relationship (person is great-grandparent of root)
+    for (const child of personChildren) {
+      if (parentToChildren.has(child)) {
+        const grandchildren = parentToChildren.get(child);
+        for (const grandchild of grandchildren) {
+          if (parentToChildren.has(grandchild) && parentToChildren.get(grandchild).has(String(rootPerson.id))) {
+            return getGenderSpecificRelation(person.id, 'Great-Grandfather', 'Great-Grandmother', allPeople, 'Great-Grandparent');
+          }
+        }
+      }
+    }
+    
+    // Check for great-grandchild-great-grandparent relationship (root is great-grandparent of person)
+    for (const parent of personParents) {
+      if (childToParents.has(parent)) {
+        const grandparents = childToParents.get(parent);
+        for (const grandparent of grandparents) {
+          if (childToParents.has(grandparent) && childToParents.get(grandparent).has(String(person.id))) {
+            return getGenderSpecificRelation(rootPerson.id, 'Great-Grandfather', 'Great-Grandmother', allPeople, 'Great-Grandparent');
+          }
+        }
+      }
+    }
+    
     // No direct biological relationship and they never lived at the same time = Unrelated
     return 'Unrelated';
   }
@@ -102,6 +126,30 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     for (const parent of rootParents) {
       if (parentToChildren.has(parent) && parentToChildren.get(parent).has(String(person.id))) {
         return getGenderSpecificRelation(rootPerson.id, 'Grandfather', 'Grandmother', allPeople, 'Grandparent');
+      }
+    }
+    
+    // Check for great-grandparent-great-grandchild relationship (person is great-grandparent of root)
+    for (const child of personChildren) {
+      if (parentToChildren.has(child)) {
+        const grandchildren = parentToChildren.get(child);
+        for (const grandchild of grandchildren) {
+          if (parentToChildren.has(grandchild) && parentToChildren.get(grandchild).has(String(rootPerson.id))) {
+            return getGenderSpecificRelation(person.id, 'Great-Grandfather', 'Great-Grandmother', allPeople, 'Great-Grandparent');
+          }
+        }
+      }
+    }
+    
+    // Check for great-grandchild-great-grandparent relationship (root is great-grandparent of person)
+    for (const parent of rootParents) {
+      if (childToParents.has(parent)) {
+        const grandparents = childToParents.get(parent);
+        for (const grandparent of grandparents) {
+          if (childToParents.has(grandparent) && childToParents.get(grandparent).has(String(person.id))) {
+            return getGenderSpecificRelation(rootPerson.id, 'Great-Grandfather', 'Great-Grandmother', allPeople, 'Great-Grandparent');
+          }
+        }
       }
     }
     
@@ -159,8 +207,8 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
   
   relationships.forEach(rel => {
     // Handle different relationship formats (API format vs test format)
-    const source = String(rel.source || rel.from || rel.person_a_id);
-    const target = String(rel.target || rel.to || rel.person_b_id);
+    const source = String(rel.source || rel.from || rel.person_a_id || rel.person_id);
+    const target = String(rel.target || rel.to || rel.person_b_id || rel.relative_id);
     
     // Support both 'type' and 'relationship_type' field names for flexibility
     const relationshipType = (rel.type || rel.relationship_type || '').toLowerCase();
@@ -305,8 +353,8 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
   // Important: After building parent-child relationships, automatically detect biological siblings through shared parents
   const allPersonIds = new Set();
   relationships.forEach(rel => {
-    allPersonIds.add(String(rel.source || rel.from));
-    allPersonIds.add(String(rel.target || rel.to));
+    allPersonIds.add(String(rel.source || rel.from || rel.person_a_id || rel.person_id));
+    allPersonIds.add(String(rel.target || rel.to || rel.person_b_id || rel.relative_id));
   });
 
   // For each person, find their biological siblings by looking for other people with the same parents
@@ -319,22 +367,19 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
         if (personId !== otherPersonId) {
           const otherParents = childToParents.get(otherPersonId) || new Set();
           
-          // Check if they share ALL parents (biological siblings)
-          // Both must have the same number of parents and share all of them
-          if (personParents.size === otherParents.size && personParents.size > 0) {
-            const sharedParents = [...personParents].filter(parent => otherParents.has(parent));
-            
-            if (sharedParents.length === personParents.size) {
-              // They share ALL parents - biological siblings
-              if (!siblingMap.has(personId)) {
-                siblingMap.set(personId, new Set());
-              }
-              if (!siblingMap.has(otherPersonId)) {
-                siblingMap.set(otherPersonId, new Set());
-              }
-              siblingMap.get(personId).add(otherPersonId);
-              siblingMap.get(otherPersonId).add(personId);
+          // Check if they share any parents (biological siblings - includes both full and half siblings)
+          const sharedParents = [...personParents].filter(parent => otherParents.has(parent));
+          
+          if (sharedParents.length > 0) {
+            // They share at least one parent - they are siblings (full or half)
+            if (!siblingMap.has(personId)) {
+              siblingMap.set(personId, new Set());
             }
+            if (!siblingMap.has(otherPersonId)) {
+              siblingMap.set(otherPersonId, new Set());
+            }
+            siblingMap.get(personId).add(otherPersonId);
+            siblingMap.get(otherPersonId).add(personId);
           }
         }
       }
@@ -754,18 +799,50 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     // Note: Ex-spouses do NOT create step-relationships
   }
   
-  // REMOVED: All step-grandparent relationship logic
-  //
-  // BUSINESS RULE: Only direct marriage connections create step-relationships.
-  // The parents, siblings, or other relatives of a step-parent should be classified as "Unrelated".
-  //
+  // Check for step-grandparent relationship
+  // BUSINESS RULE: Step-grandparent relationships only exist when someone NEW marries your biological grandparent
+  // Example: If your biological grandfather remarries, his new wife becomes your step-grandmother
+  const rootParentsForGrandparent = childToParents.get(rootId) || new Set();
+  for (const parent of rootParentsForGrandparent) {
+    // Get this parent's parents (root's grandparents)
+    const grandparents = childToParents.get(parent) || new Set();
+    for (const grandparent of grandparents) {
+      // Check if person is married to this biological grandparent
+      const grandparentSpouses = spouseMap.get(grandparent) || new Set();
+      const grandparentDeceasedSpouses = deceasedSpouseMap.get(grandparent) || new Set();
+      
+      // Check current spouses
+      if (grandparentSpouses.has(personId)) {
+        // Person is married to root's biological grandparent → step-grandparent
+        return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
+      }
+      
+      // Check deceased spouses (but only if they were alive when the marriage was valid)
+      if (grandparentDeceasedSpouses.has(personId)) {
+        // Additional timeline validation for deceased spouses
+        const personObj = allPeople.find(p => p.id == personId);
+        const rootObj = allPeople.find(p => p.id == rootId);
+        
+        if (personObj?.date_of_death && rootObj?.date_of_birth) {
+          const deathDate = new Date(personObj.date_of_death);
+          const birthDate = new Date(rootObj.date_of_birth);
+          
+          // If root was born after person's death, no step-grandparent relationship exists
+          if (birthDate > deathDate) {
+            continue; // Skip this deceased spouse, not a valid step-grandparent
+          }
+        }
+        
+        return getGenderSpecificRelation(personId, 'Step-Grandfather', 'Step-Grandmother', allPeople, 'Step-Grandparent');
+      }
+    }
+  }
+  
+  // BUSINESS RULE: The biological parents, siblings, or other relatives of step-parents are "Unrelated"
   // Examples of relationships that should be "Unrelated":
   // 1. Step-parent's biological parents → NOT step-grandparents
   // 2. Step-parent's siblings → NOT step-aunts/uncles  
-  // 3. Step-parent's children from other relationships → Handle separately as step-siblings
-  // 4. Any extended family of step-parent → "Unrelated"
-  //
-  // This prevents incorrect classification of step-family's biological relatives.
+  // 3. Any extended family of step-parent → "Unrelated"
   
   // REMOVED: All reverse step-grandparent relationship logic
   //
@@ -1318,7 +1395,85 @@ const generateCousinRemovedLabel = (baseDegree, removedCount) => {
  * @returns {string|null} - Blood relationship or null
  */
 const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  // Simplified implementation - return null for now
+  const { parentToChildren, childToParents, siblingMap } = relationshipMaps;
+  
+  // Check for grandparent relationship (person is grandparent of root)
+  const rootParents = childToParents.get(rootId) || new Set();
+  for (const parent of rootParents) {
+    if (childToParents.has(parent) && childToParents.get(parent).has(personId)) {
+      return getGenderSpecificRelation(personId, 'Grandfather', 'Grandmother', allPeople, 'Grandparent');
+    }
+  }
+  
+  // Check for grandchild relationship (person is grandchild of root)
+  const rootChildren = parentToChildren.get(rootId) || new Set();
+  for (const child of rootChildren) {
+    if (parentToChildren.has(child) && parentToChildren.get(child).has(personId)) {
+      return getGenderSpecificRelation(personId, 'Grandson', 'Granddaughter', allPeople, 'Grandchild');
+    }
+  }
+  
+  // Check for great-grandparent relationship (person is great-grandparent of root)
+  for (const parent of rootParents) {
+    const grandparents = childToParents.get(parent) || new Set();
+    for (const grandparent of grandparents) {
+      if (childToParents.has(grandparent) && childToParents.get(grandparent).has(personId)) {
+        return getGenderSpecificRelation(personId, 'Great-Grandfather', 'Great-Grandmother', allPeople, 'Great-Grandparent');
+      }
+    }
+  }
+  
+  // Check for great-grandchild relationship (person is great-grandchild of root)
+  for (const child of rootChildren) {
+    const grandchildren = parentToChildren.get(child) || new Set();
+    for (const grandchild of grandchildren) {
+      if (parentToChildren.has(grandchild) && parentToChildren.get(grandchild).has(personId)) {
+        return getGenderSpecificRelation(personId, 'Great-Grandson', 'Great-Granddaughter', allPeople, 'Great-Grandchild');
+      }
+    }
+  }
+  
+  // Check for aunt/uncle relationship (person is sibling of root's parent)
+  for (const parent of rootParents) {
+    if (siblingMap.has(parent) && siblingMap.get(parent).has(personId)) {
+      // Check if this is a full sibling or half sibling relationship
+      const parentParents = childToParents.get(parent) || new Set();
+      const personParents = childToParents.get(personId) || new Set();
+      const sharedParents = [...parentParents].filter(p => personParents.has(p));
+      
+      if (parentParents.size >= 2 && personParents.size >= 2 && sharedParents.length >= 2) {
+        // Full siblings - regular aunt/uncle
+        return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, 'Aunt/Uncle');
+      } else if (sharedParents.length === 1) {
+        // Half siblings - half aunt/uncle
+        return getGenderSpecificRelation(personId, 'Half-Uncle', 'Half-Aunt', allPeople, 'Half-Aunt/Uncle');
+      }
+    }
+  }
+  
+  // Check for niece/nephew relationship (person is child of root's sibling)
+  if (siblingMap.has(rootId)) {
+    const rootSiblings = siblingMap.get(rootId);
+    for (const sibling of rootSiblings) {
+      if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
+        return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, 'Niece/Nephew');
+      }
+    }
+  }
+  
+  // Check for cousin relationship (person and root share grandparents)
+  for (const parent of rootParents) {
+    const grandparents = childToParents.get(parent) || new Set();
+    for (const grandparent of grandparents) {
+      const auntsUncles = parentToChildren.get(grandparent) || new Set();
+      for (const auntUncle of auntsUncles) {
+        if (auntUncle !== parent && parentToChildren.has(auntUncle) && parentToChildren.get(auntUncle).has(personId)) {
+          return 'Cousin';
+        }
+      }
+    }
+  }
+  
   return null;
 };
 

@@ -1,30 +1,38 @@
 # Updated Step-Relationship Business Rules
 
 ## Core Business Rule
-**Only direct marriage connections create step-relationships. All other relatives of step-family members are "Unrelated".**
+**Only direct marriage connections to blood relatives create step-relationships. Extended family of step-relatives are "Unrelated".**
 
 ## What This Means
 
-### ✅ VALID Step-Relationships (Direct Marriage Connections)
+### ✅ VALID Step-Relationships (Direct Marriage to Blood Relatives)
 1. **Step-Parent**: When someone marries your biological parent → They become your step-parent
 2. **Step-Child**: When you marry someone's biological parent → Their child becomes your step-child  
 3. **Step-Sibling**: Direct biological children of your step-parent (only if no shared biological parents)
+4. **Step-Grandparent**: When someone NEW marries your biological grandparent → They become your step-grandparent (only applies to new family members acquired through marriage)
+5. **Step-Great-Grandparent**: When someone NEW marries your biological great-grandparent → They become your step-great-grandparent (only applies to new family members acquired through marriage)
 
 ### ❌ INVALID Step-Relationships (Should be "Unrelated")
-1. **Step-Grandparent**: Step-parent's biological parents → **"Unrelated"**
-2. **Step-Great-Grandparent**: Any extended ancestors of step-relatives → **"Unrelated"**
-3. **Step-Aunt/Uncle**: Step-parent's siblings → **"Unrelated"**
-4. **Step-Niece/Nephew**: Children of step-relatives → **"Unrelated"**
-5. **Step-Grandchild**: Extended descendants → **"Unrelated"**
+1. **Step-parent's biological parents**: NOT step-grandparents → **"Unrelated"**
+2. **Step-grandparent's biological parents**: NOT step-great-grandparents → **"Unrelated"**
+3. **Step-parent's siblings**: NOT step-aunts/uncles → **"Unrelated"**
+4. **Step-sibling's children**: NOT step-nieces/nephews → **"Unrelated"**
+5. **Any extended family of step-relatives**: → **"Unrelated"**
 
 ## Scenarios Analyzed
 
 ### Basic Scenario: Step-Grandmother
-- **Situation**: Grandfather remarries Sarah
-- **Correct**: Sarah is step-grandmother
-- **Sarah's parents**: **"Unrelated"** (not step-great-grandparents)
+- **Situation**: Biological grandfather remarries Sarah (a NEW family member)
+- **Correct**: Sarah is step-grandmother (NEW person married to blood grandparent)
+- **Sarah's biological parents**: **"Unrelated"** (not step-great-grandparents)
 - **Sarah's siblings**: **"Unrelated"** (not step-aunts/uncles)
-- **Sarah's children from other relationships**: **"Step-siblings"** (direct children only)
+- **Sarah's children from other relationships**: **"Unrelated"** (not step-parents)
+
+### Valid Step-Great-Grandparent Scenario  
+- **Situation**: Biological great-grandfather remarries Emma (a NEW family member)
+- **Correct**: Emma is step-great-grandmother (NEW person married to blood great-grandparent)  
+- **Emma's biological parents**: **"Unrelated"** (not step-great-great-grandparents)
+- **Emma's children**: **"Unrelated"** (not step-grandparents)
 
 ### Non-Obvious Considerations
 1. **Marital Status Irrelevant**: Whether step-grandmother's parents are married to each other doesn't affect their classification as "Unrelated"
