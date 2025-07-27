@@ -2016,6 +2016,70 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
     }
   }
   
+  // ===========================================
+  // EXTENDED IN-LAW RELATIONSHIPS
+  // ===========================================
+  
+  // 1. Spouse of uncle/aunt for root person are their uncle/aunt-in-law
+  // Find root's uncles/aunts and check if person is married to any of them
+  const rootParents = childToParents.get(rootId) || new Set();
+  for (const parent of rootParents) {
+    const parentSiblings = siblingMap.get(parent) || new Set();
+    for (const uncle_aunt of parentSiblings) {
+      // Check if person is current spouse of this uncle/aunt
+      const uncleAuntCurrentSpouses = spouseMap.get(uncle_aunt) || new Set();
+      const uncleAuntDeceasedSpouses = deceasedSpouseMap.get(uncle_aunt) || new Set();
+      const uncleAuntExSpouses = exSpouseMap.get(uncle_aunt) || new Set();
+      
+      for (const spouse of uncleAuntCurrentSpouses) {
+        if (!uncleAuntDeceasedSpouses.has(spouse) && !uncleAuntExSpouses.has(spouse) && spouse === personId) {
+          return getGenderSpecificRelation(personId, 'Uncle-in-law', 'Aunt-in-law', allPeople, 'Uncle/Aunt-in-law');
+        }
+      }
+    }
+  }
+  
+  // 2. Uncle/aunt of spouse of root person are their uncle/aunt-in-law  
+  for (const spouse of rootCurrentSpouses) {
+    const spouseParents = childToParents.get(spouse) || new Set();
+    for (const spouseParent of spouseParents) {
+      const spouseParentSiblings = siblingMap.get(spouseParent) || new Set();
+      if (spouseParentSiblings.has(personId)) {
+        return getGenderSpecificRelation(personId, 'Uncle-in-law', 'Aunt-in-law', allPeople, 'Uncle/Aunt-in-law');
+      }
+    }
+  }
+  
+  // 3. Spouse of niece/nephew of root person are niece/nephew-in-law
+  // Find root's nieces/nephews and check if person is married to any of them
+  const rootSiblingsForNieceNephew = siblingMap.get(rootId) || new Set();
+  for (const sibling of rootSiblingsForNieceNephew) {
+    const siblingChildren = parentToChildren.get(sibling) || new Set();
+    for (const niece_nephew of siblingChildren) {
+      // Check if person is current spouse of this niece/nephew
+      const nieceNephewCurrentSpouses = spouseMap.get(niece_nephew) || new Set();
+      const nieceNephewDeceasedSpouses = deceasedSpouseMap.get(niece_nephew) || new Set();
+      const nieceNephewExSpouses = exSpouseMap.get(niece_nephew) || new Set();
+      
+      for (const spouse of nieceNephewCurrentSpouses) {
+        if (!nieceNephewDeceasedSpouses.has(spouse) && !nieceNephewExSpouses.has(spouse) && spouse === personId) {
+          return getGenderSpecificRelation(personId, 'Nephew-in-law', 'Niece-in-law', allPeople, 'Niece/Nephew-in-law');
+        }
+      }
+    }
+  }
+  
+  // 4. Niece/nephew of root person's spouse are niece/nephew-in-law too
+  for (const spouse of rootCurrentSpouses) {
+    const spouseSiblings = siblingMap.get(spouse) || new Set();
+    for (const spouseSibling of spouseSiblings) {
+      const spouseSiblingChildren = parentToChildren.get(spouseSibling) || new Set();
+      if (spouseSiblingChildren.has(personId)) {
+        return getGenderSpecificRelation(personId, 'Nephew-in-law', 'Niece-in-law', allPeople, 'Niece/Nephew-in-law');
+      }
+    }
+  }
+  
   // NO EX-SPOUSE IN-LAW LOGIC - All ex-spouse relatives should be "Unrelated"
   return null;
 };
