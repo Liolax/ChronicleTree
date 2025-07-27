@@ -17,6 +17,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     return '';
   }
 
+
   // If it's the same person, they are the root
   if (person.id === rootPerson.id) {
     return 'Root';
@@ -1508,6 +1509,51 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       for (const auntUncle of auntsUncles) {
         if (auntUncle !== parent && parentToChildren.has(auntUncle) && parentToChildren.get(auntUncle).has(personId)) {
           return 'Cousin';
+        }
+      }
+    }
+  }
+  
+  // Check for great-niece/great-nephew relationship (multiple levels)
+  // Person is descendant of root's sibling (sibling's grandchild, great-grandchild, etc.)
+  const rootSiblings = siblingMap.get(rootId) || new Set();
+  
+  const MAX_GREAT_LEVELS = 5;
+  for (let level = 2; level <= MAX_GREAT_LEVELS; level++) {
+    for (const sibling of rootSiblings) {
+      // Verify this is a biological sibling relationship (not step-sibling)
+      const siblingParents = childToParents.get(sibling) || new Set();
+      const sharedParents = [...rootParents].filter(parent => siblingParents.has(parent));
+      
+      // If they share ALL parents OR both have no parents, they're biological siblings
+      if ((sharedParents.length === rootParents.size && sharedParents.length === siblingParents.size && sharedParents.length > 0) ||
+          (rootParents.size === 0 && siblingParents.size === 0)) {
+        
+        // Build descendants at this level
+        let currentGeneration = new Set([sibling]);
+        
+        // Go down 'level' generations to find descendants
+        for (let i = 0; i < level; i++) {
+          const nextGeneration = new Set();
+          for (const currentPerson of currentGeneration) {
+            const children = parentToChildren.get(currentPerson) || new Set();
+            for (const child of children) {
+              nextGeneration.add(child);
+            }
+          }
+          currentGeneration = nextGeneration;
+          
+          // If we've reached the target level and person is in this generation
+          if (i === level - 1 && currentGeneration.has(personId)) {
+            // Generate the correct relationship label based on level
+            const greats = 'Great-'.repeat(level - 1);
+            const maleRelation = greats + 'Nephew';
+            const femaleRelation = greats + 'Niece';
+            const description = level === 2 ? "Sibling's grandchild" : 
+                              `Sibling's ${greats.slice(0, -1).replace(/-/g, '-').toLowerCase()}grandchild`;
+            
+            return getGenderSpecificRelation(personId, maleRelation, femaleRelation, allPeople, description);
+          }
         }
       }
     }
