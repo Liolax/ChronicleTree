@@ -634,7 +634,26 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     
     orphans.forEach(person => {
       const personId = String(person.id);
-      if (!processedPersons.has(personId)) {
+      if (processedPersons.has(personId)) return;
+      
+      const spouseId = spouseMap.get(personId);
+      const spouse = spouseId ? orphans.find(p => String(p.id) === spouseId) : null;
+      
+      if (spouse && !processedPersons.has(spouseId)) {
+        // Determine spouse type for spacing
+        let spouseType = "current";
+        if (spouse.is_ex) spouseType = "ex";
+        else if (spouse.date_of_death || spouse.is_deceased) spouseType = "late";
+        const spacing = getSpouseSpacing(spouseType);
+        
+        // Position spouse pair
+        nodes.push(createPersonNode(person, xOffset, y, handlers));
+        nodes.push(createPersonNode(spouse, xOffset + spacing, y, handlers));
+        processedPersons.add(personId);
+        processedPersons.add(spouseId);
+        xOffset += SIBLING_SPACING;
+      } else {
+        // Position single person
         nodes.push(createPersonNode(person, xOffset, y, handlers));
         processedPersons.add(personId);
         xOffset += SIBLING_SPACING;
@@ -663,6 +682,23 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
 
   // Function to prevent nodes from overlapping each other on the screen
   function avoidNodeOverlap(nodes, unrelatedNodeIds, nodeWidth = 240, nodeHeight = 180, margin = 40) {
+    // Build spouse pairs for coordinated movement
+    const spousePairs = new Map(); // personId -> spouseId
+    nodes.forEach(node => {
+      const personId = node.id;
+      // Find spouse from the original spouseMap built during relationship processing
+      // We'll reconstruct this from nodes that are close together horizontally and at same y
+      const potentialSpouse = nodes.find(other => 
+        other.id !== personId &&
+        Math.abs(other.position.y - node.position.y) < 10 && // Same generation
+        Math.abs(other.position.x - node.position.x) <= 400 && // Close horizontally (spouse distance)
+        Math.abs(other.position.x - node.position.x) > 200 // But not too close (not the same person)
+      );
+      if (potentialSpouse && !spousePairs.has(personId) && !spousePairs.has(potentialSpouse.id)) {
+        spousePairs.set(personId, potentialSpouse.id);
+        spousePairs.set(potentialSpouse.id, personId);
+      }
+    });
     const isOverlapping = (nodeA, nodeB) => {
       return (
         Math.abs(nodeA.position.x - nodeB.position.x) < nodeWidth + margin &&
@@ -672,10 +708,17 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     
     // Apply overlap detection to all nodes, not just unrelated ones
     const allNodeIds = nodes.map(n => n.id);
+    const processedNodes = new Set(); // Track nodes already moved to avoid double-processing spouse pairs
     
     allNodeIds.forEach((nodeId) => {
+      if (processedNodes.has(nodeId)) return; // Skip if already processed as part of a spouse pair
+      
       const node = nodes.find((n) => n.id === nodeId);
       if (!node) return;
+      
+      const spouseId = spousePairs.get(nodeId);
+      const spouse = spouseId ? nodes.find(n => n.id === spouseId) : null;
+      
       let overlapped;
       let attempts = 0;
       const maxAttempts = 10; // Prevent infinite loops
@@ -683,20 +726,31 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
       do {
         overlapped = nodes.some(
           (other) =>
-            other.id !== node.id && isOverlapping(node, other)
+            other.id !== node.id && 
+            (!spouse || other.id !== spouse.id) && // Don't consider spouse as overlapping
+            isOverlapping(node, other)
         );
+        
         if (overlapped) {
-          // Try different nudge directions to better distribute nodes
-          if (attempts % 3 === 0) {
-            node.position.x += nodeWidth + margin;
-          } else if (attempts % 3 === 1) {
-            node.position.y += nodeHeight + margin;
-          } else {
-            node.position.x -= nodeWidth + margin;
+          // Move both spouse and partner together
+          const deltaX = attempts % 3 === 0 ? nodeWidth + margin : 
+                       attempts % 3 === 2 ? -(nodeWidth + margin) : 0;
+          const deltaY = attempts % 3 === 1 ? nodeHeight + margin : 0;
+          
+          node.position.x += deltaX;
+          node.position.y += deltaY;
+          
+          if (spouse) {
+            spouse.position.x += deltaX;
+            spouse.position.y += deltaY;
           }
+          
           attempts++;
         }
       } while (overlapped && attempts < maxAttempts);
+      
+      processedNodes.add(nodeId);
+      if (spouseId) processedNodes.add(spouseId); // Mark spouse as processed too
     });
     return nodes;
   }
@@ -868,7 +922,8 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
     }
   });
 
-  // Process sibling relationships - create connecting lines for siblings
+  // Process sibling relationships - only show connectors for direct siblings (no shared parents)
+  // Regular siblings with shared parents are already connected through positioning via their parents
   siblingRelationships.forEach(relationship => {
     const source = String(relationship.source || relationship.from);
     const target = String(relationship.target || relationship.to);
@@ -878,30 +933,25 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
       // Check if these siblings have shared parents (regular siblings) or no shared parents (direct siblings)
       const isDirectSibling = checkIsDirectSibling(source, target, relationships);
       
-      let strokeColor, strokeDasharray;
+      // Only create visual connectors for direct siblings (no shared parents)
+      // Regular siblings with shared parents are shown through positioning
       if (isDirectSibling) {
-        // Blue dotted for direct siblings (no shared parents)
-        strokeColor = '#3b82f6';
-        strokeDasharray = '2 6';
-      } else {
-        // Green dashed for regular siblings (with shared parents)  
-        strokeColor = '#10b981';
-        strokeDasharray = '3 3';
+        edges.push({
+          id: connectionKey,
+          source,
+          target,
+          type: 'straight',
+          animated: false,
+          style: {
+            stroke: '#3b82f6', // Blue dotted for direct siblings (no shared parents)
+            strokeWidth: 2,
+            strokeDasharray: '2 6'
+          }
+        });
+        processedConnections.add(connectionKey);
       }
-
-      edges.push({
-        id: connectionKey,
-        source,
-        target,
-        type: 'straight',
-        animated: false,
-        style: {
-          stroke: strokeColor,
-          strokeWidth: 2,
-          strokeDasharray: strokeDasharray
-        }
-      });
-      processedConnections.add(connectionKey);
+      // Note: Regular siblings (with shared parents) get no visual connector
+      // Their relationship is shown through positioning via their shared parents
     }
   });
 
