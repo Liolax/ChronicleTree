@@ -1332,16 +1332,14 @@ module ImageGeneration
           end
         end
         
-        # Add step-grandchildren
-        @root_person.children.each do |child|
-          child.children.each do |grandchild|
-            grandchild_spouses = get_spouses(grandchild)
-            grandchild_spouses.each do |step_grandchild_parent|
-              step_grandchild_parent_children = get_children(step_grandchild_parent)
-              step_grandchild_parent_children.each do |step_grandchild|
-                unless child.children.include?(step_grandchild)
-                  connected_people << step_grandchild
-                end
+        # Add step-grandchildren (children of step-children)
+        @root_person.current_spouses.each do |spouse|
+          spouse_children = get_children(spouse)
+          spouse_children.each do |step_child|
+            unless @root_person.children.include?(step_child)
+              # This is a step-child, add their children (step-grandchildren)
+              step_child.children.each do |step_grandchild|
+                connected_people << step_grandchild
               end
             end
           end

@@ -54,9 +54,10 @@ begin
   
   # Add grandchildren (children of children)
   person.children.each do |child|
-    # Check if this child already has children
-    if child.children.empty?
-      puts "\nAdding grandchildren via #{child.full_name}..."
+    # Check if this child already has children AND is old enough to have children (at least 15 years old)
+    child_age = Date.current.year - child.date_of_birth.year
+    if child.children.empty? && child_age >= 15
+      puts "\nAdding grandchildren via #{child.full_name} (age #{child_age})..."
       
       # Create grandchildren
       grandchild1 = person.user.people.find_or_create_by(
