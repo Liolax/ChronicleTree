@@ -85,4 +85,4 @@ console.log(`  Margaret Sharma -> Charlie: ${margaretToCharlie}`);
 console.log('\n=== EXPECTED RESULTS ===');
 console.log('Richard/Margaret -> John: Should be "Unrelated" (not parents-in-law)');
 console.log('Richard/Margaret -> Alice/Charlie: Should be "Grandfather"/"Grandmother"');
-console.log('\nNote: Jane is automatically detected as deceased due to date_of_death field.');
+console.log('\nJane is automatically detected as deceased due to date_of_death field.');

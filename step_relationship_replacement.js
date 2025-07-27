@@ -38,7 +38,7 @@ function checkStepParentRelationship(personId, rootId, rootParents, spouseMap, d
       }
     }
     
-    // Note: Ex-spouses do NOT create step-relationships
+    // Ex-spouses do not create step-relationships
   }
   return null;
 }
@@ -77,7 +77,7 @@ function checkStepChildRelationship(personId, rootId, personParents, spouseMap, 
       }
     }
     
-    // Note: Ex-spouses do NOT create step-relationships
+    // Ex-spouses do not create step-relationships
   }
   return null;
 }

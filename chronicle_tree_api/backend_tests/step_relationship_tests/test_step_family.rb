@@ -1,6 +1,6 @@
 puts "Creating test family with step relationships..."
 
-# Note: This is just an example - actual implementation would need to be done in Rails console
+# This is just an example - actual implementation would need to be done in Rails console
 puts "This demonstrates how step relationships would work:"
 puts ""
 puts "Family structure:"

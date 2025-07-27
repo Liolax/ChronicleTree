@@ -32,6 +32,6 @@ Devise.setup do |config|
       [ "DELETE", %r{^/api/v1/auth/sign_out$} ]
     ]
     jwt.expiration_time = 1.day.to_i
-    # Note: revocation strategy is set in the User model, NOT here.
+    # Revocation strategy is configured in the User model
   end
 end

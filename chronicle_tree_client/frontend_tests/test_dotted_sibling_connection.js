@@ -94,7 +94,7 @@ console.log('✅ Siblings can be related even without declared parents');
 console.log('✅ The family tree should show these as siblings with dotted lines');
 console.log('✅ Other relationships (like nephew) still work correctly');
 console.log('');
-console.log('Note: In family tree visualization, these sibling connections should be:');
+console.log('In family tree visualization, these sibling connections should be:');
 console.log('- Shown with dotted lines (since no parents are declared)');
 console.log('- Allow users to later add parents if/when that information becomes available');
 console.log('- Maintain the sibling relationships even after parents are added');

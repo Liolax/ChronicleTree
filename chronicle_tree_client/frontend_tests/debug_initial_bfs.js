@@ -126,7 +126,7 @@ spouseMap.set('5', '6'); // JaneDad -> JaneMom
 spouseMap.set('6', '5'); // JaneMom -> JaneDad
 
 // John's uncle relationship (JohnUncle is JohnDad's brother)
-// Note: This is NOT in childToParents or spouseMap directly from John's perspective
+// This is not in childToParents or spouseMap directly from John's perspective
 spouseMap.set('7', '8'); // JohnUncle -> JohnAunt
 spouseMap.set('8', '7'); // JohnAunt -> JohnUncle
 
