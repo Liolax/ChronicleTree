@@ -420,6 +420,29 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     }
   });
 
+  // CRITICAL: Post-processing to ensure ALL spouses are at the same generation level
+  // This fixes cases where BFS might have assigned spouses to different generations
+  if (spouseMap) {
+    let changed = true;
+    while (changed) {
+      changed = false;
+      spouseMap.forEach((spouseId, personId) => {
+        if (generations.has(personId) && generations.has(spouseId)) {
+          const personGen = generations.get(personId);
+          const spouseGen = generations.get(spouseId);
+          
+          if (personGen !== spouseGen) {
+            // Use the minimum generation (higher in hierarchy) for both spouses
+            const minGen = Math.min(personGen, spouseGen);
+            generations.set(personId, minGen);
+            generations.set(spouseId, minGen);
+            changed = true;
+          }
+        }
+      });
+    }
+  }
+
   return generations;
 };
 
@@ -603,7 +626,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
         if (processedPersons.has(personId)) return;
         
         const spouseId = spouseMap.get(personId);
-        const spouse = spouseId ? siblings.find(p => String(p.id) === spouseId) : null;
+        const spouse = spouseId ? generationPersons.find(p => String(p.id) === spouseId) : null;
         
         if (spouse && !processedPersons.has(spouseId)) {
           // Determine spouse type for spacing
@@ -637,7 +660,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
       if (processedPersons.has(personId)) return;
       
       const spouseId = spouseMap.get(personId);
-      const spouse = spouseId ? orphans.find(p => String(p.id) === spouseId) : null;
+      const spouse = spouseId ? generationPersons.find(p => String(p.id) === spouseId) : null;
       
       if (spouse && !processedPersons.has(spouseId)) {
         // Determine spouse type for spacing
