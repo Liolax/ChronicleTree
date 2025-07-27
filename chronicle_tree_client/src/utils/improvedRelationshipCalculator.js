@@ -352,6 +352,10 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
       }
         
       case 'sibling':
+      case 'brother':
+      case 'sister':
+      case 'Brother':
+      case 'Sister':
         if (!siblingMap.has(source)) {
           siblingMap.set(source, new Set());
         }

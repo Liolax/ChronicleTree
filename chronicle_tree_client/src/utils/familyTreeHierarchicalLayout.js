@@ -113,7 +113,7 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   }
 
   // Step 3: Calculate generations for each person
-  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap, relationshipMaps.exSpouseMap);
+  const generations = calculateGenerations(persons, relationshipMaps.childToParents, rootNodes, relationshipMaps.parentToChildren, relationshipMaps.spouseMap, relationshipMaps.exSpouseMap, relationships);
 
   // Step 4: Create nodes with hierarchical positioning (prioritize rootPersonId)
   const nodes = createHierarchicalNodes(persons, generations, relationshipMaps.spouseMap, handlers, rootPersonId, relationshipMaps.childToParents);
@@ -240,6 +240,10 @@ const buildRelationshipMaps = (relationships, persons) => {
         break;
         
       case 'sibling':
+      case 'brother':
+      case 'sister':
+      case 'Brother':
+      case 'Sister':
         if (!siblingMap.has(source)) {
           siblingMap.set(source, new Set());
         }
@@ -287,7 +291,7 @@ const findRootNodes = (persons, childToParents) => {
  * @param {Map} exSpouseMap - Map of ex-spouse relationships
  * @returns {Map} - Map of person ID to generation level
  */
-const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren, spouseMap = null, exSpouseMap = null) => {
+const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren, spouseMap = null, exSpouseMap = null, relationships = []) => {
   const generations = new Map();
   const visited = new Set();
   const queue = [];
@@ -347,7 +351,68 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     }
   }
 
-  // Handle any unvisited nodes (orphaned nodes)
+  // Handle direct siblings (siblings without shared parents) - place them at the same generation level
+  // This needs to be done before handling orphaned nodes
+  const siblingMap = new Map();
+  
+  // Build a map of direct sibling relationships
+  persons.forEach(person => {
+    const personId = String(person.id);
+    if (!siblingMap.has(personId)) {
+      siblingMap.set(personId, new Set());
+    }
+  });
+  
+  // Find direct sibling relationships from the raw relationships data
+  // We need to check the original relationships array to find sibling connections
+  if (relationships.length > 0) {
+    relationships.forEach(rel => {
+      const source = String(rel.source || rel.from);
+      const target = String(rel.target || rel.to);
+      const type = rel.type || rel.relationship_type;
+      
+      // Only process if both people exist in the persons array
+      const sourcePerson = persons.find(p => String(p.id) === source);
+      const targetPerson = persons.find(p => String(p.id) === target);
+      
+      if (['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type) && sourcePerson && targetPerson) {
+        // Check if they have shared parents (if so, they're already positioned correctly)
+        const sourceParents = childToParents.get(source) || new Set();
+        const targetParents = childToParents.get(target) || new Set();
+        const sharedParents = [...sourceParents].filter(parent => targetParents.has(parent));
+        
+        // Only handle direct siblings (no shared parents)
+        if (sharedParents.length === 0) {
+          // Ensure both source and target exist in siblingMap
+          if (!siblingMap.has(source)) {
+            siblingMap.set(source, new Set());
+          }
+          if (!siblingMap.has(target)) {
+            siblingMap.set(target, new Set());
+          }
+          
+          siblingMap.get(source).add(target);
+          siblingMap.get(target).add(source);
+        }
+      }
+    });
+  }
+  
+  // Now assign generations to direct siblings based on already-positioned siblings
+  siblingMap.forEach((siblings, personId) => {
+    if (siblings.size > 0 && generations.has(personId)) {
+      const personGeneration = generations.get(personId);
+      
+      // Place all direct siblings at the same generation level
+      siblings.forEach(siblingId => {
+        if (!generations.has(siblingId)) {
+          generations.set(siblingId, personGeneration);
+        }
+      });
+    }
+  });
+
+  // Handle any remaining unvisited nodes (truly orphaned nodes)
   persons.forEach(person => {
     const id = String(person.id);
     if (!generations.has(id)) {
@@ -672,6 +737,49 @@ const createPersonNode = (person, x, y, handlers) => {
  * @param {Array} persons - Array of person objects for checking deceased status
  * @returns {Array} - Array of simplified edges
  */
+/**
+ * Check if two people are direct siblings (no shared parents)
+ * @param {string} person1Id - First person ID
+ * @param {string} person2Id - Second person ID  
+ * @param {Array} relationships - All relationships
+ * @returns {boolean} - True if direct siblings (no shared parents)
+ */
+const checkIsDirectSibling = (person1Id, person2Id, relationships) => {
+  // Find parents of person1
+  const person1Parents = new Set();
+  relationships.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    const type = rel.type || rel.relationship_type;
+    
+    if (source === person1Id && type === 'parent') {
+      person1Parents.add(target);
+    } else if (target === person1Id && type === 'child') {
+      person1Parents.add(source);
+    }
+  });
+  
+  // Find parents of person2
+  const person2Parents = new Set();
+  relationships.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    const type = rel.type || rel.relationship_type;
+    
+    if (source === person2Id && type === 'parent') {
+      person2Parents.add(target);
+    } else if (target === person2Id && type === 'child') {
+      person2Parents.add(source);
+    }
+  });
+  
+  // Check if they share any parents
+  const sharedParents = [...person1Parents].filter(parent => person2Parents.has(parent));
+  
+  // Direct siblings = siblings with no shared parents
+  return sharedParents.length === 0;
+};
+
 const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
   const edges = [];
   const processedConnections = new Set();
@@ -679,7 +787,10 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
   // Group relationships by type for better processing
   const parentRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'parent');
   const spouseRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'spouse');
-  const siblingRelationships = relationships.filter(rel => (rel.type || rel.relationship_type) === 'sibling');
+  const siblingRelationships = relationships.filter(rel => {
+    const type = rel.type || rel.relationship_type;
+    return ['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type);
+  });
 
 
   // Process parent relationships from corrected relationship maps
@@ -757,13 +868,47 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
     }
   });
 
+  // Process sibling relationships - create connecting lines for siblings
+  siblingRelationships.forEach(relationship => {
+    const source = String(relationship.source || relationship.from);
+    const target = String(relationship.target || relationship.to);
+    const connectionKey = `sibling-${Math.min(source, target)}-${Math.max(source, target)}`;
+
+    if (!processedConnections.has(connectionKey)) {
+      // Check if these siblings have shared parents (regular siblings) or no shared parents (direct siblings)
+      const isDirectSibling = checkIsDirectSibling(source, target, relationships);
+      
+      let strokeColor, strokeDasharray;
+      if (isDirectSibling) {
+        // Blue dotted for direct siblings (no shared parents)
+        strokeColor = '#3b82f6';
+        strokeDasharray = '2 6';
+      } else {
+        // Green dashed for regular siblings (with shared parents)  
+        strokeColor = '#10b981';
+        strokeDasharray = '3 3';
+      }
+
+      edges.push({
+        id: connectionKey,
+        source,
+        target,
+        type: 'straight',
+        animated: false,
+        style: {
+          stroke: strokeColor,
+          strokeWidth: 2,
+          strokeDasharray: strokeDasharray
+        }
+      });
+      processedConnections.add(connectionKey);
+    }
+  });
+
   // Note: Step-grandparent relationships are not shown as visual lines
   // Step-grandparent relationships are only shown in text labels via the relationship calculator,
   // not as visual connectors. Visual connectors only represent direct biological relationships
   // and formal spouse relationships. Step-relationships are inferred and displayed as text only.
-
-  // Note: Sibling relationships are not visually connected with edges
-  // Sibling relationships are inferred from the hierarchical layout positioning
 
   return edges;
 };

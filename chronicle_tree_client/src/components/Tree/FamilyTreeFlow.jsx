@@ -431,6 +431,10 @@ const FamilyTree = () => {
                     <div className="w-4 h-0.5 bg-black border-dashed" style={{ borderTop: '2px dashed #000000', background: 'none' }}></div>
                     <span>Late Spouse</span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-0.5 bg-[#3b82f6] border-dotted" style={{ borderTop: '2px dotted #3b82f6', background: 'none' }}></div>
+                    <span>Siblings (no parents)</span>
+                  </div>
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <div className="text-xs text-gray-500">
                       🏠 Click home icon to change root person

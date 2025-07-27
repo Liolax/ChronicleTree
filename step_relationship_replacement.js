@@ -135,12 +135,3 @@ function checkStepSiblingRelationship(personId, rootId, personParents, rootParen
   return null;
 }
 
-// ALL OTHER STEP-RELATIONSHIPS ARE REMOVED:
-// - Step-grandparent (step-parent's parents) → "Unrelated"
-// - Step-great-grandparent → "Unrelated"  
-// - Step-grandchild → "Unrelated"
-// - Step-aunt/uncle (step-parent's siblings) → "Unrelated"
-// - Step-niece/nephew → "Unrelated"
-// 
-// BUSINESS RULE: Only direct marriage connections create step-relationships.
-// Extended family of step-relatives are classified as "Unrelated".

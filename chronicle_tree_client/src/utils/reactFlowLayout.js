@@ -34,20 +34,82 @@ export const transformFamilyData = (persons, relationships, handlers = {}) => {
     const source = String(relationship.source || relationship.from);
     const target = String(relationship.target || relationship.to);
     
+    // Determine if this is a direct sibling relationship (no shared parents)
+    let effectiveType = relationship.type;
+    if (isSiblingType(relationship.type)) {
+      const isDirectSibling = checkIsDirectSibling(source, target, relationships);
+      if (isDirectSibling) {
+        effectiveType = 'direct_sibling';
+      } else {
+        // Regular siblings (with shared parents)
+        effectiveType = 'sibling';
+      }
+    }
+    
     return {
       id: `edge-${source}-${target}-${index}`,
       source,
       target,
       type: 'smoothstep',
       animated: false,
-      label: getRelationshipLabel(relationship.type),
-      style: getEdgeStyle(relationship.type),
-      markerEnd: getMarkerEnd(relationship.type),
-      data: { relationship }
+      label: getRelationshipLabel(effectiveType),
+      style: getEdgeStyle(effectiveType),
+      markerEnd: getMarkerEnd(effectiveType),
+      data: { relationship, effectiveType }
     };
   });
 
   return { nodes, edges };
+};
+
+/**
+ * Check if relationship type is a sibling type
+ * @param {string} type - Relationship type
+ * @returns {boolean} - True if sibling type
+ */
+const isSiblingType = (type) => {
+  return ['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type);
+};
+
+/**
+ * Check if two people are direct siblings (no shared parents)
+ * @param {string} person1Id - First person ID
+ * @param {string} person2Id - Second person ID  
+ * @param {Array} relationships - All relationships
+ * @returns {boolean} - True if direct siblings (no shared parents)
+ */
+const checkIsDirectSibling = (person1Id, person2Id, relationships) => {
+  // Find parents of person1
+  const person1Parents = new Set();
+  relationships.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    
+    if (source === person1Id && rel.type === 'parent') {
+      person1Parents.add(target);
+    } else if (target === person1Id && rel.type === 'child') {
+      person1Parents.add(source);
+    }
+  });
+  
+  // Find parents of person2
+  const person2Parents = new Set();
+  relationships.forEach(rel => {
+    const source = String(rel.source || rel.from);
+    const target = String(rel.target || rel.to);
+    
+    if (source === person2Id && rel.type === 'parent') {
+      person2Parents.add(target);
+    } else if (target === person2Id && rel.type === 'child') {
+      person2Parents.add(source);
+    }
+  });
+  
+  // Check if they share any parents
+  const sharedParents = [...person1Parents].filter(parent => person2Parents.has(parent));
+  
+  // Direct siblings = siblings with no shared parents
+  return sharedParents.length === 0;
 };
 
 /**
@@ -62,6 +124,7 @@ const getRelationshipLabel = (type) => {
     spouse: 'Spouse',
     ex_spouse: 'Ex-Spouse',
     sibling: 'Sibling',
+    direct_sibling: 'Sibling',
     cousin: 'Cousin',
     grandparent: 'Grandparent',
     grandchild: 'Grandchild'
@@ -98,6 +161,11 @@ const getEdgeStyle = (type) => {
       stroke: '#10b981',
       strokeWidth: 2,
       strokeDasharray: '3 3'
+    },
+    direct_sibling: {
+      stroke: '#3b82f6', // Blue color for direct sibling connections
+      strokeWidth: 2,
+      strokeDasharray: '2 6' // Dotted pattern (shorter dashes, longer gaps)
     },
     cousin: {
       stroke: '#8b5cf6',
