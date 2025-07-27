@@ -1,3 +1,5 @@
+# Database migration creating relationships table for family connections
+# Manages bidirectional genealogical relationships between people
 class CreateRelationships < ActiveRecord::Migration[8.0]
   def change
     create_table :relationships do |t|

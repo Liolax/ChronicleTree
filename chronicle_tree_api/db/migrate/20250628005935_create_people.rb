@@ -1,3 +1,5 @@
+# Database migration creating people table for family tree person records
+# Stores individual biographical data and links to user accounts
 class CreatePeople < ActiveRecord::Migration[8.0]
   def change
     create_table :people do |t|

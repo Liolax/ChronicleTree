@@ -1,3 +1,5 @@
+# Database migration creating profiles table for extended person information
+# Stores biographical details and personal notes for family members
 class CreateProfiles < ActiveRecord::Migration[8.0]
   def change
     create_table :profiles do |t|

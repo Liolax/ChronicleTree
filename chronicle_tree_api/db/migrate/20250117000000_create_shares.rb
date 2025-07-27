@@ -1,3 +1,5 @@
+# Database migration creating shares table for social media sharing functionality
+# Tracks shared family tree content with platform-specific metadata
 class CreateShares < ActiveRecord::Migration[7.0]
   def change
     create_table :shares do |t|

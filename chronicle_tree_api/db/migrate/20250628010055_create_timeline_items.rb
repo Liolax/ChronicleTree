@@ -1,3 +1,5 @@
+# Database migration creating timeline_items table for chronological life events
+# Stores dated biographical milestones with location and visual indicators
 class CreateTimelineItems < ActiveRecord::Migration[8.0]
   def change
     create_table :timeline_items do |t|

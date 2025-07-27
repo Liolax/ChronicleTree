@@ -1,3 +1,5 @@
+# Database migration creating facts table for structured biographical data
+# Stores key-value pairs with temporal and location context for people
 class CreateFacts < ActiveRecord::Migration[8.0]
   def change
     create_table :facts do |t|

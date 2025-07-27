@@ -1,3 +1,5 @@
+# Database migration creating share_images table for generated social media images
+# Manages temporary image files with expiration and performance metadata
 class CreateShareImages < ActiveRecord::Migration[8.0]
   def change
     create_table :share_images do |t|
@@ -12,12 +14,12 @@ class CreateShareImages < ActiveRecord::Migration[8.0]
       t.timestamps
     end
 
-    # Add indexes for performance
+    # Database indexes for efficient querying of share images
     add_index :share_images, [:person_id, :image_type]
     add_index :share_images, :expires_at
     add_index :share_images, :image_type
     
-    # Add constraints
+    # Data validation constraints for image type and expiration logic
     add_check_constraint :share_images, 
       "image_type IN ('profile', 'tree')", 
       name: 'valid_image_type'

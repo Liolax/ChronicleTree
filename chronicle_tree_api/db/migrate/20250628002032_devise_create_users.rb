@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Database migration creating users table with Devise authentication fields
+# Establishes user authentication system for Chronicle Tree family tree application
 class DeviseCreateUsers < ActiveRecord::Migration[8.0]
   def change
     create_table :users do |t|
