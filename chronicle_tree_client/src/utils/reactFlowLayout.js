@@ -1,10 +1,11 @@
-// React Flow Family Tree Layout Utility
-// Simplified, intuitive top-down family tree layout using react-flow features
+// React Flow Layout Utility - Basic Tree Structure
+// Simple top-down family tree layout using react-flow positioning
 
 import { Position } from '@xyflow/react';
 
 /**
- * Transform family data into react-flow nodes and edges with top-down layout
+ * Family Data Transformation Function
+ * Converts person and relationship data into ReactFlow format
  * @param {Array} persons - Array of person objects
  * @param {Array} relationships - Array of relationship objects  
  * @param {Object} handlers - Event handlers for nodes
@@ -15,7 +16,7 @@ export const transformFamilyData = (persons, relationships, handlers = {}) => {
     return { nodes: [], edges: [] };
   }
 
-  // Create nodes from persons
+  // Generate ReactFlow nodes from person data
   const nodes = persons.map(person => ({
     id: String(person.id),
     type: 'personCard',

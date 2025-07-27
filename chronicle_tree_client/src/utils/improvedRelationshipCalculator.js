@@ -1,16 +1,18 @@
 /**
- * Relationship Calculator Utility
- * Handles complex family relationships including in-law relationships
- * Cache bust for relationship fix
+ * Relationship Calculator - Core Logic Module
+ * Determines family relationships between any two people in the tree
+ * Handles complex cases including in-laws and multi-generational relationships
  */
 
 /**
- * Calculate the relationship of a person to a root person
- * @param {Object} person - The person to calculate relationship for
- * @param {Object} rootPerson - The root person to calculate relationship to
- * @param {Array} allPeople - Array of all people in the tree
- * @param {Array} relationships - Array of all relationships
- * @returns {string} - The relationship description
+ * Main Relationship Calculator Function
+ * Determines the relationship between any person and the root person
+ * Implements comprehensive relationship logic with edge case handling
+ * @param {Object} person - The person we want to find the relationship for
+ * @param {Object} rootPerson - The reference person (center of the tree)
+ * @param {Array} allPeople - Everyone in the family database
+ * @param {Array} relationships - All the family connections
+ * @returns {string} - Human-readable relationship like "Uncle" or "2nd Cousin"
  */
 export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relationships) => {
   if (!person || !rootPerson || !allPeople || !relationships) {
@@ -18,13 +20,13 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   }
 
 
-  // If it's the same person, they are the root
+  // Easy case - person is looking at themselves
   if (person.id === rootPerson.id) {
     return 'Root';
   }
 
-  // Important timeline check: Verify if these two people were alive at the same time
-  // People who never lived at the same time cannot have family relationships (except direct blood relationships)
+  // Timeline validation - people from different eras might not have real relationships
+  // But we still need to show blood relationships even across time gaps
   const personBirth = person.date_of_birth ? new Date(person.date_of_birth) : null;
   const personDeath = person.date_of_death ? new Date(person.date_of_death) : null;
   const rootBirth = rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth) : null;
@@ -47,7 +49,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       return getGenderSpecificRelation(rootPerson.id, 'Father', 'Mother', allPeople, 'Parent');
     }
     
-    // Check if person is root's child (would be impossible if person born after root died, but we check anyway)  
+    // Direct parent-child check (most common relationship)  
     if (rootChildren.has(String(person.id))) {
       return getGenderSpecificRelation(person.id, 'Son', 'Daughter', allPeople, 'Child');
     }

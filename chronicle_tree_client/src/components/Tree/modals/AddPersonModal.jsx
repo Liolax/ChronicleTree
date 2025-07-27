@@ -10,7 +10,7 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
   const { data: people = [] } = usePeople();
 
   const handleSubmit = async (data) => {
-    // Only send permitted fields
+    // Prepare data payload for API submission
     const payload = {
       first_name: data.firstName,
       last_name: data.lastName,
@@ -18,7 +18,7 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
       date_of_death: data.date_of_death, // <-- fixed field name
       gender: data.gender,
     };
-    // Add relationship type and related person if not first person
+    // Include relationship data for non-root persons
     if (!isFirstPerson) {
       if (!data.relationType) {
         alert('Please select a relationship type.');

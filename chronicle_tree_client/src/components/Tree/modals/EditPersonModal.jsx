@@ -19,7 +19,7 @@ const EditPersonModal = ({ person, isOpen = true, onClose }) => {
     
     updatePersonMutation.mutate(personData, {
       onSuccess: (response) => {
-        // Display a success message to confirm the update
+        // Show confirmation message after successful update
         if (response?.message) {
           alert(response.message);
         } else {

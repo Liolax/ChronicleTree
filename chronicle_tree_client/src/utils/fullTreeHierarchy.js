@@ -1,24 +1,25 @@
 /**
- * Full Tree Hierarchy System - For displaying entire family tree when no root person is chosen
- * Organizes all family members into a natural hierarchical structure based on generations and family importance
+ * Full Tree Hierarchy System - Complete Family Display Module
+ * Organizes entire family tree when no specific root person is selected
+ * Uses natural hierarchy detection and generational organization
  */
 
-// Import buildRelationshipMaps from the layout system for consistency
-// import { buildRelationshipMaps } from './improvedRelationshipCalculator.js';
+// Import relationship mapping utilities for consistency
 import { preventNodeOverlap } from './antiOverlapLayout.js';
 
 /**
- * Create a full family tree layout when no specific root is selected
+ * Full Tree Layout Generator
+ * Creates comprehensive family tree layout without a specific root person
  * @param {Array} people - Array of all people
  * @param {Array} relationships - Array of all relationships
  * @param {Object} handlers - Event handlers for nodes
- * @param {Function} buildRelationshipMaps - Function to build relationship maps (passed from main layout)
+ * @param {Function} buildRelationshipMaps - Function to build relationship maps
  * @returns {Object} - { nodes, edges } for complete family tree
  */
 export function createFullTreeLayout(people, relationships, handlers, buildRelationshipMaps = null) {
   console.log('Creating full tree layout for', people.length, 'people');
   
-  // Step 1: Build relationship maps - use external function if provided, otherwise use internal one
+  // Phase 1: Initialize relationship mapping system
   let relationshipMaps;
   if (buildRelationshipMaps) {
     relationshipMaps = buildRelationshipMaps(relationships, people);

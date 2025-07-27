@@ -20,17 +20,17 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
   
   const selectedId = watch('selectedId');
   
-  // Check if "Mark as half" option should be shown for sibling relationships
+  // Determine if half-sibling option should be displayed
   useEffect(() => {
     if (type === 'sibling' && selectedId && selectedPerson) {
       const selectedSibling = allPeople.find(p => p.id === parseInt(selectedId));
       
       if (selectedSibling) {
-        // Get parents for both people
+        // Collect parent information for sibling relationship analysis
         const personParents = selectedPerson.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
         const siblingParents = selectedSibling.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
         
-        // Get all available parents from both people (for half-sibling relationships)
+        // Build comprehensive parent list for half-sibling analysis
         const allAvailableParents = [];
         
         // Add person's parents

@@ -6,8 +6,8 @@
 
 /**
  * Main Overlap Prevention Function
- * This function took forever to debug - kept getting infinite loops
- * Finally got it working with proper boundary checking
+ * Detects and resolves overlapping nodes in the family tree layout
+ * Uses iterative positioning with collision detection algorithms
  * @param {Array} nodes - Tree nodes that might be overlapping
  * @param {Array} edges - Connection lines between nodes
  * @param {Object} relationshipMaps - Lookup tables for family relationships
@@ -15,7 +15,7 @@
  * @returns {Array} - Fixed node positions with no overlaps
  */
 export function preventNodeOverlap(nodes, edges, relationshipMaps, persons) {
-  // Configuration values - tuned through lots of testing
+  // Layout configuration constants for node spacing
   const NODE_WIDTH = 280;
   const NODE_HEIGHT = 120;
   const MIN_HORIZONTAL_SPACING = 80;  // Increased minimum space between nodes horizontally

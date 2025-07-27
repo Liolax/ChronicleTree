@@ -154,9 +154,9 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 };
 
 /**
- * Age-Based Generation Calculator - Final Project Feature
- * This was the hardest part of the project - organizing family members by age ranges
- * instead of just relationship hierarchy. Took many iterations to get spouse alignment right.
+ * Age-Based Generation Calculator - Advanced Feature
+ * Organizes family members by birth year ranges rather than relationship hierarchy
+ * Includes spouse alignment and parent-child validation logic
  * @param {Array} persons - List of family members with birth dates
  * @param {Array} relationships - Family connections (marriages, parent-child)
  * @returns {Map} - Maps each person to their generational level (0 = oldest)
@@ -322,8 +322,8 @@ function calculateAgeBasedGenerations(persons, relationships) {
     });
   }
   
-  // Third pass: Fix parent-child hierarchy but preserve age grouping
-  // This was tricky - don't want to mess up age-based grouping for close ages
+  // Third pass: Ensure parent-child hierarchy while preserving age grouping
+  // Only adjust when age difference is significant to maintain clustering
   let parentChildAlignmentChanged = true;
   iterations = 0;
   

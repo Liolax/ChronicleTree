@@ -24,7 +24,7 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
     });
   }, [person]);
 
-  // Helper: is deceased if date_of_death is set
+  // Utility function to determine if person is deceased
   const isDeceased = !!form.date_of_death;
 
   const handleChange = e => {

@@ -1,10 +1,12 @@
 /**
- * Visual configuration for family tree to enhance readability
- * Especially for complex relationships that tend to overlap
+ * Visual Configuration Module
+ * Applies styling and visual enhancements to improve tree readability
+ * Handles complex relationship visual indicators
  */
 
 /**
- * Enhanced visual styling for nodes based on relationship complexity
+ * Node Visual Enhancement Function
+ * Applies styling based on the complexity of person's relationships
  * @param {Object} node - The node to style
  * @param {Object} relationshipMaps - Relationship maps
  * @param {Array} edges - Array of edges
@@ -13,16 +15,16 @@
 export function enhanceNodeVisuals(node, relationshipMaps, edges) {
   const enhancedNode = { ...node };
   
-  // Determine relationship complexity for this node
+  // Calculate how many relationships this person has
   const complexity = calculateRelationshipComplexity(node.id, relationshipMaps, edges);
   
-  // Apply visual enhancements based on complexity
+  // Style the node based on relationship complexity
   enhancedNode.style = {
     ...enhancedNode.style,
     ...getComplexityBasedStyle(complexity),
   };
   
-  // Add visual indicators for complex relationships
+  // Add special visual markers for highly connected people
   if (complexity.isComplex) {
     enhancedNode.data = {
       ...enhancedNode.data,

@@ -35,9 +35,9 @@ const nodeTypes = {
 };
 
 /**
- * Main Family Tree Component - Core of the whole project
- * ReactFlow was challenging to learn but gives us the draggable, zoomable interface
- * This component handles all the user interactions and data management
+ * Main Family Tree Component - Primary Interface
+ * Built with ReactFlow library for interactive, draggable tree visualization
+ * Manages user interactions, data processing, and modal states
  */
 const FamilyTree = () => {
   const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
@@ -66,7 +66,7 @@ const FamilyTree = () => {
       setHasSetDefaultRoot(true);
     }
 
-    // Use collectConnectedFamily to get all connected persons and relationships for the root
+    // Filter data to only show people connected to the selected root person
     let filteredNodes = data.nodes;
     let filteredEdges = data.edges;
     if (rootPersonId) {
@@ -75,7 +75,7 @@ const FamilyTree = () => {
       filteredEdges = result.relationships;
     }
 
-    // Add relationship information to all people (if needed)
+    // Calculate how everyone is related to the root person
     const rootPerson = rootPersonId
       ? filteredNodes.find(n => n.id === rootPersonId)
       : null;
@@ -88,7 +88,7 @@ const FamilyTree = () => {
     );
     
 
-    // Filter out unrelated nodes if showUnrelated is false
+    // Hide distant/unrelated people if user turned off that setting
     const finalNodes = showUnrelated 
       ? peopleWithRelations 
       : peopleWithRelations.filter(node => node.relation !== 'Unrelated');
@@ -100,7 +100,7 @@ const FamilyTree = () => {
   }, [data, rootPersonId, hasSetDefaultRoot, showUnrelated]);
 
 
-  // Helper to group relationships for delete modal
+  // Utility function to organize relationships for delete confirmation
   const groupRelatives = useCallback((person) => {
     const groups = { Parents: [], Children: [], Spouses: [], Siblings: [] };
     if (person?.relatives) {
@@ -114,7 +114,7 @@ const FamilyTree = () => {
     return groups;
   }, []);
 
-  // Event handlers
+  // User interaction event handlers
   const handleEditPerson = useCallback((person) => {
     setSelectedPerson(null); // Close person card when editing
     setPersonCardPosition(null);

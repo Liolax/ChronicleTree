@@ -1,13 +1,14 @@
 /**
- * Centralized Relationship Consistency Utility
- * Ensures all components use the same relationship calculation logic
- * and maintains consistency across profile, tree, and share contexts
+ * Relationship Consistency Module
+ * Provides standardized relationship calculations across all components
+ * Ensures consistent terminology and logic throughout the application
  */
 
 import { calculateRelationshipToRoot, getAllRelationshipsToRoot } from './improvedRelationshipCalculator';
 
 /**
- * Standard relationship calculator wrapper for consistent usage across components
+ * Standardized Relationship Calculator
+ * Wrapper function that ensures consistent relationship naming across the app
  * @param {Object} person - The person to calculate relationship for
  * @param {Object} rootPerson - The root person
  * @param {Array} allPeople - All people in the tree
@@ -21,7 +22,7 @@ export const getStandardizedRelationship = (person, rootPerson, allPeople, relat
 
   const relationship = calculateRelationshipToRoot(person, rootPerson, allPeople, relationships);
   
-  // Standardize common relationship terms for consistency
+  // Map relationship terms to standardized versions
   const standardizedTerms = {
     'Step-Mother': 'Step-Mother',
     'Step-Father': 'Step-Father', 

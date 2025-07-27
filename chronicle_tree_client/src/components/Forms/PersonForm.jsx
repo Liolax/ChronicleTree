@@ -57,27 +57,26 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
 
   const relationType = watch('relationType');
 
-  // Note: Blood relationship detection function removed as it's not currently used
-  // in PersonForm (since we're creating new people who don't exist in the tree yet)
-  // The main validation happens in the backend and in AddRelationshipModal
+  // Blood relationship validation not needed for new person creation
+  // Main validation logic is handled in backend and relationship modal
 
-  // Enhanced relationship constraint validation
+  // Relationship validation function for form constraints
   const validateBloodRelationshipConstraints = (selectedPersonId, newPersonBirthDate, relationshipType) => {
     if (!selectedPersonId || !relationshipType) return { valid: true };
     
     const selectedPerson = filteredPeople.find(p => String(p.id) === String(selectedPersonId));
     if (!selectedPerson) return { valid: true };
 
-    // For new person creation, we can't check blood relationships yet since the person doesn't exist
-    // But we can validate against logical constraints based on the relationship type
+    // Validate logical constraints for the selected relationship type
+    // Blood relationship checks happen after person creation
     
-    // Enhanced validation for children - check if selected person can have children
+    // Validation for child relationships
     if (relationshipType === 'child') {
       // Check if selected person (who will be parent) already has 2 biological parents
       // This doesn't apply here since we're adding a child, not a parent
     }
     
-    // Enhanced validation for parent - check if selected person can be a parent
+    // Validation for parent relationships
     if (relationshipType === 'parent') {
       // Check if selected person (who will be child) already has 2 biological parents
       const selectedPersonParents = selectedPerson.relatives?.filter(rel => rel.relationship_type === 'parent' && !rel.isStep) || [];

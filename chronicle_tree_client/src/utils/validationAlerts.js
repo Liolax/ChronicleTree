@@ -1,4 +1,4 @@
-// Central validation alert system - short, clear, and friendly
+// Family tree validation system - ensures data integrity
 export const showValidationAlert = (type, details = {}) => {
   const { personName, targetName, age, relationship } = details;
   

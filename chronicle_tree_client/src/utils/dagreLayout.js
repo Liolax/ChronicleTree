@@ -1,13 +1,15 @@
 /**
- * Dagre Layout - Automatic graph layout using dagre
- * This file provides the dagreLayout function expected by Tree.jsx
+ * Dagre Layout Module - Automatic Graph Positioning 
+ * Uses Dagre library for automatic node placement in family trees
+ * Alternative layout option to the hierarchical system
  */
 
 import dagre from 'dagre';
 import { Position } from '@xyflow/react';
 
 /**
- * Dagre-based automatic layout function
+ * Automatic Graph Layout Function
+ * Generates node positions using Dagre's automatic layout algorithms
  * @param {Array} persons - Array of person objects
  * @param {Array} relationships - Array of relationship objects  
  * @param {Object} handlers - Event handlers for nodes
@@ -18,10 +20,10 @@ export const dagreLayout = (persons, relationships, handlers = {}) => {
     return { flowNodes: [], flowEdges: [] };
   }
 
-  // Create a new directed graph
+  // Initialize Dagre graph structure
   const g = new dagre.graphlib.Graph();
 
-  // Set default graph attributes
+  // Configure graph layout parameters
   g.setGraph({ 
     rankdir: 'TB', // Top-to-bottom layout
     nodesep: 100,  // Horizontal spacing between nodes

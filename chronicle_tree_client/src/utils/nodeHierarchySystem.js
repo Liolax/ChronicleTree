@@ -1,10 +1,12 @@
 /**
- * Advanced Node Hierarchy System for Family Tree
- * Provides visual hierarchy based on generation, relationship importance, and family structure
+ * Node Hierarchy System - Visual Organization Module
+ * Applies visual importance levels based on family relationships and generations
+ * Creates clear visual hierarchy in complex family trees
  */
 
 /**
- * Enhanced node styling with full hierarchy system
+ * Node Hierarchy Application Function
+ * Analyzes person's position in family structure and applies appropriate styling
  * @param {Object} node - The node to enhance
  * @param {Object} relationshipMaps - Relationship maps
  * @param {Array} allPeople - Array of all people
@@ -16,13 +18,13 @@ export function applyNodeHierarchy(node, relationshipMaps, allPeople, rootPerson
   const enhancedNode = { ...node };
   const personId = node.id;
   
-  // Determine hierarchy level and relationship context
+  // Analyze person's position in family hierarchy
   const hierarchyContext = analyzeNodeHierarchy(personId, rootPersonId, relationshipMaps, generations);
   
-  // Apply visual styling based on hierarchy
+  // Generate appropriate visual styling
   const hierarchyStyle = getHierarchyStyle(hierarchyContext);
   
-  // Merge with existing style
+  // Combine hierarchy styling with existing node styles
   enhancedNode.style = {
     ...enhancedNode.style,
     ...hierarchyStyle.nodeStyle,
