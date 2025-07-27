@@ -21,7 +21,7 @@ module Api
           rel_type = params[:person][:relation_type]
           rel_person_id = params[:person][:related_person_id]
           if !is_first_person && (rel_type.blank? || rel_person_id.blank?)
-            render json: { errors: [ "Relationship Type and Selected Person are required" ] }, status: :unprocessable_entity
+            render json: { errors: [ "Please select both a relationship type and a person to connect to. Both fields are required when adding new family members." ] }, status: :unprocessable_entity
             raise ActiveRecord::Rollback
           end
           if person.save
@@ -52,17 +52,48 @@ module Api
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'child')
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'parent')
               when 'spouse'
-                Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'spouse')
-                Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'spouse')
+                # Determine if this should be an ex-spouse relationship
+                # If new person is deceased or if selected person already has a current spouse
+                is_ex_spouse = person.date_of_death.present?
+                
+                # Check if selected person already has a current spouse (only if this is not an ex-spouse)
+                if !is_ex_spouse && related_person.current_spouses.any?
+                  current_spouse_names = related_person.current_spouses.map(&:full_name).join(', ')
+                  render json: { 
+                    errors: ["#{related_person.full_name} already has a current spouse (#{current_spouse_names}). A person can only have one current spouse at a time. If you want to add #{person.full_name} as a spouse, you'll need to mark the existing marriage as ended first, or set #{person.full_name} as deceased to add them as a former spouse."]
+                  }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+                
+                Relationship.create!(
+                  person_id: person.id, 
+                  relative_id: rel_person_id, 
+                  relationship_type: 'spouse',
+                  is_ex: is_ex_spouse
+                )
+                Relationship.create!(
+                  person_id: rel_person_id, 
+                  relative_id: person.id, 
+                  relationship_type: 'spouse',
+                  is_ex: is_ex_spouse
+                )
               when 'sibling'
                 Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'sibling')
                 Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'sibling')
               end
             end
             
+            # Generate appropriate success message
+            success_message = "#{person.first_name} #{person.last_name} has been successfully added to the family tree!"
+            
+            # Add additional context for ex-spouse relationships
+            if rel_type == 'spouse' && person.date_of_death.present?
+              success_message += " Since #{person.first_name} is marked as deceased, they were added as a former spouse."
+            end
+            
             render json: {
               person: Api::V1::PersonSerializer.new(person).as_json,
-              message: "#{person.first_name} #{person.last_name} has been successfully added to the family tree!",
+              message: success_message,
               success: true
             }, status: :created
           else

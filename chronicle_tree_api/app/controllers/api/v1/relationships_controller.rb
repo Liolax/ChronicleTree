@@ -18,6 +18,23 @@ module Api
         # Comprehensive validation based on relationship type and genealogical rules
         case relationship_params[:relationship_type]
         when 'spouse'
+          # Check if either person already has a current spouse
+          if person.current_spouses.any?
+            current_spouse_names = person.current_spouses.map(&:full_name).join(', ')
+            render json: { 
+              errors: ["#{person.full_name} already has a current spouse (#{current_spouse_names}). A person can only have one current spouse at a time. If you want to add #{relative.full_name} as a spouse, you'll need to mark the existing marriage as ended first."]
+            }, status: :unprocessable_entity
+            return
+          end
+          
+          if relative.current_spouses.any?
+            current_spouse_names = relative.current_spouses.map(&:full_name).join(', ')
+            render json: { 
+              errors: ["#{relative.full_name} already has a current spouse (#{current_spouse_names}). A person can only have one current spouse at a time. If you want to add #{person.full_name} as a spouse, you'll need to mark the existing marriage as ended first."]
+            }, status: :unprocessable_entity
+            return
+          end
+          
           # Consanguinity validation to prevent inappropriate marriages
           unless BloodRelationshipDetector.marriage_allowed?(person, relative)
             blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description

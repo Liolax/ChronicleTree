@@ -4,32 +4,32 @@ export const showValidationAlert = (type, details = {}) => {
   
   const alerts = {
     marriageAge: age 
-      ? `${personName || 'Person'} is ${age} years old. Minimum marriage age is 16.`
-      : 'Both people must be at least 16 years old to marry.',
+      ? `${personName || 'This person'} is ${age} years old. People must be at least 16 years old to get married.`
+      : 'Both people must be at least 16 years old to get married.',
     
     bloodRelatives: relationship === 'spouse' 
-      ? 'Blood relatives cannot marry - incestuous relationships are prohibited.'
-      : 'Blood relatives cannot have children together.',
+      ? 'These people are blood relatives and cannot marry each other. Please select different people for this relationship.'
+      : 'Blood relatives cannot have parent-child relationships. Please check the family connections.',
       
-    remarriageAllowed: 'Complex remarriage scenario allowed: This person can marry their ex-spouse\'s relative since there is no blood relationship.',
+    remarriageAllowed: 'This marriage is allowed because there is no blood relationship between these people.',
     
-    ageDifference: 'Parents must be at least 12 years older than their children.',
+    ageDifference: 'Parents must be at least 12 years older than their children. Please check the birth dates.',
     
-    maxParents: `${targetName || 'Person'} already has 2 parents.`,
+    maxParents: `${targetName || 'This person'} already has 2 biological parents. A person can only have 2 biological parents.`,
     
-    maxSpouse: `${targetName || 'Person'} already has a current spouse.`,
+    maxSpouse: `${targetName || 'This person'} already has a current spouse. A person can only have one spouse at a time. You may need to mark the existing marriage as ended first.`,
     
-    timeline: 'Birth and death dates must be in chronological order.',
+    timeline: 'Birth and death dates must be in the correct order. Please check that the birth date comes before the death date.',
     
-    missingData: 'Birth date required for marriage relationships.',
+    missingData: 'Birth date is required when adding marriage relationships. Please add the birth date first.',
     
-    missingFields: 'Please fill in all required fields.',
+    missingFields: 'Please fill in all required fields before continuing.',
     
-    invalidRelationship: 'This relationship type is not allowed between these people.',
+    invalidRelationship: 'This relationship type is not allowed between these people. Please choose a different relationship.',
     
-    siblingConstraint: 'Siblings must share at least one parent.',
+    siblingConstraint: 'Siblings must share at least one parent. Please add parent relationships first, or choose a different relationship type.',
     
-    temporalError: 'Birth and death dates must be logically consistent.'
+    temporalError: 'The birth and death dates don\'t make sense together. Please check the dates and try again.'
   };
 
   alert(alerts[type] || 'Please check the information and try again.');
@@ -66,6 +66,37 @@ export const validateMarriageAge = (person1, person2) => {
 
 // Helper function to parse backend error and show appropriate alert
 export const handleBackendError = (error) => {
+  // Handle network errors
+  if (!error?.response) {
+    if (error?.message?.includes('Network Error')) {
+      alert('Network connection problem. Please check your internet connection and try again.');
+      return;
+    }
+    alert('Unable to connect to the server. Please check your connection and try again.');
+    return;
+  }
+
+  // Handle different HTTP status codes
+  if (error.response?.status === 401) {
+    alert('Your session has expired. Please log in again.');
+    return;
+  }
+  
+  if (error.response?.status === 403) {
+    alert('You don\'t have permission to perform this action.');
+    return;
+  }
+  
+  if (error.response?.status === 404) {
+    alert('The requested information was not found. It may have been deleted or moved.');
+    return;
+  }
+  
+  if (error.response?.status >= 500) {
+    alert('Server error occurred. Please try again in a moment, or contact support if the problem continues.');
+    return;
+  }
+
   const errorMsg = error?.response?.data?.errors?.[0] || error?.response?.data?.message || error?.message;
   
   if (!errorMsg) {
@@ -74,13 +105,32 @@ export const handleBackendError = (error) => {
   }
   
   // Match error patterns and show appropriate alerts - order matters!
-  if (errorMsg.includes('marriage age') || (errorMsg.includes('16 years') && errorMsg.includes('marriage'))) {
+  // For detailed backend messages, show them directly
+  if (errorMsg.includes('already has a current spouse') || 
+      errorMsg.includes('already has 2 biological parents') ||
+      errorMsg.includes('years YOUNGER than') ||
+      errorMsg.includes('years older than') ||
+      errorMsg.includes('died on') ||
+      errorMsg.includes('cannot be younger than their child') ||
+      errorMsg.includes('share children') ||
+      errorMsg.includes('incestuous relationships are prohibited') ||
+      errorMsg.includes('Age gap too large') ||
+      errorMsg.includes('different blood parents cannot be siblings') ||
+      errorMsg.includes('Parent cannot be same as child') ||
+      errorMsg.includes('Child person is required') ||
+      errorMsg.includes('Please select both a relationship type') ||
+      errorMsg.includes('One or both persons not found') ||
+      errorMsg.includes('Cannot marry blood relative') ||
+      errorMsg.includes('Cannot add sibling relationship') ||
+      errorMsg.includes('born after parent\'s death') ||
+      errorMsg.includes('Only spouse relationships can be')) {
+    // These are detailed, user-friendly messages from backend - show them directly
+    alert(errorMsg);
+  } else if (errorMsg.includes('marriage age') || (errorMsg.includes('16 years') && errorMsg.includes('marriage'))) {
     showValidationAlert('marriageAge');
   } else if (errorMsg.includes('blood relative') || errorMsg.includes('Blood relatives')) {
     showValidationAlert('bloodRelatives');
   } else if (errorMsg.includes('years older') || (errorMsg.includes('12 years') && errorMsg.includes('parent'))) {
-    showValidationAlert('ageDifference');
-  } else if (errorMsg.includes('YOUNGER than their child') || errorMsg.includes('OLDER than their parent')) {
     showValidationAlert('ageDifference');
   } else if (errorMsg.includes('2 parents') || errorMsg.includes('maximum')) {
     showValidationAlert('maxParents');
@@ -92,6 +142,16 @@ export const handleBackendError = (error) => {
     showValidationAlert('timeline');
   } else if (errorMsg.includes('share at least one parent')) {
     showValidationAlert('siblingConstraint');
+  } else if (errorMsg.includes('First name') && errorMsg.includes('blank')) {
+    alert('First name is required. Please enter a first name.');
+  } else if (errorMsg.includes('Last name') && errorMsg.includes('blank')) {
+    alert('Last name is required. Please enter a last name.');
+  } else if (errorMsg.includes('can\'t be blank')) {
+    alert('Please fill in all required fields. Some required information is missing.');
+  } else if (errorMsg.includes('invalid') && errorMsg.includes('date')) {
+    alert('Please enter a valid date in the correct format (YYYY-MM-DD).');
+  } else if (errorMsg.includes('internal server error') || errorMsg.includes('500')) {
+    alert('Something went wrong on our end. Please try again in a moment, or contact support if the problem continues.');
   } else {
     // Show the actual error message if it doesn't match our patterns
     alert(errorMsg);
