@@ -88,7 +88,9 @@ module ImageGeneration
       
       # Apply scaling to positioning with better centering
       center_x = CANVAS_WIDTH / 2
-      center_y = (CANVAS_HEIGHT / 2) + 20  # Account for header
+      # Account for header (80px) and footer (70px), center in remaining space
+      available_height = CANVAS_HEIGHT - 80 - 70  # 630 - 80 - 70 = 480px available
+      center_y = 80 + (available_height / 2)  # 80 + 240 = 320px center
       
       @tree_data.each do |generation_offset, people|
         next if people.empty?
@@ -206,7 +208,12 @@ module ImageGeneration
     def get_enhanced_relationship_to_root(person)
       return nil if person == @root_person
       
-      # Use unified relationship calculator for consistency and step-relationship support
+      # Enhanced multi-generational relationship detection
+      # Check for grand-relationships first (grandparents, grandchildren)
+      grand_relationship = detect_grand_relationships(person)
+      return add_deceased_prefix(grand_relationship, person) if grand_relationship
+      
+      # Use unified relationship calculator for immediate relationships
       calculator = UnifiedRelationshipCalculator.new(@root_person.user)
       relationship_data = calculator.calculate_relationships_for_person(@root_person)
       
@@ -265,7 +272,9 @@ module ImageGeneration
       
       # Apply scaling to positioning
       center_x = CANVAS_WIDTH / 2
-      center_y = CANVAS_HEIGHT / 2 + 30  # Reduced offset for better centering
+      # Account for header and footer space
+      available_height = CANVAS_HEIGHT - 80 - 70
+      center_y = 80 + (available_height / 2)
       
       @tree_data.each do |generation_offset, people|
         next if people.empty?
@@ -1201,11 +1210,11 @@ module ImageGeneration
         structure[0] = find_people_in_generation(0, connected_family)
         structure[1] = find_people_in_generation(1, connected_family)
       when 4
-        # Root + 2 levels up and 1 level down (or balanced)
-        structure[-2] = find_people_in_generation(-2, connected_family)
+        # Root + 1 level up and 2 levels down (prefer showing descendants)
         structure[-1] = find_people_in_generation(-1, connected_family)
         structure[0] = find_people_in_generation(0, connected_family)
         structure[1] = find_people_in_generation(1, connected_family)
+        structure[2] = find_people_in_generation(2, connected_family)
       when 5
         # Root + 2 levels up and 2 levels down
         structure[-2] = find_people_in_generation(-2, connected_family)
@@ -1393,6 +1402,74 @@ module ImageGeneration
       end
     end
     
+    def detect_grand_relationships(person)
+      # Check if person is a grandparent (parent of root's parents)
+      @root_person.parents.each do |parent|
+        if parent.parents.include?(person)
+          return person.gender&.downcase == 'male' ? 'Grandfather' : 'Grandmother'
+        end
+      end
+      
+      # Check if person is a grandchild (child of root's children)
+      @root_person.children.each do |child|
+        if child.children.include?(person)
+          return person.gender&.downcase == 'male' ? 'Grandson' : 'Granddaughter'
+        end
+      end
+      
+      # Check if person is a great-grandparent (parent of grandparents)
+      @root_person.parents.each do |parent|
+        parent.parents.each do |grandparent|
+          if grandparent.parents.include?(person)
+            return person.gender&.downcase == 'male' ? 'Great-Grandfather' : 'Great-Grandmother'
+          end
+        end
+      end
+      
+      # Check if person is a great-grandchild (child of grandchildren)
+      @root_person.children.each do |child|
+        child.children.each do |grandchild|
+          if grandchild.children.include?(person)
+            return person.gender&.downcase == 'male' ? 'Great-Grandson' : 'Great-Granddaughter'
+          end
+        end
+      end
+      
+      # Check for step-grand relationships if enabled
+      if @include_step_relationships
+        # Step-grandparents (spouses of grandparents)
+        @root_person.parents.each do |parent|
+          parent.parents.each do |grandparent|
+            grandparent_spouses = get_spouses(grandparent)
+            grandparent_spouses.each do |step_grandparent|
+              if step_grandparent == person && !parent.parents.include?(person)
+                return person.gender&.downcase == 'male' ? 'Step-Grandfather' : 'Step-Grandmother'
+              end
+            end
+          end
+        end
+        
+        # Step-grandchildren (children of step-children)
+        step_children = []
+        @root_person.current_spouses.each do |spouse|
+          spouse_children = get_children(spouse)
+          spouse_children.each do |child|
+            unless @root_person.children.include?(child)
+              step_children << child
+            end
+          end
+        end
+        
+        step_children.each do |step_child|
+          if step_child.children.include?(person)
+            return person.gender&.downcase == 'male' ? 'Step-Grandson' : 'Step-Granddaughter'
+          end
+        end
+      end
+      
+      nil
+    end
+    
     def get_parents(person)
       # Get direct biological parents only (step relationships detected logically)
       person.related_by_relationships
@@ -1464,7 +1541,9 @@ module ImageGeneration
     
     def draw_tree_structure
       center_x = CANVAS_WIDTH / 2
-      center_y = CANVAS_HEIGHT / 2
+      # Account for header and footer space
+      available_height = CANVAS_HEIGHT - 80 - 70
+      center_y = 80 + (available_height / 2)
       
       @tree_data.each do |generation_offset, people|
         next if people.empty?
@@ -1542,7 +1621,9 @@ module ImageGeneration
     
     def draw_connection_lines
       center_x = CANVAS_WIDTH / 2
-      center_y = CANVAS_HEIGHT / 2
+      # Account for header and footer space
+      available_height = CANVAS_HEIGHT - 80 - 70
+      center_y = 80 + (available_height / 2)
       
       # Draw parent-child connections
       @tree_data.each do |generation_offset, people|

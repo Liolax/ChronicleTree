@@ -169,19 +169,20 @@ module ImageGeneration
     
     def key_facts_in_header_svg
       content = ""
-      facts = @person.facts.limit(5)  # More facts can fit now
+      facts = @person.facts.limit(4)  # Adjusted for multi-line facts
       
       if facts.any?
         # Start from the right side with more available space
         start_x = 400  # More space available since name/age moved left
         y_pos = 85  # Start higher since header is shorter
+        available_width = CANVAS_WIDTH - start_x - 80  # Available width for facts
         
         # Title for Key Facts section
         content += %{<text x="#{start_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#{COLORS[:text_light]}">Key Facts</text>}
         y_pos += 20
         
         facts.each_with_index do |fact, index|
-          # Format fact text with more space available
+          # Format fact text
           if fact.label.present? && fact.value.present?
             fact_text = "#{fact.label}: #{fact.value}"
           elsif fact.label.present?
@@ -192,13 +193,42 @@ module ImageGeneration
             next
           end
           
-          # Less truncation needed with more space
-          fact_text = fact_text.length > 35 ? "#{fact_text[0..32]}..." : fact_text
-          
-          # Small bullet and text
-          content += %{<circle cx="#{start_x}" cy="#{y_pos - 3}" r="2" fill="#{COLORS[:text_light]}"/>}
-          content += %{<text x="#{start_x + 10}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="13" fill="#{COLORS[:text_light]}">#{escape_xml(fact_text)}</text>}
-          y_pos += 18
+          # Wrap text if it's too long instead of truncating
+          max_chars_per_line = 45  # Increased character limit
+          if fact_text.length > max_chars_per_line
+            # Split into multiple lines at word boundaries
+            words = fact_text.split(' ')
+            lines = []
+            current_line = ""
+            
+            words.each do |word|
+              if (current_line + " " + word).length <= max_chars_per_line
+                current_line += (current_line.empty? ? "" : " ") + word
+              else
+                lines << current_line unless current_line.empty?
+                current_line = word
+              end
+            end
+            lines << current_line unless current_line.empty?
+            
+            # Display multiple lines
+            lines.each_with_index do |line, line_index|
+              if line_index == 0
+                # First line with bullet
+                content += %{<circle cx="#{start_x}" cy="#{y_pos - 3}" r="2" fill="#{COLORS[:text_light]}"/>}
+                content += %{<text x="#{start_x + 10}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="12" fill="#{COLORS[:text_light]}">#{escape_xml(line)}</text>}
+              else
+                # Continuation lines without bullet, indented
+                content += %{<text x="#{start_x + 20}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="12" fill="#{COLORS[:text_light]}">#{escape_xml(line)}</text>}
+              end
+              y_pos += 16
+            end
+          else
+            # Single line fact
+            content += %{<circle cx="#{start_x}" cy="#{y_pos - 3}" r="2" fill="#{COLORS[:text_light]}"/>}
+            content += %{<text x="#{start_x + 10}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="12" fill="#{COLORS[:text_light]}">#{escape_xml(fact_text)}</text>}
+            y_pos += 18
+          end
         end
       end
       
