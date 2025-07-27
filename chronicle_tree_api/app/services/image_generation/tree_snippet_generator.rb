@@ -95,8 +95,9 @@ module ImageGeneration
       @tree_data.each do |generation_offset, people|
         next if people.empty?
         
-        # Apply dynamic scaling to vertical spacing with more space between generations
-        y = center_y + (generation_offset * 140 * scale_factor)  # Increased from 110 to 140
+        # Apply dynamic generation spacing based on number of generations
+        generation_spacing = calculate_generation_spacing
+        y = center_y + (generation_offset * generation_spacing * scale_factor)
         people_count = people.length
         
         # Calculate horizontal spacing to prevent overlap
@@ -279,8 +280,9 @@ module ImageGeneration
       @tree_data.each do |generation_offset, people|
         next if people.empty?
         
-        # Apply dynamic scaling to vertical spacing
-        y = center_y + (generation_offset * 120 * scale_factor)
+        # Apply dynamic generation spacing based on number of generations
+        generation_spacing = calculate_generation_spacing
+        y = center_y + (generation_offset * generation_spacing * scale_factor)
         people_count = people.length
         
         # Calculate horizontal spacing with scaling
@@ -1548,7 +1550,8 @@ module ImageGeneration
       @tree_data.each do |generation_offset, people|
         next if people.empty?
         
-        y = center_y + (generation_offset * GENERATION_SPACING)
+        generation_spacing = calculate_generation_spacing
+        y = center_y + (generation_offset * generation_spacing)
         people_count = people.length
         
         # Calculate starting X position to center the generation
@@ -1634,14 +1637,16 @@ module ImageGeneration
         
         people.each do |parent|
           parent_x = calculate_person_x(parent, generation_offset)
-          parent_y = center_y + (generation_offset * GENERATION_SPACING) + PERSON_BOX_HEIGHT / 2
+          generation_spacing = calculate_generation_spacing
+          parent_y = center_y + (generation_offset * generation_spacing) + PERSON_BOX_HEIGHT / 2
           
           # Find this parent's children in the next generation
           parent_children = get_children(parent) & children_generation
           
           parent_children.each do |child|
             child_x = calculate_person_x(child, generation_offset + 1)
-            child_y = center_y + ((generation_offset + 1) * GENERATION_SPACING) - PERSON_BOX_HEIGHT / 2
+            generation_spacing = calculate_generation_spacing
+            child_y = center_y + ((generation_offset + 1) * generation_spacing) - PERSON_BOX_HEIGHT / 2
             
             draw_connection_line(parent_x, parent_y, child_x, child_y)
           end
@@ -1725,6 +1730,22 @@ module ImageGeneration
       estimated_height = generations_count * 120  # Original vertical spacing
       
       { width: estimated_width, height: estimated_height }
+    end
+    
+    def calculate_generation_spacing
+      # Dynamic spacing based on number of generations to prevent overlap
+      case @tree_data.keys.length
+      when 1, 2
+        140  # Standard spacing for small trees
+      when 3
+        130  # Slightly reduced for 3 generations
+      when 4
+        100  # More compact for 4 generations
+      when 5
+        80   # Very compact for 5 generations
+      else
+        70   # Minimal spacing for very large trees
+      end
     end
     
     def calculate_scale_factor(tree_bounds)
