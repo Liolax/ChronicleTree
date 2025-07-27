@@ -1,4 +1,4 @@
-// Mock data for testing the family tree UI
+// Mock data for testing the family tree UI components and relationship validation
 export const mockFamilyData = {
   nodes: [
     {

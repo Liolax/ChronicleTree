@@ -8,7 +8,7 @@ export function AuthProvider({ children }) {
   const [user, setUser]   = useState(null)
   const navigate          = useNavigate()
 
-  // whenever token changes, set axios header & optionally fetch user
+  // Configure API authentication headers based on token state
   useEffect(() => {
     if (token) {
       api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
     // eslint-disable-next-line
   }, [token])
 
-  // async/await implementation for login
+  // User authentication function
   async function login(email, password) {
     const res = await api.post('/auth/sign_in', { user: { email, password } });
     const jwt = res.headers.authorization.split(' ')[1]
@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
     return res.data
   }
 
-  // async/await implementation for register
+  // User registration function
   async function register(name, email, password, password_confirmation) {
     const res = await api.post('/auth', { user: { name, email, password, password_confirmation } });
     const jwt = res.headers.authorization.split(' ')[1]

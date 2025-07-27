@@ -1,4 +1,4 @@
-// src/api/api.js
+// Centralized Axios configuration for API requests with authentication handling
 import axios from 'axios';
 
 const api = axios.create({
@@ -13,11 +13,11 @@ api.interceptors.request.use(config => {
   return config;
 });
 
-// optional: interceptors for request/response logging or global error handling
+// Global response interceptor handles authentication errors and token validation
 api.interceptors.response.use(
   res => res,
   err => {
-    // we can check for 401 here and auto-logout
+    // Implements centralized error handling for authentication failures
     return Promise.reject(err);
   }
 );

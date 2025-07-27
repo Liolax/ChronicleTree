@@ -1,3 +1,4 @@
+// Reusable card component with header, content, and footer sections for consistent UI layout
 import React from 'react';
 
 export default function Card({ children, title, subtitle, footer }) {

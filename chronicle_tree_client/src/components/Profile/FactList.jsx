@@ -2,7 +2,7 @@ import React from 'react';
 import { FaCalendarAlt, FaInfoCircle, FaMapMarkerAlt, FaAlignLeft, FaPen, FaTrashAlt } from 'react-icons/fa';
 
 const FactList = ({ facts, onEdit, onDelete }) => {
-  // Map backend labels to user-friendly display labels
+  // Convert database field names to readable labels
   const labelMap = {
     'Current Occupation': 'Occupation',
     'Current Hobby': 'Hobby',
@@ -19,7 +19,7 @@ const FactList = ({ facts, onEdit, onDelete }) => {
         <li key={fact.id} className="bg-white rounded-lg px-3 py-3 border border-slate-100 shadow group hover:bg-blue-50 transition">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0 space-y-2">
-              {/* Fact Type (label) - Always on top */}
+              {/* Fact category display */}
               <div className="flex items-center gap-2">
                 <FaInfoCircle className="text-blue-400 flex-shrink-0" />
                 <span className="text-sm font-semibold text-blue-600 truncate">
@@ -27,7 +27,7 @@ const FactList = ({ facts, onEdit, onDelete }) => {
                 </span>
               </div>
               
-              {/* Metadata row */}
+              {/* Date and location information */}
               <div className="flex flex-wrap gap-3 text-xs text-slate-600">
                 {fact.date && (
                   <span className="flex items-center gap-1">

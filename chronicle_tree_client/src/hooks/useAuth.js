@@ -1,3 +1,4 @@
+// Custom hook for accessing authentication context and user session state
 import { useContext } from 'react'
 import { AuthContext } from '../context/AuthContext.js'
 

@@ -17,7 +17,7 @@ export default function Timeline({ events, onEdit, onDelete }) {
   if (!events || events.length === 0) {
     return <div className="text-gray-400 text-center py-6">No timeline events available.</div>;
   }
-  // Sort events by date ascending
+  // Organize events chronologically for timeline display
   const sortedEvents = [...events].sort((a, b) => {
     if (!a.date && !b.date) return 0;
     if (!a.date) return 1;
@@ -26,7 +26,7 @@ export default function Timeline({ events, onEdit, onDelete }) {
   });
   return (
     <div className="relative pl-8 pr-2">
-      {/* Timeline vertical bar */}
+      {/* Visual timeline connector line */}
       <div className="absolute left-4 top-0 bottom-0 w-1 bg-gradient-to-b from-app-accent via-app-secondary/50 to-app-secondary/10 rounded-full" style={{zIndex:0}}></div>
       <ul className="space-y-8">
         {sortedEvents.map((event, idx) => {

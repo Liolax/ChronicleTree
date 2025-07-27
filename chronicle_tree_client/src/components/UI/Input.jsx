@@ -1,3 +1,4 @@
+// Accessible input component with label integration and consistent styling
 import React from 'react';
 
 const Input = React.forwardRef(({ id, label, type = 'text', ...rest }, ref) => {

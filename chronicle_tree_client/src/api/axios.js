@@ -1,3 +1,4 @@
+// Alternative Axios configuration for API requests with simplified setup
 import axios from 'axios';
 
 const api = axios.create({

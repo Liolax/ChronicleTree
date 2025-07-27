@@ -1,3 +1,4 @@
+// Accessible modal component with focus trapping and keyboard navigation support
 import React, { useEffect, useRef } from 'react';
 
 export default function Modal({ isOpen, onClose, title, titleIcon, children }) {
@@ -7,9 +8,9 @@ export default function Modal({ isOpen, onClose, title, titleIcon, children }) {
   useEffect(() => {
     if (isOpen) {
       lastActiveElement.current = document.activeElement;
-      // Focus the modal
+      // Implements accessibility guidelines for modal focus management
       modalRef.current?.focus();
-      // Trap focus inside modal
+      // Focus trapping algorithm prevents keyboard navigation outside modal
       const handleTab = (e) => {
         const focusableEls = modalRef.current.querySelectorAll(
           'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
@@ -36,7 +37,7 @@ export default function Modal({ isOpen, onClose, title, titleIcon, children }) {
       document.addEventListener('keydown', handleTab);
       return () => {
         document.removeEventListener('keydown', handleTab);
-        // Return focus to last active element
+        // Restores focus to element that opened modal for accessibility
         lastActiveElement.current?.focus();
       };
     }

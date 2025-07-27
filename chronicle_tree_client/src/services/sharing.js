@@ -1,11 +1,12 @@
 import api from '../api/api';
 
 /**
- * Create a share for tree content
- * @param {Object} shareData - Share data object
+ * Share Creation API Function
+ * Generates shareable links for family tree content across different platforms
+ * @param {Object} shareData - Share configuration object
  * @param {string} shareData.content_type - Type of content ('tree' or 'profile')
- * @param {number} shareData.content_id - ID of the content (person ID for tree root or profile)
- * @param {string} shareData.platform - Platform to share to ('facebook', 'twitter', 'whatsapp', 'email', 'copy')
+ * @param {number} shareData.content_id - Content identifier
+ * @param {string} shareData.platform - Target sharing platform
  * @param {string} shareData.caption - Optional caption for the share
  * @returns {Promise} - Promise resolving to share response
  */
@@ -21,8 +22,9 @@ export const createShare = async (shareData) => {
 };
 
 /**
- * Get share information by token
- * @param {string} shareToken - Share token
+ * Share Retrieval API Function
+ * Fetches existing share information using share token
+ * @param {string} shareToken - Unique share identifier
  * @returns {Promise} - Promise resolving to share information
  */
 export const getShare = async (shareToken) => {

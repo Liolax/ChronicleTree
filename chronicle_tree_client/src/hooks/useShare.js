@@ -1,3 +1,4 @@
+// Custom hook for social media sharing functionality with multiple platform support
 import { useState, useCallback } from 'react';
 import api from '../api/api';
 
@@ -48,14 +49,14 @@ export const useShare = () => {
         return true;
       } catch (err) {
         if (err.name === 'AbortError') {
-          // User cancelled sharing
+          // User cancelled sharing action
           return false;
         }
-        // Fallback to copying link
+        // Falls back to clipboard copy when native sharing fails
         return await copyToClipboard(data.share_url);
       }
     } else {
-      // Fallback for browsers without Web Share API
+      // Legacy browser compatibility for sharing functionality
       return await copyToClipboard(data.share_url);
     }
   }, []);
@@ -66,7 +67,7 @@ export const useShare = () => {
       alert('Link copied to clipboard!');
       return true;
     } catch (err) {
-      // Fallback for older browsers
+      // Legacy fallback implementation for clipboard functionality
       try {
         const textArea = document.createElement('textarea');
         textArea.value = text;

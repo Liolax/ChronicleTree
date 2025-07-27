@@ -1,7 +1,7 @@
 import api from '../api/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-// Fetch current user
+// User data retrieval hook
 export function useCurrentUser() {
   return useQuery({
     queryKey: ['user'],
@@ -9,7 +9,7 @@ export function useCurrentUser() {
   });
 }
 
-// Update name & email
+// User profile update mutation
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -20,14 +20,14 @@ export function useUpdateUser() {
   });
 }
 
-// Change password
+// Password change mutation
 export function useChangePassword() {
   return useMutation({
     mutationFn: data => api.patch('/users/me/password', { user: data })
   });
 }
 
-// Delete account
+// Account deletion mutation
 export function useDeleteAccount() {
   return useMutation({
     mutationFn: () => api.delete('/users/me'),
