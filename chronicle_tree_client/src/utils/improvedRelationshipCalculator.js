@@ -89,7 +89,14 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       }
     }
     
-    // No direct biological relationship and they never lived at the same time = Unrelated
+    // Check for ANY blood relationship (includes siblings, aunts/uncles, nieces/nephews, cousins)
+    // Blood relationships should never be blocked by timeline - they exist regardless of when people lived
+    const bloodRelationship = findBloodRelationship(String(person.id), String(rootPerson.id), relationshipMaps, allPeople);
+    if (bloodRelationship) {
+      return bloodRelationship;
+    }
+    
+    // No blood relationship and they never lived at the same time = Unrelated
     return 'Unrelated';
   }
   
@@ -153,7 +160,14 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
       }
     }
     
-    // No direct biological relationship and they never lived at the same time = Unrelated
+    // Check for ANY blood relationship (includes siblings, aunts/uncles, nieces/nephews, cousins)
+    // Blood relationships should never be blocked by timeline - they exist regardless of when people lived
+    const bloodRelationship = findBloodRelationship(String(person.id), String(rootPerson.id), relationshipMaps, allPeople);
+    if (bloodRelationship) {
+      return bloodRelationship;
+    }
+    
+    // No blood relationship and they never lived at the same time = Unrelated
     return 'Unrelated';
   }
 
@@ -415,16 +429,16 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
     return directRelationship;
   }
 
-  // Check step-relationships
-  const stepRelationship = findStepRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
-  if (stepRelationship) {
-    return stepRelationship;
-  }
-
-  // Check if person is related through blood relationship
+  // Check blood relationships before step-relationships (biological takes precedence)
   const bloodRelationship = findBloodRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (bloodRelationship) {
     return bloodRelationship;
+  }
+
+  // Check step-relationships (only after confirming no blood relationship exists)
+  const stepRelationship = findStepRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
+  if (stepRelationship) {
+    return stepRelationship;
   }
 
   // Check deceased spouse's family relationships (special handling)
@@ -1452,11 +1466,25 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
   
   // Check for niece/nephew relationship (person is child of root's sibling)
+  // Handle full siblings, half siblings, and step siblings separately
   if (siblingMap.has(rootId)) {
     const rootSiblings = siblingMap.get(rootId);
     for (const sibling of rootSiblings) {
       if (parentToChildren.has(sibling) && parentToChildren.get(sibling).has(personId)) {
-        return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, 'Niece/Nephew');
+        // Check if this is a full sibling, half sibling, or step-sibling
+        const rootParents = childToParents.get(rootId) || new Set();
+        const siblingParents = childToParents.get(sibling) || new Set();
+        const sharedParents = [...rootParents].filter(parent => siblingParents.has(parent));
+        
+        // Full siblings: share exactly 2 parents
+        if (rootParents.size === 2 && siblingParents.size === 2 && sharedParents.length === 2) {
+          return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
+        }
+        // Half siblings: share exactly 1 parent
+        else if (sharedParents.length === 1) {
+          return getGenderSpecificRelation(personId, 'Half-Nephew', 'Half-Niece', allPeople, "Half-sibling's child");
+        }
+        // Step siblings (no shared parents) will be handled by step-relationship logic
       }
     }
   }
