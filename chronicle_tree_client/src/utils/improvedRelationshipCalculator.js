@@ -1536,6 +1536,7 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   return ancestorChains;
 };
+*/
 
 // Duplicate generateCousinLabel function removed - using the one at line 1260
 
