@@ -2,12 +2,26 @@
 
 module ImageGeneration
   class ProfileCardGenerator < BaseGenerator
-    # Override canvas height to accommodate timeline section
-    PROFILE_CANVAS_HEIGHT = 750
+    # Dynamic canvas height based on content
+    MIN_CANVAS_HEIGHT = 750
+    MAX_CANVAS_HEIGHT = 1200
+    SECTION_HEIGHT = 35
+    HEADER_HEIGHT = 120
+    FOOTER_HEIGHT = 60
     def generate(person, options = {})
       @include_step_relationships = options[:include_step_relationships] != false
       
       begin
+        # Initialize content analysis before creating the canvas
+        @person = person
+        @content_sections = analyze_content_sections
+        @dynamic_height = calculate_dynamic_height
+        
+        # Debug logging
+        Rails.logger.info "Profile card generation - Person: #{@person.full_name}"
+        Rails.logger.info "Content sections: #{@content_sections.inspect}"
+        Rails.logger.info "Calculated dynamic height: #{@dynamic_height}px"
+        
         create_profile_card(person)
         filename = "profile_#{person.id}_#{@include_step_relationships ? 'with' : 'without'}_steps.jpg"
         file_path = save_to_file(filename)
@@ -31,41 +45,96 @@ module ImageGeneration
     
     private
     
+    def analyze_content_sections
+      sections = {}
+      
+      # Analyze relationships section (left column)
+      relationships = get_enhanced_family_relationships
+      sections[:relationships] = {
+        count: relationships.length,
+        lines: relationships.length,  # Single column now
+        height: relationships.length * SECTION_HEIGHT + 80  # Header + content
+      }
+      
+      # Analyze timeline section (right column)
+      timeline_items = @person.timeline_items.order(:date).limit(6)  # More space available
+      dated_facts = @person.facts.where.not(date: nil).order(:date).limit(3)
+      total_timeline_events = [timeline_items.count + dated_facts.count, 8].min  # Increased limit
+      sections[:timeline] = {
+        count: total_timeline_events,
+        lines: total_timeline_events,
+        height: total_timeline_events > 0 ? total_timeline_events * 40 + 80 : 60  # Header + events or message
+      }
+      
+      # Facts are now in header, so we calculate header height including facts
+      facts = @person.facts.limit(3)  # Limited facts in header
+      facts_height = facts.any? ? facts.length * 20 + 10 : 0  # Compact facts in header
+      sections[:header_facts] = {
+        count: facts.length,
+        height: facts_height
+      }
+      
+      sections
+    end
+    
+    def calculate_dynamic_height
+      # Enhanced header height to include facts
+      enhanced_header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
+      base_height = enhanced_header_height + FOOTER_HEIGHT + 40  # Header + Footer + margins
+      
+      # Two-column layout: take the maximum height of the two columns
+      relationships_height = @content_sections[:relationships][:height] || 0
+      timeline_height = @content_sections[:timeline][:height] || 0
+      content_height = [relationships_height, timeline_height].max
+      
+      total_height = base_height + content_height + 20  # Add spacing
+      
+      # Ensure height is within bounds
+      [[total_height, MIN_CANVAS_HEIGHT].max, MAX_CANVAS_HEIGHT].min
+    end
+    
     def create_profile_card(person)
-      @person = person
+      # Content analysis already done in generate method
+      # This method now just serves as a placeholder for any additional setup
     end
     
     def create_base_canvas
-      # Create base canvas with custom height for profiles
-      canvas_svg = %{<svg width="#{CANVAS_WIDTH}" height="#{PROFILE_CANVAS_HEIGHT}" xmlns="http://www.w3.org/2000/svg">
-        <rect width="#{CANVAS_WIDTH}" height="#{PROFILE_CANVAS_HEIGHT}" fill="#{COLORS[:background]}"/>
+      # Ensure we have a valid height
+      height = @dynamic_height || MIN_CANVAS_HEIGHT
+      
+      # Validate dimensions
+      if height < MIN_CANVAS_HEIGHT || height > MAX_CANVAS_HEIGHT
+        Rails.logger.warn "Invalid height #{height}, using default #{MIN_CANVAS_HEIGHT}"
+        height = MIN_CANVAS_HEIGHT
+      end
+      
+      if CANVAS_WIDTH <= 0 || height <= 0
+        Rails.logger.error "Invalid canvas dimensions: #{CANVAS_WIDTH}x#{height}"
+        raise "Invalid canvas dimensions"
+      end
+      
+      # Create base canvas with dynamic height based on content
+      canvas_svg = %{<svg width="#{CANVAS_WIDTH}" height="#{height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="#{CANVAS_WIDTH}" height="#{height}" fill="#{COLORS[:background]}"/>
       </svg>}
+      
+      Rails.logger.info "Creating canvas with dimensions: #{CANVAS_WIDTH}x#{height}"
       Vips::Image.svgload_buffer(canvas_svg)
     end
     
     def svg_content
-      height = PROFILE_CANVAS_HEIGHT
+      height = @dynamic_height
+      header_height_with_facts = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
+      
       <<~CONTENT
         <!-- Main Card Background -->
         <rect x="40" y="40" width="#{CANVAS_WIDTH-80}" height="#{height-80}" fill="#{COLORS[:card_bg]}" stroke="#{COLORS[:accent]}" stroke-width="3" rx="20"/>
         
-        <!-- Profile Header with enhanced styling -->
-        <rect x="60" y="60" width="#{CANVAS_WIDTH-120}" height="120" fill="#{COLORS[:primary]}" stroke="#{COLORS[:accent]}" stroke-width="2" rx="15"/>
-        <text x="#{CANVAS_WIDTH/2}" y="110" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#{COLORS[:text_light]}">
-          #{escape_xml(@person.full_name)}
-        </text>
+        <!-- Enhanced Profile Header with Key Facts -->
+        #{enhanced_header_svg}
         
-        <!-- Life Dates in header -->
-        #{life_dates_header_svg}
-        
-        <!-- Family Relationships Section -->
-        #{enhanced_relationships_svg}
-        
-        <!-- Additional Info Section -->
-        #{additional_info_svg}
-        
-        <!-- Timeline Section -->
-        #{timeline_events_svg}
+        <!-- Two Column Layout -->
+        #{two_column_content_svg}
         
         <!-- Footer with enhanced styling -->
         <rect x="60" y="#{height-60}" width="#{CANVAS_WIDTH-120}" height="40" fill="#{COLORS[:secondary]}" rx="10"/>
@@ -76,6 +145,209 @@ module ImageGeneration
     end
     
     private
+    
+    def enhanced_header_svg
+      header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
+      content = ""
+      
+      # Main header background
+      content += %{<rect x="60" y="60" width="#{CANVAS_WIDTH-120}" height="#{header_height}" fill="#{COLORS[:primary]}" stroke="#{COLORS[:accent]}" stroke-width="2" rx="15"/>}
+      
+      # Person name (left side)
+      content += %{<text x="90" y="100" text-anchor="start" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#{COLORS[:text_light]}">
+        #{escape_xml(@person.full_name)}
+      </text>}
+      
+      # Life dates (left side, below name)
+      content += life_dates_header_svg
+      
+      # Key facts in header (right side with more space)
+      content += key_facts_in_header_svg
+      
+      content
+    end
+    
+    def key_facts_in_header_svg
+      content = ""
+      facts = @person.facts.limit(5)  # More facts can fit now
+      
+      if facts.any?
+        # Start from the right side with more available space
+        start_x = 400  # More space available since name/age moved left
+        y_pos = 85  # Start higher since header is shorter
+        
+        # Title for Key Facts section
+        content += %{<text x="#{start_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#{COLORS[:text_light]}">Key Facts</text>}
+        y_pos += 20
+        
+        facts.each_with_index do |fact, index|
+          # Format fact text with more space available
+          if fact.label.present? && fact.value.present?
+            fact_text = "#{fact.label}: #{fact.value}"
+          elsif fact.label.present?
+            fact_text = fact.label
+          elsif fact.value.present?
+            fact_text = fact.value
+          else
+            next
+          end
+          
+          # Less truncation needed with more space
+          fact_text = fact_text.length > 35 ? "#{fact_text[0..32]}..." : fact_text
+          
+          # Small bullet and text
+          content += %{<circle cx="#{start_x}" cy="#{y_pos - 3}" r="2" fill="#{COLORS[:text_light]}"/>}
+          content += %{<text x="#{start_x + 10}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="13" fill="#{COLORS[:text_light]}">#{escape_xml(fact_text)}</text>}
+          y_pos += 18
+        end
+      end
+      
+      content
+    end
+    
+    def two_column_content_svg
+      content = ""
+      column_start_y = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0) + 80  # After enhanced header
+      
+      # Left column: Relationships
+      content += relationships_column_svg(column_start_y)
+      
+      # Right column: Timeline
+      content += timeline_column_svg(column_start_y)
+      
+      content
+    end
+    
+    def relationships_column_svg(start_y)
+      content = ""
+      left_x = 80
+      column_width = (CANVAS_WIDTH - 160) / 2 - 20  # Half width minus spacing
+      
+      # Section header
+      content += %{<rect x="#{left_x}" y="#{start_y-10}" width="#{column_width}" height="35" fill="#{COLORS[:primary]}" rx="8"/>}
+      content += %{<text x="#{left_x + column_width/2}" y="#{start_y+15}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#{COLORS[:text_light]}">Family Relationships</text>}
+      
+      # Get relationships
+      relationships = get_enhanced_family_relationships
+      
+      if relationships.any?
+        y_pos = start_y + 50
+        max_relationships = calculate_max_items_for_space(@content_sections[:relationships][:height] - 80, SECTION_HEIGHT)
+        display_relationships = relationships.first(max_relationships)
+        
+        display_relationships.each_with_index do |relationship, index|
+          # Stop if we exceed available space
+          break if y_pos > start_y + @content_sections[:relationships][:height] - 30
+          
+          # Relationship bullet point
+          content += %{<circle cx="#{left_x + 10}" cy="#{y_pos - 5}" r="3" fill="#{COLORS[:accent]}"/>}
+          
+          # Relationship text with responsive truncation
+          max_chars = get_max_chars_for_column_width(column_width - 30)
+          rel_text = relationship.length > max_chars ? "#{relationship[0...max_chars-3]}..." : relationship
+          content += %{<text x="#{left_x + 25}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_primary]}">#{escape_xml(rel_text)}</text>}
+          
+          y_pos += SECTION_HEIGHT
+        end
+        
+        # Show count if we had to truncate
+        if relationships.length > display_relationships.length
+          remaining = relationships.length - display_relationships.length
+          content += %{<text x="#{left_x + column_width/2}" y="#{y_pos + 20}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#{COLORS[:text_secondary]}" font-style="italic">... and #{remaining} more</text>}
+        end
+      else
+        content += %{<text x="#{left_x + column_width/2}" y="#{start_y + 60}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_secondary]}" font-style="italic">No relationships found</text>}
+      end
+      
+      content
+    end
+    
+    def timeline_column_svg(start_y)
+      content = ""
+      right_x = CANVAS_WIDTH/2 + 20  # Right column start
+      column_width = (CANVAS_WIDTH - 160) / 2 - 20  # Half width minus spacing
+      
+      # Section header
+      content += %{<rect x="#{right_x}" y="#{start_y-10}" width="#{column_width}" height="35" fill="#{COLORS[:primary]}" rx="8"/>}
+      content += %{<text x="#{right_x + column_width/2}" y="#{start_y+15}" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#{COLORS[:text_light]}">Timeline</text>}
+      
+      # Get timeline events (using existing method)
+      timeline_items = @person.timeline_items.order(:date).limit(6)
+      dated_facts = @person.facts.where.not(date: nil).order(:date).limit(3)
+      
+      # Combine timeline items and facts
+      all_events = []
+      
+      timeline_items.each do |item|
+        event_text = item.title
+        event_text = "#{event_text}: #{item.description}" if item.description.present?
+        event_text = event_text.length > 35 ? "#{event_text[0..32]}..." : event_text
+        
+        all_events << {
+          date: item.date,
+          text: event_text,
+          location: item.place
+        }
+      end
+      
+      dated_facts.each do |fact|
+        fact_text = fact.label.present? ? fact.label : fact.value
+        fact_text = fact_text.length > 35 ? "#{fact_text[0..32]}..." : fact_text
+        
+        all_events << {
+          date: fact.date,
+          text: fact_text,
+          location: fact.location
+        }
+      end
+      
+      # Sort and limit events
+      all_events.sort_by! { |event| event[:date] || Date.new(1900) }
+      max_events = calculate_max_items_for_space(@content_sections[:timeline][:height] - 80, 35)
+      all_events = all_events.first(max_events)
+      
+      if all_events.any?
+        y_pos = start_y + 50
+        
+        all_events.each_with_index do |event, index|
+          # Stop if we exceed available space
+          break if y_pos > start_y + @content_sections[:timeline][:height] - 40
+          
+          # Timeline connector line
+          if index > 0
+            content += %{<line x1="#{right_x + 15}" y1="#{y_pos - 20}" x2="#{right_x + 15}" y2="#{y_pos - 5}" stroke="#{COLORS[:accent]}" stroke-width="2"/>}
+          end
+          
+          # Timeline bullet
+          content += %{<circle cx="#{right_x + 15}" cy="#{y_pos - 3}" r="3" fill="#{COLORS[:accent]}"/>}
+          
+          # Event date
+          if event[:date]
+            date_text = event[:date].year.to_s
+            content += %{<text x="#{right_x + 25}" y="#{y_pos - 6}" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="#{COLORS[:primary]}">#{date_text}</text>}
+          end
+          
+          # Event text with responsive truncation
+          max_chars = get_max_chars_for_column_width(column_width - 40)
+          event_text = event[:text].length > max_chars ? "#{event[:text][0...max_chars-3]}..." : event[:text]
+          content += %{<text x="#{right_x + 25}" y="#{y_pos + 8}" font-family="Arial, sans-serif" font-size="12" fill="#{COLORS[:text_primary]}">#{escape_xml(event_text)}</text>}
+          
+          # Event location if available and fits
+          if event[:location].present? && y_pos + 18 <= start_y + @content_sections[:timeline][:height] - 20
+            location_max_chars = get_max_chars_for_column_width(column_width - 50, 10)
+            location_text = event[:location].length > location_max_chars ? "#{event[:location][0...location_max_chars-3]}..." : event[:location]
+            content += %{<text x="#{right_x + 30}" y="#{y_pos + 20}" font-family="Arial, sans-serif" font-size="10" fill="#{COLORS[:text_secondary]}">📍 #{escape_xml(location_text)}</text>}
+            y_pos += 35
+          else
+            y_pos += 30
+          end
+        end
+      else
+        content += %{<text x="#{right_x + column_width/2}" y="#{start_y + 60}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_secondary]}" font-style="italic">No timeline events</text>}
+      end
+      
+      content
+    end
     
     def life_dates_header_svg
       content = ""
@@ -92,7 +364,7 @@ module ImageGeneration
           dates_text = "Died #{@person.date_of_death.year}"
         end
         
-        content += %{<text x="#{CANVAS_WIDTH/2}" y="140" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" fill="#{COLORS[:text_light]}">#{dates_text}</text>}
+        content += %{<text x="90" y="125" text-anchor="start" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_light]}">#{dates_text}</text>}
       end
       
       content
@@ -229,76 +501,12 @@ module ImageGeneration
       content
     end
     
-    def timeline_column_svg
-      right_column_x = 620  # Right side of the canvas
-      y_pos = 300  # Increased to prevent overlap with life dates
-      content = ""
-      
-      # Add relationships section first
-      relationships_result = relationships_column_svg(right_column_x, y_pos)
-      content += relationships_result[:content]
-      y_pos = relationships_result[:next_y_pos] + 20  # Add spacing between sections
-      
-      # Timeline header
-      content += %{<text x="#{right_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#{COLORS[:primary]}">Life Timeline</text>}
-      y_pos += 40
-      
-      # Get timeline events
-      timeline_events = get_timeline_events
-      
-      if timeline_events.any?
-        timeline_events.take(4).each do |event|  # Show up to 4 timeline events (reduced to make room for relationships)
-          # Timeline bullet point
-          content += %{<circle cx="#{right_column_x + 5}" cy="#{y_pos - 5}" r="2" fill="#{COLORS[:accent]}"/>}
-          
-          # Timeline event (increase limit for better sharing content)
-          event_text = event.length > 70 ? "#{event[0..67]}..." : event
-          content += %{<text x="#{right_column_x + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_primary]}">#{escape_xml(event_text)}</text>}
-          y_pos += 20
-        end
-      else
-        # Show message if no timeline data available
-        content += %{<text x="#{right_column_x + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_secondary]}" font-style="italic">No timeline events recorded</text>}
-      end
-      
-      content
-    end
     
-    def relationships_column_svg(x_pos, start_y)
-      y_pos = start_y
-      content = ""
-      
-      # Relationships header
-      # Add background rectangle for header
-      content += %{<rect x="#{x_pos-10}" y="#{y_pos-25}" width="280" height="35" fill="#{COLORS[:secondary]}" rx="6"/>}
-      content += %{<text x="#{x_pos}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#{COLORS[:text_light]}">Family Relationships</text>}
-      y_pos += 40
-      
-      # Get family relationships
-      relationships = get_family_relationships
-      
-      if relationships.any?
-        relationships.take(5).each do |relationship|  # Limit to 5 relationships to save space
-          # Relationship bullet point
-          content += %{<circle cx="#{x_pos + 5}" cy="#{y_pos - 5}" r="2" fill="#{COLORS[:accent]}"/>}
-          
-          # Relationship text
-          rel_text = relationship.length > 50 ? "#{relationship[0..47]}..." : relationship
-          content += %{<text x="#{x_pos + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_primary]}">#{escape_xml(rel_text)}</text>}
-          y_pos += 22
-        end
-      else
-        # Show message if no relationships available
-        content += %{<text x="#{x_pos + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_secondary]}" font-style="italic">No relationships recorded</text>}
-        y_pos += 22
-      end
-      
-      { content: content, next_y_pos: y_pos }
-    end
     
     def enhanced_relationships_svg
-      y_start = 220
+      y_start = get_section_y_position(:relationships)
       content = ""
+      available_height = @content_sections[:relationships][:height]
       
       # Section header
       content += %{<rect x="80" y="#{y_start-10}" width="#{CANVAS_WIDTH-160}" height="35" fill="#{COLORS[:primary]}" rx="8"/>}
@@ -313,21 +521,35 @@ module ImageGeneration
         left_x = 100
         right_x = 100 + column_width + 20
         
-        relationships.each_with_index do |relationship, index|
+        # Limit relationships to fit available space
+        max_relationships = calculate_max_items_for_space(available_height - 80, SECTION_HEIGHT)
+        display_relationships = relationships.first(max_relationships)
+        
+        display_relationships.each_with_index do |relationship, index|
+          # Stop if we exceed available space
+          break if y_pos > y_start + available_height - 30
+          
           # Alternate between left and right columns
           x_pos = index.even? ? left_x : right_x
           
           # Move to next row after every 2 items
           if index > 0 && index.even?
-            y_pos += 35
+            y_pos += SECTION_HEIGHT
           end
           
           # Relationship bullet point
           content += %{<circle cx="#{x_pos}" cy="#{y_pos - 5}" r="3" fill="#{COLORS[:accent]}"/>}
           
-          # Relationship text with better formatting
-          rel_text = relationship.length > 35 ? "#{relationship[0..32]}..." : relationship
+          # Relationship text with responsive truncation
+          max_chars = get_max_chars_for_column_width(column_width - 30)
+          rel_text = relationship.length > max_chars ? "#{relationship[0...max_chars-3]}..." : relationship
           content += %{<text x="#{x_pos + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">#{escape_xml(rel_text)}</text>}
+        end
+        
+        # Show count if we had to truncate
+        if relationships.length > display_relationships.length
+          remaining = relationships.length - display_relationships.length
+          content += %{<text x="#{CANVAS_WIDTH/2}" y="#{y_pos + SECTION_HEIGHT}" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_secondary]}" font-style="italic">... and #{remaining} more relationships</text>}
         end
       else
         content += %{<text x="#{CANVAS_WIDTH/2}" y="#{y_start + 60}" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_secondary]}" font-style="italic">No family relationships found</text>}
@@ -503,11 +725,13 @@ module ImageGeneration
     end
     
     def additional_info_svg
-      y_start = 380
+      y_start = get_section_y_position(:facts)
       content = ""
+      available_height = @content_sections[:facts][:height]
       
       # Key Facts section like main Profile page
-      facts = @person.facts.limit(4)
+      max_facts = calculate_max_items_for_space(available_height - 80, SECTION_HEIGHT)
+      facts = @person.facts.limit(max_facts)
       
       if facts.any?
         # Facts section header with enhanced styling
@@ -520,12 +744,15 @@ module ImageGeneration
         right_x = 100 + column_width + 20
         
         facts.each_with_index do |fact, index|
+          # Stop if we exceed available space
+          break if y_pos > y_start + available_height - 30
+          
           # Alternate between left and right columns
           x_pos = index.even? ? left_x : right_x
           
           # Move to next row after every 2 items
           if index > 0 && index.even?
-            y_pos += 30
+            y_pos += SECTION_HEIGHT
           end
           
           # Format fact text properly
@@ -539,19 +766,24 @@ module ImageGeneration
             next
           end
           
-          # Limit fact text length for proper display
-          fact_text = fact_text.length > 32 ? "#{fact_text[0..29]}..." : fact_text
+          # Responsive text truncation based on column width
+          max_chars = get_max_chars_for_column_width(column_width - 30)
+          fact_text = fact_text.length > max_chars ? "#{fact_text[0...max_chars-3]}..." : fact_text
           
           # Fact bullet and text with enhanced styling
           content += %{<circle cx="#{x_pos}" cy="#{y_pos - 5}" r="3" fill="#{COLORS[:accent]}"/>}
           content += %{<text x="#{x_pos + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#{COLORS[:text_primary]}">#{escape_xml(fact_text)}</text>}
           
-          # Add date/location if available
-          if fact.date || fact.location.present?
+          # Add date/location if available (but only if we have space)
+          if (fact.date || fact.location.present?) && y_pos + 15 <= y_start + available_height - 15
             detail_parts = []
             detail_parts << fact.date.year.to_s if fact.date
             detail_parts << fact.location if fact.location.present?
             detail_text = detail_parts.join(', ')
+            
+            # Truncate detail text if needed
+            detail_max_chars = get_max_chars_for_column_width(column_width - 30, 11)
+            detail_text = detail_text.length > detail_max_chars ? "#{detail_text[0...detail_max_chars-3]}..." : detail_text
             
             content += %{<text x="#{x_pos + 15}" y="#{y_pos + 15}" font-family="Arial, sans-serif" font-size="11" fill="#{COLORS[:text_secondary]}">#{escape_xml(detail_text)}</text>}
           end
@@ -567,11 +799,15 @@ module ImageGeneration
     end
     
     def timeline_events_svg
-      y_start = 520
+      y_start = get_section_y_position(:timeline)
       content = ""
+      available_height = @content_sections[:timeline][:height]
+      
+      # Calculate max events that can fit in available space
+      max_events = calculate_max_items_for_space(available_height - 80, 40)  # 40px per event
       
       # Get timeline items and facts with dates
-      timeline_items = @person.timeline_items.order(:date).limit(4)
+      timeline_items = @person.timeline_items.order(:date).limit([max_events - 2, 1].max)
       dated_facts = @person.facts.where.not(date: nil).order(:date).limit(2)
       
       # Combine timeline items and facts
@@ -602,7 +838,7 @@ module ImageGeneration
       
       # Sort all events by date
       all_events.sort_by! { |event| event[:date] || Date.new(1900) }
-      all_events = all_events.first(5)  # Limit to 5 events total
+      all_events = all_events.first(max_events)  # Limit to fit available space
       
       if all_events.any?
         # Timeline section header
@@ -612,6 +848,9 @@ module ImageGeneration
         y_pos = y_start + 60
         
         all_events.each_with_index do |event, index|
+          # Stop if we exceed available space
+          break if y_pos > y_start + available_height - 40
+          
           # Timeline connector line
           if index > 0
             content += %{<line x1="110" y1="#{y_pos - 25}" x2="110" y2="#{y_pos - 10}" stroke="#{COLORS[:accent]}" stroke-width="2"/>}
@@ -626,12 +865,16 @@ module ImageGeneration
             content += %{<text x="125" y="#{y_pos - 8}" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#{COLORS[:primary]}">#{date_text}</text>}
           end
           
-          # Event text
-          content += %{<text x="125" y="#{y_pos + 8}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_primary]}">#{escape_xml(event[:text])}</text>}
+          # Event text with responsive truncation
+          max_text_width = CANVAS_WIDTH - 200  # Leave margin for text
+          max_chars = get_max_chars_for_width(max_text_width, 14)
+          event_text = event[:text].length > max_chars ? "#{event[:text][0...max_chars-3]}..." : event[:text]
+          content += %{<text x="125" y="#{y_pos + 8}" font-family="Arial, sans-serif" font-size="14" fill="#{COLORS[:text_primary]}">#{escape_xml(event_text)}</text>}
           
-          # Event location if available
-          if event[:location].present?
-            location_text = event[:location].length > 30 ? "#{event[:location][0..27]}..." : event[:location]
+          # Event location if available and fits
+          if event[:location].present? && y_pos + 22 <= y_start + available_height - 20
+            location_max_chars = get_max_chars_for_width(max_text_width - 20, 11)  # Account for 📍 icon
+            location_text = event[:location].length > location_max_chars ? "#{event[:location][0...location_max_chars-3]}..." : event[:location]
             content += %{<text x="125" y="#{y_pos + 22}" font-family="Arial, sans-serif" font-size="11" fill="#{COLORS[:text_secondary]}">📍 #{escape_xml(location_text)}</text>}
             y_pos += 40
           else
@@ -969,6 +1212,43 @@ module ImageGeneration
         Rails.logger.warn "Colored text creation failed: #{e.message}"
         Vips::Image.text text, font: 'sans 14'
       end
+    end
+    
+    def get_section_y_position(section_name)
+      # No longer needed - positioning is handled in the new two-column layout methods
+      enhanced_header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
+      enhanced_header_height + 80  # After enhanced header + margin
+    end
+    
+    def calculate_max_items_for_space(available_height, item_height)
+      [(available_height / item_height).floor, 1].max
+    end
+    
+    def get_max_chars_for_column_width(width, font_size = 16)
+      # Approximate character width calculation based on font size
+      char_width = font_size * 0.6  # Average character width multiplier
+      (width / char_width).floor
+    end
+    
+    def get_max_chars_for_width(width, font_size = 16)
+      # Approximate character width calculation for full width text
+      char_width = font_size * 0.6  # Average character width multiplier
+      (width / char_width).floor
+    end
+    
+    def create_placeholder_svg
+      create_basic_svg_structure
+    end
+    
+    def create_basic_svg_structure
+      height = @dynamic_height || MIN_CANVAS_HEIGHT
+      <<~SVG
+        <svg width="#{CANVAS_WIDTH}" height="#{height}" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="#{COLORS[:background]}"/>
+          <rect x="50" y="50" width="#{CANVAS_WIDTH-100}" height="#{height-100}" fill="#{COLORS[:card_bg]}" stroke="#{COLORS[:accent]}" stroke-width="2" rx="20"/>
+          #{svg_content}
+        </svg>
+      SVG
     end
     
     def escape_xml(text)

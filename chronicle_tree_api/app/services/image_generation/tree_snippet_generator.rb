@@ -1177,17 +1177,55 @@ module ImageGeneration
       # Build connected family network similar to familyTreeHierarchicalLayout.js
       connected_family = collect_connected_family(all_people)
       
-      # Build generations using relationship-based hierarchy
+      # Build generations using proper generation logic
       structure = {}
-      (-@generations..@generations).each do |gen_offset|
-        structure[gen_offset] = find_people_in_generation(gen_offset, connected_family)
+      
+      case @generations
+      when 1
+        # Only root person (generation 0)
+        structure[0] = find_people_in_generation(0, connected_family)
+      when 2
+        # Root + one level (either parents OR children, prefer children)
+        structure[0] = find_people_in_generation(0, connected_family)
+        children = find_people_in_generation(1, connected_family)
+        if children.any?
+          structure[1] = children
+        else
+          # If no children, show parents instead
+          parents = find_people_in_generation(-1, connected_family)
+          structure[-1] = parents if parents.any?
+        end
+      when 3
+        # Root + parents + children (classic 3-generation view)
+        structure[-1] = find_people_in_generation(-1, connected_family)
+        structure[0] = find_people_in_generation(0, connected_family)
+        structure[1] = find_people_in_generation(1, connected_family)
+      when 4
+        # Root + 2 levels up and 1 level down (or balanced)
+        structure[-2] = find_people_in_generation(-2, connected_family)
+        structure[-1] = find_people_in_generation(-1, connected_family)
+        structure[0] = find_people_in_generation(0, connected_family)
+        structure[1] = find_people_in_generation(1, connected_family)
+      when 5
+        # Root + 2 levels up and 2 levels down
+        structure[-2] = find_people_in_generation(-2, connected_family)
+        structure[-1] = find_people_in_generation(-1, connected_family)
+        structure[0] = find_people_in_generation(0, connected_family)
+        structure[1] = find_people_in_generation(1, connected_family)
+        structure[2] = find_people_in_generation(2, connected_family)
+      else
+        # Default to 3 generations for any other value
+        structure[-1] = find_people_in_generation(-1, connected_family)
+        structure[0] = find_people_in_generation(0, connected_family)
+        structure[1] = find_people_in_generation(1, connected_family)
       end
       
-      structure
+      # Remove empty generations
+      structure.reject { |gen, people| people.empty? }
     end
     
     def collect_connected_family(all_people)
-      # Enhanced version that properly includes step-relatives when requested
+      # Enhanced version that properly includes multi-generational family and step-relatives
       calculator = UnifiedRelationshipCalculator.new(@root_person.user)
       root_relationships = calculator.calculate_relationships_for_person(@root_person)
       
@@ -1203,6 +1241,35 @@ module ImageGeneration
       connected_people += @root_person.current_spouses.to_a  
       connected_people += @root_person.children.to_a
       connected_people += @root_person.siblings.to_a
+      
+      # Add multi-generational family members
+      # Add grandparents (parents of parents)
+      @root_person.parents.each do |parent|
+        connected_people += parent.parents.to_a
+      end
+      
+      # Add grandchildren (children of children)
+      @root_person.children.each do |child|
+        connected_people += child.children.to_a
+      end
+      
+      # Add great-grandparents if needed for 5 generations
+      if @generations >= 5
+        @root_person.parents.each do |parent|
+          parent.parents.each do |grandparent|
+            connected_people += grandparent.parents.to_a
+          end
+        end
+      end
+      
+      # Add great-grandchildren if needed for 5 generations
+      if @generations >= 5
+        @root_person.children.each do |child|
+          child.children.each do |grandchild|
+            connected_people += grandchild.children.to_a
+          end
+        end
+      end
       
       # Add step-relationships if requested
       if @include_step_relationships
@@ -1243,14 +1310,27 @@ module ImageGeneration
         end
         
         # Add step-grandparents
-        (@root_person.parents + connected_people.select { |p| p != @root_person }).each do |parent|
-          next unless parent.respond_to?(:parents)
-          
+        @root_person.parents.each do |parent|
           parent.parents.each do |grandparent|
             grandparent_spouses = get_spouses(grandparent)
             grandparent_spouses.each do |step_grandparent|
               unless parent.parents.include?(step_grandparent)
                 connected_people << step_grandparent
+              end
+            end
+          end
+        end
+        
+        # Add step-grandchildren
+        @root_person.children.each do |child|
+          child.children.each do |grandchild|
+            grandchild_spouses = get_spouses(grandchild)
+            grandchild_spouses.each do |step_grandchild_parent|
+              step_grandchild_parent_children = get_children(step_grandchild_parent)
+              step_grandchild_parent_children.each do |step_grandchild|
+                unless child.children.include?(step_grandchild)
+                  connected_people << step_grandchild
+                end
               end
             end
           end
