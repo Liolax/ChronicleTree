@@ -1,4 +1,6 @@
 import { Position } from '@xyflow/react';
+import { preventNodeOverlap, applyRelationshipSpacing } from './antiOverlapLayout.js';
+import { enhanceNodeVisuals, enhanceEdgeVisuals, applyVisualComplexitySpacing } from './visualConfiguration.js';
 /**
  * Collect all connected persons and relationships for a given root
  * Ensures siblings, spouses, and all relevant connections are included
@@ -121,7 +123,24 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   // Step 5: Create simplified edges (no duplication)
   const edges = createSimplifiedEdges(relationships, relationshipMaps, persons);
 
-  return { nodes, edges };
+  // Step 6: Apply anti-overlap positioning to prevent overlapping nodes
+  const antiOverlapNodes = preventNodeOverlap(nodes, edges, relationshipMaps, persons);
+  
+  // Step 7: Apply relationship-specific spacing adjustments
+  const spacedNodes = applyRelationshipSpacing(antiOverlapNodes, edges, relationshipMaps);
+  
+  // Step 8: Apply visual complexity spacing for better readability
+  const visuallySpacedNodes = applyVisualComplexitySpacing(spacedNodes, edges, relationshipMaps);
+  
+  // Step 9: Enhance node visuals based on relationship complexity
+  const enhancedNodes = visuallySpacedNodes.map(node => 
+    enhanceNodeVisuals(node, relationshipMaps, edges)
+  );
+  
+  // Step 10: Enhance edge visuals for better relationship visualization
+  const enhancedEdges = enhanceEdgeVisuals(edges, relationshipMaps);
+
+  return { nodes: enhancedNodes, edges: enhancedEdges };
 };
 
 /**
