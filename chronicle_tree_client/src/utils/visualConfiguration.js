@@ -36,6 +36,75 @@ export function enhanceNodeVisuals(node, relationshipMaps, edges) {
 }
 
 /**
+ * Determine the actual relationship type from edge ID and properties
+ * @param {Object} edge - The edge to analyze
+ * @param {Object} relationshipMaps - Relationship maps
+ * @returns {string} - The relationship type
+ */
+function determineRelationshipType(edge, relationshipMaps) {
+  const edgeId = edge.id;
+  const sourceId = edge.source;
+  const targetId = edge.target;
+  
+  // Check edge ID patterns to determine relationship type
+  if (edgeId.startsWith('parent-')) {
+    // For parent-child relationships, we use "parent" as the canonical type
+    // since both directions represent the same relationship in the legend
+    return 'parent';
+  }
+  
+  if (edgeId.startsWith('spouse-')) {
+    // Check the current edge style/color to determine spouse type
+    const currentColor = edge.style?.stroke;
+    
+    // Match colors from existing Connection Legend
+    if (currentColor === '#ec4899') return 'spouse'; // Pink = current spouse
+    if (currentColor === '#9ca3af') return 'ex-spouse'; // Gray = ex-spouse  
+    if (currentColor === '#000000') return 'late-spouse'; // Black = late spouse
+    
+    return 'spouse'; // Default to current spouse
+  }
+  
+  if (edgeId.startsWith('sibling-')) {
+    // Check if these are siblings with no parents
+    const sourceParents = relationshipMaps.childToParents?.get(sourceId);
+    const targetParents = relationshipMaps.childToParents?.get(targetId);
+    
+    const sourceHasNoParents = !sourceParents || sourceParents.size === 0;
+    const targetHasNoParents = !targetParents || targetParents.size === 0;
+    
+    if (sourceHasNoParents && targetHasNoParents) {
+      return 'sibling-no-parents';
+    }
+    
+    return 'sibling';
+  }
+  
+  // Check relationship maps for other types
+  if (relationshipMaps.parentToChildren?.get(sourceId)?.has(targetId)) {
+    return 'parent';
+  }
+  
+  if (relationshipMaps.childToParents?.get(targetId)?.has(sourceId)) {
+    return 'child';
+  }
+  
+  if (relationshipMaps.spouseMap?.get(sourceId) === targetId) {
+    return 'spouse';
+  }
+  
+  if (relationshipMaps.exSpouseMap?.get(sourceId)?.has(targetId)) {
+    return 'ex-spouse';
+  }
+  
+  if (relationshipMaps.siblingMap?.get(sourceId)?.has(targetId)) {
+    return 'sibling';
+  }
+  
+  return 'unknown';
+}
+
+/**
  * Calculate the relationship complexity of a node
  * @param {string} nodeId - ID of the node
  * @param {Object} relationshipMaps - Relationship maps
@@ -142,24 +211,36 @@ export function enhanceEdgeVisuals(edges, relationshipMaps) {
   return edges.map(edge => {
     const enhancedEdge = { ...edge };
     
+    // Determine the actual relationship type from the edge ID and properties
+    const relationshipType = determineRelationshipType(edge, relationshipMaps);
+    
     // Determine edge importance and complexity
     const edgeComplexity = getEdgeComplexity(edge, relationshipMaps);
+    edgeComplexity.relationshipType = relationshipType;
+    edgeComplexity.color = getRelationshipColor(relationshipType);
+    edgeComplexity.weight = getRelationshipWeight(relationshipType);
     
     // Apply styling based on relationship type and complexity
+    const relationshipStyle = getEdgeStyle(relationshipType, edgeComplexity);
+    
     enhancedEdge.style = {
       ...enhancedEdge.style,
-      ...getEdgeStyle(edge.type || edge.data?.relationshipType, edgeComplexity),
+      ...relationshipStyle,
     };
     
-    // Add visual markers for complex connections
-    if (edgeComplexity.isComplex) {
+    // Update marker color to match relationship
+    if (enhancedEdge.markerEnd) {
       enhancedEdge.markerEnd = {
-        type: 'arrowclosed',
-        width: 20,
-        height: 20,
+        ...enhancedEdge.markerEnd,
         color: edgeComplexity.color,
       };
     }
+    
+    // Store relationship type in edge data for debugging
+    enhancedEdge.data = {
+      ...enhancedEdge.data,
+      relationshipType: relationshipType,
+    };
     
     return enhancedEdge;
   });
@@ -196,7 +277,7 @@ function getEdgeComplexity(edge, relationshipMaps) {
 }
 
 /**
- * Get visual styling for edges based on relationship type
+ * Get visual styling for edges based on relationship type - Updated to match Connection Legend
  * @param {string} relationshipType - Type of relationship
  * @param {Object} complexity - Complexity information
  * @returns {Object} - CSS style object for edges
@@ -205,37 +286,59 @@ function getEdgeStyle(relationshipType, complexity) {
   const baseStyle = {
     strokeWidth: complexity.weight,
     stroke: complexity.color,
-    opacity: complexity.isComplex ? 0.9 : 0.7,
+    opacity: complexity.isComplex ? 0.9 : 0.8,
   };
   
-  // Special styling for different relationship types
+  // Special styling matching your Connection Legend exactly
   switch (relationshipType) {
     case 'parent':
     case 'child':
       return {
         ...baseStyle,
-        strokeDasharray: '0', // Solid line for parent-child
+        strokeDasharray: '0', // Solid line for parent-child (matches legend)
       };
     
     case 'spouse':
+    case 'current-spouse':
       return {
         ...baseStyle,
-        strokeDasharray: '0',
-        strokeWidth: complexity.weight + 1, // Thicker for spouses
+        strokeDasharray: '5,3', // Dashed for current spouse (matches legend)
+        strokeWidth: complexity.weight,
+      };
+    
+    case 'ex-spouse':
+      return {
+        ...baseStyle,
+        strokeDasharray: '5,3', // Dashed for ex-spouse (matches legend)
+      };
+    
+    case 'late-spouse':
+    case 'deceased-spouse':
+      return {
+        ...baseStyle,
+        strokeDasharray: '5,3', // Dashed for late spouse (matches legend)
       };
     
     case 'sibling':
+    case 'sibling-no-parents':
       return {
         ...baseStyle,
-        strokeDasharray: '5,5', // Dashed for siblings
+        strokeDasharray: '2,2', // Dotted for siblings no parents (matches legend)
+      };
+    
+    case 'half-sibling':
+      return {
+        ...baseStyle,
+        strokeDasharray: '3,2', // Different pattern for half-siblings
       };
     
     case 'step':
     case 'step-parent':
     case 'step-child':
+    case 'step-sibling':
       return {
         ...baseStyle,
-        strokeDasharray: '10,5,2,5', // Dash-dot for step relationships
+        strokeDasharray: '8,3,2,3', // Dash-dot for step relationships
       };
     
     default:
@@ -244,45 +347,67 @@ function getEdgeStyle(relationshipType, complexity) {
 }
 
 /**
- * Get color for relationship type
+ * Get color for relationship type - Updated to match Connection Legend
  * @param {string} relationshipType - Type of relationship
  * @returns {string} - CSS color value
  */
 function getRelationshipColor(relationshipType) {
   const colorMap = {
-    'parent': '#dc2626',     // Red for parent-child
-    'child': '#dc2626',
-    'spouse': '#059669',     // Green for marriage
-    'sibling': '#2563eb',    // Blue for siblings
-    'step': '#f59e0b',       // Orange for step relationships
+    // Match your Connection Legend colors exactly
+    'parent': '#6366f1',     // Indigo for parent-child (matches your legend)
+    'child': '#6366f1',      // Indigo for parent-child (matches your legend)
+    'spouse': '#ec4899',     // Pink for current spouse (matches your legend)
+    'current-spouse': '#ec4899', // Pink for current spouse
+    'ex-spouse': '#9ca3af',  // Gray for ex-spouse (matches your legend)
+    'late-spouse': '#000000', // Black for late spouse (matches your legend)
+    'deceased-spouse': '#000000', // Black for deceased spouse
+    'sibling': '#3b82f6',    // Blue for siblings no parents (matches your legend)
+    'sibling-no-parents': '#3b82f6', // Blue for siblings no parents
+    
+    // Additional relationship types
+    'step': '#f59e0b',       // Orange for step relationships (complementary)
     'step-parent': '#f59e0b',
     'step-child': '#f59e0b',
-    'ex-spouse': '#9333ea',  // Purple for ex relationships
-    'deceased': '#6b7280',   // Gray for deceased
+    'step-sibling': '#f59e0b',
+    'half-sibling': '#7c3aed', // Purple for half-siblings (distinct from full siblings)
+    'adopted': '#10b981',    // Green for adopted relationships
+    'foster': '#f97316',     // Orange for foster relationships
   };
   
-  return colorMap[relationshipType] || '#6b7280';
+  return colorMap[relationshipType] || '#6b7280'; // Default gray
 }
 
 /**
- * Get stroke weight for relationship type
+ * Get stroke weight for relationship type - Updated for better visual hierarchy
  * @param {string} relationshipType - Type of relationship
  * @returns {number} - Stroke width
  */
 function getRelationshipWeight(relationshipType) {
   const weightMap = {
-    'parent': 3,
-    'child': 3,
-    'spouse': 4,
+    // Primary relationships - thicker lines
+    'parent': 2.5,
+    'child': 2.5,
+    'spouse': 2.5,
+    'current-spouse': 2.5,
+    
+    // Secondary relationships - medium lines
     'sibling': 2,
-    'step': 2,
-    'step-parent': 2,
-    'step-child': 2,
+    'sibling-no-parents': 2,
     'ex-spouse': 2,
-    'deceased': 1,
+    'late-spouse': 2,
+    'deceased-spouse': 2,
+    'half-sibling': 2,
+    
+    // Tertiary relationships - thinner lines
+    'step': 1.5,
+    'step-parent': 1.5,
+    'step-child': 1.5,
+    'step-sibling': 1.5,
+    'adopted': 1.5,
+    'foster': 1.5,
   };
   
-  return weightMap[relationshipType] || 1;
+  return weightMap[relationshipType] || 1.5;
 }
 
 /**
