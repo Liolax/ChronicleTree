@@ -2,16 +2,15 @@ import { Position } from '@xyflow/react';
 import { preventNodeOverlap, applyRelationshipSpacing } from './antiOverlapLayout.js';
 import { enhanceNodeVisuals, enhanceEdgeVisuals, applyVisualComplexitySpacing } from './visualConfiguration.js';
 /**
- * Family Tree Collection Function - Part of Family Tree Project
- * This function was implemented to gather all related family members starting from a root person
- * Uses breadth-first search algorithm for efficient traversal
+ * Collects all family members connected to a root person using breadth-first search
+ * Traverses the family network to find everyone related to the starting person
  * @param {string|number} rootId - The starting person for the family tree
  * @param {Array} allPersons - Complete list of people in the database
  * @param {Array} allRelationships - Complete list of family relationships
  * @returns {Object} - Connected family members and their relationships
  */
 export function collectConnectedFamily(rootId, allPersons, allRelationships) {
-  // Step 1: Create a lookup table for efficient relationship searches
+  // Build lookup table for efficient relationship searches
   const relMap = new Map();
   allRelationships.forEach(rel => {
     const source = String(rel.source || rel.from);
@@ -27,7 +26,7 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     relMap.get(target).push(rel);
   });
 
-  // Step 2: Apply BFS algorithm to traverse the family network
+  // Use breadth-first search to traverse family connections
   const visited = new Set();
   const queue = [String(rootId)];
   const connectedPersons = [];
@@ -39,7 +38,7 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     const person = allPersons.find(p => String(p.id) === currentId);
     if (person) connectedPersons.push(person);
     
-    // Explore all relationships for current person (BFS traversal)
+    // Add connected relatives to search queue
     if (typeof relMap !== 'undefined' && relMap.get) {
       (relMap.get(currentId) || []).forEach(rel => {
         const source = String(rel.source || rel.from);
@@ -1480,12 +1479,12 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
         });
         processedConnections.add(connectionKey);
       }
-      // Note: Regular siblings (with shared parents) get no visual connector
+      // Regular siblings with shared parents get no visual connector
       // Their relationship is shown through positioning via their shared parents
     }
   });
 
-  // Note: Step-grandparent relationships are not shown as visual lines
+  // Step-grandparent relationships are not shown as visual lines
   // Step-grandparent relationships are only shown in text labels via the relationship calculator,
   // not as visual connectors. Visual connectors only represent direct biological relationships
   // and formal spouse relationships. Step-relationships are inferred and displayed as text only.

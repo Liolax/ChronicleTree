@@ -108,7 +108,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
   // This handles complex remarriage situations like:
   // - Marrying an ex-spouse's sibling (allowed if no blood relation exists)
   // - Marrying a deceased spouse's relative (allowed if no blood relation exists)
-  // Note: Blood relatives are always prevented from marrying, regardless of previous marriages
+  // Blood relatives are always prevented from marrying, regardless of previous marriages
   const isAllowedRemarriageRelative = (currentPersonId, candidateId) => {
     const currentPerson = people.find(p => p.id === parseInt(currentPersonId));
     if (!currentPerson?.relatives) return false;

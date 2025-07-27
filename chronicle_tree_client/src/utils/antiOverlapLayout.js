@@ -1,13 +1,10 @@
 /**
- * Anti-Overlap System - Advanced Algorithm Implementation
  * Prevents family tree nodes from overlapping each other
- * Uses collision detection and force-based positioning
+ * Uses collision detection and force-based positioning to maintain readable layout
  */
 
 /**
- * Main Overlap Prevention Function
  * Detects and resolves overlapping nodes in the family tree layout
- * Uses iterative positioning with collision detection algorithms
  * @param {Array} nodes - Tree nodes that might be overlapping
  * @param {Array} edges - Connection lines between nodes
  * @param {Object} relationshipMaps - Lookup tables for family relationships
@@ -15,17 +12,17 @@
  * @returns {Array} - Fixed node positions with no overlaps
  */
 export function preventNodeOverlap(nodes, edges, relationshipMaps, persons) {
-  // Layout configuration constants for node spacing
+  // Set spacing constants for node positioning
   const NODE_WIDTH = 280;
   const NODE_HEIGHT = 120;
-  const MIN_HORIZONTAL_SPACING = 80;  // Increased minimum space between nodes horizontally
-  const MIN_VERTICAL_SPACING = 60;    // Increased minimum space between nodes vertically
-  const COMPLEX_RELATIONSHIP_SPACING = 160; // Increased extra spacing for complex relationships
+  const MIN_HORIZONTAL_SPACING = 80;  // Minimum space between nodes horizontally
+  const MIN_VERTICAL_SPACING = 60;    // Minimum space between nodes vertically
+  const COMPLEX_RELATIONSHIP_SPACING = 160; // Extra spacing for complex relationships
   
-  // Step 1: Identify nodes with complex relationships
+  // Find nodes with complex relationships that need extra spacing
   const complexNodes = identifyComplexRelationshipNodes(nodes, edges, relationshipMaps, persons);
   
-  // Step 2: Detect collisions
+  // Check for overlapping nodes
   const collisions = detectCollisions(nodes, NODE_WIDTH, NODE_HEIGHT, MIN_HORIZONTAL_SPACING, MIN_VERTICAL_SPACING);
   
   // Step 3: Resolve collisions using multiple iterations of force-directed adjustment

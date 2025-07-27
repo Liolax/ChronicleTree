@@ -1,13 +1,10 @@
 /**
- * Relationship Calculator - Core Logic Module
- * Determines family relationships between any two people in the tree
- * Handles complex cases including in-laws and multi-generational relationships
+ * Calculates family relationships between people in the family tree
+ * Handles complex genealogical connections including in-laws and distant relatives
  */
 
 /**
- * Main Relationship Calculator Function
  * Determines the relationship between any person and the root person
- * Implements comprehensive relationship logic with edge case handling
  * @param {Object} person - The person we want to find the relationship for
  * @param {Object} rootPerson - The reference person (center of the tree)
  * @param {Array} allPeople - Everyone in the family database
@@ -20,31 +17,31 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   }
 
 
-  // Easy case - person is looking at themselves
+  // Handle case where person is viewing their own profile
   if (person.id === rootPerson.id) {
     return 'Root';
   }
 
-  // Timeline validation - people from different eras might not have real relationships
-  // But we still need to show blood relationships even across time gaps
+  // Check if people lived in different time periods
+  // Still show blood relationships even if they never met
   const personBirth = person.date_of_birth ? new Date(person.date_of_birth) : null;
   const personDeath = person.date_of_death ? new Date(person.date_of_death) : null;
   const rootBirth = rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth) : null;
   const rootDeath = rootPerson.date_of_death ? new Date(rootPerson.date_of_death) : null;
 
-  // Check if lifespans overlapped
+  // Verify if these people could have met in real life
   if (personBirth && rootDeath && personBirth > rootDeath) {
-    // Person was born after root died - they never coexisted
-    // Only allow direct biological relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.)
+    // Person born after root died - they never lived at the same time
+    // Only show direct biological connections across generations
     const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
     const { childToParents, parentToChildren } = relationshipMaps;
     
-    // Check if they are direct biological relatives (any ancestor-descendant relationship)
+    // Look for direct ancestor-descendant relationships
     const personParents = childToParents.get(String(person.id)) || new Set();
     const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
     const personChildren = parentToChildren.get(String(person.id)) || new Set();
     
-    // Check if root is person's parent (would be impossible if person born after root died, but we check anyway)
+    // Check if root is person's parent
     if (personParents.has(String(rootPerson.id))) {
       return getGenderSpecificRelation(rootPerson.id, 'Father', 'Mother', allPeople, 'Parent');
     }
@@ -743,7 +740,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
 
   // Check for step-parent relationship
   // Person is step-parent of root if: person marries root's biological parent, but is not root's biological parent
-  // BUSINESS RULE: Only direct marriage connections create step-relationships
+  // Step-relationships only form through direct marriage connections
   const rootParents = childToParents.get(rootId) || new Set();
   
   for (const parent of rootParents) {
@@ -777,13 +774,13 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
       }
     }
     
-    // Note: Ex-spouses do NOT create step-relationships
+    // Ex-spouses do not create step-relationships
   }
   
 
   // Check for step-child relationship  
   // Person is step-child of root if: root marries person's biological parent, but is not person's biological parent
-  // BUSINESS RULE: Only direct marriage connections create step-relationships
+  // Step-relationships only form through direct marriage connections
   const personParents = childToParents.get(personId) || new Set();
   
   for (const parent of personParents) {
@@ -817,11 +814,11 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
       }
     }
     
-    // Note: Ex-spouses do NOT create step-relationships
+    // Ex-spouses do not create step-relationships
   }
   
   // Check for step-grandparent relationship
-  // BUSINESS RULE: Step-grandparent relationships only exist when someone NEW marries your biological grandparent
+  // Step-grandparent relationships only exist when someone new marries your biological grandparent
   // Example: If your biological grandfather remarries, his new wife becomes your step-grandmother
   const rootParentsForGrandparent = childToParents.get(rootId) || new Set();
   for (const parent of rootParentsForGrandparent) {
@@ -859,7 +856,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  // BUSINESS RULE: The biological parents, siblings, or other relatives of step-parents are "Unrelated"
+  // The biological parents, siblings, or other relatives of step-parents are considered unrelated
   // Examples of relationships that should be "Unrelated":
   // 1. Step-parent's biological parents → NOT step-grandparents
   // 2. Step-parent's siblings → NOT step-aunts/uncles  
@@ -867,10 +864,10 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // REMOVED: All reverse step-grandparent relationship logic
   //
-  // BUSINESS RULE: Step-grandparent relationships should NOT exist.
+  // Step-grandparent relationships should not exist in this implementation
   // Only direct step-parent relationships through marriage should be recognized.
   // REMOVED: All step-grandparent and step-great-grandparent logic
-  // BUSINESS RULE: Only direct marriage connections create step-relationships.
+  // Step-relationships only form through direct marriage connections.
   // All extended family of step-relatives should be classified as "Unrelated".
 
   // REMOVED: All step-grandparent and step-great-grandparent logic sections
@@ -878,7 +875,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents
-  // BUSINESS RULE: Only direct children of step-parent, no extended step-family
+  // Only direct children of step-parent count as step-siblings, no extended step-family
   
   const rootStepParentsForSiblings = new Set();
   // personParents already declared above for step-child logic
@@ -1003,7 +1000,7 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
   
   // REMOVED: Incorrect step-great-grandparent logic through step-grandparent's parents
   // 
-  // BUSINESS RULE: The biological parents of your step-grandmother are NOT step-great-grandparents.
+  // The biological parents of your step-grandmother are not step-great-grandparents
   // Their relationship to your step-grandmother is biological, not through a marriage that 
   // creates a new family unit for you. They should be classified as "Unrelated".
   //
@@ -2057,7 +2054,7 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   
   // Check if person and root are both parents of spouses (co-parents-in-law)
   // Example: Michael A (David's father) ↔ John/Jane Doe (Alice's parents) when David ↔ Alice are CURRENTLY married
-  // Note: Co-parent-in-law relationships only apply to CURRENT spouses, not ex-spouses
+  // Co-parent-in-law relationships only apply to current spouses, not ex-spouses
   // IMPORTANT: This includes both biological children AND step-children
   
   // Get biological children for person and root

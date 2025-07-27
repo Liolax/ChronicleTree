@@ -1,11 +1,9 @@
 /**
- * Visual Configuration Module
  * Applies styling and visual enhancements to improve tree readability
- * Handles complex relationship visual indicators
+ * Handles complex relationship visual indicators and node styling
  */
 
 /**
- * Node Visual Enhancement Function
  * Applies styling based on the complexity of person's relationships
  * @param {Object} node - The node to style
  * @param {Object} relationshipMaps - Relationship maps
@@ -15,16 +13,16 @@
 export function enhanceNodeVisuals(node, relationshipMaps, edges) {
   const enhancedNode = { ...node };
   
-  // Calculate how many relationships this person has
+  // Count relationships to determine visual complexity
   const complexity = calculateRelationshipComplexity(node.id, relationshipMaps, edges);
   
-  // Style the node based on relationship complexity
+  // Apply visual styling based on relationship count
   enhancedNode.style = {
     ...enhancedNode.style,
     ...getComplexityBasedStyle(complexity),
   };
   
-  // Add special visual markers for highly connected people
+  // Add visual markers for people with many connections
   if (complexity.isComplex) {
     enhancedNode.data = {
       ...enhancedNode.data,

@@ -323,7 +323,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
   // This function handles complex remarriage scenarios where someone might marry:
   // - An ex-spouse's sibling (if no blood relation exists)
   // - A deceased spouse's relative (if no blood relation exists)
-  // Note: Blood relatives are always prevented from marrying regardless of previous marriages
+  // Blood relatives are always prevented from marrying regardless of previous marriages
   const isAllowedRemarriageRelative = (candidateId) => {
     if (!person?.relatives) return false;
     
@@ -405,7 +405,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         return { valid: false, reason: `${person2.first_name} ${person2.last_name} is only ${person2Age.toFixed(1)} years old. Minimum marriage age is 16 years` };
       }
     }
-    // Note: Siblings, aunts/uncles can have flexible age differences
+    // Siblings, aunts/uncles can have flexible age differences
     return { valid: true };
   };
 
@@ -1485,7 +1485,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                                 const bloodCheck = detectBloodRelationship(person.id, rel.id);
                                 if (bloodCheck.isBloodRelated) {
                                   const action = rel.is_ex ? 'remarry' : 'divorce';
-                                  const confirmMsg = `⚠️ Blood Relationship Warning\n\n${person.first_name} ${person.last_name} and ${rel.full_name} are blood relatives (${bloodCheck.relationship}).\n\nDo you want to ${action} them anyway?\n\nNote: Marriage between blood relatives is generally inappropriate.`;
+                                  const confirmMsg = `⚠️ Blood Relationship Warning\n\n${person.first_name} ${person.last_name} and ${rel.full_name} are blood relatives (${bloodCheck.relationship}).\n\nDo you want to ${action} them anyway?\n\nMarriage between blood relatives is generally inappropriate.`;
                                   
                                   if (!confirm(confirmMsg)) {
                                     setToggleLoadingId(null);
