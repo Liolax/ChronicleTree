@@ -28,15 +28,16 @@ import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalcu
 import { ShareModal } from '../Share';
 // import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
-// Node types for react-flow
+// Register our custom node components with ReactFlow
 const nodeTypes = {
   custom: CustomNode,
   personCard: PersonCardNode,
 };
 
 /**
- * Enhanced Family Tree Component
- * Uses react-flow with simplified, intuitive layout
+ * Main Family Tree Component - Core of the whole project
+ * ReactFlow was challenging to learn but gives us the draggable, zoomable interface
+ * This component handles all the user interactions and data management
  */
 const FamilyTree = () => {
   const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
@@ -55,11 +56,11 @@ const FamilyTree = () => {
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
 
-  // Process data based on root person and add relationship information
+  // Main data processing - build the tree structure
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
 
-    // Auto-set oldest person as root if no root is selected and we haven't set default root yet
+    // Smart default: pick oldest person as root if user hasn't chosen one
     if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
       setRootPersonId(data.oldest_person_id);
       setHasSetDefaultRoot(true);

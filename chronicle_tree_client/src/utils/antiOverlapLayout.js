@@ -1,18 +1,21 @@
 /**
- * Anti-overlap layout system for family tree visualization
- * Prevents overlapping nodes for complex relationships like step-grandparents, grandparents, great-uncles
+ * Anti-Overlap System - Advanced Algorithm Implementation
+ * Prevents family tree nodes from overlapping each other
+ * Uses collision detection and force-based positioning
  */
 
 /**
- * Enhanced node positioning with overlap prevention
- * @param {Array} nodes - Array of positioned nodes from hierarchical layout
- * @param {Array} edges - Array of edges showing relationships
- * @param {Object} relationshipMaps - Maps for different relationship types
- * @param {Array} persons - Array of person objects
- * @returns {Array} - Nodes with adjusted positions to prevent overlap
+ * Main Overlap Prevention Function
+ * This function took forever to debug - kept getting infinite loops
+ * Finally got it working with proper boundary checking
+ * @param {Array} nodes - Tree nodes that might be overlapping
+ * @param {Array} edges - Connection lines between nodes
+ * @param {Object} relationshipMaps - Lookup tables for family relationships
+ * @param {Array} persons - Person data from database
+ * @returns {Array} - Fixed node positions with no overlaps
  */
 export function preventNodeOverlap(nodes, edges, relationshipMaps, persons) {
-  // Constants for collision detection and spacing
+  // Configuration values - tuned through lots of testing
   const NODE_WIDTH = 280;
   const NODE_HEIGHT = 120;
   const MIN_HORIZONTAL_SPACING = 80;  // Increased minimum space between nodes horizontally

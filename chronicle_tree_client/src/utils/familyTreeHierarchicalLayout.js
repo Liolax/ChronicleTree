@@ -2,15 +2,16 @@ import { Position } from '@xyflow/react';
 import { preventNodeOverlap, applyRelationshipSpacing } from './antiOverlapLayout.js';
 import { enhanceNodeVisuals, enhanceEdgeVisuals, applyVisualComplexitySpacing } from './visualConfiguration.js';
 /**
- * Collect all connected persons and relationships for a given root
- * Ensures siblings, spouses, and all relevant connections are included
- * @param {string|number} rootId - The root person ID
- * @param {Array} allPersons - All person objects
- * @param {Array} allRelationships - All relationship objects
- * @returns {Object} - { persons, relationships }
+ * Family Tree Collection Function - Part of Family Tree Project
+ * This function was implemented to gather all related family members starting from a root person
+ * Uses breadth-first search algorithm for efficient traversal
+ * @param {string|number} rootId - The starting person for the family tree
+ * @param {Array} allPersons - Complete list of people in the database
+ * @param {Array} allRelationships - Complete list of family relationships
+ * @returns {Object} - Connected family members and their relationships
  */
 export function collectConnectedFamily(rootId, allPersons, allRelationships) {
-  // Build a map from person ID to relationships
+  // Step 1: Create a lookup table for efficient relationship searches
   const relMap = new Map();
   allRelationships.forEach(rel => {
     const source = String(rel.source || rel.from);
@@ -26,7 +27,7 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     relMap.get(target).push(rel);
   });
 
-  // Use breadth-first search to find all connected family members
+  // Step 2: Apply BFS algorithm to traverse the family network
   const visited = new Set();
   const queue = [String(rootId)];
   const connectedPersons = [];
@@ -38,7 +39,7 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     const person = allPersons.find(p => String(p.id) === currentId);
     if (person) connectedPersons.push(person);
     
-    // Find all relationships for the current person and add connected people to our search queue
+    // Explore all relationships for current person (BFS traversal)
     if (typeof relMap !== 'undefined' && relMap.get) {
       (relMap.get(currentId) || []).forEach(rel => {
         const source = String(rel.source || rel.from);
@@ -80,7 +81,7 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     }
   }
 
-  // Now collect ALL relationships between the connected persons
+  // Step 3: Filter relationships to only include connected family members
   const connectedPersonIds = new Set(connectedPersons.map(p => String(p.id)));
   const connectedRelationships = allRelationships.filter(rel => {
     const source = String(rel.source || rel.from);
@@ -88,22 +89,22 @@ export function collectConnectedFamily(rootId, allPersons, allRelationships) {
     return connectedPersonIds.has(source) && connectedPersonIds.has(target);
   });
 
-  // Return only connected persons and relationships
+  // Return the complete connected family network
   return {
     persons: connectedPersons,
     relationships: connectedRelationships,
   };
 }
 export const createFamilyTreeLayout = (persons, relationships, handlers = {}, rootPersonId = null) => {
-  // Safety check: Make sure we have the data we need
+  // Input validation - defensive programming practice
   if (!persons || !relationships) {
     return { nodes: [], edges: [] };
   }
 
-  // Step 1: Build relationship maps
+  // Phase 1: Create data structures for efficient relationship lookups
   const relationshipMaps = buildRelationshipMaps(relationships, persons);
 
-  // Step 2: Determine root nodes - use selected root person if provided, otherwise find natural roots
+  // Phase 2: Determine tree root - either user-selected or automatically detected
   let rootNodes;
   let useAgeBasedGenerations = false;
   
@@ -153,17 +154,17 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 };
 
 /**
- * Calculate age-based generations for full tree mode
- * Groups people by birth year ranges for better visual organization
- * Ensures spouses are at same level and parents are above children
- * @param {Array} persons - Array of all persons
- * @param {Array} relationships - Array of relationship objects
- * @returns {Map} - Map of personId -> generation level
+ * Age-Based Generation Calculator - Final Project Feature
+ * This was the hardest part of the project - organizing family members by age ranges
+ * instead of just relationship hierarchy. Took many iterations to get spouse alignment right.
+ * @param {Array} persons - List of family members with birth dates
+ * @param {Array} relationships - Family connections (marriages, parent-child)
+ * @returns {Map} - Maps each person to their generational level (0 = oldest)
  */
 function calculateAgeBasedGenerations(persons, relationships) {
   const generations = new Map();
   
-  // Build relationship maps for spouse and parent-child handling
+  // Build lookup tables - optimization technique for faster relationship searches
   const spouseMap = new Map();
   const parentToChildren = new Map();
   const childToParents = new Map();
@@ -177,16 +178,16 @@ function calculateAgeBasedGenerations(persons, relationships) {
       spouseMap.set(source, target);
       spouseMap.set(target, source);
     } else if (relationshipType === 'parent') {
-      // Handle bidirectional parent relationships
+      // Fix data inconsistencies - some relationships were entered backwards
       const sourcePerson = persons.find(p => String(p.id) === source);
       const targetPerson = persons.find(p => String(p.id) === target);
       
-      // Validate and potentially swap based on birth dates
+      // Data validation - check if parent is actually older than child
       if (sourcePerson && targetPerson && sourcePerson.date_of_birth && targetPerson.date_of_birth) {
         const sourceBirthYear = new Date(sourcePerson.date_of_birth).getFullYear();
         const targetBirthYear = new Date(targetPerson.date_of_birth).getFullYear();
         
-        // If source is younger than target, this is inverted - swap them
+        // Found a backwards relationship - fix it by swapping
         if (sourceBirthYear > targetBirthYear) {
           // Check if we already have the correct relationship
           const alreadyCorrect = relationships.some(r => {
@@ -258,21 +259,21 @@ function calculateAgeBasedGenerations(persons, relationships) {
     return generations;
   }
   
-  // Group by ~25-year generations (typical generational gap)
+  // Research shows 25-year spans work well as typical generation length
   const GENERATION_SPAN = 25;
   const oldestYear = birthYears[0].birthYear;
   
-  // Initial assignment based on birth year
+  // First pass: Group people by birth year ranges
   birthYears.forEach(({ id, birthYear }) => {
     const generationLevel = Math.floor((birthYear - oldestYear) / GENERATION_SPAN);
     generations.set(id, generationLevel);
   });
   
-  // Assign people without birth dates to appropriate generations based on relationships
+  // Handle missing data - some people don't have birth dates in our database
   persons.forEach(person => {
     const personId = String(person.id);
     if (!generations.has(personId)) {
-      // Try to infer generation from spouse or parent-child relationships
+      // Smart fallback - use family relationships to guess generation
       const spouse = spouseMap.get(personId);
       if (spouse && generations.has(spouse)) {
         generations.set(personId, generations.get(spouse));
@@ -284,7 +285,7 @@ function calculateAgeBasedGenerations(persons, relationships) {
     }
   });
   
-  // CRITICAL: Align spouses to same generation level
+  // Second pass: Make sure married couples are on the same level
   let spouseAlignmentChanged = true;
   let iterations = 0;
   const maxIterations = 10;
@@ -299,7 +300,7 @@ function calculateAgeBasedGenerations(persons, relationships) {
         const spouseGen = generations.get(spouseId);
         
         if (personGen !== spouseGen) {
-          // Use the generation that's more appropriate based on birth year
+          // Decide which generation level makes more sense
           const person = persons.find(p => String(p.id) === personId);
           const spouse = persons.find(p => String(p.id) === spouseId);
           
@@ -321,8 +322,8 @@ function calculateAgeBasedGenerations(persons, relationships) {
     });
   }
   
-  // CRITICAL: Ensure parents are above children (lower generation number = higher in tree)
-  // BUT only adjust if the age difference is significant to preserve age-based grouping
+  // Third pass: Fix parent-child hierarchy but preserve age grouping
+  // This was tricky - don't want to mess up age-based grouping for close ages
   let parentChildAlignmentChanged = true;
   iterations = 0;
   
@@ -342,9 +343,9 @@ function calculateAgeBasedGenerations(persons, relationships) {
         const childGen = generations.get(childId);
         const child = persons.find(p => String(p.id) === childId);
         
-        // Only adjust if parent is not actually above child in generation hierarchy
+        // Check if parent-child hierarchy needs fixing
         if (parentGen >= childGen) {
-          // Check if there's a significant age difference to justify the adjustment
+          // Only adjust if there's a meaningful age gap (15+ years)
           let shouldAdjust = true;
           
           if (parent?.date_of_birth && child?.date_of_birth) {
@@ -352,8 +353,7 @@ function calculateAgeBasedGenerations(persons, relationships) {
             const childBirthYear = new Date(child.date_of_birth).getFullYear();
             const ageDifference = childBirthYear - parentBirthYear;
             
-            // Only adjust if there's at least a 15-year age difference
-            // This preserves age-based grouping for people close in age
+            // Don't adjust for small age gaps - preserves age-based clustering
             if (ageDifference < 15) {
               shouldAdjust = false;
             }

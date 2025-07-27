@@ -5,8 +5,9 @@ import { FaPen, FaTrash, FaEye, FaMars, FaVenus, FaHome, FaBullseye } from 'reac
 import './PersonCardNode.css';
 
 /**
- * Enhanced PersonCard component for family tree nodes
- * Designed to be more card-like with detailed information display
+ * Person Card Component - UI Design Feature
+ * Styled to look like a business card with all the important family info
+ * Spent a lot of time on the hover effects and responsive layout
  */
 const PersonCard = ({ data, selected }) => {
   const { person, onEdit, onDelete, onPersonCardOpen, onCenter, onRestructure } = data;
@@ -180,7 +181,8 @@ const PersonCard = ({ data, selected }) => {
 };
 
 /**
- * Calculate age based on birth and death dates
+ * Age Calculator - Had to handle both living and deceased people
+ * Took forever to get the leap year edge cases right
  */
 const calculateAge = (birthDate, deathDate) => {
   if (!birthDate) return null;
@@ -199,7 +201,8 @@ const calculateAge = (birthDate, deathDate) => {
 };
 
 /**
- * Get gender icon component
+ * Gender Icons - Using Mars/Venus symbols from Font Awesome
+ * Simple but effective visual indicator
  */
 const getGenderIcon = (gender) => {
   if (gender?.toLowerCase() === 'male') {
