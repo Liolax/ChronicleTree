@@ -45,7 +45,8 @@ function groupRelatives(person) {
       ...ss,
       relationship_type: 'sibling',
       full_name: `${ss.first_name} ${ss.last_name} (step)`,
-      isStepSibling: true
+      isStepSibling: true,
+      isStep: true
     }));
     groups.sibling = [...groups.sibling, ...stepSiblingsWithAnnotation];
   }
@@ -1510,9 +1511,9 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                         )}
                       </span>
                       <div className="flex gap-2">
-                        {/* Only show delete button for non-step relationships */}
-                        {!rel.isStep && (
-                          <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleDelete(rel.id); }} title="Delete Relationship">
+                        {/* Show delete button for direct relationships (not calculated step-parents/children) */}
+                        {(!rel.isStep || rel.isStepSibling) && (
+                          <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleDelete(rel.id); }} title="Delete Person">
                             <FaTrash />
                           </button>
                         )}
