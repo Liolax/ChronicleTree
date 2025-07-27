@@ -53,7 +53,11 @@ export default function Profile() {
     }
   }, [person]);
 
-  if (isLoading) return <p>Loading profile...</p>;
+  if (isLoading) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', width: '100%' }}>
+      <p className="text-lg">Loading profile...</p>
+    </div>
+  );
   if (!person) return <p className="text-center text-gray-500">Person not found.</p>;
 
   // Helper for age

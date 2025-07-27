@@ -1,4 +1,3 @@
-// src/services/sharing.js
 import api from '../api/api';
 
 /**

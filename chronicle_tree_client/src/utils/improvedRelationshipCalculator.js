@@ -1,7 +1,7 @@
 /**
  * Improved Relationship Calculator Utility
  * Handles complex family relationships including in-law relationships
- * Last updated: Cache bust for relationship fix
+ * Cache bust for relationship fix
  */
 
 /**
