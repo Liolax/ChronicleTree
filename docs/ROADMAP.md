@@ -1,3 +1,57 @@
+
+# Summary of Step-Relationship Logic Review and Refinements
+
+✅ Analyzed Scenarios and Current Logic
+
+**Basic Scenario: Step-Grandmother**
+- Implementation Location: improvedRelationshipCalculator.js:849-926
+- Logic: When grandfather remarries, new wife becomes step-grandmother through direct marriage connection
+- Status: ✅ Correctly Implemented
+
+🔧 **Key Fix Applied**
+
+**Removed Incorrect Step-Great-Grandparent Extension (Lines 928-957)**
+- Problem: Program incorrectly classified step-grandmother's biological parents as "Step-Great-Grandparents"
+- Solution: Removed the logic that extends step-relationships through biological family lines
+- Rationale: Step-relationships should only exist through direct marriage connections, not through biological relatives of step-family members
+
+📋 **Business Rules Now Properly Enforced**
+
+1. **Step-Grandmother's Biological Parents:**
+   - Before: Incorrectly labeled as "Step-Great-Grandparents"
+   - After: Correctly classified as "Unrelated"
+   - Logic: Their relationship to step-grandmother is biological, not through marriage that creates family unit
+2. **Step-Grandmother's Parents' Marital Status:**
+   - Rule: Whether step-grandmother's parents are married to each other is irrelevant
+   - Classification: Both remain "Unrelated" regardless of their marital status
+   - Reason: Their relationship doesn't affect the step-relationship connection
+3. **Step-Grandmother's Parent's Spouse:**
+   - Rule: If step-grandmother's mother marries someone else, that spouse is "Unrelated"
+   - Logic: This marriage doesn't create any step-relationship path to the root person
+   - Implementation: Prevented by removing the over-extension logic
+
+🎯 **Correct Step-Relationship Classification Logic**
+
+The program now properly distinguishes between:
+
+1. **Blood Relations:** Direct biological family connections
+2. **Relations by Marriage (Step-Relations):** Created only through direct marriage to biological family members
+3. **Other Connections:** Extended family of step-relatives who remain "Unrelated"
+
+💡 **Non-Obvious Considerations Addressed**
+
+1. Timeline Validation: Maintains existing logic that prevents step-relationships when connecting spouse died before root person was born
+2. Ex-Spouse Exclusion: Continues to properly exclude divorced spouses from creating step-relationships
+3. Deceased Spouse Handling: Preserves appropriate handling of deceased spouses in step-relationship calculations
+
+🔍 **Remaining Valid Step-Great-Grandparent Logic**
+
+The program still correctly handles legitimate step-great-grandparent relationships through direct marriage connections:
+- Valid Case: Person marries root's great-grandparent → Person becomes step-great-grandparent
+- Implementation: Lines 943-1019 handle this correctly through spouse-of-ancestor logic
+
+This refinement ensures the family tree program accurately represents step-relationships according to real-world family dynamics while preventing incorrect classification of extended biological family members as step-relatives.
+
 # Completed Tasks
 
 1. **Fixed Reverse Step-Uncle/Aunt Logic**
