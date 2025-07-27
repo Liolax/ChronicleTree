@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Background job for cleaning up expired social media share images
+# Removes database records and orphaned files to prevent storage bloat
 class ShareImageCleanupJob < ApplicationJob
   queue_as :low
   
@@ -9,7 +11,7 @@ class ShareImageCleanupJob < ApplicationJob
     deleted_count = 0
     error_count = 0
     
-    # Clean up expired ShareImage records
+    # Remove expired ShareImage database records based on timestamp
     ShareImage.expired.find_each do |share_image|
       begin
         share_image.destroy
@@ -21,7 +23,7 @@ class ShareImageCleanupJob < ApplicationJob
       end
     end
     
-    # Clean up orphaned files
+    # Remove orphaned image files not referenced in database
     orphaned_count = cleanup_orphaned_files
     
     result = {
@@ -40,21 +42,21 @@ class ShareImageCleanupJob < ApplicationJob
     shares_dir = Rails.root.join('public', 'generated_shares')
     return 0 unless Dir.exist?(shares_dir)
     
-    # Get list of files that should exist according to database
+    # Create reference set of filenames currently in database
     database_files = ShareImage.pluck(:file_path).map { |path| File.basename(path) }.to_set
     deleted_count = 0
     
     Dir.glob(File.join(shares_dir, '*')).each do |file_path|
       filename = File.basename(file_path)
       
-      # Skip hidden files and directories
+      # Skip system files and directories during cleanup scan
       next if filename.start_with?('.')
       next if File.directory?(file_path)
       
-      # Skip if file is referenced in database
+      # Preserve files still referenced in ShareImage records
       next if database_files.include?(filename)
       
-      # Delete files older than 1 week that aren't in database
+      # Remove orphaned files older than one week to free storage space
       if File.mtime(file_path) < 1.week.ago
         begin
           File.delete(file_path)
