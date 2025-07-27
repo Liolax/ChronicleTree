@@ -223,11 +223,14 @@ const buildRelationshipMaps = (relationships, persons) => {
         const isActuallyDeceased = (sourcePersonForSpouse?.date_of_death || sourcePersonForSpouse?.is_deceased) || 
                                   (targetPersonForSpouse?.date_of_death || targetPersonForSpouse?.is_deceased);
         
-        if (!rel.is_ex && !rel.is_deceased && !isActuallyDeceased) {
+        if (!rel.is_ex && (!isActuallyDeceased || rel.is_deceased)) {
+          // Include current spouses AND legitimate late spouses (is_deceased: true)
+          // Exclude ex-spouses and posthumous marriages (deceased but not marked as legitimate late spouse)
           spouseMap.set(source, target);
           spouseMap.set(target, source);
-        } else if (rel.is_ex || isActuallyDeceased) {
+        } else if (rel.is_ex || (isActuallyDeceased && !rel.is_deceased)) {
           // Add ex-spouses and posthumous marriages to exSpouseMap
+          // Posthumous marriages are deceased people but NOT marked as legitimate late spouse
           if (!exSpouseMap.has(source)) {
             exSpouseMap.set(source, new Set());
           }
@@ -349,6 +352,27 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         }
       });
     }
+    
+    // CRITICAL: Add siblings to SAME generation during BFS traversal
+    // This ensures siblings are connected to the main family tree
+    if (relationships && relationships.length > 0) {
+      relationships.forEach(rel => {
+        const source = String(rel.source || rel.from);
+        const target = String(rel.target || rel.to);
+        const type = rel.type || rel.relationship_type;
+        
+        if (['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type)) {
+          // If current person is source, add target as sibling
+          if (source === id && !visited.has(target)) {
+            queue.push({ id: target, generation: generation }); // Same generation as sibling
+          }
+          // If current person is target, add source as sibling  
+          else if (target === id && !visited.has(source)) {
+            queue.push({ id: source, generation: generation }); // Same generation as sibling
+          }
+        }
+      });
+    }
   }
 
   // Handle direct siblings (siblings without shared parents) - place them at the same generation level
@@ -441,6 +465,184 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         }
       });
     }
+  }
+
+  // CRITICAL: Post-processing to ensure co-parents (people who share a child) are at the same generation level
+  // Even if they are not married, people who have a child together should be at the same generation
+  // This runs MULTIPLE times to ensure all co-parent relationships are properly aligned
+  if (childToParents) {
+    // Run co-parent alignment multiple passes to handle complex interactions
+    for (let pass = 0; pass < 3; pass++) {
+      let changed = true;
+      let iterations = 0;
+      const maxIterations = 10; // Prevent infinite loops
+      
+      while (changed && iterations < maxIterations) {
+        changed = false;
+        iterations++;
+        
+        // First align co-parents
+        childToParents.forEach((parents, childId) => {
+          if (parents.size >= 2) {
+            // Get all parents of this child
+            const parentList = Array.from(parents);
+            const parentGens = parentList.map(parentId => generations.get(parentId)).filter(gen => gen !== undefined);
+            
+            if (parentGens.length >= 2) {
+              // All co-parents should be at the same generation level
+              // Use the minimum generation (higher in hierarchy)
+              const minGen = Math.min(...parentGens);
+              
+              parentList.forEach(parentId => {
+                if (generations.has(parentId)) {
+                  const currentGen = generations.get(parentId);
+                  if (currentGen !== minGen) {
+                    generations.set(parentId, minGen);
+                    changed = true;
+                  }
+                }
+              });
+            }
+          }
+        });
+        
+        // Then apply spouse alignment to maintain spouse consistency
+        if (spouseMap) {
+          spouseMap.forEach((spouseId, personId) => {
+            if (generations.has(personId) && generations.has(spouseId)) {
+              const personGen = generations.get(personId);
+              const spouseGen = generations.get(spouseId);
+              
+              if (personGen !== spouseGen) {
+                const minGen = Math.min(personGen, spouseGen);
+                generations.set(personId, minGen);
+                generations.set(spouseId, minGen);
+                changed = true;
+              }
+            }
+          });
+        }
+      }
+    }
+  }
+
+  // CRITICAL: Enhanced post-processing to ensure comprehensive in-law generational alignment
+  // This handles parents-in-law, uncle-in-law, and other same-generation relationships
+  let generationChanged = true;
+  let genIterations = 0;
+  const maxGenIterations = 8; // Increased iterations for complex cases
+  
+  while (generationChanged && genIterations < maxGenIterations) {
+    generationChanged = false;
+    genIterations++;
+    
+    // STEP 1: Align ALL siblings to the same generation (uncles/aunts with parents)
+    // Do sibling alignment first to establish baseline
+    const siblingRelationships = relationships.filter(rel => {
+      const type = rel.type || rel.relationship_type;
+      return ['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type);
+    });
+    
+    siblingRelationships.forEach(rel => {
+      const source = String(rel.source || rel.from);
+      const target = String(rel.target || rel.to);
+      
+      if (generations.has(source) && generations.has(target)) {
+        const sourceGen = generations.get(source);
+        const targetGen = generations.get(target);
+        
+        if (sourceGen !== targetGen) {
+          const minGen = Math.min(sourceGen, targetGen);
+          generations.set(source, minGen);
+          generations.set(target, minGen);
+          generationChanged = true;
+        }
+      }
+    });
+    
+    // STEP 2: Spouse alignment to keep married couples together
+    if (spouseMap) {
+      spouseMap.forEach((spouseId, personId) => {
+        if (generations.has(personId) && generations.has(spouseId)) {
+          const personGen = generations.get(personId);
+          const spouseGen = generations.get(spouseId);
+          
+          if (personGen !== spouseGen) {
+            const minGen = Math.min(personGen, spouseGen);
+            generations.set(personId, minGen);
+            generations.set(spouseId, minGen);
+            generationChanged = true;
+          }
+        }
+      });
+    }
+    
+    // STEP 3: PRIORITY - For each married couple, ensure their parents are at the same generation level
+    // This must run AFTER sibling/spouse alignment to override any conflicts
+    if (spouseMap) {
+      spouseMap.forEach((spouseId, personId) => {
+        if (generations.has(personId) && generations.has(spouseId)) {
+          // Get parents of both spouses
+          const personParents = Array.from(childToParents.get(personId) || []);
+          const spouseParents = Array.from(childToParents.get(spouseId) || []);
+          
+          // Combine all parents from both spouses
+          const allParents = [...personParents, ...spouseParents];
+          
+          if (allParents.length >= 2) {
+            // Get all current generation assignments for these parents
+            const parentGenerations = allParents
+              .map(parentId => generations.get(parentId))
+              .filter(gen => gen !== undefined);
+            
+            if (parentGenerations.length >= 2) {
+              // Find the minimum generation (highest in hierarchy) 
+              const targetGeneration = Math.min(...parentGenerations);
+              
+              // FORCEFULLY align all parents to this generation (parent-in-law priority)
+              allParents.forEach(parentId => {
+                if (generations.has(parentId)) {
+                  const currentGen = generations.get(parentId);
+                  if (currentGen !== targetGeneration) {
+                    generations.set(parentId, targetGeneration);
+                    generationChanged = true;
+                  }
+                }
+              });
+            }
+          }
+        }
+      });
+    }
+  }
+
+  // FINAL AGGRESSIVE FIX: Force parent-in-law alignment after all other processing
+  // This ensures that parents of married couples are ALWAYS at the same generation
+  if (spouseMap) {
+    spouseMap.forEach((spouseId, personId) => {
+      if (generations.has(personId) && generations.has(spouseId)) {
+        const personParents = Array.from(childToParents.get(personId) || []);
+        const spouseParents = Array.from(childToParents.get(spouseId) || []);
+        const allParents = [...personParents, ...spouseParents];
+        
+        if (allParents.length >= 2) {
+          const parentGenerations = allParents
+            .map(parentId => generations.get(parentId))
+            .filter(gen => gen !== undefined);
+          
+          if (parentGenerations.length >= 2) {
+            const targetGeneration = Math.min(...parentGenerations);
+            
+            // FORCE all parents to the same generation (overrides all other alignments)
+            allParents.forEach(parentId => {
+              if (generations.has(parentId)) {
+                generations.set(parentId, targetGeneration);
+              }
+            });
+          }
+        }
+      }
+    });
   }
 
   return generations;
@@ -722,6 +924,28 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
         spousePairs.set(potentialSpouse.id, personId);
       }
     });
+
+    // Build co-parent groups for coordinated movement
+    // Co-parents should move together to maintain same generation level
+    const coParentGroups = new Map(); // personId -> Set of co-parent IDs
+    if (childToParents) {
+      childToParents.forEach((parents, childId) => {
+        if (parents.size >= 2) {
+          const parentList = Array.from(parents);
+          // Each parent should know about all their co-parents
+          parentList.forEach(parentId => {
+            if (!coParentGroups.has(parentId)) {
+              coParentGroups.set(parentId, new Set());
+            }
+            parentList.forEach(otherParentId => {
+              if (otherParentId !== parentId) {
+                coParentGroups.get(parentId).add(otherParentId);
+              }
+            });
+          });
+        }
+      });
+    }
     const isOverlapping = (nodeA, nodeB) => {
       return (
         Math.abs(nodeA.position.x - nodeB.position.x) < nodeWidth + margin &&
@@ -755,18 +979,39 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
         );
         
         if (overlapped) {
-          // Move both spouse and partner together
+          // Move node, spouse, and co-parents together
           const deltaX = attempts % 3 === 0 ? nodeWidth + margin : 
                        attempts % 3 === 2 ? -(nodeWidth + margin) : 0;
           const deltaY = attempts % 3 === 1 ? nodeHeight + margin : 0;
           
-          node.position.x += deltaX;
-          node.position.y += deltaY;
+          // Collect all nodes that should move together
+          const nodesToMove = new Set([nodeId]);
           
+          // Add spouse
           if (spouse) {
-            spouse.position.x += deltaX;
-            spouse.position.y += deltaY;
+            nodesToMove.add(spouse.id);
           }
+          
+          // Add co-parents (people who share children with this person)
+          if (coParentGroups.has(nodeId)) {
+            coParentGroups.get(nodeId).forEach(coParentId => {
+              nodesToMove.add(coParentId);
+              // Also add the co-parent's spouse if they have one
+              const coParentSpouseId = spousePairs.get(coParentId);
+              if (coParentSpouseId) {
+                nodesToMove.add(coParentSpouseId);
+              }
+            });
+          }
+          
+          // Move all nodes in the group together
+          nodesToMove.forEach(moveNodeId => {
+            const moveNode = nodes.find(n => n.id === moveNodeId);
+            if (moveNode) {
+              moveNode.position.x += deltaX;
+              moveNode.position.y += deltaY;
+            }
+          });
           
           attempts++;
         }

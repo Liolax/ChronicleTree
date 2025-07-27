@@ -1465,6 +1465,9 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       } else if (sharedParents.length === 1) {
         // Half siblings - half aunt/uncle
         return getGenderSpecificRelation(personId, 'Half-Uncle', 'Half-Aunt', allPeople, 'Half-Aunt/Uncle');
+      } else if (parentParents.size === 0 && personParents.size === 0) {
+        // Siblings with no declared parents - treat as regular aunt/uncle
+        return getGenderSpecificRelation(personId, 'Uncle', 'Aunt', allPeople, 'Aunt/Uncle');
       }
     }
   }
@@ -1488,7 +1491,11 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
         else if (sharedParents.length === 1) {
           return getGenderSpecificRelation(personId, 'Half-Nephew', 'Half-Niece', allPeople, "Half-sibling's child");
         }
-        // Step siblings (no shared parents) will be handled by step-relationship logic
+        // Siblings with no declared parents - treat as regular nephew/niece
+        else if (rootParents.size === 0 && siblingParents.size === 0) {
+          return getGenderSpecificRelation(personId, 'Nephew', 'Niece', allPeople, "Sibling's child");
+        }
+        // Step siblings (no shared parents but have other parents) will be handled by step-relationship logic
       }
     }
   }
@@ -1734,8 +1741,9 @@ const findBloodRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       const siblingParents = childToParents.get(sibling) || new Set();
       const sharedParents = [...rootParents].filter(parent => siblingParents.has(parent));
       
-      // If they share ALL parents, they're biological siblings
-      if (sharedParents.length === rootParents.size && sharedParents.length === siblingParents.size && sharedParents.length > 0) {
+      // If they share ALL parents OR both have no parents, they're biological siblings
+      if ((sharedParents.length === rootParents.size && sharedParents.length === siblingParents.size && sharedParents.length > 0) ||
+          (rootParents.size === 0 && siblingParents.size === 0)) {
         
         // Build descendants at this level from the sibling
         let currentGeneration = new Set([sibling]);
@@ -1946,18 +1954,8 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       return getGenderSpecificRelation(rootId, 'Father-in-law', 'Mother-in-law', allPeople, 'Parent-in-law');
     }
     
-    // CRITICAL: Check if root is step-parent of person's current spouse (root is step-parent-in-law to person)
-    // Step-parent-in-law: If root is married to spouse's parent, but root is not spouse's biological parent
-    const spouseParents = childToParents.get(spouse) || new Set();
-    for (const spouseParent of spouseParents) {
-      // Check if root is current spouse of this parent
-      if (spouseMap.has(spouseParent) && spouseMap.get(spouseParent).has(rootId)) {
-        // Make sure root is not a biological parent of spouse
-        if (!spouseParents.has(rootId)) {
-          return getGenderSpecificRelation(rootId, 'Step-Father-in-law', 'Step-Mother-in-law', allPeople, 'Step-Parent-in-law');
-        }
-      }
-    }
+    // Step-parent-in-law logic removed as per user request
+    // The app should not have step-father-in-law relationships
   }
   
   // ===========================================
@@ -2003,10 +2001,11 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   const personAllChildren = new Set([...personBioChildren, ...personStepChildren]);
   const rootAllChildren = new Set([...rootBioChildren, ...rootStepChildren]);
   
-  // Check co-parent-in-law relationships with both biological and step-children
-  for (const personChild of personAllChildren) {
-    for (const rootChild of rootAllChildren) {
-      // Check if person's child is CURRENTLY married to root's child (only current spouses, not ex-spouses)
+  // Check co-parent-in-law relationships with ONLY biological children (not step-children)
+  // Only real blood parents should be co-parents-in-law
+  for (const personChild of personBioChildren) {
+    for (const rootChild of rootBioChildren) {
+      // Check if person's biological child is CURRENTLY married to root's biological child (only current spouses, not ex-spouses)
       const personChildCurrentSpousesRaw = spouseMap.get(personChild) || new Set();
       const personChildDeceasedSpouses = deceasedSpouseMap.get(personChild) || new Set();
       const personChildExSpouses = exSpouseMap.get(personChild) || new Set();
@@ -2014,7 +2013,7 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
       // Filter out deceased and ex-spouses
       for (const spouse of personChildCurrentSpousesRaw) {
         if (!personChildDeceasedSpouses.has(spouse) && !personChildExSpouses.has(spouse) && spouse === rootChild) {
-          // They are co-parents-in-law (parents/step-parents of CURRENT spouses only)
+          // They are co-parents-in-law (parents of CURRENT spouses only, biological children only)
           return getGenderSpecificRelation(personId, 'Co-Father-in-law', 'Co-Mother-in-law', allPeople, 'Co-Parent-in-law');
         }
       }
