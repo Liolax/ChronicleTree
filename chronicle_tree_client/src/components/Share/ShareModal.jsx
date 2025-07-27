@@ -14,6 +14,8 @@ const ShareModal = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [generations, setGenerations] = useState(initialGenerations);
   const [currentShareType, setCurrentShareType] = useState(shareType);
+  const [includeStepRelationships, setIncludeStepRelationships] = useState(true);
+  const [showAdvancedOptions, setShowAdvancedOptions] = useState(false);
 
   useEffect(() => {
     if (isOpen && personId) {
@@ -21,7 +23,7 @@ const ShareModal = ({
       testApiConnection();
       generateShareContent();
     }
-  }, [isOpen, personId, currentShareType, generations]);
+  }, [isOpen, personId, currentShareType, generations, includeStepRelationships]);
 
   const testApiConnection = async () => {
     try {
@@ -37,8 +39,8 @@ const ShareModal = ({
     
     try {
       const endpoint = currentShareType === 'profile' 
-        ? `/share/profile/${personId}`
-        : `/share/tree/${personId}?generations=${generations}`;
+        ? `/share/profile/${personId}?include_step_relationships=${includeStepRelationships}`
+        : `/share/tree/${personId}?generations=${generations}&include_step_relationships=${includeStepRelationships}`;
 
       const response = await api.get(endpoint);
       setShareData(response.data);
@@ -168,6 +170,40 @@ const ShareModal = ({
               </select>
             </div>
           )}
+
+          {/* Advanced Options */}
+          <div className="advanced-options-section">
+            <button 
+              type="button"
+              onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+              className="advanced-options-toggle"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                <path d={showAdvancedOptions ? "M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" : "M7.41 8.84L12 13.42l4.59-4.58L18 10l-6 6-6-6z"}/>
+              </svg>
+              Advanced Options
+            </button>
+            
+            {showAdvancedOptions && (
+              <div className="advanced-options-content">
+                <div className="option-group">
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={includeStepRelationships}
+                      onChange={(e) => setIncludeStepRelationships(e.target.checked)}
+                      className="option-checkbox"
+                    />
+                    <span className="checkmark"></span>
+                    Include step-relationships (step-parents, step-children, step-siblings)
+                  </label>
+                  <small className="option-description">
+                    Shows step-family connections in addition to biological relationships
+                  </small>
+                </div>
+              </div>
+            )}
+          </div>
 
           {/* Loading State */}
           {isGenerating && (

@@ -9,11 +9,13 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
   
   def profile
     begin
+      # Get step-relationship inclusion parameter
+      include_step_relationships = params[:include_step_relationships] != 'false'
       
       # Creates shareable profile card image
-        image_path = generate_profile_image
-        share_image = @person.share_images.find_by(file_path: image_path)
-        render json: build_share_response(share_image, 'profile')
+      image_path = generate_profile_image(include_step_relationships)
+      share_image = @person.share_images.find_by(file_path: image_path)
+      render json: build_share_response(share_image, 'profile')
     rescue StandardError => e
       Rails.logger.error "Profile share failed: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
@@ -27,13 +29,13 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
   
   def tree
     generations = params[:generations]&.to_i || 3
+    include_step_relationships = params[:include_step_relationships] != 'false'
     
     begin
-      
       # Creates shareable family tree snippet image
-        image_path = generate_tree_image(generations)
-        share_image = @person.share_images.find_by(file_path: image_path)
-        render json: build_share_response(share_image, 'tree', generations)
+      image_path = generate_tree_image(generations, include_step_relationships)
+      share_image = @person.share_images.find_by(file_path: image_path)
+      render json: build_share_response(share_image, 'tree', generations)
     rescue StandardError => e
       Rails.logger.error "Tree share failed: #{e.message}"
       Rails.logger.error e.backtrace.join("\n")
@@ -62,14 +64,14 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     render json: { error: 'Person not found' }, status: :not_found
   end
   
-  def generate_profile_image
+  def generate_profile_image(include_step_relationships = true)
     generator = ImageGeneration::ProfileCardGenerator.new
-    generator.generate(@person)
+    generator.generate(@person, include_step_relationships: include_step_relationships)
   end
   
-  def generate_tree_image(generations)
+  def generate_tree_image(generations, include_step_relationships = true)
     generator = ImageGeneration::TreeSnippetGenerator.new
-    generator.generate(@person, generations: generations)
+    generator.generate(@person, generations: generations, include_step_relationships: include_step_relationships)
   end
   
   def build_share_response(share_image, image_type, generations = nil)

@@ -10,15 +10,16 @@ module ImageGeneration
     CANVAS_WIDTH = 1200
     CANVAS_HEIGHT = 630
     
+    # Updated to match main app styling from tailwind.config.js
     COLORS = {
-      primary: '#3b82f6',
-      secondary: '#8b5cf6',
-      accent: '#06b6d4',
-      text_primary: '#1f2937',
-      text_secondary: '#6b7280',
-      text_light: '#ffffff',
-      background: '#f8fafc',
-      card_bg: '#ffffff'
+      primary: '#4F868E',        # button-primary (teal)
+      secondary: '#A0C49D',      # app-accent (sage green)
+      accent: '#4F868E',         # button-primary (teal)
+      text_primary: '#4A4A4A',   # app-primary (dark gray)
+      text_secondary: '#6b7280', # keeping this gray for secondary text
+      text_light: '#ffffff',     # white text on colored backgrounds
+      background: '#F8F4F0',     # app-bg (warm beige)
+      card_bg: '#FEFEFA'         # app-container (warm white)
     }.freeze
     
     def initialize
