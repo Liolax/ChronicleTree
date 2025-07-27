@@ -1,8 +1,8 @@
+// Social media sharing service with platform-specific content generation
 import api from '../api/api';
 
 /**
- * Share Creation API Function
- * Generates shareable links for family tree content across different platforms
+ * Creates shareable links for family tree content across different platforms
  * @param {Object} shareData - Share configuration object
  * @param {string} shareData.content_type - Type of content ('tree' or 'profile')
  * @param {number} shareData.content_id - Content identifier
@@ -22,8 +22,7 @@ export const createShare = async (shareData) => {
 };
 
 /**
- * Share Retrieval API Function
- * Fetches existing share information using share token
+ * Retrieves existing share information using unique share token
  * @param {string} shareToken - Unique share identifier
  * @returns {Promise} - Promise resolving to share information
  */
@@ -37,16 +36,16 @@ export const getShare = async (shareToken) => {
 };
 
 /**
- * Generate share content for tree
+ * Generates shareable content for family tree visualization
  * @param {number} rootPersonId - Root person ID (optional, null for full tree)
  * @param {string} caption - Optional caption
  * @returns {Object} - Share content object
  */
 
-// Helper to get the current site origin
+// Utility function to get the current site origin for URL generation
 const getSiteOrigin = () => window?.location?.origin || 'https://chronicle-tree.app';
 
-// Helper to get person name from DOM or pass as param if available
+// Utility function to extract person name with fallback handling
 const getPersonName = (person) => {
   if (!person) return 'this family';
   return `${person.first_name || ''} ${person.last_name || ''}`.trim() || 'this family';
@@ -66,7 +65,7 @@ export const generateTreeShareContent = (rootPersonId, caption = '', person = nu
 };
 
 /**
- * Generate share content for profile
+ * Generates shareable content for individual person profiles
  * @param {number} personId - Person ID
  * @param {string} caption - Optional caption
  * @returns {Object} - Share content object
@@ -83,7 +82,7 @@ export const generateProfileShareContent = (personId, caption = '', person = nul
 };
 
 /**
- * Handle social media sharing
+ * Handles social media sharing across different platforms with URL generation
  * @param {string} platform - Platform to share to
  * @param {Object} shareContent - Share content object
  * @returns {Promise} - Promise resolving to share URL
@@ -99,11 +98,11 @@ export const handleSocialShare = async (platform, shareContent) => {
     
     if (response.success) {
       if (platform === 'copy') {
-        // For copy, we handle it differently
+        // Clipboard copy functionality for link sharing
         await navigator.clipboard.writeText(response.share_url);
         return { success: true, message: 'Link copied to clipboard!' };
       } else {
-        // For other platforms, open the share URL
+        // Opens platform-specific sharing window in new tab
         window.open(response.share_url, '_blank');
         return { success: true, message: 'Share window opened!' };
       }

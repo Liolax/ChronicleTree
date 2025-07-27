@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Dynamic image generation controller for social media sharing
+# Creates profile cards and tree snippets with genealogical context
 class Api::V1::Share::ImagesController < Api::V1::BaseController
   # Skip authentication for public sharing
   skip_before_action :authenticate_user!, only: [:profile, :tree]
@@ -8,7 +10,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
   def profile
     begin
       
-      # Generate new image
+      # Creates shareable profile card image
         image_path = generate_profile_image
         share_image = @person.share_images.find_by(file_path: image_path)
         render json: build_share_response(share_image, 'profile')
@@ -28,7 +30,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     
     begin
       
-      # Generate new image
+      # Creates shareable family tree snippet image
         image_path = generate_tree_image(generations)
         share_image = @person.share_images.find_by(file_path: image_path)
         render json: build_share_response(share_image, 'tree', generations)
@@ -54,7 +56,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
   private
   
   def set_person
-    # For sharing, find person without user scoping
+    # Enables public access to person data for sharing functionality
     @person = Person.find(params[:id])
   rescue ActiveRecord::RecordNotFound
     render json: { error: 'Person not found' }, status: :not_found
@@ -268,7 +270,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     stats
   end
   
-  # Calculate relationship statistics using core logic from people controller
+  # Computes relationship statistics for tree sharing context using core algorithms
   def calculate_relationship_statistics_for_sharing(person)
     # Get all relationships for sharing calculation
     # Build same format as people controller
@@ -383,7 +385,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     stats
   end
 
-  # Calculate relationship statistics for profile sharing
+  # Calculates focused relationship statistics for individual profile sharing
   def calculate_profile_relationship_statistics(person)
     # Use core calculation logic adapted for profile context
     user = person.user
@@ -520,7 +522,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     stats
   end
 
-  # Get the name of the current spouse for display purposes
+  # Retrieves current spouse name for profile description context
   def get_current_spouse_name(person)
     current_spouse = person.relationships
                           .where(relationship_type: 'spouse', is_ex: [false, nil])
@@ -533,7 +535,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
   end
   
   def get_generation_context(person)
-    # Add context about family position
+    # Determines generational context for enhanced family tree descriptions
     has_parents = person.relationships.where(relationship_type: 'parent').exists?
     has_grandparents = false
     
@@ -580,7 +582,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
     deleted_count = 0
     error_count = 0
     
-    # Clean up expired images
+    # Removes expired share images from database and filesystem
     ShareImage.expired.find_each do |share_image|
       if share_image.destroy
         deleted_count += 1
@@ -589,7 +591,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
       end
     end
     
-    # Clean up orphaned files
+    # Removes orphaned files not tracked in database
     orphaned_count = cleanup_orphaned_files
     
     {
@@ -619,7 +621,7 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
       next if database_files.include?(filename)
       next if filename.start_with?('.')  # Skip hidden files
       
-      # Delete files older than 1 week that aren't in database
+      # Removes untracked files older than one week for storage management
       if File.mtime(file_path) < 1.week.ago
         File.delete(file_path)
         deleted_count += 1

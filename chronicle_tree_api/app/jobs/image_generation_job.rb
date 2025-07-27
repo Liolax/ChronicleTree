@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Background job for generating shareable family tree and profile card images
+# Handles image creation with error handling and retry mechanisms
 class ImageGenerationJob < ApplicationJob
   queue_as :default
   

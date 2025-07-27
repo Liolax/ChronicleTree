@@ -1,3 +1,5 @@
+# Base controller providing shared functionality for all API v1 endpoints
+# Handles authentication and common error responses
 module Api
   module V1
     class BaseController < ApplicationController

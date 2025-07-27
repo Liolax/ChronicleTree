@@ -1,3 +1,4 @@
+// API service layer for people and relationship management with React Query hooks
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../api/api';
 
@@ -35,8 +36,7 @@ export function useFullTree(rootPersonId = null) {
   return useQuery({
     queryKey: ['full-tree', rootPersonId],
     queryFn: () => {
-      // Always get the full tree data, regardless of rootPersonId
-      // The rootPersonId is used for frontend filtering only
+      // Retrieves complete tree data with client-side root filtering capability
       return getFullTree();
     },
   });
@@ -55,7 +55,7 @@ export const getPerson = async (id) => {
   return data;
 };
 
-// React Query hook for getting a single person with relationships
+// Query hook for retrieving individual person data with relationship details
 export const usePerson = (id) => {
   return useQuery({
     queryKey: ['person', id],
@@ -105,14 +105,14 @@ export const toggleSpouseEx = async (relationshipId) => {
   return data;
 };
 
-// React Query hook for toggling spouse ex status
+// Mutation hook for updating spouse relationship status with cache invalidation
 export const useToggleSpouseEx = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: toggleSpouseEx,
     onSuccess: () => {
-      // Invalidate all relevant queries to refresh UI
+      // Refreshes cached data across all tree views after relationship update
       queryClient.invalidateQueries({ queryKey: ['people'] });
       queryClient.invalidateQueries({ queryKey: ['tree'] });
       queryClient.invalidateQueries({ queryKey: ['full-tree'] });

@@ -1,3 +1,4 @@
+// Social sharing button component with multi-platform support and preview functionality
 import React, { useState } from 'react';
 import api from '../../api/api';
 import './ShareButton.css';
@@ -42,12 +43,12 @@ const ShareButton = ({
         });
       } catch (error) {
         if (error.name !== 'AbortError') {
-          // Fallback to copy URL
+          // Falls back to clipboard copy when sharing is cancelled
           await copyToClipboard(data.share_url);
         }
       }
     } else {
-      // Fallback for browsers without Web Share API
+      // Legacy browser compatibility fallback
       await copyToClipboard(data.share_url);
     }
   };
@@ -66,7 +67,7 @@ const ShareButton = ({
       const data = shareData || await generateShareContent();
       await handleWebShare(data);
     } catch (error) {
-      // Error already handled in generateShareContent
+      // Error handling managed by generateShareContent function
     }
   };
 
@@ -149,7 +150,7 @@ const SharePreview = ({ shareData, onClose }) => {
                   const body = encodeURIComponent(`${shareData.description}\n\n${shareData.share_url}`);
                   const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
                   
-                  // Try to open email client
+                  // Opens default email client with pre-filled content
                   window.location.href = mailtoLink;
                 }}
                 className="share-option-button"
@@ -172,7 +173,7 @@ const SharePreview = ({ shareData, onClose }) => {
               
               <button 
                 onClick={() => {
-                  // Use the Rails backend URL with Open Graph meta tags for Facebook crawling
+                  // Configures backend URL for proper Facebook Open Graph meta tag crawling
                   const backendUrl = shareData.share_url.replace('http://localhost:3000', 'http://localhost:3001');
                   const fbUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(backendUrl)}`;
                   window.open(fbUrl, '_blank', 'width=600,height=400');
@@ -223,7 +224,7 @@ const SharePreview = ({ shareData, onClose }) => {
   );
 };
 
-// Helper function for clipboard operations
+// Utility function for cross-browser clipboard functionality
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text);

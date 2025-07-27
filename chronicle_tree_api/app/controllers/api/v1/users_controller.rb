@@ -1,6 +1,7 @@
 module Api
   module V1
-    # Handles profile management for the currently authenticated user.
+    # User account management controller for profile updates and password changes
+    # Provides endpoints for current user data modification and account deletion
     class UsersController < BaseController
       def show
         render json: current_user, serializer: Api::V1::UserSerializer
@@ -33,12 +34,12 @@ module Api
 
       private
 
-      # Allow modification of name and email
+      # Permits updating of basic profile information
       def user_update_params
         params.require(:user).permit(:name, :email)
       end
 
-      # Require current password for verification
+      # Requires current password verification for security
       def password_params
         params.require(:user).permit(:current_password, :password, :password_confirmation)
       end

@@ -1,4 +1,5 @@
-# app/services/sibling_relationship_manager.rb
+# Service class for managing automatic sibling relationship creation and validation
+# Handles bidirectional sibling connections based on shared parentage
 class SiblingRelationshipManager
   def self.update_sibling_relationships_for_person(person_id)
     new(person_id).update_sibling_relationships

@@ -1,7 +1,8 @@
+// User account management service with authentication and profile operations
 import api from '../api/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-// User data retrieval hook
+// Query hook for retrieving current user profile data
 export function useCurrentUser() {
   return useQuery({
     queryKey: ['user'],
@@ -9,7 +10,7 @@ export function useCurrentUser() {
   });
 }
 
-// User profile update mutation
+// Mutation hook for updating user profile information with cache update
 export function useUpdateUser() {
   const qc = useQueryClient();
   return useMutation({
@@ -20,19 +21,19 @@ export function useUpdateUser() {
   });
 }
 
-// Password change mutation
+// Mutation hook for secure password change functionality
 export function useChangePassword() {
   return useMutation({
     mutationFn: data => api.patch('/users/me/password', { user: data })
   });
 }
 
-// Account deletion mutation
+// Mutation hook for permanent account deletion with cleanup
 export function useDeleteAccount() {
   return useMutation({
     mutationFn: () => api.delete('/users/me'),
     onSuccess: () => {
-      // remove token & redirect to login
+      // Clears authentication token and redirects to login page
       localStorage.removeItem('token');
       window.location.href = '/login';
     }

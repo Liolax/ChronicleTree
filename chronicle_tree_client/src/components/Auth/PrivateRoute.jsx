@@ -1,4 +1,4 @@
-// src/components/Auth/PrivateRoute.jsx
+// Route protection component that enforces authentication before accessing protected pages
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 

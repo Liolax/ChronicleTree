@@ -1,3 +1,4 @@
+// Accessible tab navigation component with keyboard support and active state styling
 import React from 'react';
 
 export default function Tabs({ tabs, activeTab, setActiveTab }) {

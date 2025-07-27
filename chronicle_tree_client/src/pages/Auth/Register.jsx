@@ -1,3 +1,4 @@
+// User registration form with password confirmation and validation
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
@@ -13,7 +14,7 @@ export default function Register() {
   const onSubmit = ({ name, email, password, password_confirmation }) => {
     signup(name, email, password, password_confirmation)
       .catch(error => {
-        // Basic error handling
+        // Handles registration errors with user feedback
         alert(error.response?.data?.errors?.full_messages?.join('\n') || 'Registration failed');
       });
   };

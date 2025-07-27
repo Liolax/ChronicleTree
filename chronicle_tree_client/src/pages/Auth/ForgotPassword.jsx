@@ -1,3 +1,4 @@
+// Password reset request form with status feedback for users
 import { useForm } from 'react-hook-form';
 import { useAuth } from '../../hooks/useAuth';
 import { useState } from 'react';

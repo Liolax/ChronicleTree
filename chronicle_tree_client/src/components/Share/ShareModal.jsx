@@ -1,3 +1,4 @@
+// Full-featured sharing modal with platform selection and content customization
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api';
 import './ShareModal.css';
@@ -16,7 +17,7 @@ const ShareModal = ({
 
   useEffect(() => {
     if (isOpen && personId) {
-      // Test if API is working first
+      // Validates API connectivity before generating share content
       testApiConnection();
       generateShareContent();
     }
@@ -26,7 +27,7 @@ const ShareModal = ({
     try {
       const response = await api.get('/people');
     } catch (error) {
-      // API connection test failed
+      // Handles API connection failures gracefully
     }
   };
 

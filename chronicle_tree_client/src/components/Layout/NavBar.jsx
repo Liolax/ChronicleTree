@@ -1,3 +1,4 @@
+// Responsive navigation bar with mobile menu and authentication state management
 import React, { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
@@ -14,7 +15,7 @@ export default function NavBar() {
       <Link to="/" className="text-2xl font-bold text-app-primary">
         ChronicleTree
       </Link>
-      {/* Desktop Nav */}
+      {/* Desktop navigation menu with conditional authentication links */}
       <nav className="hidden md:flex items-center space-x-2">
         {user ? (
           <>
@@ -37,12 +38,12 @@ export default function NavBar() {
           </>
         )}
       </nav>
-      {/* Mobile Nav Toggle */}
+      {/* Mobile menu toggle button with hamburger icon */}
       <button className="md:hidden text-app-primary focus:outline-none" onClick={() => setMobileOpen(!mobileOpen)}>
         <span className="sr-only">Open main menu</span>
         <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
       </button>
-      {/* Mobile Nav Menu */}
+      {/* Collapsible mobile navigation menu */}
       {mobileOpen && (
         <div className="absolute top-full left-0 w-full bg-app-container shadow-md md:hidden flex flex-col items-center py-4 z-50">
           {user ? (

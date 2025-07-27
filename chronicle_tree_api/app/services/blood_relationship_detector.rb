@@ -1,5 +1,5 @@
-# Project service: detects blood relationships to prevent consanguineous marriages
-# Implements genealogical algorithms for family tree validation
+# Service class implementing consanguinity detection algorithms for family tree validation
+# Prevents inappropriate marriages and relationships between blood relatives
 class BloodRelationshipDetector
   def initialize(person1, person2)
     @person1 = person1

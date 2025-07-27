@@ -1,10 +1,11 @@
+// Flexible page header component with fixed positioning and compact mode options
 import React from 'react';
 
 // Default header height for fixed positioning
 export const PAGE_HEADER_HEIGHT = 72; // px
 
 export default function PageHeader({ title, subtitle, fixed = false, compact = false, noMargin = false }) {
-  // Card/note style for compact mode
+  // Implements card-style layout for compact display mode
   if (compact) {
     return (
       <div className="w-full flex justify-center mt-4 mb-6">
@@ -16,11 +17,11 @@ export default function PageHeader({ title, subtitle, fixed = false, compact = f
     );
   }
 
-  // Conditionally apply fixed styles
+  // Dynamic CSS class generation based on fixed positioning requirements
   const headerClass = fixed
     ? `bg-white shadow-sm${noMargin ? '' : ' mb-6'} fixed top-0 left-0 w-full z-30`
     : `bg-white shadow-sm${noMargin ? '' : ' mb-6'}`;
-  // Add more horizontal padding for noMargin mode to avoid left-corner crowding
+  // Responsive padding adjustment to prevent content crowding in edge cases
   const innerClass = noMargin
     ? 'w-full py-2 px-8 sm:px-16 lg:px-32'
     : 'max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8';

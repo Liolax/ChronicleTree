@@ -1,3 +1,4 @@
+// Main application component with routing, authentication, and query client configuration
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -23,35 +24,35 @@ function App() {
         <AuthProvider>
           <div className="min-h-screen bg-gray-100">
             <Routes>
-              {/* Demo route without navbar */}
+              {/* Demo and debug routes without navigation bar */}
               <Route path="/demo" element={<FamilyTreeDemo />} />
               <Route path="/debug" element={<DebugPage />} />
               
-              {/* Other routes with navbar */}
+              {/* Standard application routes with navigation bar */}
               <Route path="/*" element={
                 <>
                   <NavBar />
                   <main className="container mx-auto py-6">
                     <Routes>
-                      {/* public */}
+                      {/* Public authentication routes */}
                       <Route path="/login" element={<Login />} />
                       <Route path="/register" element={<Register />} />
                       <Route path="/forgot-password" element={<ForgotPassword />} />
                       <Route path="/reset-password" element={<ResetPassword />} />
 
-                      {/* private */}
+                      {/* Protected routes requiring authentication */}
                       <Route path="/" element={<PrivateRoute><TreeView /></PrivateRoute>} />
                       <Route path="/profile/:id" element={<PrivateRoute><Profile /></PrivateRoute>} />
                       <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />
 
-                      {/* Redirect non-matching routes to home */}
+                      {/* Fallback redirect for unmatched routes */}
                       <Route path="*" element={<Navigate to="/" />} />
                     </Routes>
                   </main>
                 </>
               } />
             </Routes>
-            {/* A Footer component would go here */}
+            {/* Footer component placeholder for future implementation */}
           </div>
         </AuthProvider>
       </Router>

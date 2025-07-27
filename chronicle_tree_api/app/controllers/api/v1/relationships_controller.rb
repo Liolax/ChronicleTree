@@ -1,3 +1,5 @@
+# Controller for managing family relationships with comprehensive validation
+# Handles relationship creation, modification, and genealogical rule enforcement
 module Api
   module V1
     class RelationshipsController < BaseController
@@ -13,10 +15,10 @@ module Api
           return
         end
 
-        # Enhanced relationship validation
+        # Comprehensive validation based on relationship type and genealogical rules
         case relationship_params[:relationship_type]
         when 'spouse'
-          # Check for blood relationship to prevent incestuous marriages
+          # Consanguinity validation to prevent inappropriate marriages
           unless BloodRelationshipDetector.marriage_allowed?(person, relative)
             blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
             render json: { 
@@ -25,7 +27,7 @@ module Api
             return
           end
         when 'sibling'
-          # Validate sibling relationship compatibility
+          # Sibling relationship validation with biological and legal constraints
           unless BloodRelationshipDetector.sibling_allowed?(person, relative)
             blood_relationship = BloodRelationshipDetector.new(person, relative).relationship_description
             error_msg = if blood_relationship
@@ -39,7 +41,7 @@ module Api
             return
           end
           
-          # Prevent people who share children from becoming siblings
+          # Validates that potential siblings don't share children (indicating past romantic relationship)
           person_children = person.children.pluck(:id)
           relative_children = relative.children.pluck(:id)
           shared_children = person_children & relative_children
@@ -52,7 +54,7 @@ module Api
             return
           end
           
-          # Validate parent relationships for sibling compatibility
+          # Ensures sibling relationships have proper biological or step-family basis
           person_parents = person.parents.pluck(:id).sort
           relative_parents = relative.parents.pluck(:id).sort
           
@@ -84,7 +86,7 @@ module Api
             end
           end
           
-          # Age compatibility check
+          # Age difference validation for realistic sibling relationships
           if person.date_of_birth && relative.date_of_birth
             age_gap = ((person.date_of_birth - relative.date_of_birth).abs / 365.25).round(1)
             if age_gap > 25

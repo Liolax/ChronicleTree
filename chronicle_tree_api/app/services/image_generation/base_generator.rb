@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+# Base class for generating shareable family tree images with VIPS image processing
+# Provides common functionality for profile cards and tree snippet generation
 module ImageGeneration
   class BaseGenerator
     require 'vips'

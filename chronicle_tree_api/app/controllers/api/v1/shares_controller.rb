@@ -1,12 +1,12 @@
-# Family tree sharing functionality
-# Enables users to share their genealogical research and family profiles
+# Social media sharing controller for family tree content distribution
+# Generates shareable URLs and content for various platforms with genealogical context
 class Api::V1::SharesController < Api::V1::BaseController
   before_action :authenticate_user!
 
   def create
     share_params = params.require(:share).permit(:content_type, :content_id, :platform, :caption)
     
-    # Generate share content
+    # Creates platform-specific shareable content with genealogical data
     share_content = generate_share_content(share_params)
     
     if share_content
@@ -48,7 +48,7 @@ class Api::V1::SharesController < Api::V1::BaseController
   end
 
   def generate_tree_share_content(share_params)
-    # Get tree data for the current user
+    # Processes family tree data for social media sharing
     if share_params[:content_id].present?
       # Root person specified
       person = current_user.people.find(share_params[:content_id])
@@ -60,7 +60,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description = "Discover our complete family tree with #{current_user.people.count} family members across multiple generations! 🌳"
     end
     
-    # Add tree statistics
+    # Enriches content with genealogical statistics and timeline data
     generations = calculate_tree_generations
     oldest_person = current_user.people.where.not(date_of_birth: nil).order(:date_of_birth).first
     youngest_person = current_user.people.where.not(date_of_birth: nil).order(date_of_birth: :desc).first
@@ -87,7 +87,7 @@ class Api::V1::SharesController < Api::V1::BaseController
   def generate_profile_share_content(share_params)
     person = current_user.people.find(share_params[:content_id])
     
-    # Build description
+    # Constructs personalized profile description with relationship context
     description = "Meet #{person.first_name} #{person.last_name}"
     
     # Add birth year if available
@@ -96,7 +96,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description += " (born #{birth_year})"
     end
     
-    # Add relationships context
+    # Integrates family relationship data for comprehensive context
     relationships = []
     relationships << "#{person.children.count} children" if person.children.any?
     relationships << "#{person.parents.count} parents" if person.parents.any?
@@ -108,7 +108,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description += " - part of our family tree."
     end
     
-    # Add facts if available
+    # Incorporates biographical facts for enhanced profile content
     if person.facts.any?
       key_facts = person.facts.limit(2).pluck(:description).join(', ')
       description += " Key facts: #{key_facts}."
@@ -153,12 +153,12 @@ class Api::V1::SharesController < Api::V1::BaseController
   end
 
   def calculate_tree_generations
-    # Simple calculation based on parent-child relationships
+    # Calculates genealogical depth using breadth-first search algorithm
     # Find people with no parents (top generation)
     top_generation = current_user.people.select { |p| p.parents.empty? }
     return 1 if top_generation.empty?
     
-    # BFS to find maximum depth
+    # Breadth-first traversal to determine maximum generational depth
     max_depth = 0
     queue = top_generation.map { |person| [person, 0] }
     
