@@ -1,3 +1,5 @@
+# JSON serializer for person objects with comprehensive genealogical relationship data
+# Handles complex family structures including step-relationships and in-law connections
 class Api::V1::PersonSerializer < ActiveModel::Serializer
   attributes :id,
              :first_name,
@@ -45,12 +47,12 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
     object.note ? Api::V1::NoteSerializer.new(object.note, scope: scope) : nil
   end
 
-  # Custom relatives array with relationship_type
+  # Constructs detailed relatives array with differentiated relationship types
   def relatives
     object.relationships.includes(:relative).map do |rel|
-      # For siblings, only include full siblings (others are handled by half_siblings and step_siblings)
+      # Processes sibling relationships with full/half/step distinction for accurate genealogical representation
       if rel.relationship_type == 'sibling'
-        # Check if this is a full sibling (shares exactly 2 parents)
+        # Validates full sibling status based on shared biological parents
         if object.full_siblings.include?(rel.relative)
           rel.relative.as_json(only: [ :id, :first_name, :last_name ]).merge({
             full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
@@ -62,10 +64,10 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
             relationship_id: rel.id
           })
         else
-          nil # Skip half/step siblings - they're handled separately
+          nil # Excludes half/step siblings for separate categorization
         end
       else
-        # For non-sibling relationships, include them normally
+        # Handles standard relationships (parent, child, spouse) with complete metadata
         rel.relative.as_json(only: [ :id, :first_name, :last_name ]).merge({
           full_name: "#{rel.relative.first_name} #{rel.relative.last_name}",
           relationship_type: rel.relationship_type,
@@ -76,7 +78,7 @@ class Api::V1::PersonSerializer < ActiveModel::Serializer
           relationship_id: rel.id
         })
       end
-    end.compact # Remove nil entries
+    end.compact # Filters out nil entries from relationship processing
   end
 
   def parents_in_law

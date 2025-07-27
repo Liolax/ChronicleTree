@@ -1,4 +1,4 @@
-# app/serializers/api/v1/medium_serializer.rb
+# JSON serializer for media attachments with file metadata and URL generation
 class Api::V1::MediumSerializer < ActiveModel::Serializer
   include Rails.application.routes.url_helpers
 

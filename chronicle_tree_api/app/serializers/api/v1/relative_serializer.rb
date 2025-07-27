@@ -1,6 +1,5 @@
-# app/serializers/api/v1/relative_serializer.rb
-# This serializer provides a minimal representation of a person to avoid
-# circular dependencies when serializing relatives.
+# JSON serializer providing minimal person representation to prevent circular dependencies
+# Used for serializing family relatives without full person object complexity
 class Api::V1::RelativeSerializer < ActiveModel::Serializer
   attributes :id, :full_name, :relationship_type
 
@@ -8,9 +7,8 @@ class Api::V1::RelativeSerializer < ActiveModel::Serializer
     "#{object.first_name} #{object.last_name}"
   end
 
-  # The 'relationship_type' is not on the Person model itself.
-  # It's available on the `object` because it's added by the query
-  # in the PeopleController#relatives action.
+  # Relationship type comes from query-added attribute in PeopleController#relatives action
+  # Not part of base Person model but dynamically included for relative connections
   def relationship_type
     object.try(:relationship_type)
   end
