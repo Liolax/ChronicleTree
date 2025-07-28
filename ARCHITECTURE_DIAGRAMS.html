@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronicleTree - Architecture Diagrams</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(45deg, #2c3e50, #3498db);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .diagram-section {
+            margin-bottom: 50px;
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+        }
+        
+        .diagram-title {
+            color: #2c3e50;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .diagram {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        /* System Architecture Diagram */
+        .system-arch {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .component {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            border: 2px solid #3498db;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 5px 5px 15px rgba(0,0,0,0.1);
+            min-width: 150px;
+            transition: transform 0.3s ease;
+        }
+        
+        .component:hover {
+            transform: translateY(-5px);
+            box-shadow: 5px 10px 25px rgba(0,0,0,0.15);
+        }
+        
+        .component h3 {
+            color: #2c3e50;
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        
+        .component-list {
+            font-size: 0.9em;
+            color: #666;
+            text-align: left;
+        }
+        
+        .arrow {
+            font-size: 2em;
+            color: #3498db;
+            align-self: center;
+        }
+        
+        /* Database Schema Diagram */
+        .db-schema {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .table {
+            background: white;
+            border: 2px solid #34495e;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .table-header {
+            background: #34495e;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .table-field {
+            padding: 8px 12px;
+            border-bottom: 1px solid #ecf0f1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .table-field:last-child {
+            border-bottom: none;
+        }
+        
+        .primary-key {
+            background: #e8f5e8;
+            font-weight: bold;
+        }
+        
+        .foreign-key {
+            background: #fff3cd;
+        }
+        
+        /* Flow Diagram */
+        .flow-diagram {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .flow-step {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            font-weight: bold;
+            text-align: center;
+            min-width: 200px;
+        }
+        
+        .flow-arrow {
+            font-size: 1.5em;
+            color: #e67e22;
+        }
+        
+        /* Relationship Types Diagram */
+        .relationship-types {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .relationship-type {
+            background: linear-gradient(135deg, #8e44ad, #9b59b6);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .relationship-type h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.1em;
+        }
+        
+        .relationship-type p {
+            margin: 0;
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        /* API Endpoints Diagram */
+        .api-endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .api-group {
+            background: white;
+            border: 2px solid #16a085;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .api-group-header {
+            background: #16a085;
+            color: white;
+            padding: 10px;
+            font-weight: bold;
+        }
+        
+        .api-endpoint {
+            padding: 10px;
+            border-bottom: 1px solid #ecf0f1;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+        
+        .api-endpoint:last-child {
+            border-bottom: none;
+        }
+        
+        .http-method {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        
+        .get { background: #27ae60; }
+        .post { background: #f39c12; }
+        .put { background: #3498db; }
+        .delete { background: #e74c3c; }
+        
+        .responsive-note {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌳 ChronicleTree Architecture Diagrams</h1>
+            <p>Visual representation of system design, database schema, and API structure</p>
+        </div>
+        
+        <div class="content">
+            <!-- System Architecture -->
+            <div class="diagram-section">
+                <h2 class="diagram-title">🏗️ System Architecture Overview</h2>
+                <div class="diagram">
+                    <div class="system-arch">
+                        <div class="component">
+                            <h3>React Frontend</h3>
+                            <div class="component-list">
+                                • Family Tree Visualization<br>
+                                • Interactive UI Components<br>
+                                • Relationship Management<br>
+                                • Media Gallery<br>
+                                • User Authentication
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↔️</div>
+                        
+                        <div class="component">
+                            <h3>Rails API Backend</h3>
+                            <div class="component-list">
+                                • RESTful API Endpoints<br>
+                                • Business Logic<br>
+                                • Authentication & Security<br>
+                                • File Management<br>
+                                • Data Serialization
+                            </div>
+                        </div>
+                        
+                        <div class="arrow">↔️</div>
+                        
+                        <div class="component">
+                            <h3>PostgreSQL Database</h3>
+                            <div class="component-list">
+                                • People & Relationships<br>
+                                • Media Metadata<br>
+                                • Timeline Events<br>
+                                • User Accounts<br>
+                                • Active Storage Blobs
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Schema -->
+            <div class="diagram-section">
+                <h2 class="diagram-title">🗄️ Database Schema Design</h2>
+                <div class="diagram">
+                    <div class="db-schema">
+                        <div class="table">
+                            <div class="table-header">👤 people</div>
+                            <div class="table-field primary-key">id (PK)</div>
+                            <div class="table-field foreign-key">user_id (FK)</div>
+                            <div class="table-field">first_name</div>
+                            <div class="table-field">last_name</div>
+                            <div class="table-field">gender</div>
+                            <div class="table-field">date_of_birth</div>
+                            <div class="table-field">date_of_death</div>
+                            <div class="table-field">is_deceased</div>
+                            <div class="table-field">created_at</div>
+                            <div class="table-field">updated_at</div>
+                        </div>
+                        
+                        <div class="table">
+                            <div class="table-header">🔗 relationships</div>
+                            <div class="table-field primary-key">id (PK)</div>
+                            <div class="table-field foreign-key">person_id (FK)</div>
+                            <div class="table-field foreign-key">relative_id (FK)</div>
+                            <div class="table-field">relationship_type</div>
+                            <div class="table-field">is_ex</div>
+                            <div class="table-field">is_deceased</div>
+                            <div class="table-field">created_at</div>
+                            <div class="table-field">updated_at</div>
+                        </div>
+                        
+                        <div class="table">
+                            <div class="table-header">📱 media</div>
+                            <div class="table-field primary-key">id (PK)</div>
+                            <div class="table-field foreign-key">attachable_id (FK)</div>
+                            <div class="table-field">attachable_type</div>
+                            <div class="table-field">title</div>
+                            <div class="table-field">description</div>
+                            <div class="table-field">created_at</div>
+                            <div class="table-field">updated_at</div>
+                        </div>
+                        
+                        <div class="table">
+                            <div class="table-header">👤 profiles</div>
+                            <div class="table-field primary-key">id (PK)</div>
+                            <div class="table-field foreign-key">person_id (FK)</div>
+                            <div class="table-field">created_at</div>
+                            <div class="table-field">updated_at</div>
+                        </div>
+                        
+                        <div class="table">
+                            <div class="table-header">📅 timeline_items</div>
+                            <div class="table-field primary-key">id (PK)</div>
+                            <div class="table-field foreign-key">person_id (FK)</div>
+                            <div class="table-field">title</div>
+                            <div class="table-field">date</div>
+                            <div class="table-field">place</div>
+                            <div class="table-field">icon</div>
+                            <div class="table-field">description</div>
+                            <div class="table-field">created_at</div>
+                            <div class="table-field">updated_at</div>
+                        </div>
+                        
+                        <div class="table">
+                            <div class="table-header">📋 facts</div>
+                            <div class="table-field primary-key">id (PK)</div>
+                            <div class="table-field foreign-key">person_id (FK)</div>
+                            <div class="table-field">label</div>
+                            <div class="table-field">value</div>
+                            <div class="table-field">date</div>
+                            <div class="table-field">location</div>
+                            <div class="table-field">created_at</div>
+                            <div class="table-field">updated_at</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Flow -->
+            <div class="diagram-section">
+                <h2 class="diagram-title">🔄 User Workflow</h2>
+                <div class="diagram">
+                    <div class="flow-diagram">
+                        <div class="flow-step">👤 User Registration/Login</div>
+                        <div class="flow-arrow">⬇️</div>
+                        <div class="flow-step">➕ Add Family Members</div>
+                        <div class="flow-arrow">⬇️</div>
+                        <div class="flow-step">🔗 Define Relationships</div>
+                        <div class="flow-arrow">⬇️</div>
+                        <div class="flow-step">📱 Upload Media & Documents</div>
+                        <div class="flow-arrow">⬇️</div>
+                        <div class="flow-step">🌳 Visualize Family Tree</div>
+                        <div class="flow-arrow">⬇️</div>
+                        <div class="flow-step">📤 Share with Family</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Relationship Types -->
+            <div class="diagram-section">
+                <h2 class="diagram-title">👨‍👩‍👧‍👦 Relationship Types Supported</h2>
+                <div class="diagram">
+                    <div class="relationship-types">
+                        <div class="relationship-type">
+                            <h4>🩸 Blood Relations</h4>
+                            <p>Parent, Child, Grandparent, Great-Grandparent, Sibling, Uncle, Aunt, Cousin</p>
+                        </div>
+                        <div class="relationship-type">
+                            <h4>👣 Step Relations</h4>
+                            <p>Step-Parent, Step-Child, Step-Sibling, Step-Grandparent (through marriage)</p>
+                        </div>
+                        <div class="relationship-type">
+                            <h4>➗ Half Relations</h4>
+                            <p>Half-Sibling (sharing one biological parent)</p>
+                        </div>
+                        <div class="relationship-type">
+                            <h4>💍 In-Law Relations</h4>
+                            <p>Father-in-Law, Mother-in-Law, Brother-in-Law, Sister-in-Law</p>
+                        </div>
+                        <div class="relationship-type">
+                            <h4>💔 Ex Relations</h4>
+                            <p>Ex-Spouse, Ex-Father-in-Law, Ex-Mother-in-Law</p>
+                        </div>
+                        <div class="relationship-type">
+                            <h4>🪦 Deceased Relations</h4>
+                            <p>All relationship types with temporal validation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- API Endpoints -->
+            <div class="diagram-section">
+                <h2 class="diagram-title">🔌 API Endpoints Structure</h2>
+                <div class="diagram">
+                    <div class="api-endpoints">
+                        <div class="api-group">
+                            <div class="api-group-header">👤 People Management</div>
+                            <div class="api-endpoint">
+                                <span class="http-method get">GET</span>/api/v1/people
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method post">POST</span>/api/v1/people
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method get">GET</span>/api/v1/people/:id
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method put">PUT</span>/api/v1/people/:id
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method delete">DELETE</span>/api/v1/people/:id
+                            </div>
+                        </div>
+                        
+                        <div class="api-group">
+                            <div class="api-group-header">🔗 Relationships</div>
+                            <div class="api-endpoint">
+                                <span class="http-method get">GET</span>/api/v1/relationships
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method post">POST</span>/api/v1/relationships
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method delete">DELETE</span>/api/v1/relationships/:id
+                            </div>
+                        </div>
+                        
+                        <div class="api-group">
+                            <div class="api-group-header">📱 Media Management</div>
+                            <div class="api-endpoint">
+                                <span class="http-method get">GET</span>/api/v1/people/:id/media
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method post">POST</span>/api/v1/people/:id/media
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method put">PUT</span>/api/v1/media/:id
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method delete">DELETE</span>/api/v1/media/:id
+                            </div>
+                        </div>
+                        
+                        <div class="api-group">
+                            <div class="api-group-header">🔐 Authentication</div>
+                            <div class="api-endpoint">
+                                <span class="http-method post">POST</span>/api/v1/auth/login
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method post">POST</span>/api/v1/auth/register
+                            </div>
+                            <div class="api-endpoint">
+                                <span class="http-method delete">DELETE</span>/api/v1/auth/logout
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technology Stack -->
+            <div class="diagram-section">
+                <h2 class="diagram-title">🛠️ Technology Stack</h2>
+                <div class="diagram">
+                    <div class="system-arch">
+                        <div class="component">
+                            <h3>Frontend</h3>
+                            <div class="component-list">
+                                • React 18<br>
+                                • React Flow<br>
+                                • Tailwind CSS<br>
+                                • Axios<br>
+                                • React Router
+                            </div>
+                        </div>
+                        
+                        <div class="component">
+                            <h3>Backend</h3>
+                            <div class="component-list">
+                                • Ruby on Rails 7<br>
+                                • Active Storage<br>
+                                • Devise Auth<br>
+                                • Active Model Serializers<br>
+                                • Sidekiq
+                            </div>
+                        </div>
+                        
+                        <div class="component">
+                            <h3>Database & Storage</h3>
+                            <div class="component-list">
+                                • PostgreSQL<br>
+                                • Active Storage<br>
+                                • File System Storage<br>
+                                • Image Processing<br>
+                                • CORS Support
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="responsive-note">
+                <strong>📱 Responsive Design:</strong> All diagrams and the application itself are designed to work seamlessly across desktop, tablet, and mobile devices with responsive layouts and touch-friendly interactions.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
