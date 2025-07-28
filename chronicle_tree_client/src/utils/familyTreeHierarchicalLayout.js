@@ -551,6 +551,74 @@ const findRootNodes = (persons, childToParents) => {
 };
 
 /**
+ * Group disconnected family trees and assign appropriate generation offsets
+ * to prevent all root nodes from being at generation 0
+ */
+const groupFamilyTrees = (persons, childToParents, parentToChildren, spouseMap, rootNodes) => {
+  const familyGroups = [];
+  const visited = new Set();
+  
+  // For each root node, find all connected people using BFS
+  rootNodes.forEach(rootId => {
+    if (visited.has(rootId)) return;
+    
+    const familyGroup = new Set();
+    const queue = [rootId];
+    
+    while (queue.length > 0) {
+      const currentId = queue.shift();
+      if (visited.has(currentId) || familyGroup.has(currentId)) continue;
+      
+      visited.add(currentId);
+      familyGroup.add(currentId);
+      
+      // Add all connected people (children, parents, spouses)
+      if (parentToChildren.has(currentId)) {
+        parentToChildren.get(currentId).forEach(childId => {
+          if (!visited.has(childId)) queue.push(childId);
+        });
+      }
+      
+      if (childToParents.has(currentId)) {
+        childToParents.get(currentId).forEach(parentId => {
+          if (!visited.has(parentId)) queue.push(parentId);
+        });
+      }
+      
+      if (spouseMap && spouseMap.has(currentId)) {
+        const spouseId = spouseMap.get(currentId);
+        if (!visited.has(spouseId)) queue.push(spouseId);
+      }
+    }
+    
+    if (familyGroup.size > 0) {
+      familyGroups.push({
+        rootId: rootId,
+        members: Array.from(familyGroup),
+        size: familyGroup.size
+      });
+    }
+  });
+  
+  // Sort family groups by size (largest first) and age of root person
+  familyGroups.sort((a, b) => {
+    const sizeComparison = b.size - a.size;
+    if (sizeComparison !== 0) return sizeComparison;
+    
+    // If same size, prioritize by age of root person
+    const rootPersonA = persons.find(p => String(p.id) === a.rootId);
+    const rootPersonB = persons.find(p => String(p.id) === b.rootId);
+    
+    const ageA = rootPersonA?.date_of_birth ? new Date(rootPersonA.date_of_birth).getFullYear() : 9999;
+    const ageB = rootPersonB?.date_of_birth ? new Date(rootPersonB.date_of_birth).getFullYear() : 9999;
+    
+    return ageA - ageB; // Older person first
+  });
+  
+  return familyGroups;
+};
+
+/**
  * Calculate generation level for each person using BFS
  * @param {Array} persons - Array of person objects
  * @param {Map} childToParents - Map of child to parents
@@ -567,140 +635,106 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
   
 
 
-  // Start with root nodes at generation 0
-  rootNodes.forEach(rootId => {
-    queue.push({ id: rootId, generation: 0 });
-  });
-
-  // BFS to assign generations
-  while (queue.length > 0) {
-    const { id, generation } = queue.shift();
+  // Group disconnected family trees to handle them separately
+  const familyGroups = groupFamilyTrees(persons, childToParents, parentToChildren, spouseMap, rootNodes);
+  
+  console.log('Found', familyGroups.length, 'family groups:', familyGroups.map(g => `${g.rootId}(${g.size})`).join(', '));
+  
+  // Assign generation offsets to separate family trees vertically
+  let generationOffset = 0;
+  const GENERATION_SPACING = 10; // Space between different family trees
+  
+  familyGroups.forEach((familyGroup, index) => {
+    console.log(`Processing family group ${index + 1}: root=${familyGroup.rootId}, size=${familyGroup.size}, offset=${generationOffset}`);
     
-    if (visited.has(id)) continue;
-    visited.add(id);
+    // Start this family tree at the current offset
+    queue.push({ id: familyGroup.rootId, generation: generationOffset });
     
-    generations.set(id, generation);
+    // Process this entire family tree
+    const familyVisited = new Set();
     
-    // Add spouse to SAME generation (very important!)
-    if (spouseMap && spouseMap.has(id)) {
-      const spouseId = spouseMap.get(id);
-      if (!visited.has(spouseId)) {
-        queue.push({ id: spouseId, generation: generation }); // Same generation as spouse
+    while (queue.length > 0) {
+      const { id, generation } = queue.shift();
+      
+      if (visited.has(id) || familyVisited.has(id)) continue;
+      visited.add(id);
+      familyVisited.add(id);
+      
+      generations.set(id, generation);
+      
+      // Only process relationships within this family group
+      if (!familyGroup.members.includes(id)) continue;
+      
+      // Add spouse to SAME generation (very important!)
+      if (spouseMap && spouseMap.has(id)) {
+        const spouseId = spouseMap.get(id);
+        if (!visited.has(spouseId) && familyGroup.members.includes(spouseId)) {
+          queue.push({ id: spouseId, generation: generation });
+        }
       }
-    }
-    
-    // Add ex-spouses to SAME generation (they should also be at same level based on age)
-    if (exSpouseMap && exSpouseMap.has(id)) {
-      const exSpouses = exSpouseMap.get(id);
-      exSpouses.forEach(exSpouseId => {
-        if (!visited.has(exSpouseId)) {
-          queue.push({ id: exSpouseId, generation: generation }); // Same generation as ex-spouse
-        }
-      });
-    }
-    
-    // Add children to next generation (lower/positive generations)
-    if (parentToChildren && parentToChildren.has(id)) {
-      const children = parentToChildren.get(id);
-      children.forEach(childId => {
-        if (!visited.has(childId)) {
-          queue.push({ id: childId, generation: generation + 1 });
-        }
-      });
-    }
-    
-    // Add parents to previous generation (higher/negative generations)
-    if (childToParents && childToParents.has(id)) {
-      const parents = childToParents.get(id);
-      parents.forEach(parentId => {
-        if (!visited.has(parentId)) {
-          queue.push({ id: parentId, generation: generation - 1 });
-        }
-      });
-    }
-    
-    // CRITICAL: Add siblings to SAME generation during BFS traversal
-    // This ensures siblings are connected to the main family tree
-    if (relationships && relationships.length > 0) {
-      relationships.forEach(rel => {
-        const source = String(rel.source || rel.from);
-        const target = String(rel.target || rel.to);
-        const type = rel.type || rel.relationship_type;
-        
-        if (['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type)) {
-          // If current person is source, add target as sibling
-          if (source === id && !visited.has(target)) {
-            queue.push({ id: target, generation: generation }); // Same generation as sibling
-          }
-          // If current person is target, add source as sibling  
-          else if (target === id && !visited.has(source)) {
-            queue.push({ id: source, generation: generation }); // Same generation as sibling
-          }
-        }
-      });
-    }
-  }
-
-  // Handle direct siblings (siblings without shared parents) - place them at the same generation level
-  // This needs to be done before handling orphaned nodes
-  const siblingMap = new Map();
-  
-  // Build a map of direct sibling relationships
-  persons.forEach(person => {
-    const personId = String(person.id);
-    if (!siblingMap.has(personId)) {
-      siblingMap.set(personId, new Set());
-    }
-  });
-  
-  // Find direct sibling relationships from the raw relationships data
-  // We need to check the original relationships array to find sibling connections
-  if (relationships.length > 0) {
-    relationships.forEach(rel => {
-      const source = String(rel.source || rel.from);
-      const target = String(rel.target || rel.to);
-      const type = rel.type || rel.relationship_type;
       
-      // Only process if both people exist in the persons array
-      const sourcePerson = persons.find(p => String(p.id) === source);
-      const targetPerson = persons.find(p => String(p.id) === target);
+      // Add ex-spouses to SAME generation
+      if (exSpouseMap && exSpouseMap.has(id)) {
+        const exSpouses = exSpouseMap.get(id);
+        exSpouses.forEach(exSpouseId => {
+          if (!visited.has(exSpouseId) && familyGroup.members.includes(exSpouseId)) {
+            queue.push({ id: exSpouseId, generation: generation });
+          }
+        });
+      }
       
-      if (['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type) && sourcePerson && targetPerson) {
-        // Check if they have shared parents (if so, they're already positioned correctly)
-        const sourceParents = childToParents.get(source) || new Set();
-        const targetParents = childToParents.get(target) || new Set();
-        const sharedParents = [...sourceParents].filter(parent => targetParents.has(parent));
-        
-        // Only handle direct siblings (no shared parents)
-        if (sharedParents.length === 0) {
-          // Ensure both source and target exist in siblingMap
-          if (!siblingMap.has(source)) {
-            siblingMap.set(source, new Set());
+      // Add children to next generation
+      if (parentToChildren && parentToChildren.has(id)) {
+        const children = parentToChildren.get(id);
+        children.forEach(childId => {
+          if (!visited.has(childId) && familyGroup.members.includes(childId)) {
+            queue.push({ id: childId, generation: generation + 1 });
           }
-          if (!siblingMap.has(target)) {
-            siblingMap.set(target, new Set());
+        });
+      }
+      
+      // Add parents to previous generation
+      if (childToParents && childToParents.has(id)) {
+        const parents = childToParents.get(id);
+        parents.forEach(parentId => {
+          if (!visited.has(parentId) && familyGroup.members.includes(parentId)) {
+            queue.push({ id: parentId, generation: generation - 1 });
           }
+        });
+      }
+      
+      // Add siblings to SAME generation
+      if (relationships && relationships.length > 0) {
+        relationships.forEach(rel => {
+          const source = String(rel.source || rel.from);
+          const target = String(rel.target || rel.to);
+          const type = rel.type || rel.relationship_type;
           
-          siblingMap.get(source).add(target);
-          siblingMap.get(target).add(source);
-        }
+          if (['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type)) {
+            if (source === id && !visited.has(target) && familyGroup.members.includes(target)) {
+              queue.push({ id: target, generation: generation });
+            }
+            else if (target === id && !visited.has(source) && familyGroup.members.includes(source)) {
+              queue.push({ id: source, generation: generation });
+            }
+          }
+        });
       }
-    });
-  }
-  
-  // Now assign generations to direct siblings based on already-positioned siblings
-  siblingMap.forEach((siblings, personId) => {
-    if (siblings.size > 0 && generations.has(personId)) {
-      const personGeneration = generations.get(personId);
-      
-      // Place all direct siblings at the same generation level
-      siblings.forEach(siblingId => {
-        if (!generations.has(siblingId)) {
-          generations.set(siblingId, personGeneration);
-        }
-      });
+    }
+    
+    // Calculate the range of generations used by this family
+    const familyGenerations = familyGroup.members
+      .filter(memberId => generations.has(memberId))
+      .map(memberId => generations.get(memberId));
+    
+    if (familyGenerations.length > 0) {
+      const minGen = Math.min(...familyGenerations);
+      const maxGen = Math.max(...familyGenerations);
+      // Set offset for next family to be below this one
+      generationOffset = maxGen + GENERATION_SPACING;
     }
   });
+
 
   // Handle any remaining unvisited nodes (truly orphaned nodes)
   persons.forEach(person => {
@@ -712,6 +746,27 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
 
   // DEBUG: Log basic generation info
   console.log('Generation calculation completed. Root nodes:', rootNodes, 'BFS visited:', visited.size, '/', persons.length);
+  
+  // DEBUG: Specific check for Patricia-Michael generation issue
+  const patriciaId = '16';
+  const michaelId = '13';
+  if (rootNodes.includes(patriciaId)) {
+    console.log('=== PATRICIA-MICHAEL GENERATION DEBUG ===');
+    console.log('Patricia generation:', generations.get(patriciaId));
+    console.log('Michael generation:', generations.get(michaelId));
+    console.log('Expected: Patricia=0, Michael=2 (grandson)');
+    
+    // Check the BFS path to Michael  
+    console.log('Michael parents:', Array.from(childToParents.get(michaelId) || new Set()));
+    console.log('Lisa parents:', Array.from(childToParents.get('12') || new Set()));
+    
+    // Check John's generation when Patricia is root
+    const johnId = '1';
+    const lisaId = '12';
+    console.log('John Doe generation:', generations.get(johnId));
+    console.log('Lisa Doe generation:', generations.get(lisaId));
+    console.log('Issue: If John and Lisa are at different generations, Michael gets conflicting assignments');
+  }
   
   const generationGroups = new Map();
   generations.forEach((gen, personId) => {
@@ -1077,6 +1132,10 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     }
 
     if (forceGrandparentGen !== null) {
+      // DEBUG: Check if this is affecting Patricia-Michael positioning
+      if (id === '13' || id === '16') {
+        console.log(`Generation override for ${person.first_name}: ${generation} → ${forceGrandparentGen}`);
+      }
       generation = forceGrandparentGen;
     }
 
