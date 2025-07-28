@@ -858,22 +858,46 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  // The biological parents, siblings, or other relatives of step-parents are considered unrelated
-  // Examples of relationships that should be "Unrelated":
-  // 1. Step-parent's biological parents → NOT step-grandparents
-  // 2. Step-parent's siblings → NOT step-aunts/uncles  
-  // 3. Any extended family of step-parent → "Unrelated"
+  // Check for reverse step-grandparent relationship
+  // Person is step-grandchild of root if: root is married to person's biological grandparent
+  // This is the reverse of the step-grandparent logic above
+  const personParentsForGrandparent = childToParents.get(personId) || new Set();
   
-  // REMOVED: All reverse step-grandparent relationship logic
-  //
-  // Step-grandparent relationships should not exist in this implementation
-  // Only direct step-parent relationships through marriage should be recognized.
-  // REMOVED: All step-grandparent and step-great-grandparent logic
-  // Step-relationships only form through direct marriage connections.
-  // All extended family of step-relatives should be classified as "Unrelated".
-
-  // REMOVED: All step-grandparent and step-great-grandparent logic sections
-  // Moving directly to step-sibling logic (the only valid extended step-relationship)
+  for (const parent of personParentsForGrandparent) {
+    // Get this parent's parents (person's grandparents)
+    const grandparents = childToParents.get(parent) || new Set();
+    
+    for (const grandparent of grandparents) {
+      // Check if root is married to this biological grandparent
+      const grandparentSpouses = spouseMap.get(grandparent) || new Set();
+      const grandparentDeceasedSpouses = deceasedSpouseMap.get(grandparent) || new Set();
+      
+      // Check current spouses
+      if (grandparentSpouses.has(rootId)) {
+        // Root is married to person's biological grandparent → person is step-grandchild
+        return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
+      }
+      
+      // Check deceased spouses (but only if they were alive when the marriage was valid)
+      if (grandparentDeceasedSpouses.has(rootId)) {
+        // Additional timeline validation for deceased spouses
+        const rootObj = allPeople.find(p => p.id == rootId);
+        const personObj = allPeople.find(p => p.id == personId);
+        
+        if (rootObj?.date_of_death && personObj?.date_of_birth) {
+          const deathDate = new Date(rootObj.date_of_death);
+          const birthDate = new Date(personObj.date_of_birth);
+          
+          // If person was born after root's death, no step-grandchild relationship exists
+          if (birthDate > deathDate) {
+            continue; // Skip this deceased spouse, not a valid step-grandchild
+          }
+        }
+        
+        return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
+      }
+    }
+  }
   
   // Check for step-sibling relationship
   // Person is step-sibling of root if: they share a step-parent but no biological parents

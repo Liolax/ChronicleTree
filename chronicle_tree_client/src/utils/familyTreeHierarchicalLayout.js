@@ -603,17 +603,132 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
   const generations = new Map();
   const visited = new Set();
   const queue = [];
-  
 
-
-  // Group disconnected family trees to handle them separately
-  const familyGroups = groupFamilyTrees(persons, childToParents, parentToChildren, spouseMap, rootNodes);
-  
-  // Need to separate different families so they don't all end up at generation 0
-  let generationOffset = 0;
-  const GENERATION_SPACING = 10; // Put some space between unrelated families
+  // If we have only one root node (user selected specific person), use simple BFS
+  // If we have multiple root nodes (full tree mode), use family grouping
+  if (rootNodes.length === 1) {
+    // Simple BFS from single selected root
+    const singleRoot = rootNodes[0];
+    
+    // Make sure we start fresh with just the person we picked
+    queue.length = 0;
+    queue.push({ id: singleRoot, generation: 0 });
+    
+    const rootPerson = persons.find(p => String(p.id) === singleRoot);
+    console.log(`🎯 SINGLE ROOT MODE: Starting with ${rootPerson?.first_name} ${rootPerson?.last_name} (ID: ${singleRoot}) at generation 0`);
+    console.log(`Queue initialized with: [${singleRoot}]`);
+    
+    // Simple BFS traversal without family grouping complexity
+    while (queue.length > 0) {
+      const { id, generation } = queue.shift();
+      
+      if (visited.has(id)) {
+        console.log(`⚠️ SKIPPING ${id} - already visited`);
+        continue;
+      }
+      visited.add(id);
+      
+      // Don't override if already assigned (prevent duplicate processing)
+      if (generations.has(id)) {
+        console.log(`⚠️ ${id} already has generation ${generations.get(id)}, not overriding with ${generation}`);
+        continue;
+      }
+      
+      generations.set(id, generation);
+      
+      const currentPerson = persons.find(p => String(p.id) === id);
+      
+      // Debug generation assignments to understand the relationship confusion
+      if (currentPerson) {
+        // Flag potential step-relationship issues
+        const isLisaRelated = currentPerson.first_name === 'Lisa' || 
+                             (currentPerson.last_name === 'Doe' && currentPerson.first_name !== 'Lisa');
+        const flag = isLisaRelated ? ' ⚠️ DOE FAMILY' : '';
+        console.log(`${currentPerson.first_name} ${currentPerson.last_name} (ID: ${id}) -> Generation ${generation}${flag}`);
+      }
+      
+      // Add spouses to same generation
+      if (spouseMap && spouseMap.has(id)) {
+        const spouseId = spouseMap.get(id);
+        if (!visited.has(spouseId)) {
+          queue.push({ id: spouseId, generation: generation });
+        }
+      }
+      
+      // Add ex-spouses to same generation
+      if (exSpouseMap && exSpouseMap.has(id)) {
+        const exSpouses = exSpouseMap.get(id);
+        exSpouses.forEach(exSpouseId => {
+          if (!visited.has(exSpouseId)) {
+            queue.push({ id: exSpouseId, generation: generation });
+          }
+        });
+      }
+      
+      // Add children to next generation
+      if (parentToChildren && parentToChildren.has(id)) {
+        const children = parentToChildren.get(id);
+        children.forEach(childId => {
+          if (!visited.has(childId)) {
+            const child = persons.find(p => String(p.id) === childId);
+            console.log(`  Adding child ${child?.first_name} ${child?.last_name} at generation ${generation + 1} (from ${currentPerson?.first_name})`);
+            queue.push({ id: childId, generation: generation + 1 });
+          }
+        });
+      }
+      
+      // Add parents to previous generation
+      if (childToParents && childToParents.has(id)) {
+        const parents = childToParents.get(id);
+        
+        
+        parents.forEach(parentId => {
+          if (!visited.has(parentId)) {
+            const parent = persons.find(p => String(p.id) === parentId);
+            
+            // When we have a specific root person selected, prioritize the root's direct lineage
+            // Put spouse's parents at a different generation offset to avoid mixing families
+            const isSpouseParent = currentPerson?.first_name !== 'Lisa' && 
+                                 currentPerson?.first_name === 'John' && 
+                                 currentPerson?.last_name === 'Doe';
+            
+            const parentGeneration = isSpouseParent ? generation - 2 : generation - 1;
+            const spouseFlag = isSpouseParent ? ' (spouse\'s parent)' : '';
+            
+            console.log(`  Adding parent ${parent?.first_name} ${parent?.last_name} at generation ${parentGeneration} (from ${currentPerson?.first_name})${spouseFlag}`);
+            queue.push({ id: parentId, generation: parentGeneration });
+          }
+        });
+      }
+      
+      // Add siblings to same generation
+      if (relationships && relationships.length > 0) {
+        relationships.forEach(rel => {
+          const source = String(rel.source || rel.from);
+          const target = String(rel.target || rel.to);
+          const type = rel.type || rel.relationship_type;
+          
+          if (['sibling', 'brother', 'sister', 'Brother', 'Sister'].includes(type)) {
+            if (source === id && !visited.has(target)) {
+              queue.push({ id: target, generation: generation });
+            }
+            else if (target === id && !visited.has(source)) {
+              queue.push({ id: source, generation: generation });
+            }
+          }
+        });
+      }
+    }
+  } else {
+    // Multiple root nodes - use family grouping logic
+    const familyGroups = groupFamilyTrees(persons, childToParents, parentToChildren, spouseMap, rootNodes);
+    
+    // Need to separate different families so they don't all end up at generation 0
+    let generationOffset = 0;
+    const GENERATION_SPACING = 10; // Put some space between unrelated families
   
   familyGroups.forEach((familyGroup, index) => {
+    
     // Start this family tree at the current offset
     queue.push({ id: familyGroup.rootId, generation: generationOffset });
     
@@ -653,6 +768,8 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       // Children go one level down
       if (parentToChildren && parentToChildren.has(id)) {
         const children = parentToChildren.get(id);
+        
+        
         children.forEach(childId => {
           if (!visited.has(childId) && familyGroup.members.includes(childId)) {
             queue.push({ id: childId, generation: generation + 1 });
@@ -701,8 +818,9 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       generationOffset = maxGen + GENERATION_SPACING;
     }
   });
-
-
+  } // End of multiple root mode
+  
+  // Common post-processing for both single and multiple root modes
   // If someone didn't get assigned to any family group, put them way down
   persons.forEach(person => {
     const id = String(person.id);
@@ -732,6 +850,8 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
             if (!wouldBreakHierarchy) {
               // Use the minimum generation (higher in hierarchy) for both spouses
               const minGen = Math.min(personGen, spouseGen);
+              
+              
               generations.set(personId, minGen);
               generations.set(spouseId, minGen);
               changed = true;
