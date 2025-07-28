@@ -103,9 +103,6 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
   // Phase 1: Create data structures for efficient relationship lookups
   const relationshipMaps = buildRelationshipMaps(relationships, persons);
   
-  // Debug: Basic relationship mapping info
-  console.log('Relationship mapping: processing', relationships.length, 'relationships for', persons.length, 'people');
-
   // Phase 2: Determine tree root - either user-selected or automatically detected
   let rootNodes;
   let useAgeBasedGenerations = false;
@@ -118,7 +115,6 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
     // This provides better family hierarchy than age-based grouping
     useAgeBasedGenerations = false;
     rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
-    console.log('Full tree mode: Found root nodes:', rootNodes);
   }
 
   // Step 3: Calculate generations for each person
@@ -379,14 +375,6 @@ function calculateAgeBasedGenerations(persons, relationships) {
     });
   }
   
-  console.log('Age-based generations assigned:', 
-    Array.from(generations.entries()).map(([id, gen]) => {
-      const person = persons.find(p => String(p.id) === id);
-      const birthYear = person?.date_of_birth ? new Date(person.date_of_birth).getFullYear() : 'unknown';
-      return `${person?.first_name} (${birthYear}): gen ${gen}`;
-    })
-  );
-  
   return generations;
 }
 
@@ -538,27 +526,20 @@ const buildRelationshipMaps = (relationships, persons) => {
   };
 };
 
-/**
- * Find root nodes (people with no parents)
- * @param {Array} persons - Array of person objects
- * @param {Map} childToParents - Map of child to parents
- * @returns {Array} - Array of root person IDs
- */
+// Find people who don't have parents (the top of each family tree)
 const findRootNodes = (persons, childToParents) => {
   return persons
     .filter(person => !childToParents.has(String(person.id)))
     .map(person => String(person.id));
 };
 
-/**
- * Group disconnected family trees and assign appropriate generation offsets
- * to prevent all root nodes from being at generation 0
- */
+// Figure out which people belong to the same family
+// So we don't put everyone at the top level
 const groupFamilyTrees = (persons, childToParents, parentToChildren, spouseMap, rootNodes) => {
   const familyGroups = [];
   const visited = new Set();
   
-  // For each root node, find all connected people using BFS
+  // Start from each root person and find everyone connected to them
   rootNodes.forEach(rootId => {
     if (visited.has(rootId)) return;
     
@@ -572,7 +553,7 @@ const groupFamilyTrees = (persons, childToParents, parentToChildren, spouseMap, 
       visited.add(currentId);
       familyGroup.add(currentId);
       
-      // Add all connected people (children, parents, spouses)
+      // Grab all the relatives of this person
       if (parentToChildren.has(currentId)) {
         parentToChildren.get(currentId).forEach(childId => {
           if (!visited.has(childId)) queue.push(childId);
@@ -600,34 +581,24 @@ const groupFamilyTrees = (persons, childToParents, parentToChildren, spouseMap, 
     }
   });
   
-  // Sort family groups by size (largest first) and age of root person
+  // Put bigger families first, then older people
   familyGroups.sort((a, b) => {
     const sizeComparison = b.size - a.size;
     if (sizeComparison !== 0) return sizeComparison;
     
-    // If same size, prioritize by age of root person
     const rootPersonA = persons.find(p => String(p.id) === a.rootId);
     const rootPersonB = persons.find(p => String(p.id) === b.rootId);
     
     const ageA = rootPersonA?.date_of_birth ? new Date(rootPersonA.date_of_birth).getFullYear() : 9999;
     const ageB = rootPersonB?.date_of_birth ? new Date(rootPersonB.date_of_birth).getFullYear() : 9999;
     
-    return ageA - ageB; // Older person first
+    return ageA - ageB;
   });
   
   return familyGroups;
 };
 
-/**
- * Calculate generation level for each person using BFS
- * @param {Array} persons - Array of person objects
- * @param {Map} childToParents - Map of child to parents
- * @param {Array} rootNodes - Array of root node IDs
- * @param {Map} parentToChildren - Map of parent to children
- * @param {Map} spouseMap - Map of current spouse relationships
- * @param {Map} exSpouseMap - Map of ex-spouse relationships
- * @returns {Map} - Map of person ID to generation level
- */
+// This function figures out what generation each person should be on
 const calculateGenerations = (persons, childToParents, rootNodes, parentToChildren, spouseMap = null, exSpouseMap = null, relationships = []) => {
   const generations = new Map();
   const visited = new Set();
@@ -638,15 +609,11 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
   // Group disconnected family trees to handle them separately
   const familyGroups = groupFamilyTrees(persons, childToParents, parentToChildren, spouseMap, rootNodes);
   
-  console.log('Found', familyGroups.length, 'family groups:', familyGroups.map(g => `${g.rootId}(${g.size})`).join(', '));
-  
-  // Assign generation offsets to separate family trees vertically
+  // Need to separate different families so they don't all end up at generation 0
   let generationOffset = 0;
-  const GENERATION_SPACING = 10; // Space between different family trees
+  const GENERATION_SPACING = 10; // Put some space between unrelated families
   
   familyGroups.forEach((familyGroup, index) => {
-    console.log(`Processing family group ${index + 1}: root=${familyGroup.rootId}, size=${familyGroup.size}, offset=${generationOffset}`);
-    
     // Start this family tree at the current offset
     queue.push({ id: familyGroup.rootId, generation: generationOffset });
     
@@ -665,7 +632,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       // Only process relationships within this family group
       if (!familyGroup.members.includes(id)) continue;
       
-      // Add spouse to SAME generation (very important!)
+      // Spouses should be on the same level as each other
       if (spouseMap && spouseMap.has(id)) {
         const spouseId = spouseMap.get(id);
         if (!visited.has(spouseId) && familyGroup.members.includes(spouseId)) {
@@ -673,7 +640,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         }
       }
       
-      // Add ex-spouses to SAME generation
+      // Ex-spouses also go on same level (usually same age anyway)
       if (exSpouseMap && exSpouseMap.has(id)) {
         const exSpouses = exSpouseMap.get(id);
         exSpouses.forEach(exSpouseId => {
@@ -683,7 +650,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         });
       }
       
-      // Add children to next generation
+      // Children go one level down
       if (parentToChildren && parentToChildren.has(id)) {
         const children = parentToChildren.get(id);
         children.forEach(childId => {
@@ -693,7 +660,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         });
       }
       
-      // Add parents to previous generation
+      // Parents go one level up
       if (childToParents && childToParents.has(id)) {
         const parents = childToParents.get(id);
         parents.forEach(parentId => {
@@ -703,7 +670,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         });
       }
       
-      // Add siblings to SAME generation
+      // Siblings stay on same level
       if (relationships && relationships.length > 0) {
         relationships.forEach(rel => {
           const source = String(rel.source || rel.from);
@@ -722,7 +689,8 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       }
     }
     
-    // Calculate the range of generations used by this family
+    // Figure out how much space this family took up
+    // So we can put the next family below it
     const familyGenerations = familyGroup.members
       .filter(memberId => generations.has(memberId))
       .map(memberId => generations.get(memberId));
@@ -730,70 +698,21 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     if (familyGenerations.length > 0) {
       const minGen = Math.min(...familyGenerations);
       const maxGen = Math.max(...familyGenerations);
-      // Set offset for next family to be below this one
       generationOffset = maxGen + GENERATION_SPACING;
     }
   });
 
 
-  // Handle any remaining unvisited nodes (truly orphaned nodes)
+  // If someone didn't get assigned to any family group, put them way down
   persons.forEach(person => {
     const id = String(person.id);
     if (!generations.has(id)) {
-      generations.set(id, 999); // Put orphaned nodes far from root
+      generations.set(id, 999);
     }
   });
 
-  // DEBUG: Log basic generation info
-  console.log('Generation calculation completed. Root nodes:', rootNodes, 'BFS visited:', visited.size, '/', persons.length);
-  
-  // DEBUG: Specific check for Patricia-Michael generation issue
-  const patriciaId = '16';
-  const michaelId = '13';
-  if (rootNodes.includes(patriciaId)) {
-    console.log('=== PATRICIA-MICHAEL GENERATION DEBUG ===');
-    console.log('Patricia generation:', generations.get(patriciaId));
-    console.log('Michael generation:', generations.get(michaelId));
-    console.log('Expected: Patricia=0, Michael=2 (grandson)');
-    
-    // Check the BFS path to Michael  
-    console.log('Michael parents:', Array.from(childToParents.get(michaelId) || new Set()));
-    console.log('Lisa parents:', Array.from(childToParents.get('12') || new Set()));
-    
-    // Check John's generation when Patricia is root
-    const johnId = '1';
-    const lisaId = '12';
-    console.log('John Doe generation:', generations.get(johnId));
-    console.log('Lisa Doe generation:', generations.get(lisaId));
-    console.log('Issue: If John and Lisa are at different generations, Michael gets conflicting assignments');
-  }
-  
-  const generationGroups = new Map();
-  generations.forEach((gen, personId) => {
-    if (!generationGroups.has(gen)) {
-      generationGroups.set(gen, []);
-    }
-    const person = persons.find(p => String(p.id) === personId);
-    generationGroups.get(gen).push({
-      id: personId,
-      name: person ? `${person.first_name} ${person.last_name}` : 'Unknown',
-      birth: person?.date_of_birth ? new Date(person.date_of_birth).getFullYear() : 'unknown'
-    });
-  });
-  
-  // Sort generations and display
-  const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
-  sortedGenerations.forEach(gen => {
-    console.log(`Generation ${gen}:`);
-    generationGroups.get(gen).forEach(person => {
-      console.log(`  - ${person.name} (${person.birth}) [ID: ${person.id}]`);
-    });
-  });
-  console.log('=== END DEBUG ===');
-
-  // CRITICAL: Post-processing to ensure ALL spouses are at the same generation level
-  // This fixes cases where BFS might have assigned spouses to different generations
-  // BUT we need to be careful not to break parent-child hierarchies
+  // Sometimes spouses end up on different levels by mistake
+  // Need to fix that but be careful not to mess up parent-child stuff
   if (spouseMap) {
     let changed = true;
     while (changed) {
@@ -817,7 +736,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
               generations.set(spouseId, minGen);
               changed = true;
             } else {
-              console.log(`Skipping spouse alignment for ${personId}-${spouseId} to preserve parent-child hierarchy`);
             }
           }
         }
@@ -825,7 +743,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     }
   }
 
-  // CRITICAL: Post-processing to ensure co-parents (people who share a child) are at the same generation level
+  // Make sure parents of the same child are on the same level
   // Even if they are not married, people who have a child together should be at the same generation
   // This runs MULTIPLE times to ensure all co-parent relationships are properly aligned
   if (childToParents) {
@@ -884,7 +802,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     }
   }
 
-  // CRITICAL: Enhanced post-processing to ensure comprehensive in-law generational alignment
+  // Fix up in-law positioning so families line up better
   // This handles parents-in-law, uncle-in-law, and other same-generation relationships
   let generationChanged = true;
   let genIterations = 0;
@@ -894,7 +812,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     generationChanged = false;
     genIterations++;
     
-    // STEP 1: Align ALL siblings to the same generation (uncles/aunts with parents)
+    // Put all siblings on same level
     // Do sibling alignment first to establish baseline
     const siblingRelationships = relationships.filter(rel => {
       const type = rel.type || rel.relationship_type;
@@ -918,7 +836,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       }
     });
     
-    // STEP 2: Spouse alignment to keep married couples together
+    // Keep married people together
     if (spouseMap) {
       spouseMap.forEach((spouseId, personId) => {
         if (generations.has(personId) && generations.has(spouseId)) {
@@ -935,7 +853,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       });
     }
     
-    // STEP 3: PRIORITY - For each married couple, ensure their parents are at the same generation level
+    // Make sure both sets of parents are on same level
     // This must run AFTER sibling/spouse alignment to override any conflicts
     if (spouseMap) {
       spouseMap.forEach((spouseId, personId) => {
@@ -974,7 +892,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     }
   }
 
-  // FINAL AGGRESSIVE FIX: Force parent-in-law alignment after all other processing
+  // Last chance to fix parent-in-law positioning
   // This ensures that parents of married couples are ALWAYS at the same generation
   if (spouseMap) {
     spouseMap.forEach((spouseId, personId) => {
@@ -1003,7 +921,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     });
   }
 
-  console.log('LAYOUT GENERATION CALCULATION COMPLETED');
 
   return generations;
 };
@@ -1132,9 +1049,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     }
 
     if (forceGrandparentGen !== null) {
-      // DEBUG: Check if this is affecting Patricia-Michael positioning
       if (id === '13' || id === '16') {
-        console.log(`Generation override for ${person.first_name}: ${generation} → ${forceGrandparentGen}`);
       }
       generation = forceGrandparentGen;
     }
@@ -1214,8 +1129,8 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     let xOffset = startX;
 
     // Group people by their parents (sibling groups)
-    const siblingGroups = new Map(); // parentKey -> [siblings]
-    const orphans = []; // people with no parents
+    const siblingGroups = new Map(); // ParentKey -> [siblings]
+    const orphans = []; // People with no parents
 
     generationPersons.forEach(person => {
       const personId = String(person.id);
@@ -1324,7 +1239,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   // Function to prevent nodes from overlapping each other on the screen
   function avoidNodeOverlap(nodes, unrelatedNodeIds, nodeWidth = 240, nodeHeight = 180, margin = 40) {
     // Build spouse pairs for coordinated movement
-    const spousePairs = new Map(); // personId -> spouseId
+    const spousePairs = new Map(); // PersonId -> spouseId
     nodes.forEach(node => {
       const personId = node.id;
       // Find spouse from the original spouseMap built during relationship processing
@@ -1343,7 +1258,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
 
     // Build co-parent groups for coordinated movement
     // Co-parents should move together to maintain same generation level
-    const coParentGroups = new Map(); // personId -> Set of co-parent IDs
+    const coParentGroups = new Map(); // PersonId -> Set of co-parent IDs
     if (childToParents) {
       childToParents.forEach((parents, childId) => {
         if (parents.size >= 2) {
@@ -1579,7 +1494,7 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
       // Choose color based on relationship status
       let strokeColor = '#ec4899'; // Default: pink for current spouse
       
-      // CRITICAL: Only legitimate late spouse relationships (is_deceased === true) get black color
+      // Only real deceased spouses get the black line
       // Posthumous marriages should be treated as ex-spouse (grey)
       if (isEx) {
         strokeColor = '#9ca3af'; // Grey for ex-spouse
@@ -1587,7 +1502,7 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
         strokeColor = '#000000'; // Black for legitimate late spouse (married before death)
       } else if (eitherPersonDeceased) {
         // If either person is deceased but relationship is NOT marked as legitimate late spouse,
-        // treat as ex-spouse (this handles posthumous marriages like Sam-Molly)
+        // Treat as ex-spouse (this handles posthumous marriages like Sam-Molly)
         strokeColor = '#9ca3af'; // Grey for posthumous marriages treated as ex-spouse
       }
       edges.push({
@@ -1641,8 +1556,8 @@ const createSimplifiedEdges = (relationships, relationshipMaps, persons) => {
 
   // Step-grandparent relationships are not shown as visual lines
   // Step-grandparent relationships are only shown in text labels via the relationship calculator,
-  // not as visual connectors. Visual connectors only represent direct biological relationships
-  // and formal spouse relationships. Step-relationships are inferred and displayed as text only.
+  // Not as visual connectors. Visual connectors only represent direct biological relationships
+  // And formal spouse relationships. Step-relationships are inferred and displayed as text only.
 
   return edges;
 };
