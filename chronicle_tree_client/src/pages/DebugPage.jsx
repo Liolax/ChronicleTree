@@ -1,15 +1,13 @@
-import React, { useEffect } from 'react';
-// import { debugRelationships } from '../utils/debug-relationships';
+import React from 'react';
 
 function DebugPage() {
-  useEffect(() => {
-    // debugRelationships();
-  }, []);
-
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Debug Relationships</h1>
-      <p>Check the console for debug output.</p>
+      <h1 className="text-2xl font-bold mb-4">Debug Information</h1>
+      <div className="bg-gray-100 p-4 rounded-lg">
+        <p className="text-gray-600">Debug functionality has been removed for production.</p>
+        <p className="text-gray-600 mt-2">This page is maintained for routing compatibility.</p>
+      </div>
     </div>
   );
 }
