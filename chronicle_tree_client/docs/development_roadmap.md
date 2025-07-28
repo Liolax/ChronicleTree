@@ -55,6 +55,8 @@ The React client is fully integrated with the Rails API backend and uses modern 
   - Pan/zoom with React Flow controls
   - Add/edit/delete people and relationships via modals managed by context/local state
   - MiniMap viewport rectangle for navigation
+  - MiniMap node color reflects gender: blue (male), pink (female), grey (other)
+  - MiniMap is always visible for quick navigation and context
 
 
 ## 4. Forms and User Input
@@ -72,4 +74,4 @@ The React client is fully integrated with the Rails API backend and uses modern 
 
 ---
 
-This roadmap reflects the current, implemented state of the ChronicleTree React client as of July 2025.
+This roadmap reflects the current, implemented state of the ChronicleTree React client as of July 2025. All features, including MiniMap color logic and modal behaviors, are up to date with the latest implementation.

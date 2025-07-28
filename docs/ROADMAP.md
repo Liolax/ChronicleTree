@@ -1,21 +1,21 @@
 
 # Summary of Step-Relationship Logic Review and Refinements
 
-✅ Analyzed Scenarios and Current Logic
+OK Analyzed Scenarios and Current Logic
 
 **Basic Scenario: Step-Grandmother**
 - Implementation Location: improvedRelationshipCalculator.js:849-926
 - Logic: When grandfather remarries, new wife becomes step-grandmother through direct marriage connection
-- Status: ✅ Correctly Implemented
+- Status: OK Correctly Implemented
 
-🔧 **Key Fix Applied**
+**Key Fix Applied**
 
 **Removed Incorrect Step-Great-Grandparent Extension (Lines 928-957)**
 - Problem: Program incorrectly classified step-grandmother's biological parents as "Step-Great-Grandparents"
 - Solution: Removed the logic that extends step-relationships through biological family lines
 - Rationale: Step-relationships should only exist through direct marriage connections, not through biological relatives of step-family members
 
-📋 **Business Rules Now Properly Enforced**
+**Business Rules Now Properly Enforced**
 
 1. **Step-Grandmother's Biological Parents:**
    - Before: Incorrectly labeled as "Step-Great-Grandparents"
@@ -30,7 +30,7 @@
    - Logic: This marriage doesn't create any step-relationship path to the root person
    - Implementation: Prevented by removing the over-extension logic
 
-🎯 **Correct Step-Relationship Classification Logic**
+**Correct Step-Relationship Classification Logic**
 
 The program now properly distinguishes between:
 
@@ -38,13 +38,13 @@ The program now properly distinguishes between:
 2. **Relations by Marriage (Step-Relations):** Created only through direct marriage to biological family members
 3. **Other Connections:** Extended family of step-relatives who remain "Unrelated"
 
-💡 **Non-Obvious Considerations Addressed**
+**Non-Obvious Considerations Addressed**
 
 1. Timeline Validation: Maintains existing logic that prevents step-relationships when connecting spouse died before root person was born
 2. Ex-Spouse Exclusion: Continues to properly exclude divorced spouses from creating step-relationships
 3. Deceased Spouse Handling: Preserves appropriate handling of deceased spouses in step-relationship calculations
 
-🔍 **Remaining Valid Step-Great-Grandparent Logic**
+**Remaining Valid Step-Great-Grandparent Logic**
 
 The program still correctly handles legitimate step-great-grandparent relationships through direct marriage connections:
 - Valid Case: Person marries root's great-grandparent → Person becomes step-great-grandparent
@@ -53,7 +53,11 @@ The program still correctly handles legitimate step-great-grandparent relationsh
 This refinement ensures the family tree program accurately represents step-relationships according to real-world family dynamics while preventing incorrect classification of extended biological family members as step-relatives.
 
 # Completed Tasks
-
+1. **Fixed Reverse Step-Uncle/Aunt Logic**
+   - Issue: When Emma was root, Michael showed as regular uncle instead of step-uncle
+   - Solution: Implemented bidirectional step-uncle/aunt detection that works regardless of which person is set as the root
+Test Coverage
+   - Implementation Location: improvedRelationshipCalculator.js:849-926
 1. **Fixed Reverse Step-Uncle/Aunt Logic**
    - Issue: When Emma was root, Michael showed as regular uncle instead of step-uncle
    - Solution: Implemented bidirectional step-uncle/aunt detection that works regardless of which person is set as the root
@@ -79,7 +83,7 @@ This refinement ensures the family tree program accurately represents step-relat
      - "2nd Cousin 1 time removed" (2nd cousin with 1-generation difference)
      - All cousin relationships with proper "times removed" calculations
 
-🎯 **Key Technical Improvements**
+**Key Technical Improvements**
 
 1. Bidirectional Relationship Consistency: All step-relationships now work correctly regardless of which person is the root
 2. Real-Life Logic Compliance: Step-children's biological relatives are properly marked as "Unrelated"
@@ -104,7 +108,14 @@ Prevent all step-relationships (step-parent, step-grandparent, step-sibling, etc
 All step-relationships will be timeline-consistent, and no step-relationship will be shown if the connecting person died before the target person was born. This will prevent visual and logical errors in the family tree, especially for cases involving late spouses and step-relatives.
 # ChronicleTree Development Roadmap
 
-This document outlines the current state, recent progress, and future plans for the ChronicleTree full-stack application, including both the Rails API backend and the React client frontend.
+
+This document outlines the current state, recent progress, and future plans for the ChronicleTree full-stack application, including both the Rails API backend and the React client frontend. All logic, validation, and UI/UX features are up to date as of July 2025, including:
+- Step-relationship and deceased spouse logic
+- Timeline and chronological validation for all relationships
+- MiniMap and tree visualization improvements
+- Unified, user-friendly validation alerts
+- Gender-neutral and gender-specific relationship naming
+- Ex-spouse in-law exclusion and advanced relationship status handling
 
 ---
 
@@ -149,10 +160,10 @@ ChronicleTree now features a comprehensive blood relationship validation system,
 - Degree 5: Distant blood relatives
 
 ### 8. Complex Remarriage Scenarios Supported
-- ✅ Allowed: Marrying ex-spouse's sibling (if no blood relation)
-- ✅ Allowed: Marrying deceased spouse's relative (if no blood relation)
-- ❌ Prevented: Marrying any blood relative regardless of previous marriages
-- ❌ Prevented: Any incestuous relationships
+- OK Allowed: Marrying ex-spouse's sibling (if no blood relation)
+- OK Allowed: Marrying deceased spouse's relative (if no blood relation)
+- Not allowed: Marrying any blood relative regardless of previous marriages
+- Not allowed: Any incestuous relationships
 
 ### 9. Real-World Family Constraints
 - Enforces biological reality and realistic family structure rules.
@@ -166,7 +177,8 @@ ChronicleTree now features a comprehensive blood relationship validation system,
 - Performance optimized with efficient relationship mapping and caching.
 - Graceful error handling when tree data is unavailable.
 
-This system provides comprehensive protection against inappropriate family relationships while supporting realistic and complex family situations, such as remarriage within extended family networks.
+
+This system provides comprehensive protection against inappropriate family relationships while supporting realistic and complex family situations, such as remarriage within extended family networks. All validation and relationship logic is current and robust.
 
 ## Comprehensive Marriage Age Validation (16 Years Minimum)
 
@@ -201,9 +213,9 @@ ChronicleTree now enforces strict marriage age validation, ensuring that no spou
 4. Relationship creation fails with a clear error message if validation fails.
 
 #### Example Error Messages
-- ❌ "Alice Doe is only 0.0 years old. Minimum marriage age is 16 years"
-- ❌ "Person must have a birth date for marriage validation"
-- ❌ "Cannot marry person under 16 years old"
+"Alice Doe is only 0.0 years old. Minimum marriage age is 16 years"
+"Person must have a birth date for marriage validation"
+"Cannot marry person under 16 years old"
 
 ### Complete Validation Chain
 
@@ -262,13 +274,13 @@ The validation alert system is now comprehensive and user-friendly, helping user
 ## Unified Simple Validation Alerts
 
 ### Components Updated
-- ✅ EditPersonForm.jsx – Uses new simple alerts
-- ✅ PersonForm.jsx – Uses new simple alerts
-- ✅ AddRelationshipModal.jsx – Uses new simple alerts
-- ✅ RelationshipForm.jsx – Already had good proactive alerts
-- ✅ RelationshipManager.jsx – Already had good filtering alerts
+- OK EditPersonForm.jsx – Uses new simple alerts
+- OK PersonForm.jsx – Uses new simple alerts
+- OK AddRelationshipModal.jsx – Uses new simple alerts
+- OK RelationshipForm.jsx – Already had good proactive alerts
+- OK RelationshipManager.jsx – Already had good filtering alerts
 
-### 🚀 Benefits Achieved
+### Benefits Achieved
 - No more duplicated content – single validation utility
 - Short & friendly messages – easy to understand
 - Consistent user experience – same format everywhere
@@ -286,31 +298,31 @@ All user-friendly validation alerts are now fully implemented and consistent acr
 - After: Clear, specific, friendly validation alerts using our centralized system.
 
 ### 🔧 Components Updated
-1. AddPersonModal.jsx ✅
+1. AddPersonModal.jsx OK
    - Now uses showValidationAlert() for consistent messages
    - Catches all backend validation errors and shows appropriate user-friendly alerts
    - Clear error categorization (timeline, age, marriage, blood relatives, etc.)
-2. EditPersonModal.jsx ✅
+2. EditPersonModal.jsx OK
    - Updated to use centralized validation alerts
    - Removes verbose error handling
    - Consistent with other components
-3. Backend Models ✅
+3. Backend Models OK
    - Updated error messages to be more consistent and friendly
    - "Blood relatives cannot marry" instead of technical jargon
    - "Person already has a current spouse" instead of verbose explanations
 
-### 📝 Alert Examples Now
+### Alert Examples Now
 Instead of generic errors, users now see:
-- ✅ "Both people must be at least 16 years old to marry."
-- ✅ "Blood relatives cannot marry."
-- ✅ "Parents must be at least 12 years older than children."
-- ✅ "Person already has 2 parents."
-- ✅ "Birth and death dates must be in chronological order."
+- OK "Both people must be at least 16 years old to marry."
+- OK "Blood relatives cannot marry."
+- OK "Parents must be at least 12 years older than children."
+- OK "Person already has 2 parents."
+- OK "Birth and death dates must be in chronological order."
 
-### 🚀 Result
+### Result
 The Add New Person modal (and all other validation points) now provide short, clear, and friendly validation messages that explain exactly what the issue is without overwhelming technical details or duplicate verbose explanations.
 
-All validation alerts are now consistent across the entire application! 🎉
+All validation alerts are now consistent across the entire application!
 
 
 ## Robust Parent and Sibling Filtering Validation (Automated Test Coverage)
@@ -320,22 +332,22 @@ All validation alerts are now consistent across the entire application! 🎉
 Created `test_robust_parent_filtering.rake` to validate:
 
 **Parent Filtering Tests:**
-- ❌ Great-grandfather as parent (blood relative)
-- ❌ Grandfather as parent (blood relative)
-- ❌ Father as parent (already exists)
-- ❌ Sibling as parent (same generation)
-- ❌ Too young candidate (5-year gap)
-- ❌ Too old candidate (75-year gap)
-- ❌ Deceased candidate (died before birth)
-- ✅ Good candidate (30-year gap, unrelated)
+Great-grandfather as parent (blood relative)
+Grandfather as parent (blood relative)
+Father as parent (already exists)
+Sibling as parent (same generation)
+Too young candidate (5-year gap)
+Too old candidate (75-year gap)
+Deceased candidate (died before birth)
+OK Good candidate (30-year gap, unrelated)
 
 **Child Filtering Tests:**
-- ❌ Sibling as child (blood relative)
-- ❌ Grandfather as child (blood relative)
-- ❌ Too old child (5-year gap)
-- ✅ Young child (20-year gap, unrelated)
+Sibling as child (blood relative)
+Grandfather as child (blood relative)
+Too old child (5-year gap)
+OK Young child (20-year gap, unrelated)
 
-🎯 **Result:**
+**Result:**
 
 Parent filtering is now extremely robust and will prevent:
 - ALL blood relatives from becoming parents/children
@@ -352,7 +364,7 @@ Your family tree will now maintain biological reality and logical family structu
 
 Significantly enhanced the robustness of sibling filtering. Previous problems and fixes:
 
-🚨 **Previous Problems with Sibling Filtering:**
+**Previous Problems with Sibling Filtering:**
 1. Weak generational logic – parents/grandparents could become siblings
 2. No shared parent validation – missing constraint for biological siblings
 3. Insufficient age validation – no realistic age gap limits
@@ -360,7 +372,7 @@ Significantly enhanced the robustness of sibling filtering. Previous problems an
 5. No blood relationship depth – only checked some specific relationships
 6. No step-sibling logic – couldn't distinguish between biological and step-siblings
 
-✅ **Enhanced Robust Sibling Filtering Now Includes:**
+OK **Enhanced Robust Sibling Filtering Now Includes:**
 1. Comprehensive generational blocking (blocks all ancestor-descendant relationships)
 2. CRITICAL: Shared parent validation (siblings must share at least one parent or have parents married to each other)
 3. Enhanced age validation (max 25-year age gap for siblings)
@@ -406,6 +418,59 @@ if (lowerRel.includes('parent') || lowerRel.includes('child') ||
 }
 ```
 
+## Completed Tasks
+1. **Fixed Reverse Step-Uncle/Aunt Logic**
+   - Issue: When Emma was root, Michael showed as regular uncle instead of step-uncle
+   - Solution: Implemented bidirectional step-uncle/aunt detection that works regardless of which person is set as the root
+   - Result: Michael correctly shows as "Step-Uncle" to Emma, and Emma shows as "Step-Niece" to Michael
+
+2. **Fixed Step-Children's Grandparent Relationships**
+   - Issue: Biological grandparents of step-children were incorrectly showing as "Step-Great-Grandparents"
+   - Solution: Removed overly permissive step-great-grandparent logic that created false relationships
+   - Result: Step-children's biological grandparents now correctly show as "Unrelated" (proper real-life logic)
+
+3. **Implemented Great-Uncle/Aunt and Great-Niece/Nephew Relationships**
+   - Added: Complete multi-level great-uncle/aunt system supporting:
+     - Great-Uncle/Great-Aunt (grandparent's sibling)
+     - Great-Great-Uncle/Great-Great-Aunt (great-grandparent's sibling)
+     - Great-Niece/Great-Nephew (sibling's grandchild)
+     - Great-Great-Niece/Great-Great-Nephew (sibling's great-grandchild)
+   - Result: All levels of great relationships now work correctly up to 5 generations
+
+4. **Confirmed Once Removed Logic Works**
+   - Discovery: The once removed logic was already fully implemented through the generational cousin system
+   - Verified: Correctly handles relationships like:
+     - "1st Cousin 1 time removed" (parent's cousin or cousin's child)
+     - "2nd Cousin 1 time removed" (2nd cousin with 1-generation difference)
+     - All cousin relationships with proper "times removed" calculations
+
+**Key Technical Improvements**
+
+1. Bidirectional Relationship Consistency: All step-relationships now work correctly regardless of which person is the root
+2. Real-Life Logic Compliance: Step-children's biological relatives are properly marked as "Unrelated"
+3. Systematic Multi-Level Support: Great relationships can handle unlimited ancestral levels
+4. Comprehensive Cousin System: Full support for any degree of cousin with any number of "times removed"
+
+The family tree relationship calculation system is now much more robust and handles complex step-family scenarios with proper genealogical accuracy. All the user's requested relationship types are working correctly!
+
+## Step-Relationships: Comprehensive Timeline Validation
+
+**Goal:**
+Prevent all step-relationships (step-parent, step-grandparent, step-sibling, etc.) from being inferred or displayed if the deceased connecting person (e.g., a spouse or parent) died before the target person was born. This addresses issues where step-relationships are shown between people who could not have overlapped in time, such as Richard Sharma and Michael Doe being shown as step-relatives despite Jane Doe (the connecting person) dying before Michael was born.
+
+**Planned Changes:**
+- Add `isDeceasedPersonConnectingPersonAndRoot` helper function to check if the connecting person (e.g., spouse or parent) is deceased and whether their death predates the birth of the target person.
+- Add `isDescendantOf` helper function for ancestry checking to support timeline validation and relationship directionality.
+- Implement comprehensive deceased spouse timeline validation in all step-relationship inference logic (step-parent, step-grandparent, step-sibling, step-grandchild, etc.).
+- Fix timeline validation direction in step-grandparent logic to ensure no step-grandparent edge is created if the connecting spouse died before the root was born.
+- Add timeline validation to step-grandchild logic paths to prevent invalid step-grandchild relationships.
+- Ensure bidirectional relationship consistency: if a step-relationship is blocked in one direction due to timeline, it should not appear in the other direction either.
+
+**Outcome:**
+All step-relationships will be timeline-consistent, and no step-relationship will be shown if the connecting person died before the target person was born. This will prevent visual and logical errors in the family tree, especially for cases involving late spouses and step-relatives.
+
+## ChronicleTree Development Roadmap
+Issues Fixed
 ---
 
 ### 🧪 Test Coverage
@@ -413,18 +478,18 @@ if (lowerRel.includes('parent') || lowerRel.includes('child') ||
 Created `test_robust_sibling_filtering.rake` to validate:
 
 **Sibling Filtering Tests:**
-- ❌ Great-grandfather as sibling (different generation)
-- ❌ Grandfather as sibling (different generation)
-- ❌ Father as sibling (already parent)
-- ❌ Uncle as sibling (different generation)
-- ❌ Existing sibling as sibling (duplicate)
-- ❌ Cousin as sibling (blood relative)
-- ❌ Too old candidate (35-year gap)
-- ❌ Deceased before birth (timeline violation)
-- ✅ Step-sibling (parents married to each other)
-- ✅ Good biological sibling (shares parent, appropriate age)
+Great-grandfather as sibling (different generation)
+Grandfather as sibling (different generation)
+Father as sibling (already parent)
+Uncle as sibling (different generation)
+Existing sibling as sibling (duplicate)
+Cousin as sibling (blood relative)
+Too old candidate (35-year gap)
+Deceased before birth (timeline violation)
+OK Step-sibling (parents married to each other)
+Good biological sibling (shares parent, appropriate age)
 
-🎯 **Result:**
+**Result:**
 
 Sibling filtering is now extremely robust and will prevent:
 - ALL different-generation relationships (parents, grandparents, uncles as siblings)
@@ -513,14 +578,14 @@ The backend Rails application had **no blood relationship validation**
 
 I have completely resolved the issue where grandchildren could be added as spouses to grandparents. Here's what was accomplished:
 
-### 🎯 Problem Solved
+### Problem Solved
 - Before: Alice Doe (granddaughter) was married to Robert Doe (grandfather) ❌
 - After: Blood relatives are blocked from marriage relationships ✅
 
-### 🔧 Root Cause Found
+### Root Cause Found
 The backend had NO blood relationship validation - it only checked age and relationship limits, but never verified if two people were blood relatives.
 
-### 💡 Solution Implemented
+### Solution Implemented
 1. Created BloodRelationshipDetector Service ✅
    - Detects parent-child, grandparent-grandchild, sibling, uncle/aunt-nephew/niece, and cousin relationships
    - Provides clear relationship descriptions
@@ -534,7 +599,7 @@ The backend had NO blood relationship validation - it only checked age and relat
    - Ran cleanup script that found and removed the invalid Robert-Alice marriage
    - Database is now clean of invalid relationships
 
-### 🚫 Relationships Now Blocked
+### Relationships Now Blocked
 - ❌ Parent ↔ Child marriage
 - ❌ Grandparent ↔ Grandchild marriage
 - ❌ Sibling ↔ Sibling marriage
@@ -542,14 +607,14 @@ The backend had NO blood relationship validation - it only checked age and relat
 - ❌ First Cousin ↔ First Cousin marriage
 - ❌ Blood relatives having shared children
 
-### ✅ Validation Results
+### Validation Results
 🔍 Found 1 invalid relationship:
    Robert Doe married to Alice Doe
    Issue: Alice is Robert's grandchild
 
 ✅ Successfully removed invalid relationship!
 
-### 🎯 User Experience
+### User Experience
 Now when users try to add inappropriate relationships, they'll see clear messages like:
 - "Blood relatives cannot marry. Alice is Robert's grandchild."
 - "Blood relatives cannot have children together."
@@ -602,14 +667,14 @@ Both the Edit Person modal and Edit Relationship functionality now feature robus
 ### 6. Validation Rules Now Enforced in Edit Functionality
 - Edit Person:
   - ❌ Timeline violations between spouses (birth after spouse died, etc.)
-  - ⚠️ Blood relationship warnings for spouse relationships
-  - ❌ Parent-child age gap violations (12+ years required)
-  - ❌ Chronological impossibilities (death before birth, etc.)
-- Edit Relationship:
-  - ⚠️ Confirmation required for toggling spouse status of blood relatives
-  - ❌ Backend validation prevents inappropriate new relationships
-  - ✅ User education about blood relationship implications
-  - ✅ Explicit choice for potentially problematic actions
+  - Blood relationship warnings for spouse relationships
+  - Parent-child age gap violations (12+ years required)
+  - Chronological impossibilities (death before birth, etc.)
+Edit Relationship:
+  - Confirmation required for toggling spouse status of blood relatives
+  - Backend validation prevents inappropriate new relationships
+  - User education about blood relationship implications
+  - Explicit choice for potentially problematic actions
 
 The edit functionality now provides the same level of sophisticated validation as the add functionality, ensuring comprehensive protection against inappropriate family relationships while maintaining usability for legitimate edits and legacy data correction.
 

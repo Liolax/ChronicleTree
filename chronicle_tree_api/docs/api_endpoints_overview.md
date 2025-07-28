@@ -1,7 +1,8 @@
 
-# ChronicleTree API Endpoints
 
-This document provides a live, up-to-date overview of all available API endpoints, their purpose, and expected parameters. All endpoints are prefixed with `/api/v1` and match the current Rails API implementation.
+# ChronicleTree API Endpoints (Up-to-Date: July 2025)
+
+This document is a live, up-to-date overview of all available API endpoints, their purpose, and expected parameters. All endpoints are prefixed with `/api/v1` and match the current Rails API implementation. This version reflects all recent logic, including step-relationships, deceased spouse handling, and timeline validation.
 
 ---
 
@@ -63,12 +64,17 @@ Manages a single note per person. Each person can have at most one note.
 ---
 
 
+
 ## Relationships (`/api/v1/relationships`)
-Manages the connections between people (parent, spouse, sibling, etc.).
+Manages the connections between people (parent, spouse, sibling, step-relationships, etc.).
+
+**Notes:**
+- Step-relationships and deceased spouse logic are fully supported. Relationship creation and deletion will trigger timeline and validation updates as needed.
+- All relationship changes are reflected in the family tree and timeline endpoints.
 
 | Method     | Path                          | Controller#Action       | Purpose                               |
 | :--------- | :---------------------------- | :---------------------- | :------------------------------------ |
-| `POST`     | `/api/v1/relationships`       | `relationships#create`  | Create a relationship between two people. |
+| `POST`     | `/api/v1/relationships`       | `relationships#create`  | Create a relationship (parent, spouse, step, etc.) between two people. |
 | `DELETE`   | `/api/v1/relationships/:id`   | `relationships#destroy` | Delete a relationship.                |
 
 ---
@@ -87,8 +93,13 @@ Manages key facts (e.g., birth, death) for a person. Facts are attached to peopl
 ---
 
 
+
 ## Timeline Items (`/api/v1/people/:person_id/timeline_items` and `/api/v1/timeline_items/:id`)
-Manages chronological events for a person. Timeline items are attached to people and can be created, updated, or deleted.
+Manages chronological events for a person. Timeline items are attached to people and can be created, updated, or deleted. Timeline logic includes validation for event order, deceased status, and relationship-driven events.
+
+**Notes:**
+- Timeline validation ensures events are chronologically consistent (e.g., no events after death, step-relationship events are properly placed).
+- Timeline is automatically updated when relationships or facts (like death) are changed.
 
 | Method     | Path                                         | Controller#Action       | Purpose                               |
 | :--------- | :------------------------------------------- | :---------------------- | :------------------------------------ |
@@ -112,6 +123,9 @@ Manages file uploads (photos, documents) attached to a person. Media files are s
 ---
 
 
+
+---
+
 ## Conclusion
 
-This document is a live reference for all API endpoints in the ChronicleTree Rails API. All endpoints are implemented and up to date as of July 2025. For implementation details, see the [Project Roadmap](../../ROADMAP.md). For authentication specifics, see the [Devise & JWT Setup](./devise_setup.md).
+This document is a live reference for all API endpoints in the ChronicleTree Rails API. All endpoints, including those for step-relationships, deceased spouse, and timeline validation, are implemented and up to date as of July 2025. For implementation details, see the [Project Roadmap](../../ROADMAP.md). For authentication specifics, see the [Devise & JWT Setup](./devise_setup.md).
