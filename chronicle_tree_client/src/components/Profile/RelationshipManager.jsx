@@ -1511,8 +1511,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                         )}
                       </span>
                       <div className="flex gap-2">
-                        {/* Show delete button for direct relationships (not calculated step-parents/children) */}
-                        {(!rel.isStep || rel.isStepSibling) && (
+                        {/* Show delete button for all relationships */}
+                        {(
                           <button className="bg-white border border-gray-300 rounded-full p-1 shadow hover:bg-red-100 text-red-500 text-xs" onClick={(event) => { event.preventDefault(); event.stopPropagation(); handleDelete(rel.id); }} title="Delete Person">
                             <FaTrash />
                           </button>

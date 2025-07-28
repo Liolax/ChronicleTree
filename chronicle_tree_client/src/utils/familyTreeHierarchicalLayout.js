@@ -102,6 +102,9 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 
   // Phase 1: Create data structures for efficient relationship lookups
   const relationshipMaps = buildRelationshipMaps(relationships, persons);
+  
+  // Debug: Basic relationship mapping info
+  console.log('Relationship mapping: processing', relationships.length, 'relationships for', persons.length, 'people');
 
   // Phase 2: Determine tree root - either user-selected or automatically detected
   let rootNodes;
@@ -111,9 +114,11 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
     // Use the selected root person as the only root
     rootNodes = [String(rootPersonId)];
   } else {
-    // Full tree mode: Use age-based generational grouping for better organization
-    useAgeBasedGenerations = true;
+    // Full tree mode: Use relationship-based generations with multiple root nodes
+    // This provides better family hierarchy than age-based grouping
+    useAgeBasedGenerations = false;
     rootNodes = findRootNodes(persons, relationshipMaps.childToParents);
+    console.log('Full tree mode: Found root nodes:', rootNodes);
   }
 
   // Step 3: Calculate generations for each person
@@ -705,8 +710,35 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     }
   });
 
+  // DEBUG: Log basic generation info
+  console.log('Generation calculation completed. Root nodes:', rootNodes, 'BFS visited:', visited.size, '/', persons.length);
+  
+  const generationGroups = new Map();
+  generations.forEach((gen, personId) => {
+    if (!generationGroups.has(gen)) {
+      generationGroups.set(gen, []);
+    }
+    const person = persons.find(p => String(p.id) === personId);
+    generationGroups.get(gen).push({
+      id: personId,
+      name: person ? `${person.first_name} ${person.last_name}` : 'Unknown',
+      birth: person?.date_of_birth ? new Date(person.date_of_birth).getFullYear() : 'unknown'
+    });
+  });
+  
+  // Sort generations and display
+  const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
+  sortedGenerations.forEach(gen => {
+    console.log(`Generation ${gen}:`);
+    generationGroups.get(gen).forEach(person => {
+      console.log(`  - ${person.name} (${person.birth}) [ID: ${person.id}]`);
+    });
+  });
+  console.log('=== END DEBUG ===');
+
   // CRITICAL: Post-processing to ensure ALL spouses are at the same generation level
   // This fixes cases where BFS might have assigned spouses to different generations
+  // BUT we need to be careful not to break parent-child hierarchies
   if (spouseMap) {
     let changed = true;
     while (changed) {
@@ -717,11 +749,21 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
           const spouseGen = generations.get(spouseId);
           
           if (personGen !== spouseGen) {
-            // Use the minimum generation (higher in hierarchy) for both spouses
-            const minGen = Math.min(personGen, spouseGen);
-            generations.set(personId, minGen);
-            generations.set(spouseId, minGen);
-            changed = true;
+            // Check if aligning spouses would break parent-child relationships
+            const wouldBreakHierarchy = checkIfSpouseAlignmentBreaksHierarchy(
+              personId, spouseId, personGen, spouseGen, 
+              childToParents, parentToChildren, generations, persons
+            );
+            
+            if (!wouldBreakHierarchy) {
+              // Use the minimum generation (higher in hierarchy) for both spouses
+              const minGen = Math.min(personGen, spouseGen);
+              generations.set(personId, minGen);
+              generations.set(spouseId, minGen);
+              changed = true;
+            } else {
+              console.log(`Skipping spouse alignment for ${personId}-${spouseId} to preserve parent-child hierarchy`);
+            }
           }
         }
       });
@@ -906,7 +948,61 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     });
   }
 
+  console.log('LAYOUT GENERATION CALCULATION COMPLETED');
+
   return generations;
+};
+
+/**
+ * Check if aligning spouses to the same generation would break parent-child hierarchies
+ * @param {string} personId - First spouse ID
+ * @param {string} spouseId - Second spouse ID  
+ * @param {number} personGen - Person's current generation
+ * @param {number} spouseGen - Spouse's current generation
+ * @param {Map} childToParents - Child to parents mapping
+ * @param {Map} parentToChildren - Parent to children mapping
+ * @param {Map} generations - Current generation assignments
+ * @param {Array} persons - All persons data
+ * @returns {boolean} - True if alignment would break hierarchy
+ */
+const checkIfSpouseAlignmentBreaksHierarchy = (
+  personId, spouseId, personGen, spouseGen, 
+  childToParents, parentToChildren, generations, persons
+) => {
+  const minGen = Math.min(personGen, spouseGen);
+  
+  // Check if moving either person to minGen would violate parent-child rules
+  const checkPerson = (id, newGen) => {
+    // Check if person's parents would be at same or lower generation
+    const parents = childToParents.get(id) || new Set();
+    for (const parentId of parents) {
+      const parentGen = generations.get(parentId);
+      if (parentGen !== undefined && parentGen >= newGen) {
+        return true; // Would break hierarchy - parent at same/lower level than child
+      }
+    }
+    
+    // Check if person's children would be at same or higher generation
+    const children = parentToChildren.get(id) || new Set();
+    for (const childId of children) {
+      const childGen = generations.get(childId);
+      if (childGen !== undefined && childGen <= newGen) {
+        return true; // Would break hierarchy - child at same/higher level than parent
+      }
+    }
+    
+    return false;
+  };
+  
+  // Check both spouses
+  if (personGen !== minGen && checkPerson(personId, minGen)) {
+    return true;
+  }
+  if (spouseGen !== minGen && checkPerson(spouseId, minGen)) {
+    return true;
+  }
+  
+  return false;
 };
 
 /**
