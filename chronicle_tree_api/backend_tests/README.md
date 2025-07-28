@@ -28,6 +28,19 @@ Specialized tests for step-family relationships.
 ### `/validation_tests/`
 Tests for data validation logic.
 - Age validation
+- Deceased logic validation
+
+### `/debug_scripts/`
+Utility scripts for debugging and fixing data issues.
+- **fix_relationships.rb**: Script to fix bidirectional relationship issues
+- **fix_sibling_relationships.rb**: Script to correct sibling relationships
+- **fix_michael_step_relationship.rb**: Step-relationship debugging
+- Various other relationship debugging utilities
+
+## Test Files in Root Directory
+
+### `test_extended_family.rb`
+Test script for creating and testing extended family data across 4-5 generations. Used for comprehensive family tree testing.
 - Deceased status logic
 - Temporal validation
 - Edit validation
