@@ -151,6 +151,8 @@ const FamilyTree = () => {
   }, []);
 
   const handleDeletePerson = useCallback((person) => {
+    setSelectedPerson(null); // Close person card when delete modal opens
+    setPersonCardPosition(null);
     setDeleteTarget(person);
   }, []);
 
