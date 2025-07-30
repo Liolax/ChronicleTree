@@ -17,8 +17,6 @@ import { preventNodeOverlap } from './antiOverlapLayout.js';
  * @returns {Object} - { nodes, edges } for complete family tree
  */
 export function createFullTreeLayout(people, relationships, handlers, buildRelationshipMaps = null) {
-  console.log('Creating full tree layout for', people.length, 'people');
-  
   // Phase 1: Initialize relationship mapping system
   let relationshipMaps;
   if (buildRelationshipMaps) {
@@ -48,8 +46,6 @@ export function createFullTreeLayout(people, relationships, handlers, buildRelat
   
   // Step 8: Apply full tree spacing optimizations
   const finalNodes = applyFullTreeSpacing(antiOverlapNodes, edges, relationshipMaps);
-  
-  console.log('Full tree layout created:', finalNodes.length, 'nodes,', edges.length, 'edges');
   
   return { nodes: finalNodes, edges };
 }
@@ -90,8 +86,6 @@ function findNaturalTreeRoots(people, relationshipMaps) {
     if (a.birthYear !== b.birthYear) return a.birthYear - b.birthYear; // Older first
     return a.person.first_name.localeCompare(b.person.first_name);
   });
-  
-  console.log('Natural root candidates:', candidates.map(c => `${c.person.first_name} (score: ${c.score})`));
   
   // Return top candidates (limit to avoid too many separate trees)
   return candidates.slice(0, Math.min(5, candidates.length)).map(c => c.personId);

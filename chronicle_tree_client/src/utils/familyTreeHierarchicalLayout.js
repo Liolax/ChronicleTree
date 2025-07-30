@@ -393,11 +393,6 @@ const buildRelationshipMaps = (relationships, persons) => {
   
   
 
-  let totalParentRels = 0;
-  let skippedMissingPerson = 0;
-  let skippedInverted = 0;
-  let skippedMissingDates = 0;
-  let addedToMaps = 0;
 
   relationships.forEach(rel => {
     let source = String(rel.source || rel.from);
@@ -408,15 +403,12 @@ const buildRelationshipMaps = (relationships, persons) => {
 
     switch (relationshipType) {
       case 'parent':
-        totalParentRels++;
         // Validate relationship based on birth dates to prevent inverted hierarchies
         let sourcePerson = persons.find(p => String(p.id) === source);
         let targetPerson = persons.find(p => String(p.id) === target);
 
-
         // Skip relationships where one or both persons are not found
         if (!sourcePerson || !targetPerson) {
-          skippedMissingPerson++;
           return; // Skip to next relationship
         }
 
@@ -424,7 +416,6 @@ const buildRelationshipMaps = (relationships, persons) => {
         if (sourcePerson.date_of_birth && targetPerson.date_of_birth) {
           const sourceBirthYear = new Date(sourcePerson.date_of_birth).getFullYear();
           const targetBirthYear = new Date(targetPerson.date_of_birth).getFullYear();
-
 
           // Only swap if the relationship is not already child->parent (i.e., if the data is not already inverted)
           // If the relationship is already child->parent, do not swap
@@ -439,7 +430,6 @@ const buildRelationshipMaps = (relationships, persons) => {
               return rType === 'parent' && rSource === target && rTarget === source;
             });
             if (!targetIsParentOfSource) {
-              skippedInverted++;
               // Swap source and target to fix the inversion
               const tempSource = source;
               source = target;
@@ -450,13 +440,9 @@ const buildRelationshipMaps = (relationships, persons) => {
               targetPerson = tempSourcePerson;
             }
           }
-        } else {
-          skippedMissingDates++;
         }
 
         // Parent -> Child relationship (only if not inverted)
-
-        addedToMaps++;
         if (!parentToChildren.has(source)) {
           parentToChildren.set(source, new Set());
         }
@@ -615,22 +601,18 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     queue.push({ id: singleRoot, generation: 0 });
     
     const rootPerson = persons.find(p => String(p.id) === singleRoot);
-    console.log(`🎯 SINGLE ROOT MODE: Starting with ${rootPerson?.first_name} ${rootPerson?.last_name} (ID: ${singleRoot}) at generation 0`);
-    console.log(`Queue initialized with: [${singleRoot}]`);
     
     // Simple BFS traversal without family grouping complexity
     while (queue.length > 0) {
       const { id, generation } = queue.shift();
       
       if (visited.has(id)) {
-        console.log(`⚠️ SKIPPING ${id} - already visited`);
         continue;
       }
       visited.add(id);
       
       // Don't override if already assigned (prevent duplicate processing)
       if (generations.has(id)) {
-        console.log(`⚠️ ${id} already has generation ${generations.get(id)}, not overriding with ${generation}`);
         continue;
       }
       
@@ -638,14 +620,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       
       const currentPerson = persons.find(p => String(p.id) === id);
       
-      // Debug generation assignments to understand the relationship confusion
-      if (currentPerson) {
-        // Flag potential step-relationship issues
-        const isLisaRelated = currentPerson.first_name === 'Lisa' || 
-                             (currentPerson.last_name === 'Doe' && currentPerson.first_name !== 'Lisa');
-        const flag = isLisaRelated ? ' ⚠️ DOE FAMILY' : '';
-        console.log(`${currentPerson.first_name} ${currentPerson.last_name} (ID: ${id}) -> Generation ${generation}${flag}`);
-      }
       
       // Add spouses to same generation
       if (spouseMap && spouseMap.has(id)) {
@@ -670,8 +644,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         const children = parentToChildren.get(id);
         children.forEach(childId => {
           if (!visited.has(childId)) {
-            const child = persons.find(p => String(p.id) === childId);
-            console.log(`  Adding child ${child?.first_name} ${child?.last_name} at generation ${generation + 1} (from ${currentPerson?.first_name})`);
             queue.push({ id: childId, generation: generation + 1 });
           }
         });
@@ -680,7 +652,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       // Add parents to previous generation
       if (childToParents && childToParents.has(id)) {
         const parents = childToParents.get(id);
-        
         
         parents.forEach(parentId => {
           if (!visited.has(parentId)) {
@@ -693,9 +664,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
                                  currentPerson?.last_name === 'Doe';
             
             const parentGeneration = isSpouseParent ? generation - 2 : generation - 1;
-            const spouseFlag = isSpouseParent ? ' (spouse\'s parent)' : '';
             
-            console.log(`  Adding parent ${parent?.first_name} ${parent?.last_name} at generation ${parentGeneration} (from ${currentPerson?.first_name})${spouseFlag}`);
             queue.push({ id: parentId, generation: parentGeneration });
           }
         });
@@ -728,7 +697,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     const GENERATION_SPACING = 10; // Put some space between unrelated families
   
   familyGroups.forEach((familyGroup, index) => {
-    
     // Start this family tree at the current offset
     queue.push({ id: familyGroup.rootId, generation: generationOffset });
     
@@ -768,7 +736,6 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       // Children go one level down
       if (parentToChildren && parentToChildren.has(id)) {
         const children = parentToChildren.get(id);
-        
         
         children.forEach(childId => {
           if (!visited.has(childId) && familyGroup.members.includes(childId)) {
@@ -851,11 +818,9 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
               // Use the minimum generation (higher in hierarchy) for both spouses
               const minGen = Math.min(personGen, spouseGen);
               
-              
               generations.set(personId, minGen);
               generations.set(spouseId, minGen);
               changed = true;
-            } else {
             }
           }
         }
@@ -1169,8 +1134,6 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     }
 
     if (forceGrandparentGen !== null) {
-      if (id === '13' || id === '16') {
-      }
       generation = forceGrandparentGen;
     }
 

@@ -966,3 +966,31 @@ This section outlines the current and planned development for the ChronicleTree 
 - Gather user feedback for further UI/UX improvements.
 - Explore AI-powered features for relationship suggestions and data enrichment.
 - Expand documentation and onboarding guides for new users and contributors.
+
+## Issue Resolved: Lisa → Emily Step-Relationship Bug
+
+### Problem
+When Lisa (ID: 12) was set as root, Emily (ID: 6) showed as "Unrelated" instead of "Step-Granddaughter", while the relationship worked correctly when Emily was root.
+
+### Root Cause
+Timeline validation in `findStepRelationship` was overly broad and incorrectly blocking valid step-relationships. Specifically:
+- Thomas Anderson (ID: 11, deceased 2018-05-14) was blocking the Lisa → Emily relationship
+- Emily was born 2019-01-01 (after Thomas died)
+- The algorithm incorrectly considered Thomas a "connecting person" in the Lisa → Emily path
+- This blocked the valid step-relationship: Lisa → John → Alice → Emily
+
+### Solution
+Fixed timeline validation logic in `improvedRelationshipCalculator.js`:
+- Made timeline validation more specific to only block deceased people actually in the relationship path
+- For Lisa(12) → Emily(6), only John(1) should be able to block the relationship if deceased
+- Thomas Anderson(11) is not in the step-relationship path and should not block it
+
+### Result
+✅ Emily now correctly shows as Lisa's "Step-Granddaughter" when Lisa is root
+✅ Relationship works bidirectionally as expected
+✅ Timeline validation still works but is no longer overly restrictive
+
+### Files Modified
+- `chronicle_tree_client/src/utils/improvedRelationshipCalculator.js`
+- Debug logs removed from both calculator and frontend
+- Test files moved to `tests/` directory

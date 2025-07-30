@@ -119,7 +119,44 @@ All endpoints are prefixed with `/api/v1`. See `chronicle_tree_api/docs/api_endp
 - `POST   /api/v1/people/:person_id/media` — Upload media
 - `DELETE /api/v1/media/:id` — Delete media
 
----
+## Validation Rules
+
+ChronicleTree enforces strict validation rules to ensure realistic and legal family relationships:
+
+### Marriage
+- Minimum marriage age: **16 years** for both people
+- Birth dates required for marriage validation
+- Blood relatives cannot marry (parent/child, grandparent/grandchild, siblings, uncle/aunt-nephew/niece, first cousins)
+- Cannot marry if already has a current spouse (unless divorced or widowed)
+- Deceased people cannot be added as new spouses
+
+### Parent-Child
+- Parent must be at least **12 years older** than child
+- No more than **2 parents** per person
+- Blood relatives cannot be added as parents or children
+- Deceased parent cannot have children born after their death
+
+### Siblings
+- Siblings must share at least one biological parent or have parents married to each other (step-siblings)
+- Siblings must be in the same generation (no ancestor/descendant as sibling)
+- Maximum **25-year age gap** between siblings
+- Timeline validation: siblings cannot exist if one died before the other was born
+
+### Step-Relationships
+- Step-relationships (step-parent, step-grandparent, step-sibling, etc.) only created through direct marriage
+- Timeline validation: step-relationships blocked if connecting spouse/parent died before the target person was born
+- Ex-spouses do not create step-relationships
+
+### Media
+- Supported file types: JPG, PNG, GIF
+- Maximum file size: **2MB**
+
+### General
+- All birth and death dates must be in chronological order
+- All relationships must respect biological reality and legal constraints
+- Clear, user-friendly validation alerts are shown for all errors
+
+See the application for specific error messages and validation feedback.
 
 ## Authentication Flow
 

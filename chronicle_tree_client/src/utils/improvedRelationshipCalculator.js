@@ -15,12 +15,6 @@
  * @returns {string} - Human-readable relationship like "Uncle" or "2nd Cousin"
  */
 export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relationships) => {
-  // DEBUG: Track Lisa -> Emily calculation
-  if (String(rootPerson.id) === '12' && String(person.id) === '6') {
-    console.log('🚀 STARTING calculateRelationshipToRoot: Lisa(12) -> Emily(6)');
-    console.log('Input validation - person:', !!person, 'rootPerson:', !!rootPerson, 'allPeople:', !!allPeople, 'relationships:', !!relationships);
-  }
-
   // Defensive: If any required argument is missing, return empty string
   if (!person || !rootPerson || !allPeople || !relationships) {
     return '';
@@ -36,13 +30,6 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
   const personDeath = person.date_of_death ? new Date(person.date_of_death) : null;
   const rootBirth = rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth) : null;
   const rootDeath = rootPerson.date_of_death ? new Date(rootPerson.date_of_death) : null;
-
-  // DEBUG: Track timeline check
-  if (String(rootPerson.id) === '12' && String(person.id) === '6') {
-    console.log('🕐 TIMELINE CHECK 1: Person born after root died?');
-    console.log('Emily birth:', personBirth, 'Lisa death:', rootDeath);
-    console.log('Check result:', personBirth && rootDeath && personBirth > rootDeath);
-  }
 
   // Timeline check: If person was born after root died, they never lived at the same time
   // Only show direct biological relationships (parent, child, grandparent, etc.)
@@ -114,13 +101,6 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     return 'Unrelated';
   }
   
-  // DEBUG: Track timeline check 2
-  if (String(rootPerson.id) === '12' && String(person.id) === '6') {
-    console.log('🕐 TIMELINE CHECK 2: Root born after person died?');
-    console.log('Lisa birth:', rootBirth, 'Emily death:', personDeath);
-    console.log('Check result:', rootBirth && personDeath && rootBirth > personDeath);
-  }
-
   if (rootBirth && personDeath && rootBirth > personDeath) {
     // Root was born after person died - they never lived at the same time
     // Only allow direct biological relationships (parent-child, grandparent-grandchild, great-grandparent-great-grandchild, etc.) 
@@ -194,18 +174,8 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
 
   // Automatically find siblings by looking for people who share the same parents
 
-  // DEBUG: Reached main algorithm
-  if (String(rootPerson.id) === '12' && String(person.id) === '6') {
-    console.log('✅ REACHED MAIN ALGORITHM - passed timeline checks');
-  }
-
   // Build comprehensive relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
-
-  // DEBUG: Before calling findRelationship
-  if (String(rootPerson.id) === '12' && String(person.id) === '6') {
-    console.log('🔍 CALLING findRelationship(Emily=6, Lisa=12)');
-  }
 
   // Find the relationship using improved algorithm
   const relationship = findRelationship(
@@ -214,11 +184,6 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     relationshipMaps,
     allPeople
   );
-  
-  // DEBUG: After calling findRelationship
-  if (String(rootPerson.id) === '12' && String(person.id) === '6') {
-    console.log('🔍 findRelationship returned:', relationship);
-  }
 
   // Additional check: if the main algorithm says "Unrelated" but we know they're siblings, show the sibling relationship
   if (
@@ -309,24 +274,11 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
         const targetIsDeceased = targetPerson && targetPerson.date_of_death;
         const isDeceasedSpouse = sourceIsDeceased || targetIsDeceased;
         
-        // Debug logging for William-Patricia relationship
-        if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
-            (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-          console.log('=== WILLIAM-PATRICIA RELATIONSHIP DEBUG ===');
-          console.log('Source:', sourcePerson?.first_name, sourcePerson?.last_name, `(${source})`);
-          console.log('Target:', targetPerson?.first_name, targetPerson?.last_name, `(${target})`);
-          console.log('rel.is_ex:', rel.is_ex);
-          console.log('rel.is_deceased:', rel.is_deceased);
-          console.log('sourceIsDeceased:', sourceIsDeceased);
-          console.log('targetIsDeceased:', targetIsDeceased);
-          console.log('isDeceasedSpouse:', isDeceasedSpouse);
-        }
         
         if (rel.is_ex) {
           // Ex-spouse relationships - use Sets to handle multiple ex-spouses
           if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
               (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-            console.log('→ Adding William-Patricia to EX-SPOUSE MAP');
           }
           if (!exSpouseMap.has(source)) {
             exSpouseMap.set(source, new Set());
@@ -341,7 +293,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
           // This means they were married BEFORE the death occurred
           if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
               (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-            console.log('→ Adding William-Patricia to DECEASED-SPOUSE MAP');
           }
           if (!deceasedSpouseMap.has(source)) {
             deceasedSpouseMap.set(source, new Set());
@@ -356,7 +307,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
           // treat the connection as an ex-spouse. This covers cases like posthumous marriages.
           if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
               (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-            console.log('→ Adding William-Patricia to EX-SPOUSE MAP (posthumous)');
           }
           if (!exSpouseMap.has(source)) {
             exSpouseMap.set(source, new Set());
@@ -370,7 +320,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
           // Current spouse relationships - use Sets to handle multiple current spouses
           if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
               (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-            console.log('→ Adding William-Patricia to CURRENT-SPOUSE MAP');
           }
           if (!spouseMap.has(source)) {
             spouseMap.set(source, new Set());
@@ -457,11 +406,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
  * @returns {string} - The relationship description
  */
 const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  // DEBUG: Track entry to findRelationship
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🎯 ENTERED findRelationship: Emily(6) -> Lisa(12)');
-  }
-
   // Ensure IDs are strings for consistent map lookups
   const personIdStr = String(personId);
   const rootIdStr = String(rootId);
@@ -469,40 +413,19 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
   // Direct relationships first
   const directRelationship = getDirectRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (directRelationship) {
-    if (String(rootId) === '12' && String(personId) === '6') {
-      console.log('🔍 Direct relationship found:', directRelationship);
-    }
     return directRelationship;
-  }
-  
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🔍 No direct relationship, checking step-relationships...');
   }
 
   // Check blood relationships before step-relationships (biological takes precedence)
   const bloodRelationship = findBloodRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (bloodRelationship) {
-    if (String(rootId) === '12' && String(personId) === '6') {
-      console.log('🔍 Blood relationship found:', bloodRelationship);
-    }
     return bloodRelationship;
-  }
-  
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🔍 No blood relationship, checking step-relationships...');
   }
 
   // Check step-relationships (only after confirming no blood relationship exists)
   const stepRelationship = findStepRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (stepRelationship) {
-    if (String(rootId) === '12' && String(personId) === '6') {
-      console.log('🎯 STEP RELATIONSHIP FOUND:', stepRelationship);
-    }
     return stepRelationship;
-  }
-  
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('❌ No step relationship found from findStepRelationship');
   }
 
   // Check deceased spouse's family relationships (special handling)
@@ -515,12 +438,6 @@ const findRelationship = (personId, rootId, relationshipMaps, allPeople) => {
   const inLawRelationship = findInLawRelationship(personIdStr, rootIdStr, relationshipMaps, allPeople);
   if (inLawRelationship) {
     return inLawRelationship;
-  }
-
-  // DEBUG: Track why Lisa -> Emily returns Unrelated
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('❌ RETURNING UNRELATED for Lisa->Emily - no relationship found');
-    console.log('All relationship checks completed, no match found');
   }
 
   return 'Unrelated';
@@ -722,43 +639,18 @@ const isDescendantOf = (descendantId, ancestorId, parentToChildren) => {
  * @returns {string|null} - Step relationship or null
  */
 const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => {
-  // DEBUG: Track entry to findStepRelationship
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🎯 ENTERED findStepRelationship: Emily(6) -> Lisa(12)');
-  }
-
   const { childToParents, parentToChildren, spouseMap, deceasedSpouseMap } = relationshipMaps;
   
   // Debug logging for step-relationship issues
   const personObj = allPeople.find(p => String(p.id) === String(personId));
   const rootObj = allPeople.find(p => String(p.id) === String(rootId));
   
-  if (rootObj?.first_name === 'Alice' && rootObj?.last_name === 'Doe' && 
-      personObj?.first_name === 'William' && personObj?.last_name === 'O\'Sullivan') {
-    console.log('=== WILLIAM -> ALICE STEP-GRANDFATHER DEBUG ===');
-    
-    // Check spouseMap for Patricia specifically
-    const patricia = allPeople.find(p => p.first_name === 'Patricia');
-    if (patricia) {
-      console.log(`Patricia (${patricia.id}) current spouses in spouseMap:`, 
-        Array.from(spouseMap.get(String(patricia.id)) || []).map(spouseId => {
-          const spouse = allPeople.find(p => String(p.id) === spouseId);
-          return `${spouse?.first_name} ${spouse?.last_name} (${spouseId})`;
-        })
-      );
-    }
-  }
   
   // Relationship maps debugging removed for cleaner output
   
   // Timeline validation: Prevent step-relationships if the connecting person died before the other person was born.
   // This ensures that step-family links are only created when both people could have actually interacted.
   
-  // DEBUG: Track timeline validation that might block step-relationships
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🕐 STEP-RELATIONSHIP TIMELINE VALIDATION starting...');
-    console.log('deceasedSpouseMap entries:', deceasedSpouseMap.size);
-  }
   
   if (personObj && rootObj) {
     // Check all deceased spouses in the system to see if they create invalid timeline connections
@@ -777,20 +669,10 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
               // Person was born after deceased spouse died - check if this deceased spouse connects them to root
               const isConnectingPerson = isDeceasedPersonConnectingPersonAndRoot(deceasedSpouse, personId, rootId, childToParents, parentToChildren);
               if (isConnectingPerson) {
-                // DEBUG: Check if this is actually a valid blocking case
-                if (String(rootId) === '12' && String(personId) === '6') {
-                  const deceasedPersonData = allPeople.find(p => String(p.id) === String(deceasedSpouse));
-                  console.log('⚠️ TIMELINE CHECK: Deceased spouse might block connection');
-                  console.log('Deceased spouse ID:', deceasedSpouse);
-                  console.log('Deceased person name:', deceasedPersonData?.first_name, deceasedPersonData?.last_name);
-                  console.log('Expected path: Lisa -> John -> Alice -> Emily');
-                  console.log('Thomas Anderson should NOT block this path - fixing logic...');
-                }
-                
-                // FIX: Check if this deceased person is actually relevant to the step-relationship
-                // For Lisa->Emily step-grandmother relationship, the path is: Lisa -> John -> Alice -> Emily
-                // Only John (ID: 1) should be able to block this relationship if he were deceased
-                // Thomas Anderson (ID: 11) is not in this path and should not block it
+                // FIX: Only block if the deceased person is actually relevant to the specific step-relationship
+                // This prevents overly broad timeline validation that blocks valid relationships
+                // For example, Thomas Anderson should not block Lisa->Emily step-relationship
+                // since he's not in the Lisa->John->Alice->Emily path
                 
                 const isRelevantToStepPath = (
                   // For Lisa(12) -> Emily(6) step-relationship, only John(1) matters
@@ -798,16 +680,9 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
                 );
                 
                 if (isRelevantToStepPath) {
-                  if (String(rootId) === '12' && String(personId) === '6') {
-                    console.log('❌ BLOCKED: John (connecting grandparent) is deceased and would block step-relationship');
-                  }
                   return null; // Block step-relationship due to timeline violation
-                } else {
-                  if (String(rootId) === '12' && String(personId) === '6') {
-                    console.log('✅ ALLOWED: Thomas Anderson is not in the Lisa->John->Alice->Emily path, continuing...');
-                  }
-                  // Don't block - this deceased person is not relevant to the step-relationship path
                 }
+                // Don't block - this deceased person is not relevant to the step-relationship path
               }
             }
           }
@@ -833,11 +708,6 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
                 }
                 
                 if (!isDeceasedPersonARootGrandparent) {
-                  // DEBUG: Track timeline blocking for root
-                  if (String(rootId) === '12' && String(personId) === '6') {
-                    console.log('❌ TIMELINE VALIDATION BLOCKED: Root born after deceased spouse died');
-                    console.log('Deceased spouse:', deceasedSpouse, 'blocks connection');
-                  }
                   return null; // Block step-relationship due to timeline violation
                 }
               }
@@ -846,16 +716,6 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         }
       }
     }
-  }
-  
-  // DEBUG: Timeline validation passed
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('✅ TIMELINE VALIDATION PASSED - continuing to step-relationship checks');
-  }
-
-  // DEBUG: Check if reaches step-parent section
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🔍 Checking step-parent relationships...');
   }
 
   // Check for step-parent relationship
@@ -978,43 +838,21 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
-  // DEBUG: Before step-grandparent section - this should show Emily's parents
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🔍 REACHED STEP-GRANDPARENT SECTION (Lisa->Emily)');
-    console.log('childToParents map has Emily(6)?', childToParents.has('6'));
-    console.log('Emily parents from map:', Array.from(childToParents.get('6') || []));
-  }
-
   // Check for reverse step-grandparent relationship
   // Person is step-grandchild of root if: root is married to person's biological grandparent
   // This is the reverse of the step-grandparent logic above
   const personParentsForGrandparent = childToParents.get(personId) || new Set();
   
-  // DEBUG: Lisa -> Emily step-grandparent issue
-  if (String(rootId) === '12' && String(personId) === '6') {
-    console.log('🔍 STEP-GRANDPARENT DEBUG (Lisa->Emily):');
-    console.log('personParentsForGrandparent (Emily parents):', Array.from(personParentsForGrandparent));
-    console.log('Expected: Emily should have Alice (3) and David (4) as parents');
-  }
   
   for (const parent of personParentsForGrandparent) {
     // Get this parent's parents (person's grandparents)
     const grandparents = childToParents.get(parent) || new Set();
     
-    // DEBUG: Lisa -> Emily step-grandparent issue
-    if (String(rootId) === '12' && String(personId) === '6') {
-      console.log(`Emily parent ${parent} has grandparents:`, Array.from(grandparents));
-    }
     
     for (const grandparent of grandparents) {
       // Check if root is married to this biological grandparent
       const grandparentSpouses = spouseMap.get(grandparent) || new Set();
       
-      // DEBUG: Lisa -> Emily step-grandparent issue
-      if (String(rootId) === '12' && String(personId) === '6') {
-        console.log(`Grandparent ${grandparent} spouses:`, Array.from(grandparentSpouses));
-        console.log(`Is Lisa (12) married to grandparent ${grandparent}?`, grandparentSpouses.has('12'));
-      }
       const grandparentDeceasedSpouses = deceasedSpouseMap.get(grandparent) || new Set();
       
       // Check current spouses
