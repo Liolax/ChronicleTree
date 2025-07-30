@@ -648,13 +648,13 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       if (!person.date_of_birth) {
         return { 
           valid: false, 
-          reason: `${person.first_name} ${person.last_name} must have a birth date to validate sibling relationship` 
+          reason: `Birth date needed: ${person.first_name} ${person.last_name} needs a birth date to verify sibling relationships. Please update their profile first.` 
         };
       }
       if (!candidate.date_of_birth) {
         return { 
           valid: false, 
-          reason: `${candidate.first_name} ${candidate.last_name} must have a birth date to validate sibling relationship` 
+          reason: `Birth date needed: ${candidate.first_name} ${candidate.last_name} needs a birth date to verify sibling relationships. Please update their profile first.` 
         };
       }
       
@@ -665,9 +665,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       
       // Siblings should not have more than 25-year age gap (very conservative)
       if (ageGapYears > 25) {
+        const olderPerson = personBirth < candidateBirth ? person : candidate;
+        const youngerPerson = personBirth < candidateBirth ? candidate : person;
+        
         return { 
           valid: false, 
-          reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+          reason: `Large age gap detected: ${olderPerson.first_name} ${olderPerson.last_name} and ${youngerPerson.first_name} ${youngerPerson.last_name} are ${ageGapYears.toFixed(1)} years apart. This is unusually large for siblings who share parents. Consider parent-child relationship or verify birth dates.` 
         };
       }
       
@@ -772,21 +775,24 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       if (!person.date_of_birth) {
         return { 
           valid: false, 
-          reason: `${person.first_name} ${person.last_name} must have a birth date to validate sibling relationship` 
+          reason: `Birth date required: ${person.first_name} ${person.last_name} needs a birth date to validate sibling relationships. Please update their profile.` 
         };
       }
       if (!candidate.date_of_birth) {
         return { 
           valid: false, 
-          reason: `${candidate.first_name} ${candidate.last_name} must have a birth date to validate sibling relationship` 
+          reason: `Birth date required: ${candidate.first_name} ${candidate.last_name} needs a birth date to validate sibling relationships. Please update their profile.` 
         };
       }
       
       // Age gap was already calculated earlier in this scope, just reuse it 
       if (ageGapYears > 25) {
+        const olderPerson = personBirth < candidateBirth ? person : candidate;
+        const youngerPerson = personBirth < candidateBirth ? candidate : person;
+        
         return { 
           valid: false, 
-          reason: `Age gap too large (${ageGapYears.toFixed(1)} years) for sibling relationship` 
+          reason: `Unusual age difference: ${olderPerson.first_name} and ${youngerPerson.first_name} are ${ageGapYears.toFixed(1)} years apart. This is too large for typical siblings. Consider if they might be parent-child or check birth dates.` 
         };
       }
     }

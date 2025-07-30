@@ -24,7 +24,7 @@ import CustomNode from './CustomNode';
 import { useFullTree, useDeletePerson } from '../../services/people';
 import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
-import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
+import { getAllRelationshipsToRoot, calculateRelationshipToRoot } from '../../utils/improvedRelationshipCalculator';
 import { ShareModal } from '../Share';
 // import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
@@ -81,11 +81,62 @@ const FamilyTree = () => {
       : null;
     
     
+    // Convert edges to relationship format that the algorithm expects
+    const relationshipsFormat = filteredEdges.map(edge => ({
+      person_id: edge.source,
+      relative_id: edge.target,
+      relationship_type: edge.relationship_type,
+      is_ex: edge.is_ex || false,
+      is_deceased: edge.is_deceased || false
+    }));
+    
     const peopleWithRelations = getAllRelationshipsToRoot(
       rootPerson,
       filteredNodes,
-      filteredEdges
+      relationshipsFormat  // Use converted format instead of edges
     );
+    
+    // DETAILED TEST: Deep debug why algorithm returns "Unrelated"
+    if (rootPerson && rootPerson.id === 12) { // Lisa is root
+      const emily = filteredNodes.find(n => n.id === 6);
+      if (emily) {
+        console.log('🎯 DEEP DEBUG - WHY UNRELATED?');
+        
+        // Check the relationship path Lisa -> John -> Alice -> Emily
+        console.log('Expected relationship path:');
+        console.log('Lisa (12) -> John (1) -> Alice (3) -> Emily (6)');
+        
+        // Check if key relationships exist
+        const lisaToJohn = relationshipsFormat.find(r => r.person_id === 12 && r.relative_id === 1);
+        const johnToAlice = relationshipsFormat.find(r => r.person_id === 1 && r.relative_id === 3);
+        const aliceToEmily = relationshipsFormat.find(r => r.person_id === 3 && r.relative_id === 6);
+        
+        console.log('Lisa -> John relationship:', lisaToJohn);
+        console.log('John -> Alice relationship:', johnToAlice);
+        console.log('Alice -> Emily relationship:', aliceToEmily);
+        
+        // Check reverse relationships  
+        const johnToLisa = relationshipsFormat.find(r => r.person_id === 1 && r.relative_id === 12);
+        const aliceToJohn = relationshipsFormat.find(r => r.person_id === 3 && r.relative_id === 1);
+        const emilyToAlice = relationshipsFormat.find(r => r.person_id === 6 && r.relative_id === 3);
+        
+        console.log('John -> Lisa relationship:', johnToLisa);
+        console.log('Alice -> John relationship:', aliceToJohn);
+        console.log('Emily -> Alice relationship:', emilyToAlice);
+        
+        // Check if Alice and David are ex-spouses
+        const aliceToDavid = relationshipsFormat.find(r => r.person_id === 3 && r.relative_id === 4);
+        const davidToAlice = relationshipsFormat.find(r => r.person_id === 4 && r.relative_id === 3);
+        console.log('Alice -> David relationship:', aliceToDavid);
+        console.log('David -> Alice relationship:', davidToAlice);
+        
+        // Test if the issue is with ID types
+        console.log('ID type check:');
+        console.log('Lisa ID:', rootPerson.id, typeof rootPerson.id);
+        console.log('Emily ID:', emily.id, typeof emily.id);
+        console.log('Sample relationship person_id:', relationshipsFormat[0].person_id, typeof relationshipsFormat[0].person_id);
+      }
+    }
     
 
     // Hide distant/unrelated people if user turned off that setting

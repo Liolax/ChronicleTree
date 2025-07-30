@@ -387,13 +387,13 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       if (!person1.date_of_birth) {
         return { 
           valid: false, 
-          reason: `${person1.first_name} ${person1.last_name} must have a birth date to validate sibling relationship` 
+          reason: `Missing birth date: ${person1.first_name} ${person1.last_name} needs a birth date to verify sibling relationships. Please add their birth date first.` 
         };
       }
       if (!person2.date_of_birth) {
         return { 
           valid: false, 
-          reason: `${person2.first_name} ${person2.last_name} must have a birth date to validate sibling relationship` 
+          reason: `Missing birth date: ${person2.first_name} ${person2.last_name} needs a birth date to verify sibling relationships. Please add their birth date first.` 
         };
       }
       
@@ -404,9 +404,12 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       
       // Siblings typically don't have more than a 25-year age gap
       if (ageGapYears > 25) {
+        const olderPerson = person1Birth < person2Birth ? person1 : person2;
+        const youngerPerson = person1Birth < person2Birth ? person2 : person1;
+        
         return { 
           valid: false, 
-          reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+          reason: `Unlikely sibling relationship: ${olderPerson.first_name} ${olderPerson.last_name} and ${youngerPerson.first_name} ${youngerPerson.last_name} have a ${ageGapYears.toFixed(1)}-year age gap. Siblings typically don't have more than 25 years between them. Consider parent-child relationship instead, or verify the birth dates are correct.` 
         };
       }
       

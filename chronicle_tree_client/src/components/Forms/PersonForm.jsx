@@ -57,13 +57,13 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
       const selectedPerson = filteredPeople.find(p => String(p.id) === String(data.relatedPersonId));
       
       if (!data.date_of_birth) {
-        alert('Birth date is required to validate sibling relationship');
+        alert('⚠️ Missing Information\n\nPlease enter a birth date for the new person. Birth dates are required to verify that sibling relationships are realistic.');
         setIsSubmitting(false);
         return;
       }
       
       if (!selectedPerson?.date_of_birth) {
-        alert(`${selectedPerson?.first_name} ${selectedPerson?.last_name} must have a birth date to validate sibling relationship`);
+        alert(`⚠️ Missing Information\n\n${selectedPerson?.first_name} ${selectedPerson?.last_name} doesn't have a birth date in the system.\n\nBirth dates are required for both people to verify sibling relationships. Please add a birth date for ${selectedPerson?.first_name} first, then try again.`);
         setIsSubmitting(false);
         return;
       }
@@ -73,7 +73,10 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
       const ageGapYears = Math.abs((newPersonBirth.getTime() - selectedPersonBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
       
       if (ageGapYears > 25) {
-        alert(`Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents. Maximum age gap for siblings is 25 years.`);
+        const olderPerson = newPersonBirth < selectedPersonBirth ? data.firstName : selectedPerson.first_name;
+        const youngerPerson = newPersonBirth < selectedPersonBirth ? selectedPerson.first_name : data.firstName;
+        
+        alert(`🚫 Unlikely Sibling Relationship\n\nThe age difference between ${olderPerson} and ${youngerPerson} is ${ageGapYears.toFixed(1)} years.\n\nSiblings typically don't have more than a 25-year age gap, as this would be unusual for children of the same parents.\n\nPossible alternatives:\n• Consider if they might be parent-child instead\n• Check if the birth dates are correct\n• Consider if they might be step-siblings through remarriage`);
         setIsSubmitting(false);
         return;
       }
@@ -309,19 +312,26 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                           else if (currentRelationType === 'sibling') {
                             if (!currentBirthDate) {
                               alertType = 'missingData';
-                              alertDetails = { message: 'Birth date is required to validate sibling relationship' };
+                              alertDetails = { 
+                                message: 'Please enter a birth date for the new person. Birth dates help us verify that family relationships are realistic.' 
+                              };
                             } else if (!selectedPerson.date_of_birth) {
                               alertType = 'missingData';
-                              alertDetails = { message: `${selectedPerson.first_name} ${selectedPerson.last_name} must have a birth date to validate sibling relationship` };
+                              alertDetails = { 
+                                message: `${selectedPerson.first_name} ${selectedPerson.last_name} needs a birth date to verify sibling relationships. Please add their birth date first.` 
+                              };
                             } else {
                               const newPersonBirth = new Date(currentBirthDate);
                               const selectedPersonBirth = new Date(selectedPerson.date_of_birth);
                               const ageGapYears = Math.abs((newPersonBirth.getTime() - selectedPersonBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
                               
                               if (ageGapYears > 25) {
+                                const olderPerson = newPersonBirth < selectedPersonBirth ? 'the new person' : selectedPerson.first_name;
+                                const youngerPerson = newPersonBirth < selectedPersonBirth ? selectedPerson.first_name : 'the new person';
+                                
                                 alertType = 'invalidRelationship';
                                 alertDetails = { 
-                                  message: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents. Maximum age gap for siblings is 25 years.` 
+                                  message: `⚠️ Large Age Gap Detected\n\n${olderPerson} and ${youngerPerson} have a ${ageGapYears.toFixed(1)}-year age difference.\n\nThis is unusual for siblings who typically share the same parents. Consider:\n• Parent-child relationship instead\n• Double-check the birth dates\n• Step-sibling through remarriage`
                                 };
                               }
                             }
