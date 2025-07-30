@@ -37,7 +37,8 @@
       "Bash(ruby test:*)",
       "Bash(ruby:*)",
       "Bash(cp:*)",
-      "Bash(npx vitest run:*)"
+      "Bash(npx vitest run:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }
