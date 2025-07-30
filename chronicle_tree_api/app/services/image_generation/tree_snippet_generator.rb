@@ -88,9 +88,9 @@ module ImageGeneration
       
       # Apply scaling to positioning with better centering
       center_x = CANVAS_WIDTH / 2
-      # Account for header (80px) and footer (70px), center in remaining space
-      available_height = CANVAS_HEIGHT - 80 - 70  # 630 - 80 - 70 = 480px available
-      center_y = 80 + (available_height / 2)  # 80 + 240 = 320px center
+      # Account for header (80px) and footer (70px), with small safety margins
+      available_height = CANVAS_HEIGHT - 80 - 70 - 40  # 630 - 80 - 70 - 40 = 440px available
+      center_y = 80 + 20 + (available_height / 2)  # 80 + 20 + 220 = 320px center
       
       @tree_data.each do |generation_offset, people|
         next if people.empty?
@@ -1249,7 +1249,9 @@ module ImageGeneration
       
       # Add immediate biological family members
       connected_people += @root_person.parents.to_a
-      connected_people += @root_person.current_spouses.to_a  
+      connected_people += @root_person.current_spouses.to_a
+      connected_people += @root_person.ex_spouses.to_a  
+      connected_people += @root_person.deceased_spouses.to_a
       connected_people += @root_person.children.to_a
       connected_people += @root_person.siblings.to_a
       
@@ -1352,10 +1354,12 @@ module ImageGeneration
     def find_people_in_generation(generation_offset, connected_people)
       case generation_offset
       when 0
-        # Include root person and their spouses
+        # Include root person and all their spouses (current, ex, and deceased)
         root_gen = [@root_person]
-        spouses = @root_person.current_spouses.select { |s| connected_people.include?(s) }
-        root_gen += spouses
+        current_spouses = @root_person.current_spouses.select { |s| connected_people.include?(s) }
+        ex_spouses = @root_person.ex_spouses.select { |s| connected_people.include?(s) }
+        deceased_spouses = @root_person.deceased_spouses.select { |s| connected_people.include?(s) }
+        root_gen += current_spouses + ex_spouses + deceased_spouses
         root_gen.uniq
       when -1
         parents = @root_person.parents.select { |p| connected_people.include?(p) }
@@ -1732,17 +1736,21 @@ module ImageGeneration
     
     def calculate_generation_spacing
       # Dynamic spacing based on number of generations to prevent overlap
-      case @tree_data.keys.length
+      generations_count = @tree_data.keys.length
+      case generations_count
       when 1, 2
-        140  # Standard spacing for small trees
+        120  # Standard spacing for small trees
       when 3
-        130  # Slightly reduced for 3 generations
+        100  # Slightly reduced for 3 generations
       when 4
-        100  # More compact for 4 generations
+        85   # More compact for 4 generations
       when 5
-        80   # Very compact for 5 generations
+        70   # Very compact for 5 generations
       else
-        70   # Minimal spacing for very large trees
+        # For 6+ generations, calculate to fit available space
+        available_height = CANVAS_HEIGHT - 80 - 70 - 40  # Account for header, footer, margins
+        spacing = available_height / generations_count
+        [spacing, 55].max.to_i  # Minimum 55px spacing
       end
     end
     

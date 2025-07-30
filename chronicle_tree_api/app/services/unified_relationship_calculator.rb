@@ -218,10 +218,16 @@ class UnifiedRelationshipCalculator
     # as the frontend improvedRelationshipCalculator.js
     # For now, return a basic implementation that can be expanded
     
-    # Check direct relationships first
+    # Check direct relationships first - prioritize person1 as source
     direct_rel = @relationships_data.find do |rel|
-      (rel[:source] == person1.id && rel[:target] == person2.id) ||
-      (rel[:source] == person2.id && rel[:target] == person1.id)
+      rel[:source] == person1.id && rel[:target] == person2.id
+    end
+    
+    # If no relationship with person1 as source, check reverse direction  
+    unless direct_rel
+      direct_rel = @relationships_data.find do |rel|
+        rel[:source] == person2.id && rel[:target] == person1.id
+      end
     end
     
     if direct_rel
@@ -246,18 +252,27 @@ class UnifiedRelationshipCalculator
       end
     when 'child'
       if relationship[:source] == person1.id
-        person2.gender&.downcase == 'male' ? 'Son' : 'Daughter'
+        # person1 has child person2, so person2 is the child
+        return 'Child' unless person2.gender.present?
+        person2.gender.downcase == 'male' ? 'Son' : 'Daughter'
       else
-        person1.gender&.downcase == 'male' ? 'Father' : 'Mother'
+        # person2 has child person1, so person1 is the child
+        return 'Child' unless person1.gender.present?
+        person1.gender.downcase == 'male' ? 'Son' : 'Daughter'
       end
     when 'parent'
       if relationship[:source] == person1.id
-        person2.gender&.downcase == 'male' ? 'Father' : 'Mother'
+        # person1 has parent person2, so person2 is the parent
+        return 'Parent' unless person2.gender.present?
+        person2.gender.downcase == 'male' ? 'Father' : 'Mother'
       else
-        person1.gender&.downcase == 'male' ? 'Son' : 'Daughter'
+        # person2 has parent person1, so person1 is the parent
+        return 'Parent' unless person1.gender.present?
+        person1.gender.downcase == 'male' ? 'Father' : 'Mother'
       end
     when 'sibling'
-      person2.gender&.downcase == 'male' ? 'Brother' : 'Sister'
+      return 'Sibling' unless person2.gender.present?
+      person2.gender.downcase == 'male' ? 'Brother' : 'Sister'
     else
       relationship[:relationship_type].humanize
     end
