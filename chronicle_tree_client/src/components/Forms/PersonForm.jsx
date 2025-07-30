@@ -51,6 +51,34 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
 
   const handleFormSubmit = async (data) => {
     setIsSubmitting(true);
+    
+    // Validate sibling relationships before submission
+    if (data.relationType === 'sibling' && data.relatedPersonId) {
+      const selectedPerson = filteredPeople.find(p => String(p.id) === String(data.relatedPersonId));
+      
+      if (!data.date_of_birth) {
+        alert('Birth date is required to validate sibling relationship');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (!selectedPerson?.date_of_birth) {
+        alert(`${selectedPerson?.first_name} ${selectedPerson?.last_name} must have a birth date to validate sibling relationship`);
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const newPersonBirth = new Date(data.date_of_birth);
+      const selectedPersonBirth = new Date(selectedPerson.date_of_birth);
+      const ageGapYears = Math.abs((newPersonBirth.getTime() - selectedPersonBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      
+      if (ageGapYears > 25) {
+        alert(`Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents. Maximum age gap for siblings is 25 years.`);
+        setIsSubmitting(false);
+        return;
+      }
+    }
+    
     await onSubmit(data);
     setIsSubmitting(false);
   };
@@ -275,6 +303,27 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                             const ageValidation = validateParentChildAge(parentPerson, childPerson);
                             if (!ageValidation.valid) {
                               alertType = ageValidation.type;
+                            }
+                          }
+                          // Check sibling age difference (25-year limit)
+                          else if (currentRelationType === 'sibling') {
+                            if (!currentBirthDate) {
+                              alertType = 'missingData';
+                              alertDetails = { message: 'Birth date is required to validate sibling relationship' };
+                            } else if (!selectedPerson.date_of_birth) {
+                              alertType = 'missingData';
+                              alertDetails = { message: `${selectedPerson.first_name} ${selectedPerson.last_name} must have a birth date to validate sibling relationship` };
+                            } else {
+                              const newPersonBirth = new Date(currentBirthDate);
+                              const selectedPersonBirth = new Date(selectedPerson.date_of_birth);
+                              const ageGapYears = Math.abs((newPersonBirth.getTime() - selectedPersonBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+                              
+                              if (ageGapYears > 25) {
+                                alertType = 'invalidRelationship';
+                                alertDetails = { 
+                                  message: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents. Maximum age gap for siblings is 25 years.` 
+                                };
+                              }
                             }
                           }
 

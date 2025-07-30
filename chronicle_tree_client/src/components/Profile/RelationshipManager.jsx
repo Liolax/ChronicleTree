@@ -644,19 +644,31 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         }
       }
       
-      // 3. Age validation for siblings - should be within reasonable range
-      if (person.date_of_birth && candidate.date_of_birth) {
-        const personBirth = new Date(person.date_of_birth);
-        const candidateBirth = new Date(candidate.date_of_birth);
-        const ageGapYears = Math.abs((candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-        
-        // Siblings should not have more than 25-year age gap (very conservative)
-        if (ageGapYears > 25) {
-          return { 
-            valid: false, 
-            reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
-          };
-        }
+      // 3. Require birth dates for sibling validation
+      if (!person.date_of_birth) {
+        return { 
+          valid: false, 
+          reason: `${person.first_name} ${person.last_name} must have a birth date to validate sibling relationship` 
+        };
+      }
+      if (!candidate.date_of_birth) {
+        return { 
+          valid: false, 
+          reason: `${candidate.first_name} ${candidate.last_name} must have a birth date to validate sibling relationship` 
+        };
+      }
+      
+      // Age validation for siblings - should be within reasonable range
+      const personBirth = new Date(person.date_of_birth);
+      const candidateBirth = new Date(candidate.date_of_birth);
+      const ageGapYears = Math.abs((candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      
+      // Siblings should not have more than 25-year age gap (very conservative)
+      if (ageGapYears > 25) {
+        return { 
+          valid: false, 
+          reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+        };
       }
       
       // 4. Check for existing parent relationships that would prevent sibling relationship
@@ -756,18 +768,26 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         }
       }
       
-      // Age compatibility check for all cases
-      if (person.date_of_birth && candidate.date_of_birth) {
-        const personBirth = new Date(person.date_of_birth);
-        const candidateBirth = new Date(candidate.date_of_birth);
-        const ageGapYears = Math.abs((candidateBirth.getTime() - personBirth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-        
-        if (ageGapYears > 25) {
-          return { 
-            valid: false, 
-            reason: `Age gap too large (${ageGapYears.toFixed(1)} years) for sibling relationship` 
-          };
-        }
+      // Age compatibility check for all cases - require birth dates
+      if (!person.date_of_birth) {
+        return { 
+          valid: false, 
+          reason: `${person.first_name} ${person.last_name} must have a birth date to validate sibling relationship` 
+        };
+      }
+      if (!candidate.date_of_birth) {
+        return { 
+          valid: false, 
+          reason: `${candidate.first_name} ${candidate.last_name} must have a birth date to validate sibling relationship` 
+        };
+      }
+      
+      // Age gap was already calculated earlier in this scope, just reuse it 
+      if (ageGapYears > 25) {
+        return { 
+          valid: false, 
+          reason: `Age gap too large (${ageGapYears.toFixed(1)} years) for sibling relationship` 
+        };
       }
     }
     

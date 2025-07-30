@@ -383,45 +383,54 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         }
       }
       
-      // 2. Check that the age difference is reasonable for siblings
-      if (person1.date_of_birth && person2.date_of_birth) {
-        const person1Birth = new Date(person1.date_of_birth);
-        const person2Birth = new Date(person2.date_of_birth);
-        const ageGapYears = Math.abs((person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
-        
-        // Siblings typically don't have more than a 25-year age gap
-        if (ageGapYears > 25) {
+      // 2. Require birth dates for sibling relationships to validate age constraints
+      if (!person1.date_of_birth) {
+        return { 
+          valid: false, 
+          reason: `${person1.first_name} ${person1.last_name} must have a birth date to validate sibling relationship` 
+        };
+      }
+      if (!person2.date_of_birth) {
+        return { 
+          valid: false, 
+          reason: `${person2.first_name} ${person2.last_name} must have a birth date to validate sibling relationship` 
+        };
+      }
+      
+      // Check that the age difference is reasonable for siblings
+      const person1Birth = new Date(person1.date_of_birth);
+      const person2Birth = new Date(person2.date_of_birth);
+      const ageGapYears = Math.abs((person2Birth.getTime() - person1Birth.getTime()) / (1000 * 60 * 60 * 24 * 365.25));
+      
+      // Siblings typically don't have more than a 25-year age gap
+      if (ageGapYears > 25) {
+        return { 
+          valid: false, 
+          reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+        };
+      }
+      
+      // 3. Check that both people were alive at the same time (for biological siblings)
+      // We already know both have birth dates from validation above
+      
+      // Check if one person died before the other was born
+      if (person1.date_of_death) {
+        const person1Death = new Date(person1.date_of_death);
+        if (person2Birth > person1Death) {
           return { 
             valid: false, 
-            reason: `Age gap too large for siblings (${ageGapYears.toFixed(1)} years) - unlikely to share parents` 
+            reason: `${person1.first_name} ${person1.last_name} died before ${person2.first_name} ${person2.last_name} was born - cannot be biological siblings` 
           };
         }
       }
       
-      // 3. Check that both people were alive at the same time (for biological siblings)
-      if (person1.date_of_birth && person2.date_of_birth) {
-        const person1Birth = new Date(person1.date_of_birth);
-        const person2Birth = new Date(person2.date_of_birth);
-        
-        // Check if one person died before the other was born
-        if (person1.date_of_death) {
-          const person1Death = new Date(person1.date_of_death);
-          if (person2Birth > person1Death) {
-            return { 
-              valid: false, 
-              reason: `${person1.first_name} ${person1.last_name} died before ${person2.first_name} ${person2.last_name} was born - cannot be biological siblings` 
-            };
-          }
-        }
-        
-        if (person2.date_of_death) {
-          const person2Death = new Date(person2.date_of_death);
-          if (person1Birth > person2Death) {
-            return { 
-              valid: false, 
-              reason: `${person2.first_name} ${person2.last_name} died before ${person1.first_name} ${person1.last_name} was born - cannot be biological siblings` 
-            };
-          }
+      if (person2.date_of_death) {
+        const person2Death = new Date(person2.date_of_death);
+        if (person1Birth > person2Death) {
+          return { 
+            valid: false, 
+            reason: `${person2.first_name} ${person2.last_name} died before ${person1.first_name} ${person1.last_name} was born - cannot be biological siblings` 
+          };
         }
       }
     }
@@ -496,7 +505,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
     setWarning('');
     
     // Validate relationship constraints before submitting
-    const validation = validateRelationshipConstraints(data.selectedId, selectedPerson?.id, selectedType);
+    const validation = validateRelationshipConstraints(selectedPerson?.id, data.selectedId, selectedType);
     if (!validation.valid) {
       // Determine what type of error message to show based on the validation failure
       let alertType = 'invalidRelationship';
