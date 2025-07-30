@@ -12,7 +12,7 @@ import {
 } from '@xyflow/react';
 import { useQueryClient } from '@tanstack/react-query';
 import '@xyflow/react/dist/style.css';
-import { FaShareAlt, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaEnvelopeSquare, FaLink } from 'react-icons/fa';
+import { FaShareAlt } from 'react-icons/fa';
 
 import Button from '../UI/Button';
 import AddPersonModal from './modals/AddPersonModal';
@@ -24,7 +24,7 @@ import CustomNode from './CustomNode';
 import { useFullTree, useDeletePerson } from '../../services/people';
 import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
-import { getAllRelationshipsToRoot, calculateRelationshipToRoot } from '../../utils/improvedRelationshipCalculator';
+import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 import { ShareModal } from '../Share';
 // import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
@@ -176,57 +176,14 @@ const FamilyTree = () => {
   }, []);
 
   const handleShareTree = useCallback(() => {
+    setSelectedPerson(null); // Close person card when share modal opens
+    setPersonCardPosition(null);
     setShowShareModal(true);
   }, []);
 
   const handleCloseShareModal = useCallback(() => {
     setShowShareModal(false);
-    setShareCaption('');
   }, []);
-
-  const handleSocialShareClick = useCallback(async (platform, caption = '') => {
-    try {
-      const shareContent = generateTreeShareContent(rootPersonId, caption);
-      await handleSocialShare(platform, shareContent);
-      
-      if (platform === 'copy') {
-        // Show success message for copy
-        alert('Tree link copied to clipboard!');
-      }
-    } catch (error) {
-      // Fallback to simple sharing if API fails
-      const treeTitle = rootPersonId 
-        ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
-        : 'Complete Family Tree';
-      
-      const treeDescription = caption || `Check out this family tree with ${processedData.nodes.length} family members!`;
-      const shareUrl = window.location.href;
-      
-      switch (platform) {
-        case 'facebook':
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}&quote=${encodeURIComponent(treeDescription)}`, '_blank');
-          break;
-        case 'twitter':
-        case 'x':
-          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(treeDescription)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
-          break;
-        case 'whatsapp':
-          window.open(`https://wa.me/?text=${encodeURIComponent(treeDescription + ' ' + shareUrl)}`, '_blank');
-          break;
-        case 'email':
-          window.open(`mailto:?subject=${encodeURIComponent(treeTitle)}&body=${encodeURIComponent(treeDescription + '\n\n' + shareUrl)}`, '_blank');
-          break;
-        case 'copy':
-          navigator.clipboard.writeText(shareUrl).then(() => {
-            alert('Link copied to clipboard!');
-          });
-          break;
-        default:
-          break;
-      }
-    }
-  }, [rootPersonId, processedData.nodes]);
-
 
   // Transform data for react-flow using improved grid-based layout
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
@@ -357,7 +314,7 @@ const FamilyTree = () => {
             )}
           </div>
           <div className="flex gap-3">
-            <Button onClick={() => setShowShareModal(true)} variant="secondary">
+            <Button onClick={handleShareTree} variant="secondary">
               <FaShareAlt className="mr-2" />
               Share Tree
             </Button>
@@ -476,7 +433,7 @@ const FamilyTree = () => {
 
         <ShareModal
           isOpen={showShareModal}
-          onClose={() => setShowShareModal(false)}
+          onClose={handleCloseShareModal}
           personId={rootPersonId}
           shareType="tree"
         />
@@ -511,7 +468,7 @@ const FamilyTree = () => {
                   setDeleteTarget(null);
                   setSelectedPerson(null); // Close person card if open
                 },
-                onError: (error) => {
+                onError: () => {
                   // Keep modal open on error so user can retry
                 }
               });

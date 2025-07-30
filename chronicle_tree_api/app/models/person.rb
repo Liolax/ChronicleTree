@@ -39,8 +39,7 @@ class Person < ApplicationRecord
   end
 
   def parents
-    Person.joins(:relationships)
-          .where(relationships: { relative_id: id, relationship_type: "child" })
+    relatives.where(relationships: { relationship_type: "parent" })
   end
 
   def children

@@ -38,7 +38,8 @@
       "Bash(ruby:*)",
       "Bash(cp:*)",
       "Bash(npx vitest run:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(del query_relationships.rb check_lisa_relationships.rb)"
     ],
     "deny": []
   }

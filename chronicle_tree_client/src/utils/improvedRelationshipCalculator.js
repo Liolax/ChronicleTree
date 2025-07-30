@@ -110,8 +110,7 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
     // Check if they are direct biological relatives
     const rootParents = childToParents.get(String(rootPerson.id)) || new Set();
     const personChildren = parentToChildren.get(String(person.id)) || new Set();
-    const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
-    const personParents = childToParents.get(String(person.id)) || new Set();
+    // const personParents = childToParents.get(String(person.id)) || new Set();
     
     // Check if person is root's parent (would be impossible if root born after person died, but we check anyway)
     if (rootParents.has(String(person.id))) {
@@ -277,9 +276,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
         
         if (rel.is_ex) {
           // Ex-spouse relationships - use Sets to handle multiple ex-spouses
-          if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
-              (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-          }
           if (!exSpouseMap.has(source)) {
             exSpouseMap.set(source, new Set());
           }
@@ -291,9 +287,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
         } else if (rel.is_deceased) {
           // ONLY relationships explicitly marked as is_deceased are late spouses
           // This means they were married BEFORE the death occurred
-          if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
-              (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-          }
           if (!deceasedSpouseMap.has(source)) {
             deceasedSpouseMap.set(source, new Set());
           }
@@ -305,9 +298,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
         } else if (isDeceasedSpouse) {
           // If either person is deceased but the relationship is not marked as a legitimate late spouse,
           // treat the connection as an ex-spouse. This covers cases like posthumous marriages.
-          if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
-              (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-          }
           if (!exSpouseMap.has(source)) {
             exSpouseMap.set(source, new Set());
           }
@@ -318,9 +308,6 @@ export const buildRelationshipMaps = (relationships, allPeople = []) => {
           exSpouseMap.get(target).add(source);
         } else {
           // Current spouse relationships - use Sets to handle multiple current spouses
-          if ((sourcePerson?.first_name === 'William' && sourcePerson?.last_name === 'O\'Sullivan' && targetPerson?.first_name === 'Patricia') ||
-              (targetPerson?.first_name === 'William' && targetPerson?.last_name === 'O\'Sullivan' && sourcePerson?.first_name === 'Patricia')) {
-          }
           if (!spouseMap.has(source)) {
             spouseMap.set(source, new Set());
           }
@@ -654,7 +641,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   if (personObj && rootObj) {
     // Check all deceased spouses in the system to see if they create invalid timeline connections
-    for (const [spouseId, deceasedSpouses] of deceasedSpouseMap) {
+    for (const [, deceasedSpouses] of deceasedSpouseMap) {
       for (const deceasedSpouse of deceasedSpouses) {
         const deceasedPerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
         if (deceasedPerson && deceasedPerson.date_of_death) {
@@ -945,6 +932,7 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
  * @param {Map} siblingMap - Sibling relationships map
  * @returns {string|null} - Cousin relationship or null
  */
+/*
 const findGenerationalCousinRelationship = (personId, rootId, childToParents, siblingMap) => {
   
   
@@ -978,6 +966,7 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
   
   return null;
 };
+*/
 
 /**
  * Build ancestor chains for family tree navigation
@@ -986,6 +975,7 @@ const findGenerationalCousinRelationship = (personId, rootId, childToParents, si
  * @param {number} maxGenerations - Maximum generations to build
  * @returns {Object} - Ancestor chains by generation level
  */
+/*
 const buildAncestorChains = (personId, childToParents, maxGenerations) => {
   const ancestorChains = {};
   const visited = new Set();
@@ -1013,17 +1003,21 @@ const buildAncestorChains = (personId, childToParents, maxGenerations) => {
   
   return ancestorChains;
 };
+*/
 
-/**
+/*
  * Generate cousin relationship label based on degree
  * @param {number} degree - The cousin degree (1 = first cousin, 2 = second cousin, etc.)
  * @returns {string} - The cousin relationship label
  */
+/*
 const generateCousinLabel = (degree) => {
   const ordinals = ['', '1st', '2nd', '3rd', '4th', '5th'];
   return ordinals[degree] || `${degree}th Cousin`;
-}; 
+};
+*/ 
 
+/*
 // The cousin calculation logic generates cousin labels based on degree and removal count only.
 const generateCousinRemovedLabel = (baseDegree, removedCount) => {
   const ordinals = ['', '1st', '2nd', '3rd', '4th', '5th'];
@@ -1031,6 +1025,7 @@ const generateCousinRemovedLabel = (baseDegree, removedCount) => {
   const removedLabel = removedCount === 1 ? 'Once Removed' : `${removedCount} Times Removed`;
   return `${baseLabel} Cousin ${removedLabel}`;
 };
+*/
 
 /**
  * Find blood relationship between two people
@@ -1411,8 +1406,8 @@ const findInLawRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
   
   // Combine biological and step-children
-  const personAllChildren = new Set([...personBioChildren, ...personStepChildren]);
-  const rootAllChildren = new Set([...rootBioChildren, ...rootStepChildren]);
+  // const personAllChildren = new Set([...personBioChildren, ...personStepChildren]);
+  // const rootAllChildren = new Set([...rootBioChildren, ...rootStepChildren]);
   
   // Check co-parent-in-law relationships with ONLY biological children (not step-children)
   // Only real blood parents should be co-parents-in-law

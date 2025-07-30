@@ -402,7 +402,7 @@ const buildRelationshipMaps = (relationships, persons) => {
     const relationshipType = rel.type || rel.relationship_type;
 
     switch (relationshipType) {
-      case 'parent':
+      case 'parent': {
         // Validate relationship based on birth dates to prevent inverted hierarchies
         let sourcePerson = persons.find(p => String(p.id) === source);
         let targetPerson = persons.find(p => String(p.id) === target);
@@ -453,8 +453,9 @@ const buildRelationshipMaps = (relationships, persons) => {
         }
         childToParents.get(target).add(source);
         break;
+      }
         
-      case 'spouse':
+      case 'spouse': {
         // Only include current spouses in the spouse map for positioning
         // Ex-spouses and deceased spouses should not be positioned as couples
         // Also check if either person is actually deceased
@@ -481,6 +482,7 @@ const buildRelationshipMaps = (relationships, persons) => {
           exSpouseMap.get(target).add(source);
         }
         break;
+      }
         
       case 'sibling':
       case 'brother':
@@ -600,7 +602,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     queue.length = 0;
     queue.push({ id: singleRoot, generation: 0 });
     
-    const rootPerson = persons.find(p => String(p.id) === singleRoot);
+    // const rootPerson = persons.find(p => String(p.id) === singleRoot);
     
     // Simple BFS traversal without family grouping complexity
     while (queue.length > 0) {
@@ -655,7 +657,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         
         parents.forEach(parentId => {
           if (!visited.has(parentId)) {
-            const parent = persons.find(p => String(p.id) === parentId);
+            // const parent = persons.find(p => String(p.id) === parentId);
             
             // When we have a specific root person selected, prioritize the root's direct lineage
             // Put spouse's parents at a different generation offset to avoid mixing families
@@ -696,7 +698,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
     let generationOffset = 0;
     const GENERATION_SPACING = 10; // Put some space between unrelated families
   
-  familyGroups.forEach((familyGroup, index) => {
+  familyGroups.forEach((familyGroup) => {
     // Start this family tree at the current offset
     queue.push({ id: familyGroup.rootId, generation: generationOffset });
     
@@ -780,7 +782,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
       .map(memberId => generations.get(memberId));
     
     if (familyGenerations.length > 0) {
-      const minGen = Math.min(...familyGenerations);
+      // const minGen = Math.min(...familyGenerations);
       const maxGen = Math.max(...familyGenerations);
       generationOffset = maxGen + GENERATION_SPACING;
     }
@@ -843,7 +845,7 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         iterations++;
         
         // First align co-parents
-        childToParents.forEach((parents, childId) => {
+        childToParents.forEach((parents) => {
           if (parents.size >= 2) {
             // Get all parents of this child
             const parentList = Array.from(parents);

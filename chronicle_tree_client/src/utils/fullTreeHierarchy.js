@@ -237,7 +237,7 @@ function estimateGenerationFromBirthYear(person) {
  */
 function createFamilyClusters(people, relationshipMaps, generations) {
   const clusters = new Map();
-  const assigned = new Set();
+  // const assigned = new Set();
   let clusterId = 0;
   
   // Group by generation first
@@ -367,7 +367,7 @@ function createFullTreeNodes(people, familyClusters, generations, relationshipMa
   
   // Calculate cluster positions
   const generationCenters = new Map();
-  sortedClusters.forEach(([clusterId, cluster]) => {
+  sortedClusters.forEach(([, cluster]) => {
     const generation = cluster.generation;
     
     if (!generationCenters.has(generation)) {
@@ -537,7 +537,7 @@ function getFullTreeNodeStyle(importance, generation) {
  * @param {Array} people - All people
  * @returns {Array} - Array of edges
  */
-function createFullTreeEdges(relationships, relationshipMaps, people) {
+function createFullTreeEdges(relationships, relationshipMaps, _people) {
   const edges = [];
   const processedConnections = new Set();
   
@@ -581,7 +581,7 @@ function createFullTreeEdges(relationships, relationshipMaps, people) {
  * @param {Object} relationshipMaps - Relationship maps
  * @returns {Array} - Optimized nodes
  */
-function applyFullTreeSpacing(nodes, edges, relationshipMaps) {
+function applyFullTreeSpacing(nodes, _edges, _relationshipMaps) {
   // Apply anti-overlap with full tree considerations
   let adjustedNodes = [...nodes];
   
@@ -596,7 +596,7 @@ function applyFullTreeSpacing(nodes, edges, relationshipMaps) {
   });
   
   // Apply even spacing within each generation
-  generationGroups.forEach((genNodes, generation) => {
+  generationGroups.forEach((genNodes) => {
     if (genNodes.length <= 1) return;
     
     // Sort by current X position
@@ -650,7 +650,7 @@ function applyFullTreeSpacing(nodes, edges, relationshipMaps) {
  * @param {Array} people - Array of people
  * @returns {Object} - Basic relationship maps
  */
-function createBasicRelationshipMaps(relationships, people) {
+function createBasicRelationshipMaps(relationships, _people) {
   const parentToChildren = new Map();
   const childToParents = new Map();
   const spouseMap = new Map();
