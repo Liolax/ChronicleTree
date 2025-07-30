@@ -39,7 +39,9 @@
       "Bash(cp:*)",
       "Bash(npx vitest run:*)",
       "Bash(git restore:*)",
-      "Bash(del query_relationships.rb check_lisa_relationships.rb)"
+      "Bash(del query_relationships.rb check_lisa_relationships.rb)",
+      "Bash(true)",
+      "Bash(touch:*)"
     ],
     "deny": []
   }

@@ -1,101 +1,79 @@
 # Backend Tests
 
-This directory contains organized backend tests for the Chronicle Tree API.
+Organized test suite for Chronicle Tree Rails API backend.
 
-## Directory Structure
+## Structure
 
-### `/rails_tests/`
-Standard Rails tests including controllers, models, and fixtures.
-- **Controllers**: API endpoint tests
-- **Models**: Model validation and behavior tests  
-- **Fixtures**: Test data
-- **Integration**: Integration tests
-- **Mailers**: Email functionality tests
+```
+backend_tests/
+├── unit/                      # Unit tests for individual classes/modules
+│   ├── models/               # ActiveRecord model tests
+│   ├── services/             # Service object tests
+│   └── controllers/          # Controller unit tests
+├── integration/              # Integration tests
+│   ├── api/                  # API endpoint integration tests
+│   ├── relationships/        # Family relationship logic tests
+│   └── image_generation/     # Share image generation tests
+├── system/                   # System-level tests
+│   ├── end_to_end/          # Full system workflow tests
+│   └── performance/         # Performance and load tests
+├── fixtures/                 # Test data and sample families
+│   ├── test_data/           # Rails fixtures (YAML)
+│   └── sample_families/     # Sample family structures
+└── scripts/                 # Utility scripts
+    ├── debug/               # Debugging and data analysis scripts
+    ├── maintenance/         # Data verification and cleanup scripts
+    └── setup/               # Test environment setup scripts
+```
 
-### `/relationship_tests/`
-Tests focused on family relationship logic and calculations.
-- Comprehensive relationship testing
-- Sibling relationship validation
-- Gender-neutral relationship labels
-- Profile relationship display tests
+## Test Types
 
-### `/step_relationship_tests/`
-Specialized tests for step-family relationships.
-- Step-sibling detection and analysis
-- Step-grandparent relationships
-- Step-family hierarchy validation
+### Unit Tests
+- **Models**: Test ActiveRecord models, validations, associations
+- **Services**: Test service objects and business logic
+- **Controllers**: Test controller actions and responses
 
-### `/validation_tests/`
-Tests for data validation logic.
-- Age validation
-- Deceased logic validation
+### Integration Tests  
+- **API**: Test complete API request/response cycles
+- **Relationships**: Test family relationship calculation algorithms
+- **Image Generation**: Test share image creation and processing
 
-### `/debug_scripts/`
-Utility scripts for debugging and fixing data issues.
-- **fix_relationships.rb**: Script to fix bidirectional relationship issues
-- **fix_sibling_relationships.rb**: Script to correct sibling relationships
-- **fix_michael_step_relationship.rb**: Step-relationship debugging
-- Various other relationship debugging utilities
+### System Tests
+- **End-to-End**: Test complete user workflows
+- **Performance**: Test system performance and scalability
 
-## Test Files in Root Directory
-
-### `test_extended_family.rb`
-Test script for creating and testing extended family data across 4-5 generations. Used for comprehensive family tree testing.
-- Deceased status logic
-- Temporal validation
-- Edit validation
-
-### `/api_tests/`
-API endpoint integration tests.
-- API response validation
-- Endpoint functionality tests
-
-### `/integration_tests/`
-End-to-end integration tests.
-- Image generation tests
-- Profile sharing functionality
-- Full workflow testing
-
-### `/debug_scripts/`
-Debugging and data maintenance scripts.
-- Relationship fixing scripts
-- Data analysis tools
-- Database maintenance utilities
-
-### `/verification_tests/`
-Data integrity and verification tests.
-- Family structure validation
-- Data consistency checks
-- Parentage verification
+### Scripts
+- **Debug**: Tools for debugging relationship issues
+- **Maintenance**: Scripts for data verification and cleanup
+- **Setup**: Scripts for test environment configuration
 
 ## Running Tests
 
-### Rails Tests
 ```bash
-# Run all Rails tests
-cd chronicle_tree_api
-rails test backend_tests/rails_tests/
+# Run all tests
+rails test
 
-# Run specific test
-rails test backend_tests/rails_tests/models/person_test.rb
+# Run specific test categories
+rails test test/unit/models
+rails test test/integration/api
+
+# Run specific test file
+rails test test/unit/models/person_test.rb
+
+# Run with coverage
+COVERAGE=true rails test
 ```
 
-### Debug Scripts
-```bash
-# Run from the API root directory
-cd chronicle_tree_api
-ruby backend_tests/debug_scripts/list_people.rb
-```
+## Adding New Tests
 
-### Other Tests
-```bash
-# Run individual test files
-cd chronicle_tree_api
-ruby backend_tests/relationship_tests/comprehensive_relationship_test.rb
-```
+1. **Unit tests**: Place in appropriate `unit/` subdirectory
+2. **Integration tests**: Place in appropriate `integration/` subdirectory
+3. **Scripts**: Place in appropriate `scripts/` subdirectory
 
-## Notes
+Follow Rails naming conventions: `*_test.rb` for test files.
 
-- All test files have been updated with correct require paths (`../../config/environment`)
-- Debug output has been cleaned up while preserving essential functionality
-- Tests are organized by functionality for better maintainability
+## Test Environment
+
+- Uses Rails test database
+- Fixtures loaded from `fixtures/test_data/`
+- Test helper located at `unit/test_helper.rb`

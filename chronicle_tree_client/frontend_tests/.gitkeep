@@ -1,0 +1,2 @@
+# This file ensures empty test directories are tracked in git
+# Remove this file when adding tests to the directory
