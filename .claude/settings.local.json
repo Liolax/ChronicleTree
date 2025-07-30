@@ -41,7 +41,16 @@
       "Bash(git restore:*)",
       "Bash(del query_relationships.rb check_lisa_relationships.rb)",
       "Bash(true)",
-      "Bash(touch:*)"
+      "Bash(touch:*)",
+      "Bash(claude auth login)",
+      "Bash(npm install:*)",
+      "Bash(claude --version)",
+      "Bash(claude auth status)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(claude auth login:*)",
+      "Bash(claude auth:*)",
+      "Bash(claude setup-token)",
+      "Bash(claude auth logout)"
     ],
     "deny": []
   }

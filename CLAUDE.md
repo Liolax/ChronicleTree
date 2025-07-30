@@ -1,3 +1,4 @@
-1. instead of standart allert please implement sweetalert2 or something similar. i like DeletePersonModal.jsx and ConfirmDeleteModal.jsx styling so we can have with help of sweetalert2 or something similar good allerts. 
+1. instead of standart allert please implement sweetalert2 or something similar. i like DeletePersonModal.jsx and ConfirmDeleteModal.jsx styling so we can have with help of sweetalert2 or something similar modern allerts. 
+2. rewrite all allers text to not use emoji, because using of emoji is AI-like. i want student project-like, i want nobody know that i use ai.
 
 PS. please if you create tests move tests to frontend_tests and backend_tests because we must have only one frontend tests folder for tests. also we need to have same for backend_tests - only one. Upgrade organization of frontend_tests and backend_tests folders everytime after you tested app. our permanent goal - keep the app well organized. 

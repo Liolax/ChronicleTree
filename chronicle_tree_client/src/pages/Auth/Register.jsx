@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import PageHeader from '../../components/Layout/PageHeader';
+import Swal from 'sweetalert2';
 
 export default function Register() {
   const { register: r, handleSubmit } = useForm();
@@ -15,7 +16,14 @@ export default function Register() {
     signup(name, email, password, password_confirmation)
       .catch(error => {
         // Handles registration errors with user feedback
-        alert(error.response?.data?.errors?.full_messages?.join('\n') || 'Registration failed');
+        const errorMessage = error.response?.data?.errors?.full_messages?.join('\n') || 'Registration failed';
+        Swal.fire({
+          title: 'Registration Failed',
+          text: errorMessage,
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#4F46E5'
+        });
       });
   };
 
@@ -62,7 +70,7 @@ export default function Register() {
                 onClick={() => setShowPassword(v => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
@@ -83,7 +91,7 @@ export default function Register() {
                 onClick={() => setShowConfirm(v => !v)}
                 aria-label={showConfirm ? "Hide password" : "Show password"}
               >
-                {showConfirm ? '🙈' : '👁️'}
+                {showConfirm ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>

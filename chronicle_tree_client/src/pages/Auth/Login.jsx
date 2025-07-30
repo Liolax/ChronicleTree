@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import PageHeader from '../../components/Layout/PageHeader';
+import Swal from 'sweetalert2';
 
 export default function Login() {
   const { register: registerInput, handleSubmit } = useForm();
@@ -11,7 +12,15 @@ export default function Login() {
 
   const onSubmit = ({ email, password }) => {
     login(email, password)
-      .catch(() => alert('Login failed — check your credentials.'));
+      .catch(() => {
+        Swal.fire({
+          title: 'Login Failed',
+          text: 'Please check your credentials and try again.',
+          icon: 'error',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#4F46E5'
+        });
+      });
   };
 
   return (
@@ -51,7 +60,7 @@ export default function Login() {
                 onClick={() => setShowPassword(v => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? '🙈' : '👁️'}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
           </div>
