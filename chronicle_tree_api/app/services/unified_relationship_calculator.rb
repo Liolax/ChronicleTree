@@ -244,11 +244,14 @@ class UnifiedRelationshipCalculator
     case relationship[:relationship_type]
     when 'spouse'
       if relationship[:is_ex]
-        'Ex-Spouse'
+        return 'Ex-Spouse' unless person2.gender.present?
+        person2.gender.downcase == 'male' ? 'Ex-Husband' : 'Ex-Wife'
       elsif relationship[:is_deceased]
-        'Late Spouse'
+        return 'Late Spouse' unless person2.gender.present?
+        person2.gender.downcase == 'male' ? 'Late Husband' : 'Late Wife'
       else
-        'Spouse'
+        return 'Spouse' unless person2.gender.present?
+        person2.gender.downcase == 'male' ? 'Husband' : 'Wife'
       end
     when 'child'
       if relationship[:source] == person1.id

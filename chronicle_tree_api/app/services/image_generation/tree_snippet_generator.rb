@@ -239,7 +239,7 @@ module ImageGeneration
         when 'child' 
           get_child_type(person)
         when 'spouse' 
-          direct_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
+          get_spouse_type(person, direct_rel.is_ex?)
         when 'sibling' 
           get_sibling_type(person)
         end
@@ -254,7 +254,7 @@ module ImageGeneration
         when 'child' 
           get_parent_type(person)
         when 'spouse' 
-          reverse_rel.is_ex? ? 'Ex-Spouse' : 'Spouse'
+          get_spouse_type(person, reverse_rel.is_ex?)
         when 'sibling' 
           get_sibling_type(person)
         end
@@ -421,6 +421,14 @@ module ImageGeneration
       
       return 'Sibling' unless person.gender.present?
       person.gender.downcase == 'male' ? 'Brother' : 'Sister'
+    end
+    
+    def get_spouse_type(person, is_ex = false)
+      prefix = is_ex ? 'Ex-' : ''
+      return "#{prefix}Spouse" unless person.gender.present?
+      
+      gender_term = person.gender.downcase == 'male' ? 'Husband' : 'Wife'
+      is_ex ? "Ex-#{gender_term}" : gender_term
     end
     
     def is_half_sibling_of_root?(person)
@@ -610,6 +618,7 @@ module ImageGeneration
     
     def add_deceased_prefix(label, person)
       return label unless person.date_of_death.present?
+      return label if label&.start_with?('Late ') # Don't add "Late" if it's already there
       "Late #{label}"
     end
     

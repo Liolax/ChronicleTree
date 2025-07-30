@@ -102,25 +102,37 @@ class Api::V1::SharesController < Api::V1::BaseController
     relationships << "#{person.parents.count} parents" if person.parents.any?
     relationships << "#{person.siblings.count} siblings" if person.siblings.any?
     
-    # Add spouse relationships with proper gender-specific terms
+    # Add spouse relationships with proper gender-specific or neutral terms
     if person.current_spouses.any?
       current_count = person.current_spouses.count
-      spouse_term = person.gender&.downcase == 'male' ? 'wife' : 'husband'
-      spouse_term = spouse_term + 's' if current_count > 1
+      if person.gender.present?
+        spouse_term = person.gender.downcase == 'male' ? 'wife' : 'husband'
+        spouse_term = spouse_term + 's' if current_count > 1
+      else
+        spouse_term = current_count > 1 ? 'spouses' : 'spouse'
+      end
       relationships << "#{current_count} #{spouse_term}"
     end
     
     if person.ex_spouses.any?
       ex_count = person.ex_spouses.count
-      ex_term = person.gender&.downcase == 'male' ? 'ex-wife' : 'ex-husband'
-      ex_term = ex_term + 's' if ex_count > 1
+      if person.gender.present?
+        ex_term = person.gender.downcase == 'male' ? 'ex-wife' : 'ex-husband'
+        ex_term = ex_term + 's' if ex_count > 1
+      else
+        ex_term = ex_count > 1 ? 'ex-spouses' : 'ex-spouse'
+      end
       relationships << "#{ex_count} #{ex_term}"
     end
     
     if person.deceased_spouses.any?
-      late_count = person.deceased_spouses.count  
-      late_term = person.gender&.downcase == 'male' ? 'late wife' : 'late husband'
-      late_term = late_term + 's' if late_count > 1
+      late_count = person.deceased_spouses.count
+      if person.gender.present?
+        late_term = person.gender.downcase == 'male' ? 'late wife' : 'late husband'
+        late_term = late_term + 's' if late_count > 1
+      else
+        late_term = late_count > 1 ? 'late spouses' : 'late spouse'
+      end
       relationships << "#{late_count} #{late_term}"
     end
     

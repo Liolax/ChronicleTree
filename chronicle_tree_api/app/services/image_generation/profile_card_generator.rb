@@ -416,7 +416,8 @@ module ImageGeneration
       # Current spouses
       spouses = @person.current_spouses
       if spouses.any?
-        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">Spouse: #{spouses.map(&:full_name).join(', ')}</text>}
+        spouse_label = get_spouse_label(@person, spouses.count)
+        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">#{spouse_label}: #{spouses.map(&:full_name).join(', ')}</text>}
         y_pos += 25
       end
       
@@ -957,6 +958,13 @@ module ImageGeneration
       return 'Spouse' unless spouse.gender.present?
       spouse.gender.downcase == 'male' ? 'Husband' : 'Wife'
     end
+    
+    def get_spouse_label(person, spouse_count)
+      return spouse_count > 1 ? 'Spouses' : 'Spouse' unless person.gender.present?
+      
+      base_term = person.gender.downcase == 'male' ? 'Wife' : 'Husband'
+      spouse_count > 1 ? "#{base_term}s" : base_term
+    end
 
     def get_step_parent_relationship_type(step_parent)
       return 'Step-Parent' unless step_parent[:gender].present?
@@ -1072,7 +1080,8 @@ module ImageGeneration
       spouses = @person.current_spouses
       if spouses.any?
         spouse_names = spouses.map(&:full_name).join(', ')
-        info_lines << "Spouse: #{spouse_names}"
+        spouse_label = get_spouse_label(@person, spouses.count)
+        info_lines << "#{spouse_label}: #{spouse_names}"
       end
       
       children = @person.children
@@ -1168,7 +1177,8 @@ module ImageGeneration
       
       spouses = @person.current_spouses
       if spouses.any?
-        spouse_title = create_colored_text('💑 Spouse', 'sans bold 18', [107, 114, 128])
+        spouse_label = get_spouse_label(@person, spouses.count)
+        spouse_title = create_colored_text("💑 #{spouse_label}", 'sans bold 18', [107, 114, 128])
         image = image.composite spouse_title, 'over', x: 120, y: current_y
         current_y += 30
         
