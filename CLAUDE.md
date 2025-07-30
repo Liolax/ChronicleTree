@@ -1,3 +1,1 @@
-1. fix Share modals parent-child calculation (its bidirectional). why lisa see william and patricia as her children, not parents?
-Lisa → William: parent 
-  - William → Lisa: child. william and patricia was in romantic relationship, but without marriage  . 
+1. please move tests from tests folder to frontend_tests because we must have only one frontend tests folder for tests. also we need to have same for backend_tests - only one.
