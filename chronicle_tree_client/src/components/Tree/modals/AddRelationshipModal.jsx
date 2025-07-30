@@ -127,7 +127,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
         // Check if candidate is a relative of this ex/deceased spouse
         const isRelativeOfSpouse = spousePerson.relatives.some(rel => rel.id === candidateId);
         if (isRelativeOfSpouse) {
-          // CRITICAL: Ensure candidate is not blood related to current person
+          // Ensure candidate is not blood related to current person
           const bloodCheck = detectBloodRelationship(currentPersonId, candidateId);
           if (!bloodCheck.isBloodRelated) {
             return true; // Allowed - relative of ex/deceased spouse but not blood related to current person
@@ -189,7 +189,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
 
     // Additional validations for spouse relationships
     if (type === 'spouse' || type === 'late_spouse') {
-      // CRITICAL: Deceased people cannot create new marriages
+      // Deceased people cannot create new marriages
       if (person1.date_of_death) {
         return {
           valid: false,
@@ -219,7 +219,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       
       // Check if either person is alive but trying to add as late_spouse
       if (type === 'late_spouse') {
-        // CRITICAL: Even for late spouse, deceased people cannot create new marriages
+        // Even for late spouse, deceased people cannot create new marriages
         if (person1.date_of_death) {
           return {
             valid: false,
@@ -234,7 +234,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           };
         }
         
-        // CRITICAL: Check if person1 already has a late spouse - only one allowed
+        // Check if person1 already has a late spouse - only one allowed
         const existingLateSpouses = person1.relatives?.filter(rel => 
           rel.relationship_type === 'spouse' && rel.is_deceased && !rel.is_ex
         ) || [];
@@ -247,7 +247,7 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
           };
         }
         
-        // CRITICAL: Check if person2 already has a late spouse - only one allowed  
+        // Check if person2 already has a late spouse - only one allowed  
         const person2ExistingLateSpouses = person2.relatives?.filter(rel => 
           rel.relationship_type === 'spouse' && rel.is_deceased && !rel.is_ex
         ) || [];

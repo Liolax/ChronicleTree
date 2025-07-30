@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronicleTree - Technical Background</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-header {
+            background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%);
+        }
+        .section-icon {
+            width: 32px;
+            height: 32px;
+            margin-right: 12px;
+            color: #4F46E5;
+        }
+        .tech-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center">
+    <div class="container mx-auto max-w-6xl bg-white rounded-2xl shadow-2xl overflow-hidden">
+        <header class="gradient-header text-white p-8 text-center">
+            <h1 class="text-4xl font-bold">Technical Background & Technologies</h1>
+            <p class="text-lg opacity-90 mt-2">Modern Full-Stack Architecture</p>
+        </header>
+        
+        <main class="p-10 space-y-8">
+            <!-- Technology Stack -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 flex items-center border-b-2 border-indigo-200 pb-3 mb-6">
+                    <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571-3-5.571 3" />
+                    </svg>
+                    Technology Stack
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Frontend -->
+                    <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 text-center transform hover:scale-105 transition-transform">
+                        <div class="flex justify-center">
+                            <svg class="tech-icon" fill="#61DAFB" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="2"/>
+                                <path d="M20.2,15.7L20.2,15.7C20.2,16.8 18.5,17.9 16.1,18.7C16.5,20.3 16.2,21.4 15.4,21.9C15.1,22.1 14.7,22.2 14.3,22.2C13.5,22.2 12.6,21.6 11.8,20.5C11,21.6 10.1,22.2 9.3,22.2C8.9,22.2 8.5,22.1 8.2,21.9C7.4,21.4 7.1,20.3 7.5,18.7C5.1,17.9 3.4,16.8 3.4,15.7C3.4,14.6 5.1,13.5 7.5,12.7C7.1,11.1 7.4,10 8.2,9.5C8.5,9.3 8.9,9.2 9.3,9.2C10.1,9.2 11,9.8 11.8,10.9C12.6,9.8 13.5,9.2 14.3,9.2C14.7,9.2 15.1,9.3 15.4,9.5C16.2,10 16.5,11.1 16.1,12.7C18.5,13.5 20.2,14.6 20.2,15.7Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-blue-800 mb-3">Frontend</h3>
+                        <ul class="text-blue-700 text-sm space-y-2">
+                            <li><strong>React 18</strong> - Modern UI framework</li>
+                            <li><strong>React Flow</strong> - Interactive tree visualization</li>
+                            <li><strong>Tailwind CSS</strong> - Utility-first styling</li>
+                            <li><strong>Axios</strong> - HTTP client</li>
+                            <li><strong>React Router</strong> - Client-side routing</li>
+                            <li><strong>React Query</strong> - Server state management</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Backend -->
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-6 text-center transform hover:scale-105 transition-transform">
+                        <div class="flex justify-center">
+                            <svg class="tech-icon" fill="#CC0000" viewBox="0 0 24 24">
+                                <path d="M1.5,4.5L3,3L21,21L19.5,22.5L14.97,17.97C14.82,17.98 14.66,18 14.5,18C14.22,18 13.95,17.97 13.69,17.93L12.41,16.65C12.28,16.87 12.15,17.08 12,17.28C11.85,17.08 11.72,16.87 11.59,16.65L10.31,17.93C10.05,17.97 9.78,18 9.5,18C9.34,18 9.18,17.98 9.03,17.97L4.5,13.44C4.5,13.63 4.53,13.81 4.57,14L6.68,15.61C6.87,15.76 6.92,16.03 6.8,16.25L4.8,19.71C4.68,19.93 4.41,20.02 4.19,19.93L1.7,18.93C1.48,18.84 1.41,18.57 1.53,18.35L3.53,14.89C3.65,14.67 3.92,14.58 4.14,14.67L5.63,15.19C5.55,14.83 5.5,14.44 5.5,14C5.5,13.67 5.53,13.34 5.57,13.03L3.46,11.37C3.27,11.22 3.22,10.95 3.34,10.73L5.34,7.27C5.46,7.05 5.73,6.96 5.95,7.05L8.44,8.05C8.96,7.66 9.5,7.32 10.13,7.07L10.5,4ZM12,8.5A3.5,3.5 0 0,0 8.5,12A3.5,3.5 0 0,0 12,15.5A3.5,3.5 0 0,0 15.5,12A3.5,3.5 0 0,0 12,8.5Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-red-800 mb-3">Backend</h3>
+                        <ul class="text-red-700 text-sm space-y-2">
+                            <li><strong>Ruby on Rails 7</strong> - API framework</li>
+                            <li><strong>Active Storage</strong> - File management</li>
+                            <li><strong>Devise</strong> - Authentication</li>
+                            <li><strong>Active Model Serializers</strong> - JSON API</li>
+                            <li><strong>Sidekiq</strong> - Background jobs</li>
+                            <li><strong>JWT</strong> - Stateless authentication</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Database -->
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-6 text-center transform hover:scale-105 transition-transform">
+                        <div class="flex justify-center">
+                            <svg class="tech-icon" fill="#336791" viewBox="0 0 24 24">
+                                <path d="M12,3C7.58,3 4,4.79 4,7C4,9.21 7.58,11 12,11C16.42,11 20,9.21 20,7C20,4.79 16.42,3 12,3M4,9V12C4,14.21 7.58,16 12,16C16.42,16 20,14.21 20,12V9C20,11.21 16.42,13 12,13C7.58,13 4,11.21 4,9M4,14V17C4,19.21 7.58,21 12,21C16.42,21 20,19.21 20,17V14C20,16.21 16.42,18 12,18C7.58,18 4,16.21 4,14Z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-green-800 mb-3">Database & Storage</h3>
+                        <ul class="text-green-700 text-sm space-y-2">
+                            <li><strong>PostgreSQL</strong> - Primary database</li>
+                            <li><strong>Active Storage</strong> - File attachments</li>
+                            <li><strong>File System Storage</strong> - Local development</li>
+                            <li><strong>Image Processing</strong> - Automatic optimization</li>
+                            <li><strong>CORS Support</strong> - Cross-origin requests</li>
+                            <li><strong>Database Indexing</strong> - Performance optimization</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Key Frameworks & Libraries -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 flex items-center border-b-2 border-indigo-200 pb-3 mb-6">
+                    <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
+                    </svg>
+                    Key Frameworks & Design Patterns
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">React Flow (xyflow)</h3>
+                        <p class="text-gray-600 mb-3">Professional-grade library for interactive node-based diagrams:</p>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>• Custom node rendering with rich person data</li>
+                            <li>• Hierarchical layout algorithms with dagre</li>
+                            <li>• Viewport navigation and zoom controls</li>
+                            <li>• MiniMap for large tree navigation</li>
+                            <li>• Touch-friendly mobile interactions</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Rails API Architecture</h3>
+                        <p class="text-gray-600 mb-3">RESTful API following Rails conventions:</p>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>• Versioned API endpoints (v1)</li>
+                            <li>• JSON serialization with relationship inclusion</li>
+                            <li>• User-scoped data access for privacy</li>
+                            <li>• Transaction-based relationship creation</li>
+                            <li>• Comprehensive validation and error handling</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Modern React Patterns</h3>
+                        <p class="text-gray-600 mb-3">Contemporary React development practices:</p>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>• Functional components with hooks</li>
+                            <li>• Context API for global state management</li>
+                            <li>• React Query for server state synchronization</li>
+                            <li>• React Hook Form for form validation</li>
+                            <li>• Lazy loading and code splitting</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="bg-white border border-gray-200 rounded-lg p-6 shadow-md">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Database Design</h3>
+                        <p class="text-gray-600 mb-3">Normalized schema with relationship modeling:</p>
+                        <ul class="text-gray-600 text-sm space-y-1">
+                            <li>• Polymorphic associations for media attachments</li>
+                            <li>• Bidirectional relationship consistency</li>
+                            <li>• Temporal validation constraints</li>
+                            <li>• Efficient indexing for genealogical queries</li>
+                            <li>• Active Record migrations and validations</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Innovation Highlights -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 flex items-center border-b-2 border-indigo-200 pb-3 mb-6">
+                    <svg class="section-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m4.5 0a12.06 12.06 0 0 0 0-9.96m-4.5 9.96a12.06 12.06 0 0 1 0-9.96m0 0a6 6 0 0 1 9-5.2 9 9 0 1 1-18 0 6 6 0 0 1 9 5.2M12 12.75h.007v.008H12z" />
+                    </svg>
+                    Technical Innovations
+                </h2>
+                <div class="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <h3 class="text-lg font-semibold text-purple-800 mb-3">Advanced Relationship Engine</h3>
+                            <ul class="text-purple-700 text-sm space-y-2">
+                                <li>• 20+ relationship types with genealogical accuracy</li>
+                                <li>• Temporal validation preventing chronological impossibilities</li>
+                                <li>• Gender-specific relationship terminology</li>
+                                <li>• Multi-generational ancestor/descendant detection</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-purple-800 mb-3">Interactive Tree Visualization</h3>
+                            <ul class="text-purple-700 text-sm space-y-2">
+                                <li>• Dynamic centering with smooth animations</li>
+                                <li>• Hierarchical layout with optimal node positioning</li>
+                                <li>• MiniMap navigation for large family structures</li>
+                                <li>• Responsive design with touch support</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="gradient-header text-white p-4 text-center">
+            <p class="opacity-75">Slide 4 of 9 • ChronicleTree Presentation</p>
+        </footer>
+    </div>
+</body>
+</html>
