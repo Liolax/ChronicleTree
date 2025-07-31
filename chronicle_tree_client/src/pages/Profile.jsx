@@ -12,7 +12,7 @@ import api from '../api/api';
 import Notes from '../components/Profile/Notes';
 import ProfileDetails from '../components/Profile/ProfileDetails';
 import DeletePersonModal from '../components/UI/DeletePersonModal';
-import ProfileLoader from '../components/UI/ProfileLoader';
+import { ProfileLoader } from '../components/UI/PageLoader';
 import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
 import { ShareModal } from '../components/Share';
 import { showFileError, showOperationError, showOperationSuccess } from '../utils/validationAlerts';

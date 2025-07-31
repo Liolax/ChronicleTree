@@ -5,7 +5,7 @@ import Tabs from '../components/Layout/Tabs';
 import ProfileSettings from '../components/Settings/ProfileSettings';
 import PasswordSettings from '../components/Settings/PasswordSettings';
 import DeleteAccount from '../components/Settings/DeleteAccount';
-import SettingsLoader from '../components/UI/SettingsLoader';
+import { SettingsLoader } from '../components/UI/PageLoader';
 
 const tabs = [
   { name: 'Profile' },

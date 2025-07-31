@@ -1,1 +1,57 @@
-import React from 'react';\nimport { FaSpinner } from 'react-icons/fa';\n\nconst LoadingButton = ({ \n  children, \n  isLoading = false, \n  loadingText = 'Loading...', \n  variant = 'primary',\n  disabled = false,\n  className = '',\n  ...props \n}) => {\n  const baseClasses = 'px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 min-w-24';\n  \n  const variants = {\n    primary: 'bg-blue-500 hover:bg-blue-600 text-white disabled:bg-blue-300',\n    secondary: 'bg-gray-500 hover:bg-gray-600 text-white disabled:bg-gray-300',\n    success: 'bg-green-500 hover:bg-green-600 text-white disabled:bg-green-300',\n    danger: 'bg-red-500 hover:bg-red-600 text-white disabled:bg-red-300',\n    grey: 'bg-gray-200 hover:bg-gray-300 text-gray-700 disabled:bg-gray-100'\n  };\n\n  const variantClasses = variants[variant] || variants.primary;\n  const isDisabled = disabled || isLoading;\n\n  return (\n    <button\n      className={`${baseClasses} ${variantClasses} ${className} ${\n        isDisabled ? 'cursor-not-allowed opacity-75' : 'cursor-pointer'\n      }`}\n      disabled={isDisabled}\n      {...props}\n    >\n      {isLoading && (\n        <FaSpinner className=\"w-4 h-4 animate-spin\" />\n      )}\n      <span>{isLoading ? loadingText : children}</span>\n    </button>\n  );\n};\n\nexport default LoadingButton;\n
+import React from 'react';
+import { FaSpinner } from 'react-icons/fa';
+
+// Utility to combine classes
+const cn = (...inputs) => {
+  return inputs.filter(Boolean).join(' ');
+};
+
+// Button variant styles
+const buttonVariants = {
+  primary: 'bg-slate-900 text-slate-50 hover:bg-slate-900/90',
+  destructive: 'bg-red-500 text-slate-50 hover:bg-red-500/90',
+  outline: 'border border-slate-200 bg-transparent hover:bg-slate-100 hover:text-slate-900',
+  secondary: 'bg-slate-100 text-slate-900 hover:bg-slate-100/80',
+  ghost: 'hover:bg-slate-100 hover:text-slate-900',
+  link: 'text-slate-900 underline-offset-4 hover:underline',
+};
+
+const buttonSizes = {
+  default: 'h-10 px-4 py-2',
+  sm: 'h-9 rounded-md px-3',
+  lg: 'h-11 rounded-md px-8',
+  icon: 'h-10 w-10',
+};
+
+const LoadingButton = React.forwardRef(({ 
+  className, 
+  variant = 'primary', 
+  size = 'default', 
+  children, 
+  isLoading, 
+  loadingText = 'Loading...', 
+  ...props 
+}, ref) => {
+  const baseClasses = 'inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+  
+  return (
+    <button
+      className={cn(
+        baseClasses,
+        buttonVariants[variant],
+        buttonSizes[size],
+        className
+      )}
+      ref={ref}
+      disabled={isLoading}
+      {...props}
+    >
+      {isLoading && <FaSpinner className="mr-2 h-4 w-4 animate-spin" />}
+      {isLoading ? loadingText : children}
+    </button>
+  );
+});
+
+LoadingButton.displayName = 'LoadingButton';
+
+export default LoadingButton;

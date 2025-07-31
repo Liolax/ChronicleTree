@@ -18,8 +18,8 @@ import Button from '../UI/Button';
 import AddPersonModal from './modals/AddPersonModal';
 import EditPersonModal from './modals/EditPersonModal';
 import DeletePersonModal from '../UI/DeletePersonModal';
-import FamilyTreeLoader from '../UI/FamilyTreeLoader';
-import FamilyTreeError from '../UI/FamilyTreeError';
+import { FamilyTreeLoader } from '../UI/PageLoader';
+import Error from '../UI/Error';
 import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
 import CustomNode from './CustomNode';
@@ -271,7 +271,7 @@ const FamilyTree = () => {
   }
 
   if (isError) {
-    return <FamilyTreeError />;
+    return <Error title="Unable to Load Family Tree" message="We're having trouble connecting to your family data. Please check your connection and try again." />;
   }
 
   return (
