@@ -620,12 +620,15 @@ module ImageGeneration
       return label unless person.date_of_death.present?
       return label if label&.start_with?('Late ') # Don't add "Late" if it's already there
       
-      # Apply deceased spouse logic: only mark as "late" if only ONE spouse is deceased
+      # Only apply "Late" prefix to spouse relationships with perspective logic
       if is_spouse_relationship?(label)
         return label unless should_mark_as_late_spouse?(person, @root_person)
+        return "Late #{label}"
       end
       
-      "Late #{label}"
+      # For all other relationship types (parents, children, siblings, etc.), 
+      # don't add "Late" prefix - just return the original label
+      label
     end
     
     def is_spouse_relationship?(label)
