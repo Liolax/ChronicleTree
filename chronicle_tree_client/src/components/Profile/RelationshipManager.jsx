@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import RelationshipForm from '../Forms/RelationshipForm';
 import { createRelationship, deletePerson, getPerson, useToggleSpouseEx, useFullTree } from '../../services/people';
-import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
+import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit, FaQuestionCircle } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
 import { buildRelationshipMaps, calculateRelationshipToRoot, detectAnyBloodRelationship } from '../../utils/improvedRelationshipCalculator';
 import { showInfo } from '../../utils/sweetAlerts';
@@ -1504,11 +1504,11 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                 )}
                 {showAddButton && getSelectablePeople(type).length === 0 && (
                   <button
-                    className="bg-yellow-50 border border-yellow-300 rounded-full p-1 shadow hover:bg-yellow-100 text-yellow-600 text-xs ml-1"
+                    className="bg-blue-50 border border-blue-300 rounded-full p-2 shadow hover:bg-blue-100 text-blue-600 ml-1 transition-colors"
                     title="Why can't I add anyone? Click for details"
                     onClick={() => showFilteringAlert(type)}
                   >
-                    ?
+                    <FaQuestionCircle className="w-3 h-3" />
                   </button>
                 )}
               </div>

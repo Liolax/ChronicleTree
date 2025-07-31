@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../api/api';
-import { FaBookOpen, FaPen, FaSave, FaTimes } from 'react-icons/fa';
+import { FaBookOpen, FaPencilAlt, FaSave, FaTimes } from 'react-icons/fa';
 import Button from '../UI/Button';
 
 export default function Notes({ person, onNotesUpdated }) {
@@ -43,8 +43,13 @@ export default function Notes({ person, onNotesUpdated }) {
           <FaBookOpen className="text-blue-400" /> Notes & Stories
         </h2>
         {!editing && (
-          <button className="bg-white border border-gray-300 rounded-full p-2 shadow hover:bg-blue-100 text-blue-600 text-sm" onClick={handleEdit} title="Edit Notes">
-            <FaPen />
+          <button
+            className="w-9 h-9 flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-600 hover:bg-blue-100 hover:text-blue-800 shadow transition"
+            title="Edit Notes"
+            onClick={handleEdit}
+            aria-label="Edit Notes & Stories"
+          >
+            <FaPencilAlt className="text-lg" />
           </button>
         )}
       </div>
