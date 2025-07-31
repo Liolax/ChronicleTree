@@ -1,6 +1,31 @@
 
 # Summary of Step-Relationship Logic Review and Refinements
 
+## Latest Updates
+
+**2025-07-31: Deceased Person Marriage Validation**
+- **Problem**: Users could set deceased persons as alive even when their spouse had current marriages, creating multiple marriage conflicts
+- **Solution**: Added validation to EditPersonForm to prevent unchecking "deceased" status if it would create marriage conflicts
+- **Implementation**: 
+  - Added `marriageConflict` validation alert type
+  - Added `checkMarriageConflict()` function to detect spouse marriage conflicts
+  - Added checkbox validation and form submission prevention
+  - Files Modified: `EditPersonForm.jsx`, `validationAlerts.js`
+- **Business Rule**: Cannot set person as alive if their spouse currently has another active marriage
+
+**2025-07-31: Deceased Relationship Display Logic - Late Prefix Restrictions**
+- **Problem**: All deceased family members showed "Late" prefixes regardless of relationship type
+- **Solution**: Restricted "Late" prefix to spouse relationships only with perspective-based logic
+- **Implementation**:
+  - Updated `TreeSnippetGenerator.add_deceased_prefix()` to only apply to spouses
+  - Updated `UnifiedRelationshipCalculator.format_relationship_label()` with perspective logic
+  - Fixed all image generation services (ProfileCardGenerator, TreeSnippetGenerator)
+- **Business Rules**:
+  - Parents: Always "Father/Mother" (never "Late Father/Mother")
+  - Children: Always "Son/Daughter" (never "Late Son/Daughter") 
+  - Siblings: Always "Brother/Sister" (never "Late Brother/Sister")
+  - Spouses: Use perspective logic - living sees deceased as "Late", deceased sees living as normal
+
 OK Analyzed Scenarios and Current Logic
 
 **Basic Scenario: Step-Grandmother**

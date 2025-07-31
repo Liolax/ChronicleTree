@@ -20,6 +20,8 @@ export const showValidationAlert = (type, details = {}) => {
     
     maxSpouse: `${targetName || 'This person'} already has a current spouse. A person can only have one spouse at a time. You may need to mark the existing marriage as ended first.`,
     
+    marriageConflict: `Cannot set this person as alive because their spouse ${details.spouseName} currently has another active marriage. This would create multiple current marriages for the same person, which is not allowed.`,
+    
     timeline: 'Birth and death dates must be in the correct order. Please check that the birth date comes before the death date.',
     
     missingData: 'Birth date is required when adding marriage relationships. Please add the birth date first.',
@@ -44,6 +46,8 @@ export const showValidationAlert = (type, details = {}) => {
     showWarning('Parent Limit Warning', message);
   } else if (type === 'maxSpouse') {
     showWarning('Multiple Spouse Warning', message);
+  } else if (type === 'marriageConflict') {
+    showWarning('Marriage Conflict Warning', message);
   } else if (type === 'bloodRelatives') {
     showWarning('Blood Relationship Warning', message);
   } else if (type === 'siblingConstraint') {

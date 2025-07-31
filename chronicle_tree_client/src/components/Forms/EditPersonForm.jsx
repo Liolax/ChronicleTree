@@ -35,6 +35,39 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
 
   const isDeceased = watch('isDeceased');
 
+  // Check if setting person as alive would create marriage conflict
+  const checkMarriageConflict = () => {
+    if (!detailedPerson?.relatives || !treeData?.edges) {
+      return { hasConflict: false };
+    }
+
+    // Find current spouses of this person
+    const currentSpouses = detailedPerson.relatives.filter(rel => 
+      rel.relationship_type === 'spouse' && !rel.is_ex
+    );
+
+    for (const spouse of currentSpouses) {
+      // Check if this spouse has other current marriages (excluding the one with this person)
+      const spouseOtherMarriages = treeData.edges.filter(edge => 
+        (edge.source === spouse.id || edge.target === spouse.id) &&
+        (edge.type === 'spouse' || edge.relationship_type === 'spouse') &&
+        !edge.is_ex &&
+        edge.source !== person.id &&
+        edge.target !== person.id
+      );
+
+      if (spouseOtherMarriages.length > 0) {
+        return {
+          hasConflict: true,
+          spouseName: `${spouse.first_name} ${spouse.last_name}`,
+          conflictCount: spouseOtherMarriages.length
+        };
+      }
+    }
+
+    return { hasConflict: false };
+  };
+
   // Enhanced blood relationship detection for validation
   const detectBloodRelationship = (person1Id, person2Id) => {
     if (!treeData?.nodes || !treeData?.edges) {
@@ -83,6 +116,17 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
   }, [isDeceased, reset]);
 
   const onSubmit = (data) => {
+    // Final check for marriage conflicts before saving
+    if (person?.date_of_death && !data.isDeceased) {
+      const conflict = checkMarriageConflict();
+      if (conflict.hasConflict) {
+        showValidationAlert('marriageConflict', { 
+          spouseName: conflict.spouseName 
+        });
+        return; // Prevent form submission
+      }
+    }
+    
     onSave(data);
   };
 
@@ -200,10 +244,29 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
         <input
           id="isDeceased"
           type="checkbox"
-          {...register('isDeceased')}
+          {...register('isDeceased', {
+            validate: value => {
+              // If person was originally deceased and is being set as alive, check for conflicts
+              if (person?.date_of_death && !value) {
+                const conflict = checkMarriageConflict();
+                if (conflict.hasConflict) {
+                  setTimeout(() => {
+                    showValidationAlert('marriageConflict', { 
+                      spouseName: conflict.spouseName 
+                    });
+                  }, 100);
+                  return `Cannot set as alive - spouse ${conflict.spouseName} has another current marriage`;
+                }
+              }
+              return true;
+            }
+          })}
           className="h-4 w-4 rounded mr-2"
         />
         <label htmlFor="isDeceased" className="text-sm">Deceased</label>
+        {errors.isDeceased && (
+          <span className="text-red-500 text-xs ml-2">{errors.isDeceased.message}</span>
+        )}
       </div>
       <Input
         label="Death Date"
