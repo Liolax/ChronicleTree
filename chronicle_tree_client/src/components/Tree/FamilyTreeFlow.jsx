@@ -18,6 +18,8 @@ import Button from '../UI/Button';
 import AddPersonModal from './modals/AddPersonModal';
 import EditPersonModal from './modals/EditPersonModal';
 import DeletePersonModal from '../UI/DeletePersonModal';
+import FamilyTreeLoader from '../UI/FamilyTreeLoader';
+import FamilyTreeError from '../UI/FamilyTreeError';
 import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
 import CustomNode from './CustomNode';
@@ -28,17 +30,14 @@ import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalcu
 import { ShareModal } from '../Share';
 // import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
-// Register our custom node components with ReactFlow
+// Custom node types for the tree
 const nodeTypes = {
   custom: CustomNode,
   personCard: PersonCardNode,
 };
 
-/**
- * Main Family Tree Component - Primary Interface
- * Built with ReactFlow library for interactive, draggable tree visualization
- * Manages user interactions, data processing, and modal states
- */
+// Main family tree component
+// Uses ReactFlow to show the family tree with drag and drop
 const FamilyTree = () => {
   const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
@@ -56,17 +55,17 @@ const FamilyTree = () => {
   const { data, isLoading, isError } = useFullTree(rootPersonId);
 
 
-  // Main data processing - build the tree structure
+  // Process the family data to build tree
   const processedData = useMemo(() => {
     if (!data) return { nodes: [], edges: [] };
 
-    // Smart default: pick oldest person as root if user hasn't chosen one
+    // Use oldest person as root by default
     if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
       setRootPersonId(data.oldest_person_id);
       setHasSetDefaultRoot(true);
     }
 
-    // Filter data to only show people connected to the selected root person
+    // Only show family members connected to root person
     let filteredNodes = data.nodes;
     let filteredEdges = data.edges;
     if (rootPersonId) {
@@ -75,13 +74,13 @@ const FamilyTree = () => {
       filteredEdges = result.relationships;
     }
 
-    // Calculate how everyone is related to the root person
+    // Figure out relationships to root person
     const rootPerson = rootPersonId
       ? filteredNodes.find(n => n.id === rootPersonId)
       : null;
     
     
-    // Convert edges to relationship format that the algorithm expects
+    // Convert edges to format needed by relationship calculator
     const relationshipsFormat = filteredEdges.map(edge => ({
       person_id: edge.source,
       relative_id: edge.target,
@@ -98,7 +97,7 @@ const FamilyTree = () => {
     
     
 
-    // Hide distant/unrelated people if user turned off that setting
+    // Hide unrelated people if setting is off
     const finalNodes = showUnrelated 
       ? peopleWithRelations 
       : peopleWithRelations.filter(node => node.relation !== 'Unrelated');
@@ -110,7 +109,7 @@ const FamilyTree = () => {
   }, [data, rootPersonId, hasSetDefaultRoot, showUnrelated]);
 
 
-  // Utility function to organize relationships for delete confirmation
+  // Group relatives by type for delete modal
   const groupRelatives = useCallback((person) => {
     const groups = { Parents: [], Children: [], Spouses: [], Siblings: [] };
     if (person?.relatives) {
@@ -124,9 +123,9 @@ const FamilyTree = () => {
     return groups;
   }, []);
 
-  // User interaction event handlers
+  // Functions to handle user clicks and actions
   const handleEditPerson = useCallback((person) => {
-    setSelectedPerson(null); // Close person card when editing
+    setSelectedPerson(null); // Close card first
     setPersonCardPosition(null);
     setEditPerson(person);
   }, []);
@@ -136,7 +135,7 @@ const FamilyTree = () => {
   }, []);
 
   const openAddPersonModal = useCallback(() => {
-    setSelectedPerson(null); // Close person card when adding
+    setSelectedPerson(null); // Close card first
     setPersonCardPosition(null);
     setAddPersonModalOpen(true);
   }, []);
@@ -161,7 +160,7 @@ const FamilyTree = () => {
   }, []);
 
   const handleDeletePerson = useCallback((person) => {
-    setSelectedPerson(null); // Close person card when delete modal opens
+    setSelectedPerson(null); // Close card first
     setPersonCardPosition(null);
     setDeleteTarget(person);
   }, []);
@@ -176,7 +175,7 @@ const FamilyTree = () => {
   }, []);
 
   const handleShareTree = useCallback(() => {
-    setSelectedPerson(null); // Close person card when share modal opens
+    setSelectedPerson(null); // Close card first
     setPersonCardPosition(null);
     setShowShareModal(true);
   }, []);
@@ -185,7 +184,7 @@ const FamilyTree = () => {
     setShowShareModal(false);
   }, []);
 
-  // Transform data for react-flow
+  // Set up data for ReactFlow
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!processedData.nodes.length) return { nodes: [], edges: [] };
     return createFamilyTreeLayout(processedData.nodes, processedData.edges, {
@@ -200,7 +199,7 @@ const FamilyTree = () => {
   const [nodes, setNodes, onNodesChange] = useNodesState(layoutedNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(layoutedEdges);
 
-  // Update nodes and edges when data changes
+  // Update tree when data changes
   React.useEffect(() => {
     setNodes(layoutedNodes);
   }, [layoutedNodes, setNodes]);
@@ -209,15 +208,15 @@ const FamilyTree = () => {
     setEdges(layoutedEdges);
   }, [layoutedEdges, setEdges]);
 
-  // Auto-fit the tree view when nodes change (new tree data loaded)
+  // Auto-fit tree when new data loads
   React.useEffect(() => {
     if (layoutedNodes.length > 0) {
-      // Small delay to ensure nodes are rendered before fitting
+      // Wait a bit for nodes to render
       const timer = setTimeout(() => {
-        // Get fitView from ReactFlow context if available
+        // Try to get ReactFlow instance
         const reactFlowInstance = document.querySelector('.react-flow');
         if (reactFlowInstance) {
-          // Dispatch a custom event that the FitViewButton can listen to
+          // Send event to fit view button
           const event = new CustomEvent('autoFitTree');
           reactFlowInstance.dispatchEvent(event);
         }
@@ -227,12 +226,12 @@ const FamilyTree = () => {
     }
   }, [layoutedNodes.length]);
 
-  // Fit view button component
+  // Button to fit tree in view
   const FitViewButton = () => {
     const { fitView } = useReactFlow();
 
     const handleFitView = useCallback(() => {
-      // Increase right padding to prevent legend overlap
+      // Add padding so legend doesn't overlap
       fitView({
         padding: {
           top: 50,
@@ -246,7 +245,7 @@ const FamilyTree = () => {
       });
     }, [fitView]);
 
-    // Auto-fit when tree data changes
+    // Auto-fit when data changes
     React.useEffect(() => {
       const reactFlowElement = document.querySelector('.react-flow');
       if (reactFlowElement) {
@@ -266,27 +265,19 @@ const FamilyTree = () => {
     );
   };
 
-  // Loading and error states
+  // Show loading or error messages
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-lg">Loading family tree...</div>
-      </div>
-    );
+    return <FamilyTreeLoader />;
   }
 
   if (isError) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-lg text-red-600">Error loading family tree</div>
-      </div>
-    );
+    return <FamilyTreeError />;
   }
 
   return (
     <ReactFlowProvider>
       <div className="w-full h-screen bg-gray-50">
-        {/* Header Controls */}
+        {/* Top buttons */}
         <div className="flex justify-between items-center p-4 bg-white border-b">
           <div className="flex gap-4 items-center">
             <Button onClick={openAddPersonModal} variant="primary">
@@ -330,7 +321,7 @@ const FamilyTree = () => {
           </div>
         </div>
 
-        {/* React Flow Container */}
+        {/* Tree container */}
         <div className="h-[calc(100vh-80px)]">
           <ReactFlow
             nodes={nodes}
@@ -349,7 +340,7 @@ const FamilyTree = () => {
             defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
             attributionPosition="bottom-left"
           >
-            {/* Background */}
+            {/* Grid background */}
             <Background 
               variant="dots" 
               gap={20} 
@@ -357,7 +348,7 @@ const FamilyTree = () => {
               color="#e5e7eb" 
             />
             
-            {/* Mini Map */}
+            {/* Small overview map */}
             <MiniMap
               nodeColor={(node) => {
                 const gender = node.data?.person?.gender?.toLowerCase();
@@ -374,13 +365,13 @@ const FamilyTree = () => {
               position="bottom-right"
             />
             
-            {/* Controls */}
+            {/* Zoom controls */}
             <Controls 
               position="bottom-left"
               showInteractive={false}
             />
 
-            {/* Info Panel */}
+            {/* Legend panel */}
             <Panel position="top-right" className="bg-white p-3 rounded-lg shadow-lg">
               <div className="text-sm">
                 <div className="font-semibold text-gray-700 mb-3">Connection Legend</div>
@@ -419,7 +410,7 @@ const FamilyTree = () => {
           </ReactFlow>
         </div>
 
-        {/* Person Detail Card */}
+        {/* Person info card */}
         {selectedPerson && (
           <PersonCard
             person={selectedPerson}
@@ -438,7 +429,7 @@ const FamilyTree = () => {
           shareType="tree"
         />
 
-        {/* Modals */}
+        {/* Pop-up windows */}
         {isAddPersonModalOpen && (
           <AddPersonModal 
             isOpen={isAddPersonModalOpen} 
@@ -460,7 +451,7 @@ const FamilyTree = () => {
             person={deleteTarget} 
             relationships={groupRelatives(deleteTarget)}
             onConfirm={() => {
-              // Handle delete logic with proper API call
+              // Delete person from database
               deletePerson.mutate(deleteTarget.id, {
                 onSuccess: () => {
                   queryClient.invalidateQueries({ queryKey: ['tree'] });
@@ -469,7 +460,7 @@ const FamilyTree = () => {
                   setSelectedPerson(null); // Close person card if open
                 },
                 onError: () => {
-                  // Keep modal open on error so user can retry
+                  // Keep modal open if error happens
                 }
               });
             }} 

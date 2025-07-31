@@ -37,7 +37,7 @@ export const showValidationAlert = (type, details = {}) => {
 
   const message = alerts[type] || 'Please check the information and try again.';
   
-  // Show specific warnings for relationship/age appropriateness issues
+  // Show warnings for relationship and age problems
   if (type === 'marriageAge') {
     showWarning('Marriage Age Warning', message);
   } else if (type === 'ageDifference') {
@@ -55,19 +55,19 @@ export const showValidationAlert = (type, details = {}) => {
   } else if (type === 'timeline' || type === 'temporalError') {
     showWarning('Timeline Warning', message);
   } else if (type === 'invalidRelationship') {
-    // Use custom message from details if provided, otherwise use default
+    // Use custom message if we have one
     const customMessage = details?.message || message;
     showWarning('Relationship Warning', customMessage);
   } else {
-    // System validation errors (missing data, invalid input, etc.)
+    // Basic validation errors
     showError('Input Error', message);
   }
 };
 
-// Quick validation helpers
+// Helper functions for validation
 export const validateMarriageAge = (person1, person2) => {
   if (!person1?.date_of_birth || !person2?.date_of_birth) {
-    return { valid: true }; // Allow if birth dates are missing - not a marriage age issue
+    return { valid: true }; // OK if no birth dates
   }
   
   const currentDate = new Date();
@@ -93,9 +93,9 @@ export const validateMarriageAge = (person1, person2) => {
   return { valid: true };
 };
 
-// Helper function to parse backend error and show appropriate alert
+// Handle errors from the server
 export const handleBackendError = (error) => {
-  // Handle network errors
+  // Check for connection problems
   if (!error?.response) {
     if (error?.message?.includes('Network Error')) {
       showError('Connection Problem', 'Please check your internet connection and try again.');
@@ -105,7 +105,7 @@ export const handleBackendError = (error) => {
     return;
   }
 
-  // Handle different HTTP status codes
+  // Handle different error types
   if (error.response?.status === 401) {
     showWarning('Session Expired', 'Your session has expired. Please log in again.');
     return;
@@ -121,7 +121,7 @@ export const handleBackendError = (error) => {
     return;
   }
   
-  // Special handling for 422 validation errors - check for marriage age issues first
+  // Handle validation errors from server
   if (error.response?.status === 422) {
     const errorData = error?.response?.data;
     const errorMsg = errorData?.errors?.[0] || errorData?.message || errorData?.exception || error?.message || '';
@@ -133,7 +133,7 @@ export const handleBackendError = (error) => {
     // Check what type of validation error this is
     const lowerErrorMsg = errorMsg.toLowerCase();
     
-    // Multiple spouse errors
+    // Check for multiple spouse errors
     if (lowerErrorMsg.includes('current spouse') || lowerErrorMsg.includes('only have one spouse') || 
         lowerErrorMsg.includes('already has a spouse')) {
       console.log('✓ Detected as multiple spouse error');
@@ -142,7 +142,7 @@ export const handleBackendError = (error) => {
       return;
     }
     
-    // Marriage age errors (for spouse relationships)
+    // Check for marriage age errors
     if ((lowerErrorMsg.includes('marriage') && (lowerErrorMsg.includes('minimum') || lowerErrorMsg.includes('16'))) ||
         lowerErrorMsg.includes('marriage age')) {
       console.log('✓ Detected as marriage age error');
@@ -151,7 +151,7 @@ export const handleBackendError = (error) => {
       return;
     }
     
-    // Parent-child age difference errors
+    // Check parent-child age problems
     if ((lowerErrorMsg.includes('years older') || lowerErrorMsg.includes('age difference')) ||
         (lowerErrorMsg.includes('parent') && lowerErrorMsg.includes('child') && lowerErrorMsg.includes('years'))) {
       console.log('✓ Detected as parent-child age error');
@@ -160,7 +160,7 @@ export const handleBackendError = (error) => {
       return;
     }
     
-    // Blood relationship errors
+    // Check for blood relationship problems
     if (lowerErrorMsg.includes('blood relative') || lowerErrorMsg.includes('incestuous')) {
       console.log('✓ Detected as blood relationship error');
       console.log('Error message was:', errorMsg);
@@ -168,7 +168,7 @@ export const handleBackendError = (error) => {
       return;
     }
     
-    // True age-related errors (only if they actually mention age AND don't match above categories)
+    // Check for other age-related errors
     if ((lowerErrorMsg.includes('age') || lowerErrorMsg.includes('young') || lowerErrorMsg.includes('old')) &&
         !lowerErrorMsg.includes('spouse') && !lowerErrorMsg.includes('marriage')) {
       console.log('✓ Detected as true age error');
@@ -193,8 +193,8 @@ export const handleBackendError = (error) => {
     return;
   }
   
-  // Match error patterns and show appropriate alerts - order matters!
-  // For detailed backend messages, show them directly
+  // Check error message and show right alert
+  // Show detailed messages from server
   if (errorMsg.includes('already has a current spouse') || 
       errorMsg.includes('already has 2 biological parents') ||
       errorMsg.includes('years YOUNGER than') ||
@@ -213,7 +213,7 @@ export const handleBackendError = (error) => {
       errorMsg.includes('Cannot add sibling relationship') ||
       errorMsg.includes('born after parent\'s death') ||
       errorMsg.includes('Only spouse relationships can be')) {
-    // These are detailed, user-friendly messages from backend - show them directly
+    // These are good messages from server
     showError('Error', errorMsg);
   } else if (errorMsg.includes('marriage age') || 
              errorMsg.includes('16 years') || 
@@ -246,12 +246,12 @@ export const handleBackendError = (error) => {
   } else if (errorMsg.includes('internal server error') || errorMsg.includes('500')) {
     showError('Server Error', 'Something went wrong on our end. Please try again in a moment, or contact support if the problem continues.');
   } else {
-    // Check if this might be a marriage age error we missed
+    // Check if this is about marriage age
     if (errorMsg.toLowerCase().includes('age') || errorMsg.includes('16') || errorMsg.toLowerCase().includes('marriage')) {
       console.log('Potential marriage age error:', errorMsg);
       showWarning('Age Validation', errorMsg);
     } else {
-      // Show the actual error message if it doesn't match our patterns
+      // Show the error message if we don't recognize it
       showError('Error', errorMsg);
     }
   }
@@ -259,7 +259,7 @@ export const handleBackendError = (error) => {
 
 export const validateParentChildAge = (parent, child) => {
   if (!parent?.date_of_birth || !child?.date_of_birth) {
-    return { valid: true }; // Allow if dates missing for non-spouse relationships
+    return { valid: true }; // OK if no dates for non-spouse
   }
   
   const parentBirth = new Date(parent.date_of_birth);
@@ -273,7 +273,7 @@ export const validateParentChildAge = (parent, child) => {
   return { valid: true };
 };
 
-// Centralized alert functions for all app notifications
+// Functions to show different types of alerts
 export const showFileError = (type, details = {}) => {
   const messages = {
     invalidType: 'Only JPG, PNG, or GIF images are allowed.',
@@ -326,7 +326,7 @@ export const showFormError = (type, person = {}, child = {}, parent = {}) => {
     deathDateError: `The death date would be before the birth of ${person.first_name} ${person.last_name}'s child ${child.first_name} ${child.last_name}. A parent cannot die before their child is born.`
   };
   
-  // Age-related warnings (appropriateness issues, not system errors)
+  // Age warnings (not system errors)
   if (type === 'marriageAge') {
     showWarning('Marriage Age Warning', messages[type] || 'Please check the age requirements.');
   } else if (type === 'siblingAgeGap') {

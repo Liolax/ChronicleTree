@@ -5,6 +5,7 @@ import Tabs from '../components/Layout/Tabs';
 import ProfileSettings from '../components/Settings/ProfileSettings';
 import PasswordSettings from '../components/Settings/PasswordSettings';
 import DeleteAccount from '../components/Settings/DeleteAccount';
+import SettingsLoader from '../components/UI/SettingsLoader';
 
 const tabs = [
   { name: 'Profile' },
@@ -16,7 +17,7 @@ export default function Settings() {
   const { data: user, isLoading: loadingUser } = useCurrentUser();
   const [activeTab, setActiveTab] = useState(tabs[0].name);
 
-  if (loadingUser) return <p>Loading...</p>;
+  if (loadingUser) return <SettingsLoader />;
 
   return (
     <>

@@ -79,8 +79,8 @@ module ImageGeneration
     
     def calculate_dynamic_height
       # Enhanced header height to include facts
-      enhanced_header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
-      base_height = enhanced_header_height + FOOTER_HEIGHT + 40  # Header + Footer + margins
+      header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
+      base_height = header_height + FOOTER_HEIGHT + 40  # Header + Footer + margins
       
       # Two-column layout: take the maximum height of the two columns
       relationships_height = @content_sections[:relationships][:height] || 0
@@ -131,7 +131,7 @@ module ImageGeneration
         <rect x="40" y="40" width="#{CANVAS_WIDTH-80}" height="#{height-80}" fill="#{COLORS[:card_bg]}" stroke="#{COLORS[:accent]}" stroke-width="3" rx="20"/>
         
         <!-- Enhanced Profile Header with Key Facts -->
-        #{enhanced_header_svg}
+        #{header_svg}
         
         <!-- Two Column Layout -->
         #{two_column_content_svg}
@@ -146,7 +146,7 @@ module ImageGeneration
     
     private
     
-    def enhanced_header_svg
+    def header_svg
       header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
       content = ""
       
@@ -237,7 +237,7 @@ module ImageGeneration
     
     def two_column_content_svg
       content = ""
-      column_start_y = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0) + 80  # After enhanced header
+      column_start_y = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0) + 80  # After header
       
       # Left column: Relationships
       content += relationships_column_svg(column_start_y)
@@ -601,7 +601,7 @@ module ImageGeneration
       calculator = UnifiedRelationshipCalculator.new(@person.user)
       relationship_data = calculator.calculate_relationships_for_person(@person)
       
-      # Get comprehensive relationship statistics that include step-relationships
+      # Get relationship stats including step-relationships
       stats = relationship_data[:stats]
       
       if @include_step_relationships
@@ -770,7 +770,7 @@ module ImageGeneration
       facts = @person.facts.limit(max_facts)
       
       if facts.any?
-        # Facts section header with enhanced styling
+        # Facts section header
         content += %{<rect x="80" y="#{y_start-5}" width="#{CANVAS_WIDTH-160}" height="35" fill="#{COLORS[:primary]}" rx="8"/>}
         content += %{<text x="#{CANVAS_WIDTH/2}" y="#{y_start+20}" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#{COLORS[:text_light]}">Key Facts</text>}
         
@@ -806,7 +806,7 @@ module ImageGeneration
           max_chars = get_max_chars_for_column_width(column_width - 30)
           fact_text = fact_text.length > max_chars ? "#{fact_text[0...max_chars-3]}..." : fact_text
           
-          # Fact bullet and text with enhanced styling
+          # Fact bullet and text
           content += %{<circle cx="#{x_pos}" cy="#{y_pos - 5}" r="3" fill="#{COLORS[:accent]}"/>}
           content += %{<text x="#{x_pos + 15}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="14" font-weight="500" fill="#{COLORS[:text_primary]}">#{escape_xml(fact_text)}</text>}
           
@@ -1289,8 +1289,8 @@ module ImageGeneration
     
     def get_section_y_position(section_name)
       # No longer needed - positioning is handled in the new two-column layout methods
-      enhanced_header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
-      enhanced_header_height + 80  # After enhanced header + margin
+      header_height = HEADER_HEIGHT + (@content_sections[:header_facts][:height] || 0)
+      header_height + 80  # After header + margin
     end
     
     def calculate_max_items_for_space(available_height, item_height)

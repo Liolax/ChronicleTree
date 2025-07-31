@@ -48,7 +48,7 @@ class Api::V1::SharesController < Api::V1::BaseController
   end
 
   def generate_tree_share_content(share_params)
-    # Processes family tree data for social media sharing
+    # Prepare family tree data for sharing
     if share_params[:content_id].present?
       # Root person specified
       person = current_user.people.find(share_params[:content_id])
@@ -60,7 +60,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description = "Discover our complete family tree with #{current_user.people.count} family members across multiple generations! 🌳"
     end
     
-    # Enriches content with genealogical statistics and timeline data
+    # Add family stats and timeline info
     generations = calculate_tree_generations
     oldest_person = current_user.people.where.not(date_of_birth: nil).order(:date_of_birth).first
     youngest_person = current_user.people.where.not(date_of_birth: nil).order(date_of_birth: :desc).first
@@ -96,7 +96,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description += " (born #{birth_year})"
     end
     
-    # Integrates family relationship data for comprehensive context
+    # Add family relationship info
     relationships = []
     relationships << "#{person.children.count} children" if person.children.any?
     relationships << "#{person.parents.count} parents" if person.parents.any?
@@ -142,7 +142,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description += " - part of our family tree."
     end
     
-    # Incorporates biographical facts for enhanced profile content
+    # Add biographical facts if available
     if person.facts.any?
       key_facts = person.facts.limit(2).pluck(:description).join(', ')
       description += " Key facts: #{key_facts}."

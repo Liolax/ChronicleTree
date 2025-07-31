@@ -214,9 +214,9 @@ class UnifiedRelationshipCalculator
   end
   
   def calculate_relationship_between(person1, person2)
-    # This implements the same relationship calculation
-    # as the frontend improvedRelationshipCalculator.js
-    # For now, return a basic implementation that can be expanded
+    # Calculate relationship between two people
+    # Uses same logic as frontend calculator
+    # Basic implementation for now
     
     # Check direct relationships first - prioritize person1 as source
     direct_rel = @relationships_data.find do |rel|

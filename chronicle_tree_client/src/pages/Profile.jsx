@@ -12,6 +12,7 @@ import api from '../api/api';
 import Notes from '../components/Profile/Notes';
 import ProfileDetails from '../components/Profile/ProfileDetails';
 import DeletePersonModal from '../components/UI/DeletePersonModal';
+import ProfileLoader from '../components/UI/ProfileLoader';
 import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
 import { ShareModal } from '../components/Share';
 import { showFileError, showOperationError, showOperationSuccess } from '../utils/validationAlerts';
@@ -54,11 +55,7 @@ export default function Profile() {
     }
   }, [person]);
 
-  if (isLoading) return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', width: '100%' }}>
-      <p className="text-lg">Loading profile...</p>
-    </div>
-  );
+  if (isLoading) return <ProfileLoader />;
   if (!person) return <p className="text-center text-gray-500">Person not found.</p>;
 
   // Helper for age

@@ -492,14 +492,14 @@ const getDirectRelationship = (personId, rootId, relationshipMaps, allPeople) =>
   }
   
   // Check if person is in spouseMap but either person is deceased - treat as ex-spouse
-  // This handles cases where someone was incorrectly added as current spouse to a deceased person
+  // Fix issue where deceased person marked as current spouse
   if (spouseMap.has(rootId) && spouseMap.get(rootId).has(personId)) {
     const rootPerson = allPeople.find(p => String(p.id) === String(rootId));
     const person = allPeople.find(p => String(p.id) === String(personId));
     
     if ((rootPerson && (rootPerson.date_of_death || rootPerson.is_deceased)) || 
         (person && (person.date_of_death || person.is_deceased))) {
-      // Treat posthumous or deceased spouse relationships as ex-spouse
+      // Treat deceased spouse as ex-spouse
       return getGenderSpecificRelation(personId, 'Ex-Husband', 'Ex-Wife', allPeople, 'Ex-Spouse');
     }
   }
@@ -635,12 +635,12 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
   
   // Relationship maps debugging removed for cleaner output
   
-  // Timeline validation: Prevent step-relationships if the connecting person died before the other person was born.
-  // This ensures that step-family links are only created when both people could have actually interacted.
+  // Timeline check: Don't create step-relationships if connecting person died before other person was born.
+  // Only create step-family links if people could have met.
   
   
   if (personObj && rootObj) {
-    // Check all deceased spouses in the system to see if they create invalid timeline connections
+    // Check deceased spouses for timeline problems
     for (const [, deceasedSpouses] of deceasedSpouseMap) {
       for (const deceasedSpouse of deceasedSpouses) {
         const deceasedPerson = allPeople.find(p => String(p.id) === String(deceasedSpouse));
@@ -936,10 +936,10 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
 const findGenerationalCousinRelationship = (personId, rootId, childToParents, siblingMap) => {
   
   
-  // Maximum generations to check (prevents infinite loops and handles practical family tree depth)
+  // Max generations to check (prevent infinite loops)
   const MAX_GENERATIONS = 10;
   
-  // Build ancestor chains for both person and root
+  // Get ancestor chains for both people
   const personAncestorChains = buildAncestorChains(personId, childToParents, MAX_GENERATIONS);
   const rootAncestorChains = buildAncestorChains(rootId, childToParents, MAX_GENERATIONS);
   
