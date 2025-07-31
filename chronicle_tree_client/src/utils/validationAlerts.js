@@ -1,4 +1,4 @@
-// Family tree validation system - ensures data integrity
+// Validation alerts for family tree forms
 
 export const showValidationAlert = (type, details = {}) => {
   const { personName, targetName, age, relationship } = details;

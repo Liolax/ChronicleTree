@@ -28,7 +28,7 @@ class TestMichaelTreeGenerator < ImageGeneration::TreeSnippetGenerator
     generation_minus_1 = find_people_in_generation(-1)
     puts "People in Generation -1 (Parents): #{generation_minus_1.map(&:full_name)}"
     
-    puts "John included in Michael's Generation -1: #{generation_minus_1.include?(john) ? '✅' : '❌'}"
+    puts "John included in Michael's Generation -1: #{generation_minus_1.include?(john) ? 'SUCCESS:' : 'ERROR:'}"
   end
 end
 
@@ -36,7 +36,7 @@ begin
   test_generator = TestMichaelTreeGenerator.new
   test_generator.test_john_relationship
 rescue => e
-  puts "❌ Error testing tree generator: #{e.message}"
+  puts "ERROR: Error testing tree generator: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(3)}"
 end
 
@@ -52,7 +52,7 @@ begin
   
   if response.code == '200'
     data = JSON.parse(response.body)
-    puts "✅ Tree sharing API successful for Michael"
+    puts "SUCCESS: Tree sharing API successful for Michael"
     puts "Description: #{data['description']}"
     
     # Check if John appears in the description (he might not be mentioned by name)
@@ -60,14 +60,14 @@ begin
     puts "Image URL: #{data['image_url']}"
     
   else
-    puts "❌ Failed to fetch Michael's tree share: #{response.code} - #{response.body}"
+    puts "ERROR: Failed to fetch Michael's tree share: #{response.code} - #{response.body}"
   end
 rescue => e
-  puts "❌ Error fetching Michael's tree share: #{e.message}"
+  puts "ERROR: Error fetching Michael's tree share: #{e.message}"
 end
 
 puts "\n=== Summary ==="
-puts "✅ John-Michael parent-child relationship restored"
-puts "✅ Michael is now Alice's half-brother (correct per seeds)"
-puts "✅ John should appear as 'Father' in Michael's tree, not 'Unrelated'"
-puts "✅ Alice's profile sharing will show Michael as 'Brother' (half-brother, which is correct)"
+puts "SUCCESS: John-Michael parent-child relationship restored"
+puts "SUCCESS: Michael is now Alice's half-brother (correct per seeds)"
+puts "SUCCESS: John should appear as 'Father' in Michael's tree, not 'Unrelated'"
+puts "SUCCESS: Alice's profile sharing will show Michael as 'Brother' (half-brother, which is correct)"

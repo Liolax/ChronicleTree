@@ -36,14 +36,14 @@ if response.code == '200'
       file_size = File.size(full_path)
       puts "Image file size: #{file_size} bytes"
     else
-      puts "❌ Image file does not exist"
+      puts "ERROR: Image file does not exist"
     end
   else
-    puts "❌ No image path returned"
+    puts "ERROR: No image path returned"
   end
   
 else
-  puts "❌ Failed to fetch profile share: #{response.code}"
+  puts "ERROR: Failed to fetch profile share: #{response.code}"
   puts "Response body: #{response.body}"
 end
 
@@ -62,7 +62,7 @@ begin
   end
   
 rescue => e
-  puts "❌ Error with ProfileCardGenerator: #{e.message}"
+  puts "ERROR: Error with ProfileCardGenerator: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(5)}"
 end
 
@@ -108,7 +108,7 @@ class TestProfileGenerator < ImageGeneration::ProfileCardGenerator
     step_relations.each { |rel| puts "  - #{rel}" }
     
     if step_relations.empty?
-      puts "❌ No step-relationships found in profile!"
+      puts "ERROR: No step-relationships found in profile!"
     else
       puts "✓ Step-relationships are included"
     end
@@ -121,6 +121,6 @@ begin
   test_profile_gen = TestProfileGenerator.new
   test_profile_gen.test_family_relationships(alice)
 rescue => e
-  puts "❌ Error testing profile relationships: #{e.message}"
+  puts "ERROR: Error testing profile relationships: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(3)}"
 end

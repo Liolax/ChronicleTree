@@ -17,11 +17,11 @@ export default function PageHeader({ title, subtitle, fixed = false, compact = f
     );
   }
 
-  // Dynamic CSS class generation based on fixed positioning requirements
+  // Generate CSS classes for header positioning
   const headerClass = fixed
     ? `bg-white shadow-sm${noMargin ? '' : ' mb-6'} fixed top-0 left-0 w-full z-30`
     : `bg-white shadow-sm${noMargin ? '' : ' mb-6'}`;
-  // Responsive padding adjustment to prevent content crowding in edge cases
+  // Adjust padding for different screen sizes
   const innerClass = noMargin
     ? 'w-full py-2 px-8 sm:px-16 lg:px-32'
     : 'max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8';

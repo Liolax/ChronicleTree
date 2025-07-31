@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Unified relationship calculation service that provides the same logic as the frontend
-# improvedRelationshipCalculator.js to ensure consistency between main app and share images
+# Calculates relationships between people for share images
+# Uses same logic as frontend relationship calculator
 class UnifiedRelationshipCalculator
   def initialize(user)
     @user = user
@@ -9,11 +9,11 @@ class UnifiedRelationshipCalculator
     @relationships_data = build_relationships_data
   end
 
-  # Main method to calculate relationships for a person (matches frontend API)
+  # Calculate relationships for a person
   def calculate_relationships_for_person(person)
     person_id = person.id
     
-    # Build the same data structure as frontend improvedRelationshipCalculator.js
+    # Build data structure like frontend calculator
     results = {
       person: person,
       relationships: {},
@@ -36,7 +36,7 @@ class UnifiedRelationshipCalculator
     results
   end
   
-  # Calculate comprehensive relationship statistics (matches frontend)
+  # Count different types of relationships
   def calculate_relationship_statistics(person)
     stats = {
       children: 0,
@@ -214,7 +214,7 @@ class UnifiedRelationshipCalculator
   end
   
   def calculate_relationship_between(person1, person2)
-    # This would implement the same sophisticated relationship calculation
+    # This implements the same relationship calculation
     # as the frontend improvedRelationshipCalculator.js
     # For now, return a basic implementation that can be expanded
     
@@ -317,11 +317,9 @@ class UnifiedRelationshipCalculator
     spouse_deceased = spouse.date_of_death || spouse.is_deceased
     viewer_deceased = person_viewing.date_of_death || person_viewing.is_deceased
     
-    # Only mark spouse as "late" if:
-    # 1. The spouse is deceased AND
-    # 2. The person viewing (perspective) is alive
-    # This means: living person sees deceased spouse as "Late Husband/Wife"
-    # But: deceased person sees living spouse as normal "Husband/Wife"
+    # Mark spouse as "late" only if spouse is deceased and viewer is alive
+    # Living person sees deceased spouse as "Late Husband/Wife"
+    # Deceased person sees living spouse as "Husband/Wife"
     
     spouse_deceased && !viewer_deceased
   end

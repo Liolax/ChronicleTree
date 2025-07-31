@@ -318,11 +318,11 @@ The validation system now provides one clear, short alert per validation issue i
 
 All user-friendly validation alerts are now fully implemented and consistent across the application. The system now provides clear, specific, and actionable feedback for every validation scenario.
 
-### 🎯 Problem Fixed
-- Before: Generic error messages like "This relationship type is not allowed between these people" and "❌ Failed to add person. Please check your input and try again."
+### Problem Fixed
+- Before: Generic error messages like "This relationship type is not allowed between these people" and "Failed to add person. Please check your input and try again."
 - After: Clear, specific, friendly validation alerts using our centralized system.
 
-### 🔧 Components Updated
+### Components Updated
 1. AddPersonModal.jsx OK
    - Now uses showValidationAlert() for consistent messages
    - Catches all backend validation errors and shows appropriate user-friendly alerts

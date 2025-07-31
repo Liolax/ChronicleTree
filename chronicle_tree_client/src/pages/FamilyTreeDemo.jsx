@@ -132,7 +132,7 @@ const FamilyTreeDemo = () => {
     setPersonCardPosition(null);
   }, []);
 
-  // Transform mock data for react-flow using improved hierarchical layout
+  // Transform mock data for react-flow
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
     const { nodes, edges } = createFamilyTreeLayout(processedData.nodes, processedData.edges, {
       onEdit: handleEditPerson,

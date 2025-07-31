@@ -104,9 +104,9 @@ try {
   console.log(`Lisa -> Bob: "${bobResult}"`);
   
   if (emilyResult === "Unrelated" || bobResult === "Unrelated") {
-    console.log("❌ EX-SPOUSE BLOCKING: Algorithm blocks step-relationships through ex-spouses!");
+    console.log("FAIL: EX-SPOUSE BLOCKING: Algorithm blocks step-relationships through ex-spouses!");
   } else {
-    console.log("✅ Ex-spouse doesn't block step-relationships");
+    console.log("PASS: Ex-spouse doesn't block step-relationships");
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);

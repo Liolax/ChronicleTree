@@ -73,7 +73,7 @@ Rails.application.routes.draw do
       # Social media sharing and content generation
       resources :shares, only: %i[create show]
       
-      # Dynamic image generation for social sharing
+      # Image generation for social sharing
       namespace :share do
         get 'profile/:id', to: 'images#profile'
         get 'tree/:id', to: 'images#tree'

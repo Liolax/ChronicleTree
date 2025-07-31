@@ -55,11 +55,11 @@ puts "\nCurrent situation:"
 john_is_michael_parent = michael.relationships.exists?(relative_id: john.id, relationship_type: 'parent')
 lisa_is_michael_parent = michael.relationships.exists?(relative_id: lisa.id, relationship_type: 'parent')
 
-puts "John is Michael's parent: #{john_is_michael_parent ? '✓' : '❌'}"
-puts "Lisa is Michael's parent: #{lisa_is_michael_parent ? '✓' : '❌'}"
+puts "John is Michael's parent: #{john_is_michael_parent ? '✓' : 'ERROR:'}"
+puts "Lisa is Michael's parent: #{lisa_is_michael_parent ? '✓' : 'ERROR:'}"
 
 if john_is_michael_parent && lisa_is_michael_parent
-  puts "\n❌ INCORRECT: Michael has BOTH John and Lisa as parents"
+  puts "\nERROR: INCORRECT: Michael has BOTH John and Lisa as parents"
   puts "This makes Michael Alice's half-brother (shared father John)"
   puts "To make Michael Alice's step-brother, remove John-Michael parent relationship"
 elsif !john_is_michael_parent && lisa_is_michael_parent

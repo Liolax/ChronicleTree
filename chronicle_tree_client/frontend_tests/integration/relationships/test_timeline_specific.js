@@ -40,12 +40,12 @@ try {
   console.log(`Result: "${result}"`);
   
   if (result === "Unrelated") {
-    console.log("❌ Timeline validation is blocking the relationship!");
+    console.log("FAIL Timeline validation is blocking the relationship!");
     console.log("The algorithm thinks there's a timeline issue, but both are alive");
   } else if (result === "Step-Granddaughter") {
-    console.log("✅ Timeline validation passes - relationship works correctly");
+    console.log("PASS Timeline validation passes - relationship works correctly");
   } else {
-    console.log(`🤔 Unexpected result: "${result}"`);
+    console.log(`UNEXPECTED Unexpected result: "${result}"`);
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);
@@ -67,9 +67,9 @@ try {
   console.log(`Result with same birth year: "${result}"`);
   
   if (result === "Step-Granddaughter") {
-    console.log("✅ Same birth year works - age gap was the issue!");
+    console.log("PASS Same birth year works - age gap was the issue!");
   } else {
-    console.log("❌ Still not working - age gap wasn't the issue");
+    console.log("FAIL Still not working - age gap wasn't the issue");
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);
@@ -102,7 +102,7 @@ try {
   console.log(`Result with realistic ages: "${result}"`);
   
   if (result === "Step-Granddaughter") {
-    console.log("🎯 FOUND THE ISSUE! Age validation blocks young step-grandparents");
+    console.log("SUCCESS FOUND THE ISSUE! Age validation blocks young step-grandparents");
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);

@@ -49,11 +49,11 @@ const lisa = fixedPeople.find(p => p.id === 12);
 const emily = fixedPeople.find(p => p.id === 6);
 
 console.log("\n--- FIXED Family Structure ---");
-console.log("William (15) and Patricia (16) are Lisa's parents ✅");
-console.log("Lisa (12) married to John (1) ✅");
-console.log("John (1) has daughter Alice (3) from previous relationship ✅");
-console.log("Alice (3) has daughter Emily (6) ✅");
-console.log("Lisa (12) and John (1) have son Michael (13) ✅");
+console.log("William (15) and Patricia (16) are Lisa's parents CONFIRMED");
+console.log("Lisa (12) married to John (1) CONFIRMED");
+console.log("John (1) has daughter Alice (3) from previous relationship CONFIRMED");
+console.log("Alice (3) has daughter Emily (6) CONFIRMED");
+console.log("Lisa (12) and John (1) have son Michael (13) CONFIRMED");
 
 console.log("\n--- Expected Relationship Path ---");
 console.log("Lisa (12) -> spouse John (1) -> daughter Alice (3) -> daughter Emily (6)");
@@ -65,11 +65,11 @@ try {
   console.log(`Result: "${result}"`);
   
   if (result === "Step-Granddaughter") {
-    console.log("✅ SUCCESS! Emily is now correctly Lisa's Step-Granddaughter");
+    console.log("SUCCESS Emily is now correctly Lisa's Step-Granddaughter");
   } else if (result === "Unrelated") {
-    console.log("❌ Still showing as Unrelated - there might be another issue");
+    console.log("FAIL Still showing as Unrelated - there might be another issue");
   } else {
-    console.log(`🤔 Unexpected result: "${result}"`);
+    console.log(`UNEXPECTED Unexpected result: "${result}"`);
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);
@@ -86,9 +86,9 @@ try {
 
 console.log("\n--- Summary ---");
 console.log("The database relationships have been fixed:");
-console.log("✅ William and Patricia are now correctly Lisa's parents");
-console.log("✅ Lisa is now correctly William and Patricia's child");
-console.log("✅ This should resolve the Emily relationship calculation issue");
+console.log("CONFIRMED William and Patricia are now correctly Lisa's parents");
+console.log("CONFIRMED Lisa is now correctly William and Patricia's child");
+console.log("CONFIRMED This should resolve the Emily relationship calculation issue");
 
 // Verify the family tree structure
 console.log("\n--- Family Tree Verification ---");
@@ -96,4 +96,4 @@ console.log("Generation 0 (Grandparents): William (15), Patricia (16)");
 console.log("Generation 1 (Parents): Lisa (12), John (1)");
 console.log("Generation 2 (Children): Alice (3), Michael (13)");
 console.log("Generation 3 (Grandchildren): Emily (6)");
-console.log("From Lisa's perspective: Emily is her step-granddaughter ✅");
+console.log("From Lisa's perspective: Emily is her step-granddaughter CONFIRMED");

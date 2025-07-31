@@ -173,10 +173,10 @@ export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relat
 
   // Automatically find siblings by looking for people who share the same parents
 
-  // Build comprehensive relationship maps
+  // Build relationship maps
   const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
 
-  // Find the relationship using improved algorithm
+  // Find the relationship
   const relationship = findRelationship(
     person.id,
     rootPerson.id,

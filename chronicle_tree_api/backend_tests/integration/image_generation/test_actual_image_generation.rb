@@ -38,13 +38,13 @@ if response.code == '200'
       if file_size > 0
         puts "✓ Image file has content"
       else
-        puts "❌ Image file is empty"
+        puts "ERROR: Image file is empty"
       end
     else
-      puts "❌ Image file does not exist at expected path"
+      puts "ERROR: Image file does not exist at expected path"
     end
   else
-    puts "❌ No image path returned"
+    puts "ERROR: No image path returned"
   end
   
   puts "\nResponse data:"
@@ -53,7 +53,7 @@ if response.code == '200'
   puts "Image URL: #{data['image_url']}"
   
 else
-  puts "❌ Failed to fetch tree share: #{response.code}"
+  puts "ERROR: Failed to fetch tree share: #{response.code}"
   puts "Response body: #{response.body}"
 end
 
@@ -73,7 +73,7 @@ begin
   end
   
 rescue => e
-  puts "❌ Error with TreeSnippetGenerator: #{e.message}"
+  puts "ERROR: Error with TreeSnippetGenerator: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(5)}"
 end
 
@@ -116,5 +116,5 @@ begin
   test_gen = TestGenerator.new
   test_gen.test_relationships
 rescue => e
-  puts "❌ Error testing relationships: #{e.message}"
+  puts "ERROR: Error testing relationships: #{e.message}"
 end

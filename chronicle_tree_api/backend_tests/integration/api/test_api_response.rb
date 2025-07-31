@@ -5,7 +5,7 @@ puts
 # Find Emily
 emily = Person.find_by(first_name: 'Emily')
 if emily.nil?
-  puts "❌ Emily not found!"
+  puts "ERROR: Emily not found!"
   exit
 end
 
@@ -40,7 +40,7 @@ puts "=== FIND MICHAEL IN EMILY'S TREE ==="
 # Find Michael in the tree data
 michael_node = nodes.find { |n| n.first_name == 'Michael' && n.last_name == 'Doe' }
 if michael_node
-  puts "✅ Michael found in Emily's tree: #{michael_node.id} (#{michael_node.first_name} #{michael_node.last_name})"
+  puts "SUCCESS: Michael found in Emily's tree: #{michael_node.id} (#{michael_node.first_name} #{michael_node.last_name})"
   
   # Find relationships involving Michael
   puts
@@ -57,7 +57,7 @@ if michael_node
     end
   end
 else
-  puts "❌ Michael NOT found in Emily's tree!"
+  puts "ERROR: Michael NOT found in Emily's tree!"
   puts "This explains why the relationship isn't calculated correctly."
   puts "Emily's tree only includes: #{nodes.map(&:first_name).join(', ')}"
 end

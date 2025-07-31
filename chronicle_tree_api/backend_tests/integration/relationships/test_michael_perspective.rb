@@ -40,7 +40,7 @@ begin
   michael_tree_test = TestMichaelTreeGenerator.new
   michael_tree_test.test_sibling_relationships
 rescue => e
-  puts "❌ Error testing Michael's tree: #{e.message}"
+  puts "ERROR: Error testing Michael's tree: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(3)}"
 end
 
@@ -66,19 +66,19 @@ begin
   
   # Verify correct labels
   if alice_relationships.any? { |r| r.include?('Half-Sister') }
-    puts "✅ Alice correctly labeled as Half-Sister from Michael's perspective"
+    puts "SUCCESS: Alice correctly labeled as Half-Sister from Michael's perspective"
   else
-    puts "❌ Alice not correctly labeled as Half-Sister"
+    puts "ERROR: Alice not correctly labeled as Half-Sister"
   end
   
   if charlie_relationships.any? { |r| r.include?('Half-Brother') }
-    puts "✅ Charlie correctly labeled as Half-Brother from Michael's perspective"
+    puts "SUCCESS: Charlie correctly labeled as Half-Brother from Michael's perspective"
   else
-    puts "❌ Charlie not correctly labeled as Half-Brother"
+    puts "ERROR: Charlie not correctly labeled as Half-Brother"
   end
   
 rescue => e
-  puts "❌ Error testing Michael's profile: #{e.message}"
+  puts "ERROR: Error testing Michael's profile: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(3)}"
 end
 
@@ -95,19 +95,19 @@ begin
   
   if response.code == '200'
     data = JSON.parse(response.body)
-    puts "✅ Michael's tree sharing successful"
+    puts "SUCCESS: Michael's tree sharing successful"
     puts "Description: #{data['description']}"
     puts "Image URL: #{data['image_url']}"
   else
-    puts "❌ Failed to fetch Michael's tree share: #{response.code}"
+    puts "ERROR: Failed to fetch Michael's tree share: #{response.code}"
   end
 rescue => e
-  puts "❌ Error fetching Michael's tree share: #{e.message}"
+  puts "ERROR: Error fetching Michael's tree share: #{e.message}"
 end
 
 puts "\n=== Summary ==="
 puts "Bidirectional half-sibling relationships:"
-puts "✅ From Alice's view: Michael = Half-Brother"
-puts "✅ From Michael's view: Alice = Half-Sister"  
-puts "✅ From Michael's view: Charlie = Half-Brother"
-puts "✅ Tree and profile sharing both work correctly"
+puts "SUCCESS: From Alice's view: Michael = Half-Brother"
+puts "SUCCESS: From Michael's view: Alice = Half-Sister"  
+puts "SUCCESS: From Michael's view: Charlie = Half-Brother"
+puts "SUCCESS: Tree and profile sharing both work correctly"

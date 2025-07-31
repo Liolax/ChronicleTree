@@ -76,7 +76,7 @@ michael_relationship = alice.relationships.find { |r| r.relative_id == 13 }
 puts "\nAlice -> Michael relationship in DB: #{michael_relationship ? michael_relationship.relationship_type : 'NONE'}"
 
 if michael_relationship.nil?
-  puts "❌ Missing: Alice and Michael don't have a sibling relationship recorded"
+  puts "ERROR: Missing: Alice and Michael don't have a sibling relationship recorded"
   puts "   The frontend relationship calculator should detect this as half-siblings"
   puts "   But it might not show in profile 'Relationships' section if not in DB"
 end

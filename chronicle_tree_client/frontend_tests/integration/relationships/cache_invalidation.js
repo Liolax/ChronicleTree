@@ -11,7 +11,7 @@ if (window.__REACT_QUERY_STATE__) {
   const queryClient = window.__REACT_QUERY_STATE__.queryClient;
   if (queryClient) {
     queryClient.clear();
-    console.log('✅ React Query cache cleared!');
+    console.log('SUCCESS: React Query cache cleared!');
     window.location.reload();
   }
 } else {
@@ -32,6 +32,6 @@ if (window.__REACT_QUERY_STATE__) {
     });
   }
   
-  console.log('✅ All browser storage cleared!');
+  console.log('SUCCESS: All browser storage cleared!');
   window.location.reload();
 }

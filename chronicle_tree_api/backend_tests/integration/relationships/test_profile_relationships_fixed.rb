@@ -33,7 +33,7 @@ begin
     puts "✓ Step-relationships are included:"
     step_relations.each { |rel| puts "  - #{rel}" }
   else
-    puts "❌ No step-relationships found in profile!"
+    puts "ERROR: No step-relationships found in profile!"
     
     puts "\nExpected step-relationships for Alice:"
     puts "- Step-Mother: Lisa Doe"
@@ -53,12 +53,12 @@ begin
   puts "\nChecking for expected step-relatives:"
   expected_step_relatives.each do |name|
     found = relationships.any? { |r| r.include?(name) }
-    status = found ? "✓" : "❌"
+    status = found ? "✓" : "ERROR:"
     puts "  #{status} #{name}: #{found ? 'FOUND' : 'MISSING'}"
   end
   
 rescue => e
-  puts "❌ Error testing profile relationships: #{e.message}"
+  puts "ERROR: Error testing profile relationships: #{e.message}"
   puts "Backtrace:"
   e.backtrace.first(5).each { |line| puts "  #{line}" }
 end

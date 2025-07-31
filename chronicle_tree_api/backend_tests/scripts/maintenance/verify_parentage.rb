@@ -55,7 +55,7 @@ puts "John -> child -> Michael: #{john_michael_parent ? 'YES' : 'NO'}"
 puts "Michael -> parent -> John: #{michael_john_parent ? 'YES' : 'NO'}"
 
 if john_michael_parent && michael_john_parent
-  puts "\n❌ PROBLEM: Michael is set as John's biological child"
+  puts "\nERROR: PROBLEM: Michael is set as John's biological child"
   puts "This makes Alice and Michael HALF-SIBLINGS, not step-siblings"
   puts "To fix: Remove John-Michael parent relationship if Michael should be step-son only"
 end

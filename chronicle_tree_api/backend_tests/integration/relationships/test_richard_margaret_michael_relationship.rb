@@ -16,7 +16,7 @@ begin
   john = Person.find_by(first_name: 'John', last_name: 'Doe')
   
   if !richard || !margaret || !michael || !jane || !john
-    puts "❌ ERROR: Could not find required people in database"
+    puts "ERROR: ERROR: Could not find required people in database"
     puts "Richard found: #{!!richard}"
     puts "Margaret found: #{!!margaret}"
     puts "Michael found: #{!!michael}"
@@ -25,7 +25,7 @@ begin
     exit 1
   end
   
-  puts "✅ Found all required people:"
+  puts "SUCCESS: Found all required people:"
   puts "  Richard Sharma (ID: #{richard.id}, DOB: #{richard.date_of_birth})"
   puts "  Margaret Sharma (ID: #{margaret.id}, DOB: #{margaret.date_of_birth})" 
   puts "  Michael Doe (ID: #{michael.id}, DOB: #{michael.date_of_birth})"
@@ -129,6 +129,6 @@ begin
   puts "- The connecting link (Jane) is broken by death occurring before Michael's birth"
   
 rescue => e
-  puts "❌ ERROR: #{e.message}"
+  puts "ERROR: ERROR: #{e.message}"
   puts e.backtrace.first(5)
 end

@@ -68,7 +68,7 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
     return { hasConflict: false };
   };
 
-  // Enhanced blood relationship detection for validation
+  // Check if two people are blood relatives
   const detectBloodRelationship = (person1Id, person2Id) => {
     if (!treeData?.nodes || !treeData?.edges) {
       return { isBloodRelated: false, relationship: null, degree: null };
@@ -105,7 +105,7 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
   };
 
 
-  // Reset death date when 'Deceased' is unchecked
+  // Clear death date when person is marked as alive
   React.useEffect(() => {
     if (!isDeceased) {
       reset(prev => ({
@@ -116,14 +116,14 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
   }, [isDeceased, reset]);
 
   const onSubmit = (data) => {
-    // Final check for marriage conflicts before saving
+    // Check for marriage conflicts before saving
     if (person?.date_of_death && !data.isDeceased) {
       const conflict = checkMarriageConflict();
       if (conflict.hasConflict) {
         showValidationAlert('marriageConflict', { 
           spouseName: conflict.spouseName 
         });
-        return; // Prevent form submission
+        return; // Don't submit form
       }
     }
     
@@ -246,7 +246,7 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
           type="checkbox"
           {...register('isDeceased', {
             validate: value => {
-              // If person was originally deceased and is being set as alive, check for conflicts
+              // Check if setting person as alive would cause problems
               if (person?.date_of_death && !value) {
                 const conflict = checkMarriageConflict();
                 if (conflict.hasConflict) {

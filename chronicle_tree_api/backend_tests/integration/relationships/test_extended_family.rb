@@ -87,7 +87,7 @@ begin
     end
   end
   
-  puts "\n✓ Extended family data created!"
+  puts "\nSUCCESS: Extended family data created!"
   
 rescue => e
   puts "Error creating family data: #{e.message}"
@@ -124,11 +124,11 @@ puts "Testing 4-5 generations with extended family data:"
     
     # Test actual image generation
     image_path = generator.generate(person, generations: gen_count, include_step_relationships: true)
-    puts "  ✓ Image generated: #{image_path}"
+    puts "  SUCCESS: Image generated: #{image_path}"
     
   rescue => e
-    puts "  ✗ Generation failed: #{e.message}"
+    puts "  FAIL: Generation failed: #{e.message}"
   end
 end
 
-puts "\n✓ Extended family testing completed!"
+puts "\nSUCCESS: Extended family testing completed!"

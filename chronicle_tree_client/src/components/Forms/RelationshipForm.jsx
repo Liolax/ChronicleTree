@@ -30,7 +30,7 @@ const RelationshipForm = ({ people = [], type, onSubmit, onCancel, isLoading, fo
         const personParents = selectedPerson.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
         const siblingParents = selectedSibling.relatives?.filter(rel => rel.relationship_type === 'parent') || [];
         
-        // Build comprehensive parent list for half-sibling analysis
+        // Build parent list for half-sibling check
         const allAvailableParents = [];
         
         // Add person's parents

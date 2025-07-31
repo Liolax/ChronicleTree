@@ -26,7 +26,7 @@ if jane && sam
   puts "\n   → Trying to change Jane's birth to 2020 (would make her younger than some children)"
   result1 = jane.can_be_parent_of?(jane.children.first) if jane.children.any?
   if result1
-    puts "   Result: #{result1[:valid] ? '✅ PASS' : '❌ FAIL - ' + result1[:error]}"
+    puts "   Result: #{result1[:valid] ? 'SUCCESS: PASS' : 'ERROR: FAIL - ' + result1[:error]}"
   else
     puts "   Skipped - no children to test"
   end
@@ -43,10 +43,10 @@ if jane && sam
   puts "\n   → Sam is very young and cannot have older children"
   if jane.children.any?
     result3 = sam.can_be_parent_of?(jane.children.first)
-    puts "   Can Sam be parent of Jane's child? #{result3[:valid] ? '✅ YES' : '❌ NO - ' + result3[:error]}"
+    puts "   Can Sam be parent of Jane's child? #{result3[:valid] ? 'SUCCESS: YES' : 'ERROR: NO - ' + result3[:error]}"
   end
 
-  puts "\n✅ Validation System Features:"
+  puts "\nSUCCESS: Validation System Features:"
   puts "  • Birth date validates against all children (12+ year gap required)"
   puts "  • Birth date validates against all parents (child must be 12+ years younger)"
   puts "  • Death date validates against all children (cannot die before their birth)"
@@ -55,7 +55,7 @@ if jane && sam
   puts "  • Backend provides comprehensive error messages"
 
 else
-  puts "❌ Could not find test subjects"
+  puts "ERROR: Could not find test subjects"
   puts "Jane found: #{!jane.nil?}"
   puts "Sam found: #{!sam.nil?}"
 end

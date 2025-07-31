@@ -331,7 +331,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                                 
                                 alertType = 'invalidRelationship';
                                 alertDetails = { 
-                                  message: `⚠️ Large Age Gap Detected\n\n${olderPerson} and ${youngerPerson} have a ${ageGapYears.toFixed(1)}-year age difference.\n\nThis is unusual for siblings who typically share the same parents. Consider:\n• Parent-child relationship instead\n• Double-check the birth dates\n• Step-sibling through remarriage`
+                                  message: `Warning: Large Age Gap Detected\n\n${olderPerson} and ${youngerPerson} have a ${ageGapYears.toFixed(1)}-year age difference.\n\nThis is unusual for siblings who typically share the same parents. Consider:\n• Parent-child relationship instead\n• Double-check the birth dates\n• Step-sibling through remarriage`
                                 };
                               }
                             }

@@ -79,9 +79,9 @@ try {
   console.log(`Results match: ${directResult === emilyFromAll?.relation ? 'YES' : 'NO'}`);
   
   if (directResult !== emilyFromAll?.relation) {
-    console.log("❌ MISMATCH FOUND! This explains the frontend issue.");
+    console.log("ERROR: MISMATCH FOUND! This explains the frontend issue.");
   } else {
-    console.log("✅ Results match - issue must be elsewhere");
+    console.log("PASS: Results match - issue must be elsewhere");
   }
 } catch (error) {
   console.log(`Comparison ERROR: ${error.message}`);

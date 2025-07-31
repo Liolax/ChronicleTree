@@ -18,10 +18,10 @@ export function applyNodeHierarchy(node, relationshipMaps, allPeople, rootPerson
   const enhancedNode = { ...node };
   const personId = node.id;
   
-  // Analyze person's position in family hierarchy
+  // Check person's position in family tree
   const hierarchyContext = analyzeNodeHierarchy(personId, rootPersonId, relationshipMaps, generations);
   
-  // Generate appropriate visual styling
+  // Get visual styling for this person
   const hierarchyStyle = getHierarchyStyle(hierarchyContext);
   
   // Combine hierarchy styling with existing node styles

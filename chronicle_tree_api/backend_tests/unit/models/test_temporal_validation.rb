@@ -45,10 +45,10 @@ begin
   Relationship.create!(person_id: jane.id, relative_id: alice.id, relationship_type: 'child')
   Relationship.create!(person_id: alice.id, relative_id: jane.id, relationship_type: 'parent')
   
-  puts "✅ SUCCESS: Alice born 2020-06-15 (before Jane's death 2022-01-01)"
+  puts "SUCCESS: SUCCESS: Alice born 2020-06-15 (before Jane's death 2022-01-01)"
   puts "   Relationship created successfully"
 rescue => e
-  puts "❌ UNEXPECTED ERROR: #{e.message}"
+  puts "ERROR: UNEXPECTED ERROR: #{e.message}"
 end
 puts
 
@@ -65,20 +65,20 @@ puts "Michael's birth date: #{child_birth_date}"
 puts "Child born after parent died: #{child_birth_date > parent_death_date}"
 
 if child_birth_date > parent_death_date
-  puts "❌ VALIDATION TRIGGERED: Cannot add child born after parent's death"
+  puts "ERROR: VALIDATION TRIGGERED: Cannot add child born after parent's death"
   puts "   Jane Smith died on #{parent_death_date.strftime('%B %d, %Y')}"
   puts "   Michael would be born on #{child_birth_date.strftime('%B %d, %Y')}"
   puts "   This is #{(child_birth_date - parent_death_date).to_i} days after Jane's death"
 else
-  puts "✅ Valid: Child was born before parent's death"
+  puts "SUCCESS: Valid: Child was born before parent's death"
 end
 
 puts
 puts "=== Validation Logic Summary ==="
-puts "✅ The temporal validation will prevent adding children to deceased parents"
+puts "SUCCESS: The temporal validation will prevent adding children to deceased parents"
 puts "   when the child's birth date is after the parent's death date"
-puts "✅ Valid relationships (child born before parent's death) are still allowed"
-puts "✅ This ensures chronological accuracy in family trees"
+puts "SUCCESS: Valid relationships (child born before parent's death) are still allowed"
+puts "SUCCESS: This ensures chronological accuracy in family trees"
 
 puts
 puts "=== Cleanup ==="

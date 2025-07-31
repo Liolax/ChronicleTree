@@ -1,5 +1,5 @@
-# Controller for managing family relationships with comprehensive validation
-# Handles relationship creation, modification, and genealogical rule enforcement
+# Controller for managing family relationships
+# Handles relationship creation and modification
 module Api
   module V1
     class RelationshipsController < BaseController

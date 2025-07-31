@@ -81,7 +81,7 @@ def test_step_grandparent_logic(root_person, candidate_person)
     end
   end
   
-  puts "  ❌ No step-grandparent relationship found"
+  puts "  ERROR: No step-grandparent relationship found"
   false
 end
 

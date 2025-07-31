@@ -18,13 +18,13 @@ puts "Jane's current parents: #{jane.parents.map { |p| "#{p.first_name} #{p.last
 
 puts "\n🧪 Test 1: Age Validation (Sam as parent of Jane)"
 result1 = sam.can_be_parent_of?(jane)
-puts "Result: #{result1[:valid] ? '✅ PASS' : '❌ FAIL'}"
+puts "Result: #{result1[:valid] ? 'SUCCESS: PASS' : 'ERROR: FAIL'}"
 puts "Error: #{result1[:error]}" unless result1[:valid]
 
 puts "\n🧪 Test 2: Multiple Parents Validation (Adding 3rd parent to Jane)"
 test_parent = Person.new(first_name: 'Test', last_name: 'Parent', date_of_birth: '1950-01-01')
 result2 = test_parent.can_be_parent_of?(jane)
-puts "Result: #{result2[:valid] ? '✅ PASS' : '❌ FAIL'}"
+puts "Result: #{result2[:valid] ? 'SUCCESS: PASS' : 'ERROR: FAIL'}"
 puts "Error: #{result2[:error]}" unless result2[:valid]
 
 puts "\n🧪 Test 3: Valid Parent-Child Relationship"
@@ -44,15 +44,15 @@ test_child = Person.new(
 )
 
 result3 = potential_parent.can_be_parent_of?(test_child)
-puts "Result: #{result3[:valid] ? '✅ PASS' : '❌ FAIL'}"
+puts "Result: #{result3[:valid] ? 'SUCCESS: PASS' : 'ERROR: FAIL'}"
 puts "Error: #{result3[:error]}" unless result3[:valid]
 
 # Clean up test data
 potential_parent.destroy
 
-puts "\n✅ Validation System Tests Complete!"
+puts "\nSUCCESS: Validation System Tests Complete!"
 puts "The system correctly prevents:"
 puts "  • Parents younger than their children"
 puts "  • Adding more than 2 biological parents"
 puts "  • Children born after parent's death"
-puts "  ✅ While allowing valid parent-child relationships"
+puts "  SUCCESS: While allowing valid parent-child relationships"

@@ -48,7 +48,7 @@ if william && patricia
   puts "  Alice should see William as 'Step-Grandfather'"
   puts "  Alice should see Patricia as 'Step-Grandmother'"
 else
-  puts "\n❌ Step-grandparent candidates not found"
+  puts "\nERROR: Step-grandparent candidates not found"
 end
 
 # Test another case: Michael's perspective
@@ -73,7 +73,7 @@ if richard && margaret
   puts "  Michael should see Margaret as 'Step-Grandmother'"
   puts "  (Through John's deceased wife Jane)"
 else
-  puts "\n❌ Step-grandparent candidates not found"
+  puts "\nERROR: Step-grandparent candidates not found"
 end
 
 puts "\n=== Testing Tree Sharing for Step-Grandparents ==="

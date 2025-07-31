@@ -61,12 +61,12 @@ try {
   console.log(`Result: "${result}"`);
   
   if (result === "Step-Granddaughter") {
-    console.log("❌ Algorithm says Step-Granddaughter (2 generations)");
+    console.log("ERROR: Algorithm says Step-Granddaughter (2 generations)");
     console.log("   But should be Step-Great-Granddaughter (3 generations)");
   } else if (result === "Step-Great-Granddaughter") {
-    console.log("✅ Correct! Step-Great-Granddaughter (3 generations)");
+    console.log("SUCCESS: Correct! Step-Great-Granddaughter (3 generations)");
   } else {
-    console.log(`🤔 Unexpected result: "${result}"`);
+    console.log(`UNEXPECTED result: "${result}"`);
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);

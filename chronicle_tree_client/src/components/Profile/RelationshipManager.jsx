@@ -313,13 +313,13 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     return person.relatives.filter(rel => rel.relationship_type === type).map(rel => rel.id);
   };
 
-  // Enhanced blood relationship detection using comprehensive algorithm
+  // Check if two people are blood relatives
   const detectBloodRelationship = (person1Id, person2Id) => {
     if (!treeData?.nodes || !treeData?.edges) {
       return { isBloodRelated: false, relationship: null, degree: null };
     }
 
-    // Convert edges to relationships format for the enhanced detector
+    // Convert edges to relationships format
     const relationships = treeData.edges.map(edge => ({
       from: edge.source,
       to: edge.target, 
@@ -328,7 +328,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       is_deceased: edge.is_deceased
     }));
 
-    // Use the comprehensive blood relationship detector that catches ALL blood relations
+    // Use blood relationship detector
     const bloodResult = detectAnyBloodRelationship(person1Id, person2Id, relationships, treeData.nodes);
     
     if (bloodResult.isBloodRelated) {
@@ -470,7 +470,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     // Check for existing relationships that would prevent this new relationship
     const existingRels = person.relatives || [];
     
-    // Child relationship validation with comprehensive filtering  
+    // Filter available children  
     if (type === 'child') {
       // 1. Prevent any blood relative from becoming a child
       if (bloodCheck.isBloodRelated) {
@@ -505,7 +505,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         }
       }
       
-      // 4. Enhanced age validation for child relationships
+      // 4. Check age difference for parent-child relationships
       if (person.date_of_birth && candidate.date_of_birth) {
         const personBirth = new Date(person.date_of_birth);
         const candidateBirth = new Date(candidate.date_of_birth);
@@ -573,7 +573,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // Enhanced validation for spouses - allow marriage unless blood-related or other conflicts
+    // Filter available spouses
     if (type === 'spouse') {
       // ALWAYS prevent marriage between blood relatives
       if (bloodCheck.isBloodRelated) {
@@ -598,7 +598,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       return { valid: true };
     }
     
-    // Sibling relationship validation with comprehensive filtering
+    // Filter available siblings
     if (type === 'sibling') {
       // 1. Prevent any current/former spouse from becoming sibling (would be inappropriate)
       const candidateRels = candidate.relatives || [];
@@ -840,7 +840,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       }
     }
     
-    // Parent relationship validation with comprehensive filtering
+    // Filter available parents
     if (type === 'parent') {
       // 1. Check if current person already has 2 biological parents
       const currentPersonParents = existingRels.filter(rel => rel.relationship_type === 'parent' && !rel.isStep);
@@ -921,7 +921,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
         }
       }
       
-      // 5. Enhanced age validation for parent relationships
+      // 5. Check age difference for parent-child relationships
       if (person.date_of_birth && candidate.date_of_birth) {
         const personBirth = new Date(person.date_of_birth);
         const candidateBirth = new Date(candidate.date_of_birth);
@@ -1112,7 +1112,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     showInfo('Relationship Filtering', alertMessage);
   };
 
-  // Filter people for each relationship type with enhanced constraints
+  // Filter people for each relationship type
   const getSelectablePeople = (type) => {
     const excludeIds = [person.id, ...getRelatedIds(type)];
     
@@ -1587,7 +1587,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                               setToggleLoadingId(rel.relationship_id);
                               
                               try {
-                                // Enhanced validation - check for blood relationship before toggling
+                                // Check for blood relationship before toggling
                                 const bloodCheck = detectBloodRelationship(person.id, rel.id);
                                 if (bloodCheck.isBloodRelated) {
                                   const action = rel.is_ex ? 'remarry' : 'divorce';

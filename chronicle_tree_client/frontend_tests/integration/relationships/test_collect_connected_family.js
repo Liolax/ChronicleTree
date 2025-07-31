@@ -60,18 +60,18 @@ try {
   // Check if Emily is included
   const emilyFound = result.persons.find(p => p.id === 6);
   if (emilyFound) {
-    console.log("\n✅ Emily IS included in connected family when Lisa is root");
+    console.log("\nPASS: Emily IS included in connected family when Lisa is root");
   } else {
-    console.log("\n❌ Emily is NOT included in connected family when Lisa is root");
+    console.log("\nFAIL: Emily is NOT included in connected family when Lisa is root");
     console.log("This is the problem! collectConnectedFamily is filtering out Emily");
   }
   
   // Check if Bob is included (for comparison)
   const bobFound = result.persons.find(p => p.id === 5);
   if (bobFound) {
-    console.log("✅ Bob IS included in connected family when Lisa is root");
+    console.log("PASS: Bob IS included in connected family when Lisa is root");
   } else {
-    console.log("❌ Bob is NOT included in connected family when Lisa is root");
+    console.log("FAIL: Bob is NOT included in connected family when Lisa is root");
   }
   
   console.log(`\nRelationships found: ${result.relationships.length}`);
@@ -86,9 +86,9 @@ try {
   const result = collectConnectedFamily(1, apiPeople, apiEdges);
   const emilyFound = result.persons.find(p => p.id === 6);
   if (emilyFound) {
-    console.log("✅ Emily IS included when John is root");
+    console.log("PASS: Emily IS included when John is root");
   } else {
-    console.log("❌ Emily is NOT included when John is root");
+    console.log("FAIL: Emily is NOT included when John is root");
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);

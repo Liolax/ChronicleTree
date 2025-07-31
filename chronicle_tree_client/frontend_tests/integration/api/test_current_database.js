@@ -73,11 +73,11 @@ try {
   console.log(`Lisa -> Emily: "${result}"`);
   
   if (result === "Unrelated") {
-    console.log("❌ STILL UNRELATED - need to debug further");
+    console.log("FAIL: STILL UNRELATED - need to debug further");
   } else if (result === "Step-Granddaughter") {
-    console.log("✅ Working correctly!");
+    console.log("PASS: Working correctly!");
   } else {
-    console.log(`🤔 Unexpected: "${result}"`);
+    console.log(`UNEXPECTED: "${result}"`);
   }
 } catch (error) {
   console.log(`ERROR: ${error.message}`);

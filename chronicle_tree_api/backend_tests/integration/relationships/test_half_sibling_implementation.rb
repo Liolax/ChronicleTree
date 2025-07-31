@@ -47,7 +47,7 @@ begin
   alice_tree_test = TestAliceTreeGenerator.new
   alice_tree_test.test_sibling_relationships
 rescue => e
-  puts "❌ Error testing Alice's tree: #{e.message}"
+  puts "ERROR: Error testing Alice's tree: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(3)}"
 end
 
@@ -74,23 +74,23 @@ begin
   
   # Verify correct labels
   if charlie_relationships.any? { |r| r.include?('Brother') && !r.include?('Half-') }
-    puts "✅ Charlie correctly labeled as full Brother"
+    puts "SUCCESS: Charlie correctly labeled as full Brother"
   elsif charlie_relationships.any? { |r| r.include?('Half-Brother') }
-    puts "❌ Charlie incorrectly labeled as Half-Brother (should be full Brother)"
+    puts "ERROR: Charlie incorrectly labeled as Half-Brother (should be full Brother)"
   else
-    puts "❌ Charlie relationship not found or incorrect"
+    puts "ERROR: Charlie relationship not found or incorrect"
   end
   
   if michael_relationships.any? { |r| r.include?('Half-Brother') }
-    puts "✅ Michael correctly labeled as Half-Brother"
+    puts "SUCCESS: Michael correctly labeled as Half-Brother"
   elsif michael_relationships.any? { |r| r.include?('Brother') && !r.include?('Half-') }
-    puts "❌ Michael incorrectly labeled as full Brother (should be Half-Brother)"
+    puts "ERROR: Michael incorrectly labeled as full Brother (should be Half-Brother)"
   else
-    puts "❌ Michael relationship not found or incorrect"
+    puts "ERROR: Michael relationship not found or incorrect"
   end
   
 rescue => e
-  puts "❌ Error testing Alice's profile: #{e.message}"
+  puts "ERROR: Error testing Alice's profile: #{e.message}"
   puts "Backtrace: #{e.backtrace.first(3)}"
 end
 
@@ -122,15 +122,15 @@ step_stats[:step_siblings].each do |ss|
 end
 
 if step_stats[:step_siblings].empty?
-  puts "✅ No step-siblings found (correct - Michael is now properly classified as half-sibling)"
+  puts "SUCCESS: No step-siblings found (correct - Michael is now properly classified as half-sibling)"
 else
-  puts "❌ Step-siblings still found - logic may need adjustment"
+  puts "ERROR: Step-siblings still found - logic may need adjustment"
 end
 
 puts "\n=== Summary ==="
 puts "Expected results:"
-puts "✅ Alice ↔ Charlie: Full siblings (Brother/Sister)"  
-puts "✅ Alice ↔ Michael: Half-siblings (Half-Brother/Half-Sister)"
-puts "✅ No step-siblings (Michael was incorrectly classified before)"
-puts "✅ Lisa remains as Step-Mother (correct)"
-puts "✅ William/Patricia remain as Step-Grandparents (correct)"
+puts "SUCCESS: Alice ↔ Charlie: Full siblings (Brother/Sister)"  
+puts "SUCCESS: Alice ↔ Michael: Half-siblings (Half-Brother/Half-Sister)"
+puts "SUCCESS: No step-siblings (Michael was incorrectly classified before)"
+puts "SUCCESS: Lisa remains as Step-Mother (correct)"
+puts "SUCCESS: William/Patricia remain as Step-Grandparents (correct)"

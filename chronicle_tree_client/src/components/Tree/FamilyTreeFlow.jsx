@@ -185,7 +185,7 @@ const FamilyTree = () => {
     setShowShareModal(false);
   }, []);
 
-  // Transform data for react-flow using improved grid-based layout
+  // Transform data for react-flow
   const { nodes: layoutedNodes, edges: layoutedEdges } = useMemo(() => {
     if (!processedData.nodes.length) return { nodes: [], edges: [] };
     return createFamilyTreeLayout(processedData.nodes, processedData.edges, {
@@ -410,7 +410,7 @@ const FamilyTree = () => {
                       🏠 Click home icon to change root person
                     </div>
                     <div className="text-xs text-gray-500">
-                      📍 Sibling relationships shown through positioning
+                      👥 Sibling relationships shown through positioning
                     </div>
                   </div>
                 </div>

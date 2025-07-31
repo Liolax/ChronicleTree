@@ -23,9 +23,9 @@ if sam && jane
   puts "Valid: #{result[:valid]}"
   puts "Error: #{result[:error]}" unless result[:valid]
   
-  puts "\n✅ The message should now correctly say Sam is YOUNGER than Jane!"
+  puts "\nSUCCESS: The message should now correctly say Sam is YOUNGER than Jane!"
 else
-  puts "❌ Could not find Sam or Jane in database"
+  puts "ERROR: Could not find Sam or Jane in database"
   puts "Sam found: #{!sam.nil?}"
   puts "Jane found: #{!jane.nil?}"
 end

@@ -64,9 +64,9 @@ puts "   - Step-sibling: Child of step-parent from previous relationship (no sha
 puts "   - Step-grandparent: Parent of step-parent"
 
 puts "\n3. Current Issues to Fix:"
-puts "   ❌ Michael shows as 'Brother' - should be 'Half-Brother'"
-puts "   ❌ No distinction between full and half siblings"
-puts "   ❌ Step-relationships might be incorrectly assigned to half-relationships"
+puts "   ERROR: Michael shows as 'Brother' - should be 'Half-Brother'"
+puts "   ERROR: No distinction between full and half siblings"
+puts "   ERROR: Step-relationships might be incorrectly assigned to half-relationships"
 
 puts "\n=== Implementation Plan ==="
 puts "1. Add half-sibling detection logic"

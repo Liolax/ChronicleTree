@@ -8,7 +8,7 @@ puts
 # Find Emily's ID
 emily = Person.find_by(first_name: 'Emily')
 if emily.nil?
-  puts "❌ Emily not found!"
+  puts "ERROR: Emily not found!"
   exit
 end
 
@@ -50,7 +50,7 @@ puts
 
 michael_node = api_response[:nodes].find { |n| n[:first_name] == 'Michael' && n[:last_name] == 'Doe' }
 if michael_node
-  puts "✅ Michael found in API response: #{michael_node[:id]} (#{michael_node[:first_name]} #{michael_node[:last_name]})"
+  puts "SUCCESS: Michael found in API response: #{michael_node[:id]} (#{michael_node[:first_name]} #{michael_node[:last_name]})"
   
   # Check what relationships Michael has in the API response
   michael_edges = api_response[:edges].select { |e| e[:source] == michael_node[:id] || e[:target] == michael_node[:id] }
@@ -76,16 +76,16 @@ if michael_node
   
   if alice_michael_sibling
     puts
-    puts "❌ PROBLEM: Found explicit sibling relationship between Michael and Alice in API!"
+    puts "ERROR: PROBLEM: Found explicit sibling relationship between Michael and Alice in API!"
     puts "This will cause Emily to see Michael as Uncle instead of Step-Uncle."
   else
     puts
-    puts "✅ GOOD: No explicit sibling relationship between Michael and Alice in API."
+    puts "SUCCESS: GOOD: No explicit sibling relationship between Michael and Alice in API."
     puts "The step-relationship should be calculated correctly."
   end
   
 else
-  puts "❌ Michael NOT found in API response!"
+  puts "ERROR: Michael NOT found in API response!"
 end
 
 puts

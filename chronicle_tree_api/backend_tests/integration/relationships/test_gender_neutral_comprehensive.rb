@@ -32,7 +32,7 @@ begin
     # The description should handle nil gender gracefully
     # Check if it mentions step-grandparents without assuming gender
   else
-    puts "❌ Failed to fetch profile share: #{response.code}"
+    puts "ERROR: Failed to fetch profile share: #{response.code}"
   end
   
   # Test Alice's tree sharing
@@ -45,11 +45,11 @@ begin
     data = JSON.parse(response.body)
     puts "Tree share description: #{data['description']}"
   else
-    puts "❌ Failed to fetch tree share: #{response.code}"
+    puts "ERROR: Failed to fetch tree share: #{response.code}"
   end
   
 rescue => e
-  puts "❌ Error during test: #{e.message}"
+  puts "ERROR: Error during test: #{e.message}"
 ensure
   # Always restore original gender
   william.update!(gender: original_gender)

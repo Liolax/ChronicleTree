@@ -23,10 +23,10 @@ if alice && michael
   puts "Michael → Alice sibling relationship: #{michael_alice ? 'EXISTS' : 'NONE'}"
   
   if alice_michael || michael_alice
-    puts "❌ PROBLEM: Explicit sibling relationship exists between Alice and Michael"
+    puts "ERROR: PROBLEM: Explicit sibling relationship exists between Alice and Michael"
     puts "This will cause Emily to see Michael as Uncle instead of Step-Uncle"
   else
-    puts "✅ GOOD: No explicit sibling relationship between Alice and Michael"
+    puts "SUCCESS: GOOD: No explicit sibling relationship between Alice and Michael"
   end
 end
 

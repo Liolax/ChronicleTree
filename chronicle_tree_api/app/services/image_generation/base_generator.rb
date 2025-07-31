@@ -168,7 +168,7 @@ module ImageGeneration
         placeholder.pointsize size / 3
         placeholder.font get_font_path('bold')
         placeholder.gravity "center"
-        placeholder.annotate("+0+0", "👤")
+        placeholder.annotate("+0+0", "?")
         
         mask = create_circular_mask(size)
         placeholder = placeholder.composite(mask) do |c|

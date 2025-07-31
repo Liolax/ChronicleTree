@@ -28,7 +28,7 @@ puts "Patricia Smith (ID: 16) - Gender: #{patricia&.gender.inspect}"
 # Check all people's genders
 puts "\n=== All People Gender Information ==="
 Person.all.order(:id).each do |person|
-  gender_display = person.gender.present? ? person.gender : "❌ MISSING"
+  gender_display = person.gender.present? ? person.gender : "ERROR: MISSING"
   puts "  #{person.full_name || person.name} (ID: #{person.id}) - Gender: #{gender_display}"
 end
 
