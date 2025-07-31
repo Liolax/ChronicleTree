@@ -246,12 +246,17 @@ class UnifiedRelationshipCalculator
       if relationship[:is_ex]
         return 'Ex-Spouse' unless person2.gender.present?
         person2.gender.downcase == 'male' ? 'Ex-Husband' : 'Ex-Wife'
-      elsif relationship[:is_deceased]
-        return 'Late Spouse' unless person2.gender.present?
-        person2.gender.downcase == 'male' ? 'Late Husband' : 'Late Wife'
       else
-        return 'Spouse' unless person2.gender.present?
-        person2.gender.downcase == 'male' ? 'Husband' : 'Wife'
+        # Apply perspective-based deceased spouse logic
+        base_type = person2.gender.present? ? 
+          (person2.gender.downcase == 'male' ? 'Husband' : 'Wife') : 'Spouse'
+        
+        # Only mark as "Late" if person2 (spouse) is deceased AND person1 (viewer) is alive
+        if should_mark_as_late_spouse?(person2, person1)
+          "Late #{base_type}"
+        else
+          base_type
+        end
       end
     when 'child'
       if relationship[:source] == person1.id
@@ -304,5 +309,20 @@ class UnifiedRelationshipCalculator
     else
       'other'
     end
+  end
+
+  private
+
+  def should_mark_as_late_spouse?(spouse, person_viewing)
+    spouse_deceased = spouse.date_of_death || spouse.is_deceased
+    viewer_deceased = person_viewing.date_of_death || person_viewing.is_deceased
+    
+    # Only mark spouse as "late" if:
+    # 1. The spouse is deceased AND
+    # 2. The person viewing (perspective) is alive
+    # This means: living person sees deceased spouse as "Late Husband/Wife"
+    # But: deceased person sees living spouse as normal "Husband/Wife"
+    
+    spouse_deceased && !viewer_deceased
   end
 end

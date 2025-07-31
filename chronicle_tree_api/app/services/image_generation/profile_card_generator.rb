@@ -413,11 +413,16 @@ module ImageGeneration
         y_pos += 25
       end
       
-      # Current spouses
-      spouses = @person.current_spouses
+      # All spouses (including deceased)
+      spouses = @person.all_spouses_including_deceased
       if spouses.any?
-        spouse_label = get_spouse_label(@person, spouses.count)
-        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">#{spouse_label}: #{spouses.map(&:full_name).join(', ')}</text>}
+        # Build spouse display with proper deceased logic
+        spouse_displays = spouses.map do |spouse|
+          spouse_type = get_spouse_relationship_type(spouse)
+          "#{spouse_type}: #{spouse.full_name}"
+        end
+        spouse_text = spouse_displays.join(', ')
+        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">#{spouse_text}</text>}
         y_pos += 25
       end
       
@@ -641,8 +646,8 @@ module ImageGeneration
           relationships << "#{parent_type}: #{parent.full_name}"
         end
         
-        current_spouses = @person.current_spouses
-        current_spouses.each do |spouse|
+        all_spouses = @person.all_spouses_including_deceased
+        all_spouses.each do |spouse|
           spouse_type = get_spouse_relationship_type(spouse)
           relationships << "#{spouse_type}: #{spouse.full_name}"
         end
@@ -955,8 +960,28 @@ module ImageGeneration
     end
 
     def get_spouse_relationship_type(spouse)
-      return 'Spouse' unless spouse.gender.present?
-      spouse.gender.downcase == 'male' ? 'Husband' : 'Wife'
+      base_type = spouse.gender.present? ? 
+        (spouse.gender.downcase == 'male' ? 'Husband' : 'Wife') : 'Spouse'
+      
+      # Apply deceased spouse logic
+      if spouse.date_of_death.present? && should_mark_as_late_spouse?(spouse, @person)
+        "Late #{base_type}"
+      else
+        base_type
+      end
+    end
+    
+    def should_mark_as_late_spouse?(spouse, person_viewing)
+      spouse_deceased = spouse.date_of_death || spouse.is_deceased
+      viewer_deceased = person_viewing.date_of_death || person_viewing.is_deceased
+      
+      # Only mark spouse as "late" if:
+      # 1. The spouse is deceased AND
+      # 2. The person viewing (perspective) is alive
+      # This means: living person sees deceased spouse as "Late Husband/Wife"
+      # But: deceased person sees living spouse as normal "Husband/Wife"
+      
+      spouse_deceased && !viewer_deceased
     end
     
     def get_spouse_label(person, spouse_count)
@@ -1077,11 +1102,15 @@ module ImageGeneration
         info_lines << "Parents: #{parents_names}"
       end
       
-      spouses = @person.current_spouses
+      spouses = @person.all_spouses_including_deceased
       if spouses.any?
-        spouse_names = spouses.map(&:full_name).join(', ')
-        spouse_label = get_spouse_label(@person, spouses.count)
-        info_lines << "#{spouse_label}: #{spouse_names}"
+        # Build spouse display with proper deceased logic
+        spouse_displays = spouses.map do |spouse|
+          spouse_type = get_spouse_relationship_type(spouse)
+          spouse_type
+        end
+        spouse_names = spouse_displays.join(', ')
+        info_lines << "Spouses: #{spouse_names}"
       end
       
       children = @person.children
@@ -1175,14 +1204,18 @@ module ImageGeneration
         current_y += section_spacing
       end
       
-      spouses = @person.current_spouses
+      spouses = @person.all_spouses_including_deceased
       if spouses.any?
-        spouse_label = get_spouse_label(@person, spouses.count)
-        spouse_title = create_colored_text("💑 #{spouse_label}", 'sans bold 18', [107, 114, 128])
+        spouse_title = create_colored_text("💑 Spouses", 'sans bold 18', [107, 114, 128])
         image = image.composite spouse_title, 'over', x: 120, y: current_y
         current_y += 30
         
-        spouse_text = spouses.map(&:full_name).join(', ')
+        # Build spouse display with proper deceased logic
+        spouse_displays = spouses.map do |spouse|
+          spouse_type = get_spouse_relationship_type(spouse)
+          "#{spouse_type}: #{spouse.full_name}"
+        end
+        spouse_text = spouse_displays.join(', ')
         spouse_content = create_colored_text(spouse_text, 'sans 16', [75, 85, 99])
         image = image.composite spouse_content, 'over', x: 140, y: current_y
         current_y += section_spacing

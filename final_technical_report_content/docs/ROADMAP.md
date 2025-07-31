@@ -713,6 +713,28 @@ These improvements make the MiniMap a robust and intuitive navigation tool for a
 
 ## Recent Updates
 
+### [2025-07-31] Share Modal Image Generation - Deceased Spouse Logic Fix
+
+- **CRITICAL FIX: Share Image Deceased Spouse Display**: Fixed issue where share modal generated images incorrectly showed "late husband" for "late wife" when both spouses were deceased. According to CLAUDE.md requirements, when both spouses are deceased, they should not be marked as "late" because they are considered "married in heaven."
+
+- **Components Fixed**:
+  - **TreeSnippetGenerator.rb**: Updated `add_deceased_prefix()` method to apply correct spouse logic for Family Tree share images
+  - **ProfileCardGenerator.rb**: Updated `get_spouse_relationship_type()` method for Profile Card share images  
+  - **ImagesController.rb**: Updated `get_current_spouse_name()` method for share descriptions and text
+
+- **Deceased Spouse Logic Implemented**:
+  - ✅ **If only ONE spouse is deceased** → Mark as "late spouse" (e.g., "Late Husband", "late Robert")
+  - ✅ **If BOTH spouses are deceased** → Do NOT mark as "late" (they're "married in heaven")
+  - ✅ **If neither spouse is deceased** → Do not mark as "late"
+
+- **Technical Implementation**:
+  - Added `should_mark_as_late_spouse()` helper method across all image generation components
+  - Added `is_spouse_relationship()` helper for detecting spouse relationships in labels
+  - Applied logic to both visual labels in generated images and text descriptions
+  - Comprehensive testing confirmed logic works correctly for all spouse status combinations
+
+- **Result**: Share modal images now correctly display Robert and Molly without "late" prefixes when both are deceased, following the "married in heaven" concept as specified in CLAUDE.md requirements.
+
 ### [2025-01-20] Temporal Validation for Parent-Child Relationships & UI Improvements
 - **CRITICAL: Temporal Validation for Adding Children**: Added comprehensive validation to prevent adding children to deceased parents when the child's birth date is after the parent's death date:
   - **Frontend Validation**: Real-time validation in PersonForm with clear error messages showing parent's name and death date

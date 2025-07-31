@@ -526,14 +526,49 @@ class Api::V1::Share::ImagesController < Api::V1::BaseController
 
   # Retrieves current spouse name for profile description context
   def get_current_spouse_name(person)
-    current_spouse = person.relationships
-                          .where(relationship_type: 'spouse', is_ex: [false, nil])
-                          .first
+    # Look for spouse relationship in both directions
+    spouse_person = nil
     
-    if current_spouse
-      spouse_person = Person.find_by(id: current_spouse.relative_id)
-      spouse_person&.first_name
+    # Check relationships where person is the source
+    relationship = person.relationships
+                        .where(relationship_type: 'spouse', is_ex: [false, nil])
+                        .first
+    if relationship
+      spouse_person = Person.find_by(id: relationship.relative_id)
     end
+    
+    # If not found, check relationships where person is the target
+    unless spouse_person
+      reverse_relationship = Relationship
+                           .where(relative_id: person.id, relationship_type: 'spouse', is_ex: [false, nil])
+                           .first
+      if reverse_relationship
+        spouse_person = Person.find_by(id: reverse_relationship.person_id)
+      end
+    end
+    
+    if spouse_person
+      base_name = spouse_person.first_name
+      # Apply deceased spouse logic - only living person sees deceased spouse as "late"
+      if spouse_person.date_of_death.present? && should_mark_as_late_spouse?(spouse_person, person)
+        "late #{base_name}"
+      else
+        base_name
+      end
+    end
+  end
+
+  def should_mark_as_late_spouse?(spouse, person_viewing)
+    spouse_deceased = spouse.date_of_death || spouse.is_deceased
+    viewer_deceased = person_viewing.date_of_death || person_viewing.is_deceased
+    
+    # Only mark spouse as "late" if:
+    # 1. The spouse is deceased AND
+    # 2. The person viewing (perspective) is alive
+    # This means: living person sees deceased spouse as "Late Husband/Wife"
+    # But: deceased person sees living spouse as normal "Husband/Wife"
+    
+    spouse_deceased && !viewer_deceased
   end
   
   def get_generation_context(person)

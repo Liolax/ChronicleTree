@@ -619,7 +619,32 @@ module ImageGeneration
     def add_deceased_prefix(label, person)
       return label unless person.date_of_death.present?
       return label if label&.start_with?('Late ') # Don't add "Late" if it's already there
+      
+      # Apply deceased spouse logic: only mark as "late" if only ONE spouse is deceased
+      if is_spouse_relationship?(label)
+        return label unless should_mark_as_late_spouse?(person, @root_person)
+      end
+      
       "Late #{label}"
+    end
+    
+    def is_spouse_relationship?(label)
+      return false unless label
+      lower_label = label.downcase
+      lower_label.include?('wife') || lower_label.include?('husband') || lower_label.include?('spouse')
+    end
+    
+    def should_mark_as_late_spouse?(spouse, person_viewing)
+      spouse_deceased = spouse.date_of_death || spouse.is_deceased
+      viewer_deceased = person_viewing.date_of_death || person_viewing.is_deceased
+      
+      # Only mark spouse as "late" if:
+      # 1. The spouse is deceased AND
+      # 2. The person viewing (perspective) is alive
+      # This means: living person sees deceased spouse as "Late Husband/Wife"
+      # But: deceased person sees living spouse as normal "Husband/Wife"
+      
+      spouse_deceased && !viewer_deceased
     end
     
     def is_step_child_of_root?(person)
