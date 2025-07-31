@@ -35,7 +35,12 @@ export default function MediaForm({ personId, media, onMediaAdded, onMediaUpdate
       }
       onCancel && onCancel(); // Always close modal after submit
     } catch (err) {
-      setError('Error saving media.');
+      console.error('Media save error:', err);
+      const errorMessage = err.response?.data?.error || 
+                          err.response?.data?.message || 
+                          err.response?.data?.errors?.[0] ||
+                          'Error saving media. Please check your file and try again.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -43,10 +48,33 @@ export default function MediaForm({ personId, media, onMediaAdded, onMediaUpdate
 
   const handleFileChange = e => {
     const f = e.target.files[0];
-    setFile(f);
+    setError('');
+    
     if (f) {
+      // Validate file size (10MB limit)
+      const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+      if (f.size > maxSize) {
+        setError('File size must be less than 10MB');
+        setFile(null);
+        setPreviewUrl(null);
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf', 'video/mp4', 'video/webm', 'audio/mp3', 'audio/wav'];
+      if (!allowedTypes.includes(f.type)) {
+        setError('File type not supported. Please use JPG, PNG, GIF, PDF, MP4, WEBM, MP3, or WAV files.');
+        setFile(null);
+        setPreviewUrl(null);
+        e.target.value = ''; // Clear the input
+        return;
+      }
+      
+      setFile(f);
       setPreviewUrl(URL.createObjectURL(f));
     } else {
+      setFile(null);
       setPreviewUrl(null);
     }
   };

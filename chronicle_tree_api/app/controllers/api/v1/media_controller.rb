@@ -24,8 +24,15 @@ module Api
       end
 
       def destroy
-        @media.destroy
-        head :no_content
+        begin
+          @media.destroy
+          Rails.logger.info("Media deleted successfully: ID #{@media.id}")
+          head :no_content
+        rescue => e
+          Rails.logger.error("Media deletion failed: #{e.message}")
+          Rails.logger.error("Media ID: #{params[:id]}, User ID: #{current_user.id}")
+          render json: { error: "Failed to delete media: #{e.message}" }, status: :unprocessable_entity
+        end
       end
 
       def update
@@ -43,13 +50,25 @@ module Api
       end
 
       def set_media
-        # Find the media record
-        media = Medium.find(params[:id])
-        # Authorize that it belongs to the current user
-        if media.attachable_type == "Person" && media.attachable.user == current_user
-          @media = media
-        else
-          head :not_found
+        begin
+          # Find the media record
+          media = Medium.find(params[:id])
+          Rails.logger.info("Found media: ID #{media.id}, attachable_type: #{media.attachable_type}, attachable_id: #{media.attachable_id}")
+          
+          # Authorize that it belongs to the current user
+          if media.attachable_type == "Person" && media.attachable.user == current_user
+            @media = media
+            Rails.logger.info("Media authorized for user #{current_user.id}")
+          else
+            Rails.logger.warn("Media authorization failed: Media belongs to user #{media.attachable.user_id if media.attachable_type == 'Person'}, current user: #{current_user.id}")
+            render json: { error: "Media not found or you don't have permission to access it" }, status: :not_found
+          end
+        rescue ActiveRecord::RecordNotFound => e
+          Rails.logger.error("Media not found: ID #{params[:id]}")
+          render json: { error: "Media not found" }, status: :not_found
+        rescue => e
+          Rails.logger.error("Error in set_media: #{e.message}")
+          render json: { error: "Unable to access media" }, status: :internal_server_error
         end
       end
 

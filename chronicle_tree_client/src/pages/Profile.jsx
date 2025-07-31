@@ -16,6 +16,7 @@ import { ProfileLoader } from '../components/UI/PageLoader';
 import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
 import { ShareModal } from '../components/Share';
 import { showFileError, showOperationError, showOperationSuccess } from '../utils/validationAlerts';
+import { showDeleteConfirm } from '../utils/sweetAlerts';
 
 export default function Profile() {
   const { id } = useParams();
@@ -90,9 +91,21 @@ export default function Profile() {
 
   // Delete fact handler
   const handleFactDelete = async (factId) => {
-    if (!window.confirm('Delete this fact?')) return;
-    await api.delete(`/facts/${factId}`);
-    setFacts(prev => prev.filter(f => f.id !== factId));
+    const result = await showDeleteConfirm(
+      'Delete Fact',
+      'Are you sure you want to delete this fact? This action cannot be undone.'
+    );
+    
+    if (!result.isConfirmed) return;
+    
+    try {
+      await api.delete(`/facts/${factId}`);
+      setFacts(prev => prev.filter(f => f.id !== factId));
+      showOperationSuccess('Fact deleted successfully');
+    } catch (error) {
+      console.error('Delete fact error:', error);
+      showOperationError('Failed to delete fact');
+    }
   };
 
   // Add timeline event handler
@@ -116,9 +129,21 @@ export default function Profile() {
 
   // Delete timeline event handler
   const handleTimelineDelete = async (eventId) => {
-    if (!window.confirm('Delete this timeline event?')) return;
-    await api.delete(`/timeline_items/${eventId}`);
-    setTimeline(prev => prev.filter(e => e.id !== eventId));
+    const result = await showDeleteConfirm(
+      'Delete Timeline Event',
+      'Are you sure you want to delete this timeline event? This action cannot be undone.'
+    );
+    
+    if (!result.isConfirmed) return;
+    
+    try {
+      await api.delete(`/timeline_items/${eventId}`);
+      setTimeline(prev => prev.filter(e => e.id !== eventId));
+      showOperationSuccess('Timeline event deleted successfully');
+    } catch (error) {
+      console.error('Delete timeline error:', error);
+      showOperationError('Failed to delete timeline event');
+    }
   };
 
   // Add media handler
@@ -143,9 +168,24 @@ export default function Profile() {
 
   // Delete media handler
   const handleMediaDelete = async (mediaId) => {
-    if (!window.confirm('Delete this media item?')) return;
-    await api.delete(`/media/${mediaId}`);
-    setMedia(prev => prev.filter(m => m.id !== mediaId));
+    const result = await showDeleteConfirm(
+      'Delete Media',
+      'Are you sure you want to delete this media item? This action cannot be undone.'
+    );
+    
+    if (!result.isConfirmed) return;
+    
+    try {
+      await api.delete(`/media/${mediaId}`);
+      setMedia(prev => prev.filter(m => m.id !== mediaId));
+      showOperationSuccess('Media deleted successfully');
+    } catch (error) {
+      console.error('Delete media error:', error);
+      const errorMsg = error.response?.data?.error || 
+                      error.response?.data?.message || 
+                      'Failed to delete media. Please try again.';
+      showOperationError(errorMsg);
+    }
   };
 
   // Relationship delete handler

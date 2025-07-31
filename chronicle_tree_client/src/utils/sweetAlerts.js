@@ -54,6 +54,19 @@ export const showConfirm = (title, text, confirmText = 'Yes', cancelText = 'No')
   });
 };
 
+export const showDeleteConfirm = (title, text) => {
+  return Swal.fire({
+    title,
+    text,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#dc2626', // Red for delete
+    cancelButtonColor: '#6B7280', // Gray for cancel
+    confirmButtonText: 'Delete',
+    cancelButtonText: 'Cancel'
+  });
+};
+
 // Toast notifications for quick feedback
 export const showToast = (message, icon = 'success', timer = 3000) => {
   return Swal.fire({
