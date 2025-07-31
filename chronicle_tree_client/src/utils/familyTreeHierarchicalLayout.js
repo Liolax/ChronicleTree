@@ -1,6 +1,39 @@
 import { Position } from '@xyflow/react';
 import { preventNodeOverlap, applyRelationshipSpacing } from './antiOverlapLayout.js';
 import { enhanceNodeVisuals, enhanceEdgeVisuals, applyVisualComplexitySpacing } from './visualConfiguration.js';
+
+/**
+ * Determines if a spouse should be marked as "late" based on the rules:
+ * - If only ONE spouse is deceased → mark as "late spouse"
+ * - If BOTH spouses are deceased AND no new marriages → NOT marked as "late" (married in heaven)
+ */
+function shouldMarkAsLateSpouse(person1, person2, allRelationships = []) {
+  const person1Deceased = person1.date_of_death || person1.is_deceased;
+  const person2Deceased = person2.date_of_death || person2.is_deceased;
+  
+  // If neither is deceased, not a late spouse
+  if (!person1Deceased && !person2Deceased) {
+    return false;
+  }
+  
+  // If only one is deceased, mark as late spouse
+  if (person1Deceased && !person2Deceased) {
+    return true;
+  }
+  if (!person1Deceased && person2Deceased) {
+    return true;
+  }
+  
+  // If both are deceased, check if either had subsequent marriages
+  // If no subsequent marriages, they're "married in heaven" (not marked as late)
+  if (person1Deceased && person2Deceased) {
+    // For now, if both are deceased, don't mark as late (married in heaven)
+    // TODO: Add logic to check for subsequent marriages if needed
+    return false;
+  }
+  
+  return false;
+}
 /**
  * Collects all family members connected to a root person using breadth-first search
  * Traverses the family network to find everyone related to the starting person
@@ -1250,7 +1283,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
           // Determine spouse type for spacing
           let spouseType = "current";
           if (spouse.is_ex) spouseType = "ex";
-          else if (spouse.date_of_death || spouse.is_deceased) spouseType = "late";
+          else if (shouldMarkAsLateSpouse(person, spouse)) spouseType = "late";
           const spacing = getSpouseSpacing(spouseType);
           
           // Position spouse pair
@@ -1284,7 +1317,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
         // Determine spouse type for spacing
         let spouseType = "current";
         if (spouse.is_ex) spouseType = "ex";
-        else if (spouse.date_of_death || spouse.is_deceased) spouseType = "late";
+        else if (shouldMarkAsLateSpouse(person, spouse)) spouseType = "late";
         const spacing = getSpouseSpacing(spouseType);
         
         // Position spouse pair

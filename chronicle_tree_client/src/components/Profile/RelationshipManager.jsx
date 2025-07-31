@@ -6,6 +6,48 @@ import DeletePersonModal from '../UI/DeletePersonModal';
 import { buildRelationshipMaps, calculateRelationshipToRoot, detectAnyBloodRelationship } from '../../utils/improvedRelationshipCalculator';
 import { showInfo } from '../../utils/sweetAlerts';
 
+/**
+ * Determines how to display spouse relationship based on deceased status
+ * Rules:
+ * - If only ONE spouse is deceased → surviving spouse shows "late [name]"
+ * - If BOTH spouses are deceased AND no new marriages → both show normal name (married in heaven)
+ */
+function getSpouseDisplayInfo(currentPerson, spousePerson, isEx) {
+  const currentPersonDeceased = currentPerson.date_of_death || currentPerson.is_deceased;
+  const spouseDeceased = spousePerson.date_of_death || spousePerson.is_deceased;
+  
+  if (isEx) {
+    return { displayName: spousePerson.first_name + ' ' + spousePerson.last_name, status: 'ex', isLate: false };
+  }
+  
+  // If only spouse is deceased, current person has "late spouse"
+  if (!currentPersonDeceased && spouseDeceased) {
+    const deathYear = new Date(spousePerson.date_of_death).getFullYear();
+    return { 
+      displayName: spousePerson.first_name + ' ' + spousePerson.last_name, 
+      status: 'deceased', 
+      isLate: true,
+      deathYear 
+    };
+  }
+  
+  // If only current person is deceased, spouse has "late [current person]" (but we're viewing current person's profile)
+  if (currentPersonDeceased && !spouseDeceased) {
+    return { 
+      displayName: spousePerson.first_name + ' ' + spousePerson.last_name, 
+      status: 'current', 
+      isLate: false 
+    };
+  }
+  
+  // If both are deceased (married in heaven) or both alive
+  return { 
+    displayName: spousePerson.first_name + ' ' + spousePerson.last_name, 
+    status: currentPersonDeceased && spouseDeceased ? 'both_deceased' : 'current', 
+    isLate: false 
+  };
+}
+
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
   child: 'Children',
@@ -1475,27 +1517,47 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                   {rels.map(rel => (
                     <li key={rel.id + (rel.inLaw ? '-inlaw' : '') + (rel.isStep ? '-step' : '')} className="flex items-center justify-between bg-white rounded px-3 py-2 border border-slate-100">
                       <span className="flex items-center gap-2">
-                        {/* Check if spouse is deceased based on date_of_death */}
+                        {/* Display spouse with correct deceased status */}
                         {(() => {
                           const spousePerson = people.find(p => p.id === rel.id);
-                          const isDeceased = spousePerson && spousePerson.date_of_death;
-                          const deathYear = isDeceased ? new Date(spousePerson.date_of_death).getFullYear() : null;
+                          if (!spousePerson) return null;
                           
-                          if (type === 'spouse' && rel.is_ex) {
-                            // Ex-spouse: Only show "ex" regardless of whether they died later
-                            return (
-                              <span className="font-medium text-red-500 line-through">
-                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a> (ex)
-                              </span>
-                            );
-                          } else if (type === 'spouse' && isDeceased) {
-                            // Current spouse who died: Show "deceased in [year]" - all gray
-                            return (
-                              <span className="font-medium text-gray-600">
-                                <a href={`/profile/${rel.id}`} className="hover:underline text-gray-600 hover:text-gray-800">{rel.full_name}</a> (deceased in {deathYear})
-                              </span>
-                            );
+                          if (type === 'spouse') {
+                            const displayInfo = getSpouseDisplayInfo(person, spousePerson, rel.is_ex);
+                            
+                            if (displayInfo.status === 'ex') {
+                              // Ex-spouse: Only show "ex" regardless of whether they died later
+                              return (
+                                <span className="font-medium text-red-500 line-through">
+                                  <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{displayInfo.displayName}</a> (ex)
+                                </span>
+                              );
+                            } else if (displayInfo.isLate) {
+                              // Deceased spouse - surviving spouse shows "late [name]"
+                              return (
+                                <span className="font-medium text-gray-600">
+                                  <a href={`/profile/${rel.id}`} className="hover:underline text-gray-600 hover:text-gray-800">late {displayInfo.displayName}</a>
+                                </span>
+                              );
+                            } else if (displayInfo.status === 'both_deceased') {
+                              // Both deceased (married in heaven) - show normal name
+                              return (
+                                <span className="font-medium text-gray-600">
+                                  <a href={`/profile/${rel.id}`} className="hover:underline text-gray-600 hover:text-gray-800">{displayInfo.displayName}</a>
+                                </span>
+                              );
+                            } else {
+                              // Current spouse (both alive or viewing from alive person's perspective)
+                              return (
+                                <span className="font-medium">
+                                  <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{displayInfo.displayName}</a>
+                                  {rel.inLaw && ' (in-law)'}
+                                  {rel.isStep && ' (step)'}
+                                </span>
+                              );
+                            }
                           } else {
+                            // Non-spouse relationships
                             return (
                               <span className="font-medium">
                                 <a href={`/profile/${rel.id}`} className="hover:underline text-gray-800">{rel.full_name}</a>
