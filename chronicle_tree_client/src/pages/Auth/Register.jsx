@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import PageHeader from '../../components/Layout/PageHeader';
 import Swal from 'sweetalert2';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 export default function Register() {
   const { register: r, handleSubmit } = useForm();
@@ -65,12 +66,12 @@ export default function Register() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
                 tabIndex={-1}
                 onClick={() => setShowPassword(v => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? 'Hide' : 'Show'}
+                {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
               </button>
             </div>
           </div>
@@ -86,12 +87,12 @@ export default function Register() {
               />
               <button
                 type="button"
-                className="absolute right-2 top-2 text-gray-500 hover:text-gray-700"
+                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
                 tabIndex={-1}
                 onClick={() => setShowConfirm(v => !v)}
                 aria-label={showConfirm ? "Hide password" : "Show password"}
               >
-                {showConfirm ? 'Hide' : 'Show'}
+                {showConfirm ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
               </button>
             </div>
           </div>
