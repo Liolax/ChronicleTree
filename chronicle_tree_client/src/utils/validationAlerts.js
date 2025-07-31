@@ -54,6 +54,10 @@ export const showValidationAlert = (type, details = {}) => {
     showWarning('Sibling Relationship Warning', message);
   } else if (type === 'timeline' || type === 'temporalError') {
     showWarning('Timeline Warning', message);
+  } else if (type === 'invalidRelationship') {
+    // Use custom message from details if provided, otherwise use default
+    const customMessage = details?.message || message;
+    showWarning('Relationship Warning', customMessage);
   } else {
     // System validation errors (missing data, invalid input, etc.)
     showError('Input Error', message);
