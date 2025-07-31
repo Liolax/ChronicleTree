@@ -4,6 +4,7 @@ import { createRelationship, deletePerson, getPerson, useToggleSpouseEx, useFull
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
 import { buildRelationshipMaps, calculateRelationshipToRoot, detectAnyBloodRelationship } from '../../utils/improvedRelationshipCalculator';
+import { showInfo } from '../../utils/sweetAlerts';
 
 const RELATIONSHIP_LABELS = {
   parent: 'Parents',
@@ -982,12 +983,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     
     if (totalFiltered === 0) return;
     
-    let alertMessage = `🔍 RELATIONSHIP FILTERING INFORMATION\n\n`;
+    let alertMessage = `RELATIONSHIP FILTERING INFORMATION\n\n`;
     alertMessage += `Adding ${type} relationship for ${person.first_name} ${person.last_name}\n\n`;
     alertMessage += `${totalFiltered} people have been filtered out for the following reasons:\n\n`;
     
     if (filteringInfo.marriageAge.length > 0) {
-      alertMessage += `👶 MARRIAGE AGE RESTRICTIONS (${filteringInfo.marriageAge.length} people):\n`;
+      alertMessage += `MARRIAGE AGE RESTRICTIONS (${filteringInfo.marriageAge.length} people):\n`;
       alertMessage += `• Minimum marriage age is 16 years\n`;
       filteringInfo.marriageAge.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
       if (filteringInfo.marriageAge.length > 3) {
@@ -1007,7 +1008,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
     
     if (filteringInfo.ageConstraints.length > 0) {
-      alertMessage += `📅 AGE CONSTRAINTS (${filteringInfo.ageConstraints.length} people):\n`;
+      alertMessage += `AGE CONSTRAINTS (${filteringInfo.ageConstraints.length} people):\n`;
       alertMessage += `• Parents must be 12+ years older than children\n`;
       filteringInfo.ageConstraints.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
       if (filteringInfo.ageConstraints.length > 3) {
@@ -1017,7 +1018,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
     
     if (filteringInfo.relationshipLimits.length > 0) {
-      alertMessage += `👥 RELATIONSHIP LIMITS (${filteringInfo.relationshipLimits.length} people):\n`;
+      alertMessage += `RELATIONSHIP LIMITS (${filteringInfo.relationshipLimits.length} people):\n`;
       alertMessage += `• Max 2 parents, 1 current spouse per person\n`;
       filteringInfo.relationshipLimits.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
       if (filteringInfo.relationshipLimits.length > 3) {
@@ -1027,7 +1028,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
     
     if (filteringInfo.missingData.length > 0) {
-      alertMessage += `📋 MISSING REQUIRED DATA (${filteringInfo.missingData.length} people):\n`;
+      alertMessage += `MISSING REQUIRED DATA (${filteringInfo.missingData.length} people):\n`;
       alertMessage += `• Birth dates required for marriage validation\n`;
       filteringInfo.missingData.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
       if (filteringInfo.missingData.length > 3) {
@@ -1037,7 +1038,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
     
     if (filteringInfo.alreadyRelated.length > 0) {
-      alertMessage += `🔗 ALREADY RELATED (${filteringInfo.alreadyRelated.length} people):\n`;
+      alertMessage += `ALREADY RELATED (${filteringInfo.alreadyRelated.length} people):\n`;
       filteringInfo.alreadyRelated.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
       if (filteringInfo.alreadyRelated.length > 3) {
         alertMessage += `  - And ${filteringInfo.alreadyRelated.length - 3} more...\n`;
@@ -1045,12 +1046,12 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       alertMessage += `\n`;
     }
     
-    alertMessage += `💡 TIP: To add filtered people, you may need to:\n`;
+    alertMessage += `TIP: To add filtered people, you may need to:\n`;
     alertMessage += `• Add missing birth dates\n`;
     alertMessage += `• Wait for people to reach minimum age\n`;
     alertMessage += `• Review family relationship structure\n`;
     
-    alert(alertMessage);
+    showInfo('Relationship Filtering', alertMessage);
   };
 
   // Filter people for each relationship type with enhanced constraints
@@ -1449,7 +1450,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                     title="Why can't I add anyone? Click for details"
                     onClick={() => showFilteringAlert(type)}
                   >
-                    ❓
+                    ?
                   </button>
                 )}
               </div>
@@ -1512,7 +1513,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                                 const bloodCheck = detectBloodRelationship(person.id, rel.id);
                                 if (bloodCheck.isBloodRelated) {
                                   const action = rel.is_ex ? 'remarry' : 'divorce';
-                                  const confirmMsg = `⚠️ Blood Relationship Warning\n\n${person.first_name} ${person.last_name} and ${rel.full_name} are blood relatives (${bloodCheck.relationship}).\n\nDo you want to ${action} them anyway?\n\nMarriage between blood relatives is generally inappropriate.`;
+                                  const confirmMsg = `${person.first_name} ${person.last_name} and ${rel.full_name} are blood relatives (${bloodCheck.relationship}). Do you want to ${action} them anyway? Marriage between blood relatives is generally inappropriate.`;
                                   
                                   if (!confirm(confirmMsg)) {
                                     setToggleLoadingId(null);

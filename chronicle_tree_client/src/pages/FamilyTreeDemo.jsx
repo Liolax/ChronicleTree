@@ -18,6 +18,7 @@ import PersonCard from '../components/Tree/PersonCard';
 import { createFamilyTreeLayout, centerChildrenBetweenParents } from '../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../utils/improvedRelationshipCalculator';
 import { mockFamilyData } from '../data/mockData';
+import { showOperationSuccess } from '../utils/validationAlerts';
 
 // Node types for react-flow
 const nodeTypes = {
@@ -108,7 +109,7 @@ const FamilyTreeDemo = () => {
         break;
       case 'copy':
         navigator.clipboard.writeText(shareUrl).then(() => {
-          alert('Link copied to clipboard!');
+          showOperationSuccess('linkCopied');
         });
         break;
       default:
@@ -310,10 +311,10 @@ const FamilyTreeDemo = () => {
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <div className="text-xs text-gray-500">
-                      🏠 Click home icon to change root person
+                      Click home icon to change root person
                     </div>
                     <div className="text-xs text-gray-500">
-                      📍 Sibling relationships shown through positioning
+                      Sibling relationships shown through positioning
                     </div>
                   </div>
                 </div>
@@ -349,7 +350,7 @@ const FamilyTreeDemo = () => {
               </div>
               
               <div className="bg-gray-100 p-4 rounded-lg text-center mb-4">
-                <div className="text-4xl mb-2">🌳</div>
+                <div className="text-4xl mb-2">Tree</div>
                 <p className="font-semibold">
                   {rootPersonId 
                     ? `${processedData.nodes.find(n => n.id === rootPersonId)?.first_name}'s Family Tree`
@@ -373,35 +374,35 @@ const FamilyTreeDemo = () => {
                   title="Share on Facebook"
                   onClick={() => handleSocialShare('facebook')}
                 >
-                  📘
+                  FB
                 </button>
                 <button 
                   className="text-2xl text-black hover:text-gray-700" 
                   title="Share on X"
                   onClick={() => handleSocialShare('twitter')}
                 >
-                  ✖️
+                  X
                 </button>
                 <button 
                   className="text-2xl text-green-500 hover:text-green-700" 
                   title="Share on WhatsApp"
                   onClick={() => handleSocialShare('whatsapp')}
                 >
-                  📱
+                  WA
                 </button>
                 <button 
                   className="text-2xl text-red-500 hover:text-red-700" 
                   title="Share via Email"
                   onClick={() => handleSocialShare('email')}
                 >
-                  📧
+                  Email
                 </button>
                 <button 
                   className="text-2xl text-gray-600 hover:text-gray-800" 
                   title="Copy Link"
                   onClick={() => handleSocialShare('copy')}
                 >
-                  🔗
+                  Link
                 </button>
               </div>
               

@@ -1,4 +1,5 @@
 // Family tree validation system - ensures data integrity
+
 export const showValidationAlert = (type, details = {}) => {
   const { personName, targetName, age, relationship } = details;
   
@@ -32,7 +33,12 @@ export const showValidationAlert = (type, details = {}) => {
     temporalError: 'The birth and death dates don\'t make sense together. Please check the dates and try again.'
   };
 
-  alert(alerts[type] || 'Please check the information and try again.');
+  const message = alerts[type] || 'Please check the information and try again.';
+  if (type === 'marriageAge' || type === 'ageDifference' || type === 'maxParents' || type === 'maxSpouse') {
+    showWarning('Validation Error', message);
+  } else {
+    showError('Input Error', message);
+  }
 };
 
 // Quick validation helpers
@@ -69,38 +75,38 @@ export const handleBackendError = (error) => {
   // Handle network errors
   if (!error?.response) {
     if (error?.message?.includes('Network Error')) {
-      alert('Network connection problem. Please check your internet connection and try again.');
+      showError('Connection Problem', 'Please check your internet connection and try again.');
       return;
     }
-    alert('Unable to connect to the server. Please check your connection and try again.');
+    showError('Connection Error', 'Unable to connect to the server. Please check your connection and try again.');
     return;
   }
 
   // Handle different HTTP status codes
   if (error.response?.status === 401) {
-    alert('Your session has expired. Please log in again.');
+    showWarning('Session Expired', 'Your session has expired. Please log in again.');
     return;
   }
   
   if (error.response?.status === 403) {
-    alert('You don\'t have permission to perform this action.');
+    showError('Access Denied', 'You do not have permission to perform this action.');
     return;
   }
   
   if (error.response?.status === 404) {
-    alert('The requested information was not found. It may have been deleted or moved.');
+    showError('Not Found', 'The requested information was not found. It may have been deleted or moved.');
     return;
   }
   
   if (error.response?.status >= 500) {
-    alert('Server error occurred. Please try again in a moment, or contact support if the problem continues.');
+    showError('Server Error', 'Please try again in a moment, or contact support if the problem continues.');
     return;
   }
 
   const errorMsg = error?.response?.data?.errors?.[0] || error?.response?.data?.message || error?.message;
   
   if (!errorMsg) {
-    alert('Something went wrong. Please try again.');
+    showError('Error', 'Something went wrong. Please try again.');
     return;
   }
   
@@ -125,7 +131,7 @@ export const handleBackendError = (error) => {
       errorMsg.includes('born after parent\'s death') ||
       errorMsg.includes('Only spouse relationships can be')) {
     // These are detailed, user-friendly messages from backend - show them directly
-    alert(errorMsg);
+    showError('Error', errorMsg);
   } else if (errorMsg.includes('marriage age') || (errorMsg.includes('16 years') && errorMsg.includes('marriage'))) {
     showValidationAlert('marriageAge');
   } else if (errorMsg.includes('blood relative') || errorMsg.includes('Blood relatives')) {
@@ -143,18 +149,18 @@ export const handleBackendError = (error) => {
   } else if (errorMsg.includes('share at least one parent')) {
     showValidationAlert('siblingConstraint');
   } else if (errorMsg.includes('First name') && errorMsg.includes('blank')) {
-    alert('First name is required. Please enter a first name.');
+    showError('Missing Information', 'First name is required. Please enter a first name.');
   } else if (errorMsg.includes('Last name') && errorMsg.includes('blank')) {
-    alert('Last name is required. Please enter a last name.');
+    showError('Missing Information', 'Last name is required. Please enter a last name.');
   } else if (errorMsg.includes('can\'t be blank')) {
-    alert('Please fill in all required fields. Some required information is missing.');
+    showError('Missing Fields', 'Please fill in all required fields. Some required information is missing.');
   } else if (errorMsg.includes('invalid') && errorMsg.includes('date')) {
-    alert('Please enter a valid date in the correct format (YYYY-MM-DD).');
+    showError('Invalid Date', 'Please enter a valid date in the correct format (YYYY-MM-DD).');
   } else if (errorMsg.includes('internal server error') || errorMsg.includes('500')) {
-    alert('Something went wrong on our end. Please try again in a moment, or contact support if the problem continues.');
+    showError('Server Error', 'Something went wrong on our end. Please try again in a moment, or contact support if the problem continues.');
   } else {
     // Show the actual error message if it doesn't match our patterns
-    alert(errorMsg);
+    showError('Error', errorMsg);
   }
 };
 
@@ -173,3 +179,60 @@ export const validateParentChildAge = (parent, child) => {
   
   return { valid: true };
 };
+
+// Centralized alert functions for all app notifications
+export const showFileError = (type, details = {}) => {
+  const messages = {
+    invalidType: 'Only JPG, PNG, or GIF images are allowed.',
+    fileTooLarge: 'File size must be less than 2MB.',
+    uploadFailed: 'Failed to upload avatar.',
+    removeFailed: 'Failed to remove avatar.'
+  };
+  showError('File Error', messages[type] || 'File operation failed.');
+};
+
+export const showOperationError = (type, details = {}) => {
+  const messages = {
+    deleteFailed: 'Failed to delete person.',
+    updateFailed: 'Failed to toggle spouse status.',
+    shareFailed: `Share failed: ${details.message || 'Unknown error'}`,
+    connectionFailed: 'No content to share',
+    copyFailed: 'Failed to copy link',
+    downloadFailed: 'Failed to download image',
+    noImage: 'No image to download',
+    unknownPlatform: 'Unknown sharing platform',
+    popupBlocked: 'Please allow popups to share on social media',
+    shareWindowFailed: 'Failed to open sharing window',
+    missingRelationType: 'Please select a relationship type.',
+    missingPerson: 'Please select a person to relate to.',
+    generateContentFailed: 'Failed to generate shareable content'
+  };
+  showError('Operation Failed', messages[type] || 'Operation failed.');
+};
+
+export const showOperationSuccess = (type, details = {}) => {
+  const messages = {
+    linkCopied: 'Profile link copied to clipboard!',
+    personAdded: `${details.firstName || 'Person'} ${details.lastName || ''} has been successfully added to the family tree!`,
+    personUpdated: `${details.firstName || 'Person'} ${details.lastName || ''} has been successfully updated!`
+  };
+  showToast(messages[type] || 'Operation completed successfully!');
+};
+
+export const showFormError = (type, person = {}, child = {}, parent = {}) => {
+  const messages = {
+    missingBirthDate: 'Please enter a birth date for the new person. Birth dates are required to verify that sibling relationships are realistic.',
+    missingPersonBirthDate: `${person?.first_name} ${person?.last_name} does not have a birth date in the system. Birth dates are required for both people to verify sibling relationships. Please add a birth date first, then try again.`,
+    siblingAgeGap: `The age difference between these people is too large. Siblings typically do not have more than a 25-year age gap, as this would be unusual for children of the same parents. Consider if they might be parent-child instead, check if the birth dates are correct, or consider if they might be step-siblings through remarriage.`,
+    temporalValidation: `Cannot add child born after parent's death. ${person.first_name} ${person.last_name} died on ${person.date_of_death}, but the birth date you entered is after that date. Please choose a birth date before the parent's death date.`,
+    birthDateYounger: `The new birth date would make ${person.first_name} ${person.last_name} younger than their child ${child.first_name} ${child.last_name}. Please choose a birth date that maintains at least 12 years difference with all children.`,
+    birthDateTooClose: `The new birth date would make ${person.first_name} ${person.last_name} only ${person.ageDiff || 0} years older than their child ${child.first_name} ${child.last_name}. A parent must be at least 12 years older than their child.`,
+    parentAgeError: `The new birth date would make ${person.first_name} ${person.last_name} older than their parent ${parent.first_name} ${parent.last_name}. A child cannot be older than their parent.`,
+    parentAgeTooClose: `The new birth date would make parent ${parent.first_name} ${parent.last_name} only ${parent.ageDiff || 0} years older than ${person.first_name} ${person.last_name}. A parent must be at least 12 years older than their child.`,
+    marriageAge: `${person.first_name} ${person.last_name} would be ${person.age || 0} years old. Minimum marriage age is 16.`,
+    deathDateError: `The death date would be before the birth of ${person.first_name} ${person.last_name}'s child ${child.first_name} ${child.last_name}. A parent cannot die before their child is born.`
+  };
+  showError('Validation Error', messages[type] || 'Please check the information and try again.');
+};
+
+import { showError, showWarning, showToast } from './sweetAlerts';

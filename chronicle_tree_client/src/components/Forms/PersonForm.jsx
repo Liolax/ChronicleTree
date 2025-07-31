@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import Input from '../UI/Input';
 import Button from '../UI/Button';
 import { useCurrentUser } from '../../services/users';
-import { showValidationAlert, validateMarriageAge, validateParentChildAge } from '../../utils/validationAlerts';
+import { showValidationAlert, validateMarriageAge, validateParentChildAge, showFormError } from '../../utils/validationAlerts';
 
 const RELATIONSHIP_TYPES = [
   { value: '', label: 'Relationship Type' },
@@ -57,13 +57,13 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
       const selectedPerson = filteredPeople.find(p => String(p.id) === String(data.relatedPersonId));
       
       if (!data.date_of_birth) {
-        alert('⚠️ Missing Information\n\nPlease enter a birth date for the new person. Birth dates are required to verify that sibling relationships are realistic.');
+        showFormError('missingBirthDate');
         setIsSubmitting(false);
         return;
       }
       
       if (!selectedPerson?.date_of_birth) {
-        alert(`⚠️ Missing Information\n\n${selectedPerson?.first_name} ${selectedPerson?.last_name} doesn't have a birth date in the system.\n\nBirth dates are required for both people to verify sibling relationships. Please add a birth date for ${selectedPerson?.first_name} first, then try again.`);
+        showFormError('missingPersonBirthDate', selectedPerson);
         setIsSubmitting(false);
         return;
       }
@@ -76,7 +76,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
         const olderPerson = newPersonBirth < selectedPersonBirth ? data.firstName : selectedPerson.first_name;
         const youngerPerson = newPersonBirth < selectedPersonBirth ? selectedPerson.first_name : data.firstName;
         
-        alert(`🚫 Unlikely Sibling Relationship\n\nThe age difference between ${olderPerson} and ${youngerPerson} is ${ageGapYears.toFixed(1)} years.\n\nSiblings typically don't have more than a 25-year age gap, as this would be unusual for children of the same parents.\n\nPossible alternatives:\n• Consider if they might be parent-child instead\n• Check if the birth dates are correct\n• Consider if they might be step-siblings through remarriage`);
+        showFormError('siblingAgeGap');
         setIsSubmitting(false);
         return;
       }
@@ -178,7 +178,7 @@ const PersonForm = ({ person, onSubmit, onCancel, isLoading, people = [], isFirs
                 if (birthDate > parentDeathDate) {
                   // Show alert for immediate user feedback
                   setTimeout(() => {
-                    alert(`⚠️ Temporal Validation Error:\n\nCannot add child born after parent's death.\n\n${selectedPerson.first_name} ${selectedPerson.last_name} died on ${selectedPerson.date_of_death}, but the birth date you entered is ${value}.\n\nPlease choose a birth date before the parent's death date.`);
+                    showFormError('temporalValidation', selectedPerson);
                   }, 100);
                   
                   return `Cannot add child born after parent's death (${selectedPerson.first_name} ${selectedPerson.last_name} died ${selectedPerson.date_of_death})`;

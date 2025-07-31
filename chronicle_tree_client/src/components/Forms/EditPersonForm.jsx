@@ -4,7 +4,7 @@ import Input from '../UI/Input';
 import Button from '../UI/Button';
 import { usePerson, useFullTree } from '../../services/people';
 import { calculateRelationshipToRoot } from '../../utils/improvedRelationshipCalculator';
-import { showValidationAlert, validateMarriageAge } from '../../utils/validationAlerts';
+import { showValidationAlert, validateMarriageAge, showFormError } from '../../utils/validationAlerts';
 
 const EditPersonForm = ({ person, onSave, onCancel }) => {
   // Fetch detailed person data including relationships
@@ -125,12 +125,12 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
                   if (ageDiff < 12) {
                     if (ageDiff < 0) {
                       setTimeout(() => {
-                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make ${person.first_name} ${person.last_name} ${Math.abs(ageDiff).toFixed(1)} years YOUNGER than their child ${child.first_name} ${child.last_name}.\n\nPlease choose a birth date that maintains at least 12 years difference with all children.`);
+                        showFormError('birthDateYounger', person, child);
                       }, 100);
                       return `Cannot be younger than child ${child.first_name} ${child.last_name}`;
                     } else {
                       setTimeout(() => {
-                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make ${person.first_name} ${person.last_name} only ${ageDiff.toFixed(1)} years older than their child ${child.first_name} ${child.last_name}.\n\nA parent must be at least 12 years older than their child.`);
+                        showFormError('birthDateTooClose', { ...person, ageDiff }, child);
                       }, 100);
                       return `Must be at least 12 years older than child ${child.first_name} ${child.last_name}`;
                     }
@@ -152,12 +152,12 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
                   if (ageDiff < 12) {
                     if (ageDiff < 0) {
                       setTimeout(() => {
-                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make ${person.first_name} ${person.last_name} ${Math.abs(ageDiff).toFixed(1)} years OLDER than their parent ${parent.first_name} ${parent.last_name}.\n\nA child cannot be older than their parent.`);
+                        showFormError('parentAgeError', person, {}, parent);
                       }, 100);
                       return `Cannot be older than parent ${parent.first_name} ${parent.last_name}`;
                     } else {
                       setTimeout(() => {
-                        alert(`⚠️ Birth Date Validation Error:\n\nThe new birth date would make parent ${parent.first_name} ${parent.last_name} only ${ageDiff.toFixed(1)} years older than ${person.first_name} ${person.last_name}.\n\nA parent must be at least 12 years older than their child.`);
+                        showFormError('parentAgeTooClose', person, {}, { ...parent, ageDiff });
                       }, 100);
                       return `Parent ${parent.first_name} ${parent.last_name} must be at least 12 years older`;
                     }
@@ -177,7 +177,7 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
                 
                 if (personAge < 16) {
                   setTimeout(() => {
-                    alert(`${person.first_name} ${person.last_name} would be ${personAge.toFixed(1)} years old. Minimum marriage age is 16.`);
+                    showFormError('marriageAge', { ...person, age: personAge.toFixed(1) });
                   }, 100);
                   return 'Too young to be married';
                 }
@@ -230,7 +230,7 @@ const EditPersonForm = ({ person, onSave, onCancel }) => {
                   
                   if (deathDate < childBirth) {
                     setTimeout(() => {
-                      alert(`⚠️ Death Date Validation Error:\n\nThe death date would be before the birth of ${person.first_name} ${person.last_name}'s child ${child.first_name} ${child.last_name}.\n\nChild born: ${child.date_of_birth}\nProposed death date: ${value}\n\nA parent cannot die before their child is born.`);
+                      showFormError('deathDateError', person, child);
                     }, 100);
                     return `Cannot die before child ${child.first_name} ${child.last_name} was born`;
                   }

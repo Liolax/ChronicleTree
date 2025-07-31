@@ -26,7 +26,7 @@ export const useShare = () => {
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'Failed to generate shareable content';
       setError(errorMessage);
-      alert(errorMessage);
+      showOperationError(errorMessage);
       throw err;
     } finally {
       setIsGenerating(false);
@@ -35,7 +35,7 @@ export const useShare = () => {
 
   const shareViaWebAPI = useCallback(async (data) => {
     if (!data) {
-      alert('No content to share');
+      showOperationError('No content to share');
       return false;
     }
 
@@ -64,7 +64,7 @@ export const useShare = () => {
   const copyToClipboard = useCallback(async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert('Link copied to clipboard!');
+      showOperationSuccess('linkCopied');
       return true;
     } catch (err) {
       // Legacy fallback implementation for clipboard functionality
@@ -77,10 +77,10 @@ export const useShare = () => {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('Link copied to clipboard!');
+        showOperationSuccess('linkCopied');
         return true;
       } catch (fallbackErr) {
-        alert('Failed to copy link');
+        showOperationError('Failed to copy link');
         return false;
       }
     }
@@ -88,7 +88,7 @@ export const useShare = () => {
 
   const shareToSocial = useCallback((platform, data) => {
     if (!data) {
-      alert('No content to share');
+      showOperationError('No content to share');
       return;
     }
 
@@ -114,7 +114,7 @@ export const useShare = () => {
     const shareUrl = shareUrls[platform];
     
     if (!shareUrl) {
-      alert('Unknown sharing platform');
+      showOperationError('Unknown sharing platform');
       return;
     }
 
@@ -129,17 +129,17 @@ export const useShare = () => {
         );
         
         if (!popup) {
-          alert('Please allow popups to share on social media');
+          showOperationError('Please allow popups to share on social media');
         }
       }
     } catch (err) {
-      alert('Failed to open sharing window');
+      showOperationError('Failed to open sharing window');
     }
   }, []);
 
   const downloadImage = useCallback(async (data, filename) => {
     if (!data?.image_url) {
-      alert('No image to download');
+      showOperationError('No image to download');
       return;
     }
 
@@ -156,7 +156,7 @@ export const useShare = () => {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      alert('Failed to download image');
+      showOperationError('Failed to download image');
     }
   }, []);
 

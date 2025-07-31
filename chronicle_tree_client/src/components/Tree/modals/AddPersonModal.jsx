@@ -3,7 +3,7 @@ import Modal from '../../UI/Modal';
 import PersonForm from '../../Forms/PersonForm';
 import { useAddPerson, usePeople } from '../../../services/people';
 import { UserPlusIcon } from '@heroicons/react/24/solid';
-import { showValidationAlert, handleBackendError } from '../../../utils/validationAlerts';
+import { showValidationAlert, handleBackendError, showOperationError, showOperationSuccess } from '../../../utils/validationAlerts';
 
 export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson = false }) {
   const addPerson = useAddPerson();
@@ -21,11 +21,11 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
     // Include relationship data for non-root persons
     if (!isFirstPerson) {
       if (!data.relationType) {
-        alert('Please select a relationship type.');
+        showOperationError('missingRelationType');
         return;
       }
       if (!data.relatedPersonId) {
-        alert('Please select a person to relate to.');
+        showOperationError('missingPerson');
         return;
       }
       payload.relation_type = data.relationType;
@@ -36,9 +36,9 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
       
       // Show a success message to the user after adding the person
       if (response?.message) {
-        alert(response.message);
+        showOperationError('generateContentFailed');
       } else {
-        alert(`${data.firstName} ${data.lastName} has been successfully added to the family tree!`);
+        showOperationSuccess('personAdded', data);
       }
       
       onClose();

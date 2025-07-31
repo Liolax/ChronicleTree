@@ -14,6 +14,7 @@ import ProfileDetails from '../components/Profile/ProfileDetails';
 import DeletePersonModal from '../components/UI/DeletePersonModal';
 import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
 import { ShareModal } from '../components/Share';
+import { showFileError, showOperationError, showOperationSuccess } from '../utils/validationAlerts';
 
 export default function Profile() {
   const { id } = useParams();
@@ -198,7 +199,7 @@ export default function Profile() {
       await deletePersonMutation.mutateAsync(person.id);
       window.location.href = '/'; // Redirect to home/tree after deletion
     } catch (err) {
-      alert('Failed to delete person.');
+      showOperationError('deleteFailed');
     } finally {
       setIsDeleting(false);
     }
@@ -214,7 +215,7 @@ export default function Profile() {
       setDeletePersonData(data);
       setDeleteRelationships(groupRelationships(data));
     } catch (err) {
-      alert('Failed to toggle spouse status.');
+      showOperationError('updateFailed');
     }
   };
 
@@ -231,10 +232,10 @@ export default function Profile() {
       
       if (platform === 'copy') {
         // Show success message for copy
-        alert('Profile link copied to clipboard!');
+        showOperationSuccess('linkCopied');
       }
     } catch (error) {
-      alert('Share failed: ' + error.message);
+      showOperationError('shareFailed', { message: error.message });
     }
   };
 
@@ -399,11 +400,11 @@ export default function Profile() {
                 const file = e.target.avatar.files[0];
                 if (!file) return;
                 if (!['image/jpeg', 'image/png', 'image/gif'].includes(file.type)) {
-                  alert('Only JPG, PNG, or GIF images are allowed.');
+                  showFileError('invalidType');
                   return;
                 }
                 if (file.size > 2 * 1024 * 1024) {
-                  alert('File size must be less than 2MB.');
+                  showFileError('fileTooLarge');
                   return;
                 }
                 const formData = new FormData();
@@ -414,7 +415,7 @@ export default function Profile() {
                   });
                   window.location.reload();
                 } catch (err) {
-                  alert('Failed to upload avatar.');
+                  showFileError('uploadFailed');
                 }
               }}
             >
@@ -435,7 +436,7 @@ export default function Profile() {
                         await api.patch(`/profiles/${profileId}`, { profile: { avatar: null } });
                         window.location.reload();
                       } catch (err) {
-                        alert('Failed to remove avatar.');
+                        showFileError('removeFailed');
                       }
                     }
                   }}

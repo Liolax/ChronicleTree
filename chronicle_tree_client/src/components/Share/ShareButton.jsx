@@ -1,6 +1,7 @@
 // Social sharing button component with multi-platform support and preview functionality
 import React, { useState } from 'react';
 import api from '../../api/api';
+import { showOperationError, showOperationSuccess } from '../../utils/validationAlerts';
 import './ShareButton.css';
 
 const ShareButton = ({ 
@@ -26,7 +27,7 @@ const ShareButton = ({
       setShareData(data);
       return data;
     } catch (error) {
-      alert('Failed to generate shareable content');
+      showOperationError('generateContentFailed');
       throw error;
     } finally {
       setIsGenerating(false);
@@ -56,9 +57,9 @@ const ShareButton = ({
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert('Link copied to clipboard!');
+      showOperationSuccess('linkCopied');
     } catch (error) {
-      alert('Failed to copy link');
+      showOperationError('copyFailed');
     }
   };
 
@@ -228,9 +229,9 @@ const SharePreview = ({ shareData, onClose }) => {
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text);
-    alert('Link copied to clipboard!');
+    showOperationSuccess('linkCopied');
   } catch (error) {
-    alert('Failed to copy link');
+    showOperationError('copyFailed');
   }
 };
 

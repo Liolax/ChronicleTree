@@ -1,6 +1,7 @@
 // Full-featured sharing modal with platform selection and content customization
 import React, { useState, useEffect } from 'react';
 import api from '../../api/api';
+import { showOperationError, showOperationSuccess } from '../../utils/validationAlerts';
 import './ShareModal.css';
 
 const ShareModal = ({ 
@@ -46,7 +47,7 @@ const ShareModal = ({
       setShareData(response.data);
     } catch (error) {
       const errorMsg = error.response?.data?.error || 'Failed to generate shareable content';
-      alert(errorMsg);
+      showOperationError('generateContentFailed');
     } finally {
       setIsGenerating(false);
     }
@@ -75,9 +76,9 @@ const ShareModal = ({
   const copyToClipboard = async (text) => {
     try {
       await navigator.clipboard.writeText(text);
-      alert('Link copied to clipboard!');
+      showOperationSuccess('linkCopied');
     } catch (error) {
-      alert('Failed to copy link');
+      showOperationError('copyFailed');
     }
   };
 
