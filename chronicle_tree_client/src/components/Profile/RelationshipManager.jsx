@@ -998,7 +998,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
     }
     
     if (filteringInfo.bloodRelationships.length > 0) {
-      alertMessage += `🧬 BLOOD RELATIONSHIP RESTRICTIONS (${filteringInfo.bloodRelationships.length} people):\n`;
+      alertMessage += `BLOOD RELATIONSHIP RESTRICTIONS (${filteringInfo.bloodRelationships.length} people):\n`;
       alertMessage += `• Blood relatives cannot marry or have shared children\n`;
       filteringInfo.bloodRelationships.slice(0, 3).forEach(item => alertMessage += `  - ${item}\n`);
       if (filteringInfo.bloodRelationships.length > 3) {
@@ -1046,10 +1046,26 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       alertMessage += `\n`;
     }
     
-    alertMessage += `TIP: To add filtered people, you may need to:\n`;
-    alertMessage += `• Add missing birth dates\n`;
-    alertMessage += `• Wait for people to reach minimum age\n`;
-    alertMessage += `• Review family relationship structure\n`;
+    // Provide relationship-specific tips
+    alertMessage += `TIP: To add filtered people as ${type}s, you may need to:\n`;
+    if (type === 'parent') {
+      alertMessage += `• Ensure the person is at least 12 years older than ${person.first_name}\n`;
+      alertMessage += `• Add birth dates if missing\n`;
+      alertMessage += `• Check that ${person.first_name} doesn't already have 2 parents\n`;
+    } else if (type === 'spouse') {
+      alertMessage += `• Ensure both people are 16 years old or older\n`;
+      alertMessage += `• Check that neither person has a current spouse\n`;
+      alertMessage += `• Verify they are not blood relatives\n`;
+    } else if (type === 'child') {
+      alertMessage += `• Ensure ${person.first_name} is at least 12 years older than the person\n`;
+      alertMessage += `• Add birth dates if missing\n`;
+    } else if (type === 'sibling') {
+      alertMessage += `• Ensure they share at least one parent\n`;
+      alertMessage += `• Check birth dates for realistic age differences\n`;
+    } else {
+      alertMessage += `• Add missing birth dates\n`;
+      alertMessage += `• Review family relationship structure\n`;
+    }
     
     showInfo('Relationship Filtering', alertMessage);
   };
