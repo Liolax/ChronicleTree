@@ -49,13 +49,13 @@ const FamilyTree = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUnrelated, setShowUnrelated] = useState(false);
   const [showConnectionLegend, setShowConnectionLegend] = useState(false);
+  const [isNavbarOpen, setIsNavbarOpen] = useState(false);
 
   // Handle legend toggle and close navbar if open
   const handleLegendToggle = useCallback(() => {
     if (!showConnectionLegend) {
       // Before opening legend, close navbar if it's open
-      const mobileMenu = document.querySelector('header .absolute');
-      if (mobileMenu) {
+      if (isNavbarOpen) {
         const navbarToggle = document.querySelector('header button.md\\:hidden');
         if (navbarToggle) {
           navbarToggle.click();
@@ -63,26 +63,42 @@ const FamilyTree = () => {
       }
     }
     setShowConnectionLegend(!showConnectionLegend);
-  }, [showConnectionLegend]);
+  }, [showConnectionLegend, isNavbarOpen]);
 
-  // Listen for navbar opening and close legend
+  // Listen for navbar state changes and manage overlays
   React.useEffect(() => {
-    const handleNavbarToggle = () => {
-      // Small delay to let navbar state update
-      setTimeout(() => {
-        const mobileMenu = document.querySelector('header .absolute');
-        if (mobileMenu && showConnectionLegend) {
+    const checkNavbarState = () => {
+      const mobileMenu = document.querySelector('header .absolute');
+      const newNavbarState = !!mobileMenu;
+      
+      if (newNavbarState !== isNavbarOpen) {
+        setIsNavbarOpen(newNavbarState);
+        
+        // If navbar opened, close legend
+        if (newNavbarState && showConnectionLegend) {
           setShowConnectionLegend(false);
         }
-      }, 50);
+      }
     };
 
+    // Check navbar state periodically
+    const interval = setInterval(checkNavbarState, 100);
+    
+    // Also check on navbar toggle button clicks
     const navbarToggle = document.querySelector('header button.md\\:hidden');
     if (navbarToggle) {
-      navbarToggle.addEventListener('click', handleNavbarToggle);
-      return () => navbarToggle.removeEventListener('click', handleNavbarToggle);
+      navbarToggle.addEventListener('click', () => {
+        setTimeout(checkNavbarState, 50);
+      });
     }
-  }, [showConnectionLegend]);
+
+    return () => {
+      clearInterval(interval);
+      if (navbarToggle) {
+        navbarToggle.removeEventListener('click', checkNavbarState);
+      }
+    };
+  }, [showConnectionLegend, isNavbarOpen]);
   
   const queryClient = useQueryClient();
   const deletePerson = useDeletePerson();
@@ -462,7 +478,7 @@ const FamilyTree = () => {
             </Panel>
 
             {/* Mobile slide-out legend - navbar style from right */}
-            <div className={`md:hidden fixed top-0 right-0 h-full bg-white shadow-xl z-50 transition-transform duration-300 ease-in-out ${showConnectionLegend ? 'translate-x-0' : 'translate-x-full'}`} style={{ width: '280px' }}>
+            <div className={`md:hidden fixed top-0 right-0 h-full bg-white shadow-xl transition-transform duration-300 ease-in-out ${showConnectionLegend ? 'translate-x-0' : 'translate-x-full'}`} style={{ width: '280px', zIndex: isNavbarOpen ? 35 : 40 }}>
               <div className="flex justify-between items-center p-4 border-b bg-gray-50">
                 <h3 className="text-lg font-semibold text-gray-900">Connection Legend</h3>
                 <Button 
@@ -509,10 +525,10 @@ const FamilyTree = () => {
               </div>
             </div>
 
-            {/* Overlay when mobile legend is open */}
-            {showConnectionLegend && (
+            {/* Overlay when mobile legend is open (but not when navbar is open) */}
+            {showConnectionLegend && !isNavbarOpen && (
               <div 
-                className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+                className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
                 onClick={() => setShowConnectionLegend(false)}
               />
             )}
