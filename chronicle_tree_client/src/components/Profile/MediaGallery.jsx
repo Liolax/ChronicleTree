@@ -28,8 +28,7 @@ export default function MediaGallery({ media, onEdit, onDelete }) {
               {isPdf ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-4 cursor-pointer" onClick={() => handleOpenModal(item)}>
                   <FaFilePdf className="text-red-500 text-5xl mb-2" />
-                  <span className="text-xs text-gray-600 truncate w-full text-center mb-2">{item.title || 'Untitled Media'}</span>
-                  <span className="inline-block bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-1 px-3 rounded-md mb-2">View PDF</span>
+                  <span className="text-xs text-gray-600 truncate w-full text-center">{item.title || 'Untitled Media'}</span>
                 </div>
               ) : isImage ? (
                 <React.Fragment>
