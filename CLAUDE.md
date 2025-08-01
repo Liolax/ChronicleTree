@@ -1,6 +1,4 @@
-1. make cancel, save buttons at avatar (profile) add and Edit Profile Picture modals, Add and Edit Media modals same styling as at Add Timeline Event modal.
-2. rename add fact/save fact button to add/save.
-3. make Delete Account/ Cancel buttons and input styling at Confirm Account Deletion  modal same as at Deletepersonmodal. 
+1. 
 
 
 PS. Please, if you create tests, move them to frontend_tests and backend_tests so we have only one folder for each type. Upgrade the organization of these folders every time after you test the app. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. Centralize all alerts in validationAlerts.js with sweetallert, not standart allerts. always update ROADMAP.md after code changes.

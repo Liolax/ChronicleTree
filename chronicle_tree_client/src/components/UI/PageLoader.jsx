@@ -3,7 +3,7 @@ import { FaUser, FaUsers, FaCog } from 'react-icons/fa';
 
 const PageLoader = ({ icon: Icon, title, message }) => {
   return (
-    <div className="flex flex-col items-center justify-center h-96 w-full bg-slate-50 rounded-lg">
+    <div className="flex flex-col items-center justify-center h-screen-60 w-full bg-slate-50 rounded-lg" style={{ height: '60vh', minHeight: '400px' }}>
       <div className="relative flex items-center justify-center">
         <div className="absolute h-24 w-24 rounded-full bg-slate-200/50 animate-pulse"></div>
         <div className="relative h-20 w-20 flex items-center justify-center bg-white rounded-full shadow-sm">
