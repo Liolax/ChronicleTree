@@ -20,9 +20,48 @@ export default function NavBar() {
         .animate-fade-in {
           animation: fadeIn 0.2s ease-out;
         }
+        @keyframes gradientWave {
+          0% { 
+            background: linear-gradient(45deg, #000000, #1a1a1a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          25% { 
+            background: linear-gradient(45deg, #000000, #4F868E);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          50% { 
+            background: linear-gradient(45deg, #1a1a1a, #4F868E);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          75% { 
+            background: linear-gradient(45deg, #000000, #4F868E);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+          100% { 
+            background: linear-gradient(45deg, #000000, #1a1a1a);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+          }
+        }
+        .logo-wave {
+          animation: gradientWave 6s ease-in-out infinite;
+          background: linear-gradient(45deg, #000000, #1a1a1a);
+          -webkit-background-clip: text;
+          background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
       `}</style>
       <header className="bg-app-container shadow-md flex items-center justify-between px-6 py-4 sticky top-0 z-50">
-        <Link to="/" className="text-2xl font-bold text-app-primary">
+        <Link to="/" className="text-2xl font-bold logo-wave">
           ChronicleTree
         </Link>
         {/* Desktop navigation menu with conditional authentication links */}
