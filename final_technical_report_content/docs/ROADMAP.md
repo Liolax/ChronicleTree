@@ -3,25 +3,24 @@
 
 ## Latest Updates
 
-**2025-08-01: Modal Button Styling Consistency Implementation**
-- **Problem**: Inconsistent button styling across different modals caused poor user experience
-- **Solution**: Standardized all modal buttons to use the unified Button component with consistent styling
-- **Changes Made**:
+**2025-08-01: UI/UX Consistency and Responsive Design Improvements**
+- **Modal Button Styling Consistency**: Standardized all modal buttons to use the unified Button component with consistent styling
   - Updated Edit Profile Picture modal buttons to match Add Timeline Event modal styling
   - Updated Add/Edit Media modal buttons to use Button component with proper variants
   - Renamed fact buttons from "Add Fact/Save Fact" to simply "Add/Save" for consistency
   - Standardized Delete Account modal to match DeletePersonModal styling and button order
-- **Components Updated**:
-  - `MediaForm.jsx` - Now uses Button component with grey/primary variants
-  - `Profile.jsx` - Edit Profile Picture modal uses consistent button styling
-  - `FactForm.jsx` - Simplified button text from "Add Fact/Save Fact" to "Add/Save"
-  - `DeleteAccount.jsx` - Uses consistent input styling and button order matching DeletePersonModal
-- **Technical Details**:
-  - Removed custom button styling in favor of unified Button component
-  - Applied consistent gap spacing and variant usage across all modals
-  - Maintained proper button order (Cancel first, then Action button)
-  - Removed unnecessary CSS and loading animations in favor of Button component features
-- **Result**: All modals now have consistent, professional button styling that matches the design system established by the Add Timeline Event modal
+  - Fixed SweetAlert delete confirmations to use proper button order (Cancel first, Delete second) and exact Button component styling
+- **Page Loader Height Optimization**: Improved page loaders from fixed 384px height to responsive design
+  - Now uses 60% of viewport height (60vh) for better space utilization
+  - Minimum height of 400px prevents loaders from being too small on short screens
+  - Responsive scaling works well across different layouts and screen sizes
+- **Connection Legend Mobile Responsiveness**: Enhanced Connection Legend for small screen compatibility
+  - Mobile-first width scaling from max-w-xs to max-w-sm based on screen size
+  - Responsive padding, spacing, and typography for optimal mobile readability
+  - CSS media queries for screens ≤640px and ≤480px with fixed positioning and font scaling
+  - Flexible icon layout with proper text wrapping for emoji + text combinations
+- **Components Updated**: `MediaForm.jsx`, `Profile.jsx`, `FactForm.jsx`, `DeleteAccount.jsx`, `ConfirmDeleteModal.jsx`, `sweetAlerts.js`, `PageLoader.jsx`, `FamilyTreeFlow.jsx`
+- **Result**: Comprehensive UI/UX improvements ensuring consistent styling, better space utilization, and optimal mobile experience across all components
 
 **2025-07-31: Modern Loading UI/UX Implementation Complete**
 - **Problem**: Basic "Loading family tree..." and "Loading profile..." text provided poor user experience

@@ -48,6 +48,7 @@ const FamilyTree = () => {
   const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUnrelated, setShowUnrelated] = useState(false);
+  const [showConnectionLegend, setShowConnectionLegend] = useState(false);
   
   const queryClient = useQueryClient();
   const deletePerson = useDeletePerson();
@@ -278,43 +279,47 @@ const FamilyTree = () => {
     <ReactFlowProvider>
       <div className="w-full h-screen bg-gray-50">
         {/* Top buttons */}
-        <div className="flex justify-between items-center p-4 bg-white border-b">
-          <div className="flex gap-4 items-center">
-            <Button onClick={openAddPersonModal} variant="primary">
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center p-3 md:p-4 bg-white border-b gap-3 md:gap-0">
+          <div className="flex flex-wrap gap-2 md:gap-4 items-center">
+            <Button onClick={openAddPersonModal} variant="primary" className="text-sm md:text-base px-3 md:px-4">
               Add Person
             </Button>
             <Button 
               onClick={() => setRootPersonId(null)} 
               variant="secondary"
               title="Show Full Tree"
+              className="text-sm md:text-base px-3 md:px-4"
             >
               Full Tree
             </Button>
             {rootPersonId && (
-              <div className="flex items-center gap-2 text-sm bg-[#edf8f5] px-3 py-1 rounded-md">
+              <div className="flex items-center gap-2 text-xs md:text-sm bg-[#edf8f5] px-2 md:px-3 py-1 rounded-md">
                 <span className="text-[#4F868E] font-medium">
                   Root: {processedData.nodes.find(n => n.id === rootPersonId)?.first_name} {processedData.nodes.find(n => n.id === rootPersonId)?.last_name}
                 </span>
                 <button
                   onClick={handleResetTree}
-                  className="px-2 py-1 bg-[#4F868E] text-white rounded text-xs hover:bg-[#3d6b73] transition-colors"
+                  className="px-1.5 md:px-2 py-0.5 md:py-1 bg-[#4F868E] text-white rounded text-xs hover:bg-[#3d6b73] transition-colors"
                 >
                   Reset
                 </button>
               </div>
             )}
           </div>
-          <div className="flex gap-3">
-            <Button onClick={handleShareTree} variant="secondary">
-              <FaShareAlt className="mr-2" />
-              Share Tree
+          <div className="flex flex-wrap gap-2 md:gap-3 items-center">
+            <Button onClick={handleShareTree} variant="secondary" className="text-sm md:text-base px-3 md:px-4">
+              <FaShareAlt className="mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Share Tree</span>
+              <span className="sm:hidden">Share</span>
             </Button>
             {rootPersonId && (
               <Button 
                 onClick={() => setShowUnrelated(!showUnrelated)} 
                 variant="secondary"
+                className="text-sm md:text-base px-3 md:px-4"
               >
-                {showUnrelated ? 'Hide Unrelated' : 'Show Unrelated'}
+                <span className="hidden sm:inline">{showUnrelated ? 'Hide Unrelated' : 'Show Unrelated'}</span>
+                <span className="sm:hidden">{showUnrelated ? 'Hide' : 'Show'}</span>
               </Button>
             )}
             <FitViewButton />
@@ -371,8 +376,22 @@ const FamilyTree = () => {
               showInteractive={false}
             />
 
-            {/* Legend panel */}
-            <Panel position="top-right" className="bg-white p-3 rounded-lg shadow-lg">
+            {/* Legend toggle button for mobile */}
+            <Panel position="top-right" className="md:hidden z-10">
+              <Button 
+                onClick={() => setShowConnectionLegend(!showConnectionLegend)}
+                variant="secondary"
+                className="text-xs px-2 py-1"
+              >
+                {showConnectionLegend ? '✕' : '🔗'}
+              </Button>
+            </Panel>
+
+            {/* Legend panel - always visible on desktop, slide-out on mobile */}
+            <Panel 
+              position="top-right" 
+              className="hidden md:block bg-white p-3 rounded-lg shadow-lg max-w-sm"
+            >
               <div className="text-sm">
                 <div className="font-semibold text-gray-700 mb-3">Connection Legend</div>
                 <div className="space-y-2 text-gray-600">
@@ -407,6 +426,62 @@ const FamilyTree = () => {
                 </div>
               </div>
             </Panel>
+
+            {/* Mobile slide-out legend - navbar style from right */}
+            <div className={`md:hidden fixed top-0 right-0 h-full bg-white shadow-xl z-50 transition-transform duration-300 ease-in-out ${showConnectionLegend ? 'translate-x-0' : 'translate-x-full'}`} style={{ width: '280px' }}>
+              <div className="flex justify-between items-center p-4 border-b bg-gray-50">
+                <h3 className="text-lg font-semibold text-gray-900">Connection Legend</h3>
+                <Button 
+                  onClick={() => setShowConnectionLegend(false)}
+                  variant="secondary"
+                  className="text-xs px-2 py-1"
+                >
+                  ✕
+                </Button>
+              </div>
+              <div className="p-4">
+                <div className="space-y-3 text-gray-600">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-0.5 bg-[#6366f1] flex-shrink-0"></div>
+                    <span className="text-sm">Parent-Child</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-0.5 bg-[#ec4899] border-dashed flex-shrink-0" style={{ borderTop: '2px dashed #ec4899', background: 'none' }}></div>
+                    <span className="text-sm">Current Spouse</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-0.5 bg-[#9ca3af] border-dashed flex-shrink-0" style={{ borderTop: '2px dashed #9ca3af', background: 'none' }}></div>
+                    <span className="text-sm">Ex-Spouse</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-0.5 bg-black border-dashed flex-shrink-0" style={{ borderTop: '2px dashed #000000', background: 'none' }}></div>
+                    <span className="text-sm">Late Spouse</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-0.5 bg-[#3b82f6] border-dotted flex-shrink-0" style={{ borderTop: '2px dotted #3b82f6', background: 'none' }}></div>
+                    <span className="text-sm">Siblings (if no parents)</span>
+                  </div>
+                  <div className="mt-4 pt-3 border-t border-gray-200">
+                    <div className="text-sm text-gray-500 flex items-start gap-2 mb-2">
+                      <span className="flex-shrink-0">🏠</span>
+                      <span>Click home icon to change root person</span>
+                    </div>
+                    <div className="text-sm text-gray-500 flex items-start gap-2">
+                      <span className="flex-shrink-0">👥</span>
+                      <span>Sibling relationships shown through positioning</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Overlay when mobile legend is open */}
+            {showConnectionLegend && (
+              <div 
+                className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+                onClick={() => setShowConnectionLegend(false)}
+              />
+            )}
           </ReactFlow>
         </div>
 

@@ -22,17 +22,24 @@ export default function DeleteAccount() {
   return (
     <>
       <Card title="Danger Zone">
-        <div className="flex justify-between items-center">
-          <div>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+          <div className="flex-1">
             <h4 className="font-semibold text-red-700">Delete Your Account</h4>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mb-4 md:mb-0">
               Permanently remove your account and all of its content.{' '}
               <span className="font-bold text-red-700">This action cannot be undone.</span>
             </p>
+            <div className="md:hidden flex justify-end">
+              <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
+                Delete Account
+              </Button>
+            </div>
           </div>
-          <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
-            Delete Account
-          </Button>
+          <div className="hidden md:block">
+            <Button variant="danger" onClick={() => setDeleteModalOpen(true)}>
+              Delete Account
+            </Button>
+          </div>
         </div>
       </Card>
       <Modal
