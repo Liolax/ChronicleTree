@@ -22,38 +22,38 @@ export default function NavBar() {
         }
         @keyframes gradientWave {
           0% { 
-            background: linear-gradient(45deg, #000000, #1a1a1a);
+            background: linear-gradient(90deg, #000000 0%, #000000 40%, #4F868E 45%, #4F868E 55%, #000000 60%, #000000 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
           25% { 
-            background: linear-gradient(45deg, #000000, #4F868E);
+            background: linear-gradient(90deg, #000000 0%, #000000 20%, #4F868E 25%, #4F868E 35%, #000000 40%, #000000 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
           50% { 
-            background: linear-gradient(45deg, #1a1a1a, #4F868E);
+            background: linear-gradient(90deg, #000000 0%, #4F868E 5%, #4F868E 15%, #000000 20%, #000000 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
           75% { 
-            background: linear-gradient(45deg, #000000, #4F868E);
+            background: linear-gradient(90deg, #4F868E 0%, #4F868E 10%, #000000 15%, #000000 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
           100% { 
-            background: linear-gradient(45deg, #000000, #1a1a1a);
+            background: linear-gradient(90deg, #000000 0%, #000000 40%, #4F868E 45%, #4F868E 55%, #000000 60%, #000000 100%);
             -webkit-background-clip: text;
             background-clip: text;
             -webkit-text-fill-color: transparent;
           }
         }
         .logo-wave {
-          animation: gradientWave 6s ease-in-out infinite;
+          animation: gradientWave 4s ease-in-out infinite;
           background: linear-gradient(45deg, #000000, #1a1a1a);
           -webkit-background-clip: text;
           background-clip: text;
