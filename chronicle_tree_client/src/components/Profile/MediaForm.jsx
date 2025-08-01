@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../../api/api';
+import Button from '../UI/Button';
 
 export default function MediaForm({ personId, media, onMediaAdded, onMediaUpdated, onCancel }) {
   const [title, setTitle] = useState(media?.title || '');
@@ -156,28 +157,10 @@ export default function MediaForm({ personId, media, onMediaAdded, onMediaUpdate
           {renderFilePreview()}
           <input {...fileInputProps} />
         </div>
-        <div className="flex justify-end mt-6 items-center gap-2">
-          <button type="button" className="px-4 py-2 bg-gray-200 rounded" onClick={onCancel} disabled={isSubmitting}>Cancel</button>
-          <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2" disabled={isSubmitting}>
-            {isSubmitting && <span className="loader border-white border-2 border-t-blue-500 rounded-full w-4 h-4 animate-spin"></span>}
-            {isEdit ? 'Save' : 'Add'}
-          </button>
+        <div className="flex justify-end gap-2">
+          <Button type="button" onClick={onCancel} variant="grey" disabled={isSubmitting}>Cancel</Button>
+          <Button type="submit" variant="primary" disabled={isSubmitting}>{isSubmitting ? 'Saving...' : (isEdit ? 'Save' : 'Add')}</Button>
         </div>
-        <style>{`
-          .loader {
-            border-top-color: #2563eb;
-            border-radius: 50%;
-            width: 1rem;
-            height: 1rem;
-            border-width: 2px;
-            border-style: solid;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-          }
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
       </form>
     </div>
   );

@@ -118,7 +118,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
           Cancel
         </Button>
         <Button type="submit" disabled={submitting}>
-          {submitting ? 'Saving...' : (isEdit ? 'Save Fact' : 'Add Fact')}
+          {submitting ? 'Saving...' : (isEdit ? 'Save' : 'Add')}
         </Button>
       </div>
     </form>

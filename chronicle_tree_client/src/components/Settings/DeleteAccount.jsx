@@ -4,7 +4,6 @@ import { useAuth } from '../../hooks/useAuth';
 import Card from '../UI/Card';
 import Button from '../UI/Button';
 import Modal from '../UI/Modal';
-import Input from '../UI/Input';
 
 export default function DeleteAccount() {
   const [isDeleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -52,19 +51,18 @@ export default function DeleteAccount() {
             Please type{' '}
             <span className="font-mono font-bold">DELETE</span> to confirm.
           </p>
-          <Input
-            id="delete-confirm"
-            label="Type DELETE to confirm"
+          <input
+            type="text"
+            className="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-400"
             value={confirmText}
             onChange={e => setConfirmText(e.target.value)}
+            placeholder="DELETE"
             autoFocus
           />
-          <div className="flex justify-end space-x-2 mt-4">
-            <Button variant="danger" onClick={handleDeleteAccount} disabled={!isConfirmValid || deleteAccount.isPending}>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button type="button" onClick={() => setDeleteModalOpen(false)} variant="grey" disabled={deleteAccount.isPending}>Cancel</Button>
+            <Button type="button" onClick={handleDeleteAccount} disabled={!isConfirmValid || deleteAccount.isPending} variant="danger">
               {deleteAccount.isPending ? 'Deleting...' : 'Delete Account'}
-            </Button>
-            <Button onClick={() => setDeleteModalOpen(false)} disabled={deleteAccount.isPending}>
-              Cancel
             </Button>
           </div>
         </div>

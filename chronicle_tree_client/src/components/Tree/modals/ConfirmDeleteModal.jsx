@@ -23,11 +23,11 @@ const ConfirmDeleteModal = ({ person, isOpen = true, onClose, confirmText, descr
       <div className="py-4">
         <p>{description || 'Are you sure you want to delete this person? This action cannot be undone.'}</p>
       </div>
-      <div className="flex justify-end space-x-4">
+      <div className="flex justify-end gap-2">
         <Button variant="grey" onClick={onClose} disabled={isLoading}>
           Cancel
         </Button>
-        <Button className={confirmButtonClass} onClick={handleDelete} isLoading={isLoading}>
+        <Button variant="danger" onClick={handleDelete} disabled={isLoading}>
           {isLoading ? 'Deleting...' : 'Delete'}
         </Button>
       </div>

@@ -13,6 +13,7 @@ import Notes from '../components/Profile/Notes';
 import ProfileDetails from '../components/Profile/ProfileDetails';
 import DeletePersonModal from '../components/UI/DeletePersonModal';
 import { ProfileLoader } from '../components/UI/PageLoader';
+import Button from '../components/UI/Button';
 import { FaInfoCircle, FaPlus, FaIdCardAlt, FaPencilAlt, FaStream, FaImages, FaShareAlt, FaCamera, FaUserCircle, FaEnvelopeSquare, FaLink, FaVenus, FaMars, FaFacebookSquare, FaTwitter, FaWhatsappSquare, FaTrash } from 'react-icons/fa';
 import { ShareModal } from '../components/Share';
 import { showFileError, showOperationError, showOperationSuccess } from '../utils/validationAlerts';
@@ -481,20 +482,9 @@ export default function Profile() {
                   Remove Current Picture
                 </button>
               )}
-              <div className="flex justify-end mt-6">
-                <button
-                  type="button"
-                  className="px-4 py-2 bg-gray-200 rounded mr-2"
-                  onClick={() => setShowEditPic(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                  Save
-                </button>
+              <div className="flex justify-end gap-2">
+                <Button type="button" onClick={() => setShowEditPic(false)} variant="grey">Cancel</Button>
+                <Button type="submit" variant="primary">Save</Button>
               </div>
             </form>
           </div>

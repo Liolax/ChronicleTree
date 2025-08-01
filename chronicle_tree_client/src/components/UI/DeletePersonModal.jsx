@@ -59,7 +59,7 @@ const DeletePersonModal = ({ person, relationships = {}, onConfirm, onCancel, is
           />
         </div>
         <div className="flex justify-end gap-2 mt-4">
-          <Button type="button" onClick={onCancel} variant="secondary" disabled={isLoading}>Cancel</Button>
+          <Button type="button" onClick={onCancel} variant="grey" disabled={isLoading}>Cancel</Button>
           <Button type="button" onClick={onConfirm} disabled={!canDelete || isLoading} variant="danger">
             {isLoading ? 'Deleting...' : 'Delete'}
           </Button>
