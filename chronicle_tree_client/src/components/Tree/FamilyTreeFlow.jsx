@@ -12,7 +12,7 @@ import {
 } from '@xyflow/react';
 import { useQueryClient } from '@tanstack/react-query';
 import '@xyflow/react/dist/style.css';
-import { FaShareAlt } from 'react-icons/fa';
+import { FaShareAlt, FaLink, FaTimes } from 'react-icons/fa';
 
 import Button from '../UI/Button';
 import AddPersonModal from './modals/AddPersonModal';
@@ -49,6 +49,40 @@ const FamilyTree = () => {
   const [showShareModal, setShowShareModal] = useState(false);
   const [showUnrelated, setShowUnrelated] = useState(false);
   const [showConnectionLegend, setShowConnectionLegend] = useState(false);
+
+  // Handle legend toggle and close navbar if open
+  const handleLegendToggle = useCallback(() => {
+    if (!showConnectionLegend) {
+      // Before opening legend, close navbar if it's open
+      const mobileMenu = document.querySelector('header .absolute');
+      if (mobileMenu) {
+        const navbarToggle = document.querySelector('header button.md\\:hidden');
+        if (navbarToggle) {
+          navbarToggle.click();
+        }
+      }
+    }
+    setShowConnectionLegend(!showConnectionLegend);
+  }, [showConnectionLegend]);
+
+  // Listen for navbar opening and close legend
+  React.useEffect(() => {
+    const handleNavbarToggle = () => {
+      // Small delay to let navbar state update
+      setTimeout(() => {
+        const mobileMenu = document.querySelector('header .absolute');
+        if (mobileMenu && showConnectionLegend) {
+          setShowConnectionLegend(false);
+        }
+      }, 50);
+    };
+
+    const navbarToggle = document.querySelector('header button.md\\:hidden');
+    if (navbarToggle) {
+      navbarToggle.addEventListener('click', handleNavbarToggle);
+      return () => navbarToggle.removeEventListener('click', handleNavbarToggle);
+    }
+  }, [showConnectionLegend]);
   
   const queryClient = useQueryClient();
   const deletePerson = useDeletePerson();
@@ -319,7 +353,7 @@ const FamilyTree = () => {
                 className="text-sm md:text-base px-3 md:px-4"
               >
                 <span className="hidden sm:inline">{showUnrelated ? 'Hide Unrelated' : 'Show Unrelated'}</span>
-                <span className="sm:hidden">{showUnrelated ? 'Hide' : 'Show'}</span>
+                <span className="sm:hidden">{showUnrelated ? 'Hide' : 'Unrelated'}</span>
               </Button>
             )}
             <FitViewButton />
@@ -379,11 +413,11 @@ const FamilyTree = () => {
             {/* Legend toggle button for mobile */}
             <Panel position="top-right" className="md:hidden z-10">
               <Button 
-                onClick={() => setShowConnectionLegend(!showConnectionLegend)}
-                variant="secondary"
+                onClick={handleLegendToggle}
+                variant="primary"
                 className="text-xs px-2 py-1"
               >
-                {showConnectionLegend ? '✕' : '🔗'}
+                {showConnectionLegend ? <FaTimes className="text-white" /> : <FaLink className="text-white" />}
               </Button>
             </Panel>
 
