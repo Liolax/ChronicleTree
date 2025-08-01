@@ -1,8 +1,6 @@
 // Flexible page header component with fixed positioning and compact mode options
 import React from 'react';
-
-// Default header height for fixed positioning
-export const PAGE_HEADER_HEIGHT = 72; // px
+import { PAGE_HEADER_HEIGHT } from '../../constants/layout';
 
 export default function PageHeader({ title, subtitle, fixed = false, compact = false, noMargin = false }) {
   // Implements card-style layout for compact display mode

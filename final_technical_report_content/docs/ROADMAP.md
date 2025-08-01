@@ -4,18 +4,20 @@
 ## Latest Updates
 
 **2025-08-01: Animated Logo Implementation**
-- **Enhancement**: Implemented elegant animated ChronicleTree logo with thin teal wave effect
+- **Enhancement**: Implemented elegant animated ChronicleTree logo with modern gradient wave effect
 - **Technical Implementation**:
-  - Created CSS keyframe animation using horizontal gradient movement
-  - Thin teal stripe (10% width) that travels across black text from center to left
-  - 4-second animation cycle with ease-in-out timing for smooth motion
+  - Created CSS keyframe animation using background-position movement for smooth performance
+  - Modern gradient wave using background-size: 200% with linear animation from -200% to 200%
   - Uses CSS background-clip: text and -webkit-text-fill-color: transparent for gradient text effect
+  - 4-second linear infinite animation for consistent, hypnotic movement
 - **Visual Design**:
-  - Logo remains primarily black for readability and professionalism
-  - Subtle teal wave accent maintains brand color visibility without distraction
-  - Animation adds dynamic, modern feel to navigation header
+  - Animation applied only to "Chronicle" part of logo for focused effect
+  - "Tree" remains static with standard app primary color for contrast
+  - Thin teal wave (5% width) slides smoothly across black text
+  - Professional appearance with subtle brand color accent
+- **Performance**: Uses GPU-friendly background-position animation instead of complex gradient changes
 - **Files Modified**: `NavBar.jsx`
-- **Result**: Enhanced brand presence with sophisticated animation that reinforces ChronicleTree identity while maintaining clean, professional appearance
+- **Result**: Enhanced brand presence with sophisticated split-logo animation that reinforces ChronicleTree identity while maintaining clean, professional appearance
 
 **2025-08-01: UI/UX Consistency and Responsive Design Improvements**
 - **Modal Button Styling Consistency**: Standardized all modal buttons to use the unified Button component with consistent styling

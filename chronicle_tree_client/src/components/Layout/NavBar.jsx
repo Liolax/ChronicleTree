@@ -18,51 +18,44 @@ export default function NavBar() {
           to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-          animation: fadeIn 0.2s ease-out;
+          animation: fadeIn 0.3s ease-out forwards;
         }
+
+        /* Gradient Wave Animation */
         @keyframes gradientWave {
-          0% { 
-            background: linear-gradient(90deg, #000000 0%, #000000 40%, #4F868E 45%, #4F868E 55%, #000000 60%, #000000 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+          0% {
+            background-position: -200% center;
           }
-          25% { 
-            background: linear-gradient(90deg, #000000 0%, #000000 20%, #4F868E 25%, #4F868E 35%, #000000 40%, #000000 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-          }
-          50% { 
-            background: linear-gradient(90deg, #000000 0%, #4F868E 5%, #4F868E 15%, #000000 20%, #000000 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-          }
-          75% { 
-            background: linear-gradient(90deg, #4F868E 0%, #4F868E 10%, #000000 15%, #000000 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-          }
-          100% { 
-            background: linear-gradient(90deg, #000000 0%, #000000 40%, #4F868E 45%, #4F868E 55%, #000000 60%, #000000 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+          100% {
+            background-position: 200% center;
           }
         }
         .logo-wave {
-          animation: gradientWave 4s ease-in-out infinite;
-          background: linear-gradient(45deg, #000000, #1a1a1a);
-          -webkit-background-clip: text;
+          /* The gradient is much larger than the text, allowing for a smooth slide */
+          background-size: 200% auto;
+          
+          /* The magic: clip the background to the text */
           background-clip: text;
+          -webkit-background-clip: text;
+          
+          /* Make the text color transparent so the background shows through */
           -webkit-text-fill-color: transparent;
+          
+          /* Define the gradient colors for the thinner wave effect */
+          background-image: linear-gradient(
+            to right,
+            #000000 45%,   /* black */
+            #4F868E 50%,   /* teal - the thin "wave" */
+            #000000 55%    /* black */
+          );
+          
+          /* Apply the animation */
+          animation: gradientWave 4s linear infinite;
         }
       `}</style>
       <header className="bg-app-container shadow-md flex items-center justify-between px-6 py-4 sticky top-0 z-50">
-        <Link to="/" className="text-2xl font-bold logo-wave">
-          ChronicleTree
+        <Link to="/" className="text-2xl font-bold">
+          <span className="logo-wave">Chronicle</span><span className="text-app-primary">Tree</span>
         </Link>
         {/* Desktop navigation menu with conditional authentication links */}
         <nav className="hidden md:flex items-center space-x-2">
