@@ -1,0 +1,49 @@
+@startuml Tree Operations and Social Sharing API Endpoints
+!theme aws-orange
+title ChronicleTree Tree Operations & Social Sharing API Endpoints
+
+left to right direction
+
+package "Tree Data Operations" {
+  [GET /api/v1/people/full_tree] as FullTree
+  [GET /api/v1/people/:id/tree] as PersonTree
+  [GET /api/v1/people/:id/relatives] as PersonRelatives
+  [GET /api/v1/people/:id/relationship_stats] as RelationshipStats
+}
+
+package "Social Sharing" {
+  [POST /api/v1/shares] as CreateShare
+  [GET /api/v1/shares/:id] as GetShare
+  [GET /api/v1/share/profile/:id] as ShareProfile
+  [GET /api/v1/share/tree/:id] as ShareTree
+  [DELETE /api/v1/share/cleanup] as CleanupShares
+}
+
+package "Public Sharing Pages" {
+  [GET /profile/:id] as PublicProfile
+  [GET /tree] as PublicTree
+  [GET /generated_shares/*path] as ServeShareImages
+}
+
+' Tree data flow
+FullTree --> PersonTree : "Focus on Person"
+PersonTree --> PersonRelatives : "Get Family Members"
+PersonRelatives --> RelationshipStats : "Calculate Statistics"
+
+' Social sharing flow
+PersonTree --> CreateShare : "Generate Share Content"
+CreateShare --> ShareProfile : "Profile Sharing"
+CreateShare --> ShareTree : "Tree Sharing"
+ShareProfile --> PublicProfile : "Public Access"
+ShareTree --> PublicTree : "Public Tree View"
+
+' Image serving flow
+ShareProfile --> ServeShareImages : "Serve Generated Images"
+ShareTree --> ServeShareImages : "Serve Tree Images"
+CleanupShares --> ServeShareImages : "Clean Expired Images"
+
+note top of FullTree : "Complete family tree\nAll people and relationships\nHierarchical structure"
+note bottom of CreateShare : "Social media sharing\nPlatform-specific URLs\nGenerated OG images"
+note right of PublicProfile : "No authentication required\nSocial media crawlers\nMeta tag optimization"
+
+@enduml

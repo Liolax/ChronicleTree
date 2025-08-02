@@ -176,8 +176,8 @@ Medium.find_or_create_by!(id: 305, attachable: bob, attachable_type: 'Person', d
 Medium.find_or_create_by!(id: 306, attachable: emily, attachable_type: 'Person', description: 'Emily reading her favorite novel at the library.', title: 'Emily Reading')
 Medium.find_or_create_by!(id: 307, attachable: charlie, attachable_type: 'Person', description: 'Charlie performing at the school music event.', title: 'Charlie Guitar Performance')
 # PDFs
-Medium.find_or_create_by!(id: 308, attachable: p1, attachable_type: 'Person', description: 'My resume showing my journey in software development. I really enjoy coding and building web applications!', title: 'John Doe Resume')
-Medium.find_or_create_by!(id: 309, attachable: alice, attachable_type: 'Person', description: 'Alice loves creating beautiful artwork! This portfolio shows her favorite paintings and sketches from art school.', title: 'Alice Art Portfolio')
+Medium.find_or_create_by!(id: 308, attachable: p1, attachable_type: 'Person', description: 'My web development resume. I love coding!', title: 'John Doe Resume')
+Medium.find_or_create_by!(id: 309, attachable: alice, attachable_type: 'Person', description: 'Alice\'s beautiful art portfolio from art school.', title: 'Alice Art Portfolio')
 # Attach placeholder images to media records if not already attached
 require 'open-uri'
 

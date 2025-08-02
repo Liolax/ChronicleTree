@@ -1,0 +1,49 @@
+@startuml Media Management API Endpoints
+!theme aws-orange
+title ChronicleTree Media Management API Endpoints
+
+left to right direction
+
+package "Media CRUD (Nested under People)" {
+  [GET /api/v1/people/:id/media] as GetPersonMedia
+  [POST /api/v1/people/:id/media] as UploadPersonMedia
+}
+
+package "Media Management (Direct)" {
+  [PUT /api/v1/media/:id] as UpdateMedia
+  [DELETE /api/v1/media/:id] as DeleteMedia
+}
+
+package "Profile Management" {
+  [GET /api/v1/profiles] as GetProfiles
+  [POST /api/v1/profiles] as CreateProfile
+  [GET /api/v1/profiles/:id] as GetProfile
+  [PUT /api/v1/profiles/:id] as UpdateProfile
+  [DELETE /api/v1/profiles/:id] as DeleteProfile
+}
+
+' Media flow for people
+GetPersonMedia --> UploadPersonMedia : "Upload New Media"
+UploadPersonMedia --> UpdateMedia : "Edit Media Metadata"
+UpdateMedia --> GetPersonMedia : "View Updated Media"
+GetPersonMedia --> DeleteMedia : "Remove Media"
+
+' Profile management flow
+GetProfiles --> CreateProfile : "Create Profile"
+CreateProfile --> GetProfile : "View Profile"
+GetProfile --> UpdateProfile : "Edit Profile"
+GetProfile --> DeleteProfile : "Remove Profile"
+
+' Cross-connections
+GetProfile --> GetPersonMedia : "View Profile Media"
+UploadPersonMedia --> UpdateProfile : "Update Profile Avatar"
+
+note top of GetPersonMedia : "GET /api/v1/people/:id/media\n• Returns person's media files\n• Polymorphic attachments\n• Active Storage integration\n• Title and description metadata"
+
+note bottom of UploadPersonMedia : "POST /api/v1/people/:id/media\n• Uploads media files\n• Attaches to person\n• Supports multiple file types\n• Automatic file processing"
+
+note left of GetProfiles : "Profile Management\n• One profile per person\n• Avatar attachment support\n• Extended personal details\n• Polymorphic media system"
+
+note right of UpdateMedia : "Direct Media Management\n• Update title and description\n• User ownership validation\n• Active Storage file handling\n• Secure file access"
+
+@enduml

@@ -1,0 +1,41 @@
+@startuml Relationship Management API Endpoints
+!theme aws-orange
+title ChronicleTree Relationship Management API Endpoints
+
+left to right direction
+
+package "Relationship CRUD" {
+  [POST /api/v1/relationships] as CreateRelationship
+  [DELETE /api/v1/relationships/:id] as DeleteRelationship
+}
+
+package "Relationship Status Management" {
+  [PATCH /api/v1/relationships/:id/toggle_ex] as ToggleEx
+  [PATCH /api/v1/relationships/:id/toggle_deceased] as ToggleDeceased
+}
+
+package "Relationship Data Access" {
+  [GET /api/v1/people/:id/relatives] as GetPersonRelatives
+  [GET /api/v1/people/:id/relationship_stats] as GetRelationshipStats
+}
+
+' Main relationship flow
+CreateRelationship --> GetPersonRelatives : "View Updated Relatives"
+CreateRelationship --> GetRelationshipStats : "Recalculate Statistics"
+DeleteRelationship --> GetPersonRelatives : "Refresh Family View"
+
+' Status management flow
+GetPersonRelatives --> ToggleEx : "Mark as Ex-Spouse"
+GetPersonRelatives --> ToggleDeceased : "Mark Spouse as Deceased"
+ToggleEx --> GetRelationshipStats : "Update Relationship Stats"
+ToggleDeceased --> GetRelationshipStats : "Update Relationship Stats"
+
+note top of CreateRelationship : "POST /api/v1/relationships\n• Creates bidirectional relationship\n• Validates relationship type\n• Checks age differences for siblings\n• Prevents blood relative marriages\n• Enforces single current spouse rule"
+
+note bottom of ToggleEx : "PATCH /api/v1/relationships/:id/toggle_ex\n• Only for spouse relationships\n• Toggles is_ex status\n• Maintains relationship history"
+
+note right of ToggleDeceased : "PATCH /api/v1/relationships/:id/toggle_deceased\n• Only for spouse relationships\n• Toggles is_deceased status\n• Tracks deceased spouses"
+
+note left of GetRelationshipStats : "GET /api/v1/people/:id/relationship_stats\n• Calculates family statistics\n• Counts relationships by type\n• Includes step-family connections\n• Provides comprehensive family overview"
+
+@enduml

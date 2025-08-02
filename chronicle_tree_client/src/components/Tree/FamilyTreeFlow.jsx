@@ -22,7 +22,6 @@ import { FamilyTreeLoader } from '../UI/PageLoader';
 import Error from '../UI/Error';
 import PersonCard from './PersonCard';
 import PersonCardNode from './PersonCardNode';
-import CustomNode from './CustomNode';
 import { useFullTree, useDeletePerson } from '../../services/people';
 import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
@@ -32,7 +31,6 @@ import { ShareModal } from '../Share';
 
 // Custom node types for the tree
 const nodeTypes = {
-  custom: CustomNode,
   personCard: PersonCardNode,
 };
 

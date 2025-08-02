@@ -1,0 +1,37 @@
+@startuml System Health and Monitoring API Endpoints
+!theme aws-orange
+title ChronicleTree System Health & Monitoring API Endpoints
+
+left to right direction
+
+package "Health Monitoring" {
+  [GET /up] as HealthCheck
+  [GET /ping] as PingEndpoint
+}
+
+package "Development Tools" {
+  [GET /sidekiq] as SidekiqUI
+}
+
+package "Public Endpoints" {
+  [GET /profile/:id] as PublicProfile
+  [GET /tree] as PublicTree
+  [GET /generated_shares/*path] as ShareImages
+}
+
+' Health monitoring flow
+HealthCheck --> PingEndpoint : "System Status"
+PingEndpoint --> SidekiqUI : "Background Jobs"
+
+' Public access flow
+PublicProfile --> ShareImages : "Serve Share Images"
+PublicTree --> ShareImages : "Tree Share Images"
+
+note top of HealthCheck : "Rails Health Check\nDatabase connectivity\nSystem status"
+note bottom of PublicProfile : "Social media crawlers\nOG meta tags\nPublic sharing"
+note right of SidekiqUI : "Development only\nBackground job monitoring\nSidekiq web interface"
+
+' Note about missing search functionality
+note bottom : "Note: ChronicleTree does not currently\nimplement search endpoints.\nFamily data is browsed through\nthe people and relationships APIs."
+
+@enduml

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronicleTree Relationship Types Schema</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles to use the Inter font */
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <!-- Header Section -->
+        <header class="text-center py-12 px-4 rounded-2xl bg-gradient-to-br from-indigo-600 to-purple-700 text-white shadow-lg mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight">ChronicleTree Relationship Schema</h1>
+            <p class="mt-4 text-lg md:text-xl text-indigo-200 max-w-3xl mx-auto">A complete and structured overview of all supported family relationships and their validation rules.</p>
+        </header>
+        
+        <main>
+            <!-- Relationship Grid Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                
+                <!-- Core Database Relationships -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+                        <!-- Icon: Core -->
+                        <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M4 12v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M4 18v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><path d="M4 22v-2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/><line x1="12" x2="12" y1="6" y2="10"/><line x1="12" x2="12" y1="12" y2="16"/><line x1="12" x2="12" y1="18" y2="22"/></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">Core Database Relationships</h3>
+                    </div>
+                    <ul class="divide-y divide-slate-100">
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Parent / Child</p>
+                                    <p class="text-sm text-slate-500 mt-1">Direct biological link, stored bidirectionally.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Stored</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Sibling</p>
+                                    <p class="text-sm text-slate-500 mt-1">Shares parent(s); automatically generated.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Stored</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Spouse</p>
+                                    <p class="text-sm text-slate-500 mt-1">Marriage bond with status tracking.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-blue-100 text-blue-700 px-2 py-1 rounded-full">Stored</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Marriage Status Types -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+                        <!-- Icon: Marriage -->
+                        <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-lg flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M12 5 9 8h6L12 5Z"/></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">Marriage Status Types</h3>
+                    </div>
+                    <ul class="divide-y divide-slate-100">
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Current / Ex-Spouse</p>
+                                    <p class="text-sm text-slate-500 mt-1">Active or ended marriage (divorce/separation).</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Status</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Deceased / Late Spouse</p>
+                                    <p class="text-sm text-slate-500 mt-1">Spouse has died (widow/widower status).</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">Status</span>
+                            </div>
+                        </li>
+                         <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Late Spouse</p>
+                                    <p class="text-sm text-slate-500 mt-1">Perspective label when spouse is deceased.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Sibling Categories -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+                        <!-- Icon: Siblings -->
+                        <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">Sibling Categories</h3>
+                    </div>
+                    <ul class="divide-y divide-slate-100">
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Full Siblings</p>
+                                    <p class="text-sm text-slate-500 mt-1">Share both biological parents.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Half Siblings</p>
+                                    <p class="text-sm text-slate-500 mt-1">Share one biological parent.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Step Siblings</p>
+                                    <p class="text-sm text-slate-500 mt-1">No shared biological parents.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Extended Family -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+                        <!-- Icon: Extended -->
+                        <div class="w-10 h-10 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">Extended Family</h3>
+                    </div>
+                    <ul class="divide-y divide-slate-100">
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Grandparents / Grandchildren</p>
+                                    <p class="text-sm text-slate-500 mt-1">Generation +2 / -2 from self.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Uncles / Aunts</p>
+                                    <p class="text-sm text-slate-500 mt-1">Parent's siblings.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                        <li class="p-5">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <p class="font-semibold text-slate-800">Cousins</p>
+                                    <p class="text-sm text-slate-500 mt-1">Uncle/Aunt's children.</p>
+                                </div>
+                                <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-2 py-1 rounded-full">Calculated</span>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- In-Law Relationships -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+                        <!-- Icon: In-Law -->
+                        <div class="w-10 h-10 bg-cyan-100 text-cyan-600 rounded-lg flex items-center justify-center">
+                           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m11 17 2 2a1 1 0 1 0 3-3"/><path d="m14 14 2.5 2.5a1 1 0 1 0 3-3l-3.88-3.88a3 3 0 0 0-4.24 0l-.88.88a1 1 0 1 1-3-3l2.81-2.81a5.79 5.79 0 0 1 7.06-.87l.47.28a2 2 0 0 0 1.42.25L21 4"/><path d="m21 3 1 11h-2"/><path d="M3 3 2 14l6.5 6.5a1 1 0 1 0 3-3"/><path d="M3 4h8"/></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">In-Law Relations</h3>
+                    </div>
+                    <ul class="divide-y divide-slate-100">
+                        <li class="p-5">
+                            <p class="font-semibold text-slate-800">Parents-in-Law</p>
+                            <p class="text-sm text-slate-500 mt-1">Spouse's parents (excludes ex-spouses).</p>
+                        </li>
+                        <li class="p-5">
+                            <p class="font-semibold text-slate-800">Children-in-Law</p>
+                            <p class="text-sm text-slate-500 mt-1">Child's spouses.</p>
+                        </li>
+                        <li class="p-5">
+                            <p class="font-semibold text-slate-800">Siblings-in-Law</p>
+                            <p class="text-sm text-slate-500 mt-1">Spouse's siblings.</p>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Step Family -->
+                <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                    <div class="p-5 bg-slate-50 border-b border-slate-200 flex items-center gap-4">
+                        <!-- Icon: Step Family -->
+                        <div class="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                        </div>
+                        <h3 class="text-lg font-semibold text-slate-700">Step-Family Relations</h3>
+                    </div>
+                    <ul class="divide-y divide-slate-100">
+                        <li class="p-5">
+                            <p class="font-semibold text-slate-800">Step-Parents</p>
+                            <p class="text-sm text-slate-500 mt-1">Parent's spouse (not biological).</p>
+                        </li>
+                        <li class="p-5">
+                            <p class="font-semibold text-slate-800">Step-Children</p>
+                            <p class="text-sm text-slate-500 mt-1">Spouse's children (not biological).</p>
+                        </li>
+                        <li class="p-5">
+                            <p class="font-semibold text-slate-800">Step-Grandparents</p>
+                            <p class="text-sm text-slate-500 mt-1">Step-parent's parents.</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Legend Section -->
+            <div class="flex flex-wrap justify-center items-center gap-4 md:gap-8 mb-16 p-6 bg-slate-100 rounded-xl border border-slate-200">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Stored</span>
+                    <span class="text-sm text-slate-600">Core relationship stored in database.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase bg-green-100 text-green-700 px-3 py-1 rounded-full">Calculated</span>
+                    <span class="text-sm text-slate-600">Dynamically inferred from core data.</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full">Status</span>
+                    <span class="text-sm text-slate-600">A variation of a stored relationship.</span>
+                </div>
+            </div>
+            
+            <!-- Validation Rules Section -->
+            <div class="bg-white rounded-xl shadow-md p-6 sm:p-8 border border-slate-200">
+                <div class="flex items-center gap-4 mb-6">
+                    <!-- Icon: Validation -->
+                    <div class="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-slate-800">Business Rules & Validation</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="p-5 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700">Blood Relative Marriage Prevention</p>
+                        <p class="text-sm text-slate-500 mt-1">Prevents marriage between parents, children, and siblings.</p>
+                    </div>
+                    <div class="p-5 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700">Single Current Spouse Rule</p>
+                        <p class="text-sm text-slate-500 mt-1">Only one 'current' spouse allowed per person.</p>
+                    </div>
+                    <div class="p-5 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700">Automatic Sibling Generation</p>
+                        <p class="text-sm text-slate-500 mt-1">Sibling links are created when parent-child links are added.</p>
+                    </div>
+                    <div class="p-5 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700">Age & Temporal Validation</p>
+                        <p class="text-sm text-slate-500 mt-1">Validates marriage age and logical generation gaps.</p>
+                    </div>
+                    <div class="p-5 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700">Ex-Spouse Exclusion</p>
+                        <p class="text-sm text-slate-500 mt-1">In-law/step relations exclude ex-spouse connections.</p>
+                    </div>
+                    <div class="p-5 bg-slate-50 rounded-lg border border-slate-200">
+                        <p class="font-semibold text-slate-700">Bidirectional Relationships</p>
+                        <p class="text-sm text-slate-500 mt-1">Core relationships create automatic reciprocal links.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center mt-12 py-6">
+            <p class="text-sm text-slate-500">ChronicleTree Schema | Version 1.0</p>
+        </footer>
+
+    </div>
+</body>
+</html>
