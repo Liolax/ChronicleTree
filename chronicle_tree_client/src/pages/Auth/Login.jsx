@@ -27,23 +27,28 @@ export default function Login() {
   return (
     <>
       <PageHeader title="Login" subtitle="Access your family tree" />
-      <div className="max-w-md mx-auto mt-8 p-8 bg-white rounded-lg shadow-md">
+      <div className="max-w-md mx-auto mt-8 p-8 bg-white rounded-lg shadow-md border border-gray-200">
         <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Welcome Back</h2>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
             </label>
             <input
               id="email"
               type="email"
               {...registerInput('email', { required: true })}
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-all duration-200"
+              style={{
+                WebkitAppearance: 'none',
+                MozAppearance: 'textfield',
+                appearance: 'none'
+              }}
               placeholder="you@example.com"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <div className="relative">
@@ -51,12 +56,17 @@ export default function Login() {
                 id="password"
                 type={showPassword ? "text" : "password"}
                 {...registerInput('password', { required: true })}
-                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10"
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm pr-10 transition-all duration-200"
+                style={{
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'textfield',
+                  appearance: 'none'
+                }}
                 placeholder="••••••••"
               />
               <button
                 type="button"
-                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-2 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded"
                 tabIndex={-1}
                 onClick={() => setShowPassword(v => !v)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
@@ -67,7 +77,12 @@ export default function Login() {
           </div>
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200"
+            style={{
+              WebkitAppearance: 'none',
+              MozAppearance: 'none',
+              appearance: 'none'
+            }}
           >
             Log In
           </button>

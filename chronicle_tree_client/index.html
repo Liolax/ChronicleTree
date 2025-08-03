@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="keywords" content="family tree, genealogy, family history, interactive, timeline, relationships, ancestor, descendant, ChronicleTree, family builder, share, edit, visualize, media support" />
@@ -18,6 +19,29 @@
     <meta name="twitter:title" content="ChronicleTree – Interactive Family Tree Builder" />
     <meta name="twitter:description" content="ChronicleTree is a modern, interactive family tree builder. Visualize, edit, and share your family history with advanced relationship logic, timelines, and media support." />
     <meta name="twitter:image" content="/og-image.png" />
+    
+    <!-- Cross-browser CSS normalization -->
+    <style>
+      /* Ensure consistent rendering across browsers */
+      *, *::before, *::after {
+        box-sizing: border-box;
+      }
+      
+      html {
+        -webkit-text-size-adjust: 100%;
+        -ms-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        line-height: 1.15;
+      }
+      
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
