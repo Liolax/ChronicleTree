@@ -7,134 +7,129 @@
 title Tree Share Flow
 
 // Main Tree Share
-TreeShareModal [shape: rectangle, icon: git-branch, color: green, title: "Tree Share Modal"]
-FamilyTreeData [shape: rectangle, icon: network, color: blue, title: "Family Tree Data"]
-TreeScope [shape: rectangle, icon: crop, color: yellow, title: "Tree Scope Selection"]
-
-// Scope Options
-FullTree [shape: rectangle, icon: git-branch, color: green, title: "Full Family Tree"]
-TreeBranch [shape: rectangle, icon: git-merge, color: orange, title: "Specific Branch"]
-GenerationLimit [shape: rectangle, icon: layers, color: purple, title: "Generation Limit"]
-RootPerson [shape: rectangle, icon: user, color: blue, title: "Select Root Person"]
-
-// Tree Visualization
-TreePreview [shape: rectangle, icon: eye, color: lightblue, title: "Tree Preview"]
-TreeImage [shape: rectangle, icon: image, color: pink, title: "Tree Image Generation"]
-InteractiveTree [shape: rectangle, icon: mouse-pointer, color: cyan, title: "Interactive Tree View"]
-TreeDescription [shape: rectangle, icon: message-square, color: yellow, title: "Tree Description"]
+TreeShareModal [shape: rectangle, icon: share-2, color: green, title: "Tree Share Modal"]
+ShareTypeToggle [shape: rectangle, icon: toggle-left, color: cyan, title: "Share Type Toggle"]
+GenerationsSelect [shape: rectangle, icon: layers, color: purple, title: "Generations Select (1-5)"]
+AdvancedOptions [shape: rectangle, icon: settings, color: orange, title: "Advanced Options"]
 
 // Share Options
-TreeMessage [shape: rectangle, icon: edit, color: lightgreen, title: "Custom Tree Message"]
-TreeTitle [shape: rectangle, icon: heading, color: gray, title: "Tree Title"]
+StepRelationshipToggle [shape: rectangle, icon: users, color: lightgreen, title: "Include Step-Relationships"]
+GenerateContent [shape: rectangle, icon: zap, color: yellow, title: "Generate Share Content"]
+
+// Generated Content
+TreeImage [shape: rectangle, icon: image, color: pink, title: "Tree Image Generation"]
+TreeDescription [shape: rectangle, icon: message-square, color: yellow, title: "Auto Description"]
+ShareMetadata [shape: rectangle, icon: tag, color: lightblue, title: "Share Metadata"]
 
 // Social Platforms
 FacebookTree [shape: rectangle, icon: facebook, color: blue, title: "Share Tree to Facebook"]
-TwitterTree [shape: rectangle, icon: twitter, color: cyan, title: "Share Tree to Twitter"]
+XTree [shape: rectangle, icon: x, color: cyan, title: "Share Tree to X"]
 WhatsAppTree [shape: rectangle, icon: message-circle, color: green, title: "Share Tree to WhatsApp"]
+LinkedInTree [shape: rectangle, icon: linkedin, color: blue, title: "Share Tree to LinkedIn"]
+RedditTree [shape: rectangle, icon: circle, color: orange, title: "Share Tree to Reddit"]
 EmailTree [shape: rectangle, icon: mail, color: orange, title: "Share Tree via Email"]
 CopyTreeLink [shape: rectangle, icon: copy, color: gray, title: "Copy Tree Link"]
+DownloadImage [shape: rectangle, icon: download, color: green, title: "Download Tree Image"]
+
+// Backend Components
+RailsImageAPI [shape: rectangle, icon: server, color: red, title: "Rails Share Images API"]
+TreeSnippetGenerator [shape: rectangle, icon: cpu, color: purple, title: "TreeSnippetGenerator"]
+ShareImageModel [shape: rectangle, icon: database, color: blue, title: "Share Image Model"]
 
 // Public Tree Page
 PublicTreePage [shape: rectangle, icon: globe, color: blue, title: "Public Tree Page (SEO/Crawlers)"]
-TreeViewer [shape: rectangle, icon: search, color: purple, title: "Interactive Tree Viewer"]
-TreeNavigation [shape: rectangle, icon: navigation, color: orange, title: "Tree Navigation Controls"]
-PersonDetails [shape: rectangle, icon: info, color: lightblue, title: "Person Detail Popups"]
+MetaTags [shape: rectangle, icon: tag, color: lightgreen, title: "Social Media Meta Tags"]
 FrontendRedirect [shape: rectangle, icon: arrow-right, color: orange, title: "Redirect to Frontend App"]
 AuthRequired [shape: rectangle, icon: lock, color: red, title: "Authentication Required"]
 
 // Success & Analytics
 TreeShareSuccess [shape: rectangle, icon: check-circle, color: green, title: "Tree Share Success"]
-TreeAnalytics [shape: rectangle, icon: bar-chart, color: orange, title: "Tree Share Analytics"]
 
 // Main Tree Flow
-TreeShareModal > FamilyTreeData: "Load Tree Data"
-TreeShareModal > TreeScope: "Select Share Scope"
-FamilyTreeData > TreePreview: "Generate Preview"
+TreeShareModal > ShareTypeToggle: "Toggle Profile/Tree"
+TreeShareModal > GenerationsSelect: "Select Generations"
+TreeShareModal > AdvancedOptions: "Open Advanced Options"
+AdvancedOptions > StepRelationshipToggle: "Include Step-Family"
+TreeShareModal > GenerateContent: "Generate Share Content"
 
-// Scope Selection Flow
-TreeScope > FullTree: "Complete Family Tree"
-TreeScope > TreeBranch: "Specific Family Branch"
-TreeScope > GenerationLimit: "Limit Generations"
-TreeScope > RootPerson: "Choose Starting Person"
-
-// Tree Visualization Flow
-TreePreview > TreeImage: "Generate Tree Image"
-TreePreview > InteractiveTree: "Interactive Version"
-TreePreview > TreeDescription: "Auto Description"
-
-// Customization Flow
-TreePreview > TreeMessage: "Add Custom Message"
-TreePreview > TreeTitle: "Set Tree Title"
+// Content Generation Flow
+GenerateContent > RailsImageAPI: "API Call"
+RailsImageAPI > TreeSnippetGenerator: "Create Image"
+TreeSnippetGenerator > ShareImageModel: "Save to Database"
+ShareImageModel > TreeImage: "Return Image"
+GenerateContent > TreeDescription: "Auto Generate Description"
+GenerateContent > ShareMetadata: "Add Metadata"
 
 // Share Distribution Flow
-TreePreview > FacebookTree: "Facebook Share"
-TreePreview > TwitterTree: "Twitter Share"
-TreePreview > WhatsAppTree: "WhatsApp Share"
-TreePreview > EmailTree: "Email Share"
-TreePreview > CopyTreeLink: "Copy Link"
+TreeImage > FacebookTree: "Facebook Share"
+TreeImage > XTree: "X Share"
+TreeImage > WhatsAppTree: "WhatsApp Share"
+TreeImage > LinkedInTree: "LinkedIn Share"
+TreeImage > RedditTree: "Reddit Share"
+TreeImage > EmailTree: "Email Share"
+TreeImage > CopyTreeLink: "Copy Link"
+TreeImage > DownloadImage: "Download Image"
 
 // Social Media Results
 FacebookTree > TreeShareSuccess: "Facebook Posted"
-TwitterTree > TreeShareSuccess: "Tweet Sent"
+XTree > TreeShareSuccess: "Tweet Sent"
 WhatsAppTree > TreeShareSuccess: "WhatsApp Sent"
+LinkedInTree > TreeShareSuccess: "LinkedIn Posted"
+RedditTree > TreeShareSuccess: "Reddit Posted"
 EmailTree > TreeShareSuccess: "Email Sent"
 CopyTreeLink > TreeShareSuccess: "Link Copied"
+DownloadImage > TreeShareSuccess: "Image Downloaded"
 
 // Public Tree Access
 CopyTreeLink > PublicTreePage: "External Access"
-PublicTreePage > TreeViewer: "View Interactive Tree"
-TreeViewer > TreeNavigation: "Navigate Tree"
-TreeViewer > PersonDetails: "View Person Info"
+PublicTreePage > MetaTags: "Load Meta Tags"
 PublicTreePage > FrontendRedirect: "Browser Redirect"
 FrontendRedirect > AuthRequired: "Login Required"
-
-// Analytics Flow
-TreeShareSuccess > TreeAnalytics: "Track Performance"
 ```
 
 ## Tree Share Features
 
 ### Tree Scope Selection
-- **Full Tree**: Share complete family tree
-- **Specific Branch**: Share only part of tree (e.g., paternal side)
-- **Generation Limit**: Control how many generations to show
+- **Generation Limit**: Control how many generations to show (1-5 generations supported)
 - **Root Person**: Choose starting person for tree display
+- **Include Step-Relationships**: Toggle to include/exclude step-family connections
 
 ### Tree Visualization
-- **Tree Preview**: Visual representation of what will be shared
 - **Tree Image**: High-quality image generation for social media
-- **Interactive Tree**: Clickable, zoomable tree for web viewing
-- **Auto Description**: Generated description of family tree
+- **Auto Description**: Generated description of family tree with relationship statistics
+- **Interactive Public View**: SEO-optimized public pages with redirect to React app
 
 ### Customization Options
-- **Tree Title**: Custom title for shared tree
-- **Custom Message**: Personal message with tree share
-- **Privacy Filters**: Hide sensitive family information
-- **Visual Themes**: Different tree styling options
+- **Advanced Options**: Collapsible section for additional sharing controls
+- **Step-Relationship Toggle**: Include or exclude step-family in sharing
+- **Generated Content**: Automatically generated titles and descriptions
 
 ### Social Media Integration
 - **Facebook**: Share tree image with description
-- **Twitter**: Tweet tree image with family story
+- **X (formerly Twitter)**: Tweet tree image with family story
 - **WhatsApp**: Send tree image via messaging
+- **LinkedIn**: Professional family sharing
+- **Reddit**: Community sharing options
 - **Email**: Email tree with detailed information
 - **Copy Link**: Generate shareable tree URL
+- **Download Image**: Save generated tree images locally
 
 ### Public Tree Pages
-- **Interactive Viewer**: Zoom, pan, explore tree
-- **Navigation Controls**: Easy tree navigation
-- **Person Popups**: Click person for details
-- **Mobile Optimized**: Works on phones and tablets
-- **SEO Friendly**: Search engine discoverable
+- **Rails Backend**: PublicSharesController handles public share pages
+- **SEO Optimization**: Meta tags, Open Graph, Twitter Cards
+- **Mobile Responsive**: Tailwind CSS responsive design
+- **Social Media Crawlers**: Optimized for Facebook, Twitter, LinkedIn bots
+- **Frontend Redirect**: Automatic redirect to React app for interactive features
 
-### Privacy & Control
-- **Selective Sharing**: Choose which family members to include
-- **Privacy Levels**: Control information visibility
-- **Consent Based**: Share only with permission
-- **Revokable**: Disable sharing anytime
-- **Safe Information**: No sensitive data exposed
+### Backend Implementation
+- **Image Generation**: TreeSnippetGenerator creates share images
+- **Relationship Statistics**: Comprehensive family relationship calculations
+- **Share Image Model**: Database tracking of generated images with expiration
+- **Cache Management**: Automatic cleanup of expired share content
+- **API Endpoints**: `/api/v1/share/tree/:id` with generations parameter
 
 ### Analytics & Insights
-- **View Tracking**: How many people viewed tree
-- **Engagement**: Which parts of tree get most attention
-- **Platform Performance**: Best social media for tree sharing
-- **Authentication Required**: Visitors redirected to login for interactive features
+- **API Response Metadata**: Basic generation time and expiration data returned with share content
+- **Expiration Management**: Automatic cleanup of old share content
+- **Error Handling**: Graceful fallbacks when image generation fails
+- **Authentication Flow**: Visitors redirected to login for full interactive features

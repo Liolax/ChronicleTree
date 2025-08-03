@@ -19,7 +19,6 @@ DangerZoneTab [shape: rectangle, icon: exclamation-triangle, color: red, title: 
 // Profile Settings Components
 ProfileSettings [shape: rectangle, icon: user, color: blue, title: "ProfileSettings - User Profile Management"]
 UserProfileForm [shape: rectangle, icon: edit, color: blue, title: "User Profile Form - Name, Email"]
-AvatarUpload [shape: rectangle, icon: upload, color: purple, title: "Avatar Upload - Profile Photo"]
 SaveProfileButton [shape: rectangle, icon: save, color: green, title: "Save Profile Changes"]
 
 // Password Settings Components
@@ -33,13 +32,14 @@ ChangePasswordButton [shape: rectangle, icon: save, color: red, title: "Change P
 // Danger Zone Components
 DeleteAccount [shape: rectangle, icon: trash, color: red, title: "DeleteAccount - Account Deletion"]
 DeleteWarning [shape: rectangle, icon: alert-triangle, color: orange, title: "Delete Warning - Permanent Action Warning"]
-DeleteConfirmation [shape: rectangle, icon: type, color: red, title: "Delete Confirmation - Type Username"]
+DeleteConfirmation [shape: rectangle, icon: type, color: red, title: "Delete Confirmation - Type DELETE"]
 DeleteAccountButton [shape: rectangle, icon: trash, color: red, title: "Delete Account Button"]
 
 // Loading and Error States
-SettingsLoader [shape: rectangle, icon: spinner, color: gray, title: "SettingsLoader - Loading State"]
-ErrorHandling [shape: rectangle, icon: exclamation-circle, color: red, title: "Error Handling - Form Validation"]
+SettingsLoader [shape: rectangle, icon: cog, color: gray, title: "SettingsLoader - Loading State"]
+ErrorHandling [shape: rectangle, icon: exclamation-triangle, color: red, title: "Error Handling - Form Validation"]
 SuccessMessages [shape: rectangle, icon: check-circle, color: green, title: "Success Messages - Operation Feedback"]
+LoginRedirect [shape: rectangle, icon: arrow-right, color: blue, title: "Auto Redirect to Login Page"]
 
 // Main Settings Flow
 SettingsPage > PageHeader: "Page Title and Subtitle"
@@ -54,7 +54,6 @@ TabsComponent > DangerZoneTab: "Account Deletion"
 // Profile Settings Flow
 ProfileTab > ProfileSettings: "Profile Management Component"
 ProfileSettings > UserProfileForm: "User Information Form"
-ProfileSettings > AvatarUpload: "Profile Photo Upload"
 UserProfileForm > SaveProfileButton: "Save Changes"
 
 // Password Settings Flow
@@ -74,9 +73,10 @@ DeleteConfirmation > DeleteAccountButton: "Final Delete Action"
 // State Management Flow
 SaveProfileButton > SuccessMessages: "Profile Updated"
 ChangePasswordButton > SuccessMessages: "Password Changed"
-DeleteAccountButton > ErrorHandling: "Account Deletion"
+DeleteAccountButton > LoginRedirect: "Account Deleted - Direct Logout & Redirect"
 UserProfileForm > ErrorHandling: "Validation Errors"
 PasswordChangeForm > ErrorHandling: "Password Validation"
+DeleteAccountButton > ErrorHandling: "Account Deletion Errors"
 ```
 
 ## Actual Account Settings Implementation
@@ -93,10 +93,10 @@ PasswordChangeForm > ErrorHandling: "Password Validation"
 3. **Danger Zone Tab**: DeleteAccount component
 
 ### Profile Settings Features
-- **User Profile Form**: Edit name and email address
-- **Avatar Upload**: Profile photo management
+- **User Profile Form**: Edit name and email address  
 - **Form Validation**: Real-time validation feedback
 - **Save Changes**: Update user profile information
+- **Note**: Avatar upload is handled on individual Profile pages, not in Account Settings
 
 ### Password Settings Features
 - **Current Password**: Verify existing password
@@ -107,8 +107,9 @@ PasswordChangeForm > ErrorHandling: "Password Validation"
 
 ### Danger Zone Features
 - **Delete Warning**: Clear warning about permanent deletion
-- **Username Confirmation**: Type username to confirm deletion
+- **DELETE Confirmation**: Type "DELETE" to confirm deletion (not username)
 - **Account Deletion**: Permanent account removal
+- **Success Flow**: On successful deletion, automatically logs out and redirects to login page
 - **Data Loss Warning**: Information about data deletion
 
 ### Data Management

@@ -1,67 +1,109 @@
 # ChronicleTree Social Sharing Overview - Simplified - Eraser.io
 
 ```
-// ChronicleTree Social Sharing Flow (Simplified)
+// ChronicleTree Social Sharing Flow 
 // For use with app.eraser.io
 
-title ChronicleTree Social Sharing Flow
+title Social Sharing Application Flow
 
-// Main Share Modal
-ShareModal [shape: rectangle, icon: share, color: cyan, title: "Share Modal"]
-ProfileShare [shape: rectangle, icon: user, color: purple, title: "Share Profile"]
-TreeShare [shape: rectangle, icon: git-branch, color: green, title: "Share Tree"]
-CloseModal [shape: rectangle, icon: x, color: gray, title: "Close Modal"]
+// Main Application Components
+TreePage [shape: rectangle, icon: git-branch, color: green, title: "Tree Page"]
+ProfilePage [shape: rectangle, icon: user, color: purple, title: "Profile Page"]
+ShareButton [shape: rectangle, icon: share, color: orange, title: "Share Button"]
+ShareModal [shape: rectangle, icon: share-2, color: cyan, title: "Share Modal Component"]
 
-// Social Platforms
-SocialPlatforms [shape: rectangle, icon: globe, color: blue, title: "Social Media Platforms"]
-CopyLink [shape: rectangle, icon: copy, color: orange, title: "Copy Share Link"]
+// Share Modal Options
+ShareProfileOption [shape: rectangle, icon: user, color: purple, title: "Share This Profile"]
+ShareTreeOption [shape: rectangle, icon: git-branch, color: green, title: "Share This Tree"]
+CopyLinkButton [shape: rectangle, icon: copy, color: orange, title: "Copy Share Link"]
+SocialShareButtons [shape: rectangle, icon: share-2, color: blue, title: "Social Media Buttons"]
 
-// Public Share Page
-PublicPage [shape: rectangle, icon: eye, color: lightblue, title: "Public Share Page with Image"]
-ImageDownload [shape: rectangle, icon: download, color: green, title: "Download Generated Image"]
-InteractiveLink [shape: rectangle, icon: arrow-right, color: orange, title: "View Interactive Version"]
-AuthenticationRequired [shape: rectangle, icon: lock, color: red, title: "Authentication Required (Interactive)"]
+// Social Platform Components
+FacebookShare [shape: rectangle, icon: facebook, color: blue, title: "Facebook Share"]
+XShare [shape: rectangle, icon: x, color: lightblue, title: "X Share"]
+WhatsAppShare [shape: rectangle, icon: message-circle, color: green, title: "WhatsApp Share"]
+LinkedInShare [shape: rectangle, icon: linkedin, color: blue, title: "LinkedIn Share"]
 
-// Share Success
-ShareSuccess [shape: rectangle, icon: check-circle, color: green, title: "Share Success"]
+// React Redirect Components
+PublicProfileView [shape: rectangle, icon: arrow-right, color: orange, title: "PublicProfileView.jsx"]
+PublicTreeView [shape: rectangle, icon: arrow-right, color: orange, title: "PublicTreeView.jsx"]
 
-// Main Flow
-ShareModal > ProfileShare: "Profile Sharing"
-ShareModal > TreeShare: "Tree Sharing"
-ShareModal > CloseModal: "Close Action"
+// Rails Backend Components
+RailsShareController [shape: rectangle, icon: server, color: red, title: "PublicSharesController"]
+ProfileSharePage [shape: rectangle, icon: eye, color: lightblue, title: "Public Profile Share Page"]
+TreeSharePage [shape: rectangle, icon: eye, color: lightgreen, title: "Public Tree Share Page"]
 
-// Sharing Options
-ProfileShare > SocialPlatforms: "Social Media"
-ProfileShare > CopyLink: "Copy Link"
-TreeShare > SocialPlatforms: "Social Media"
-TreeShare > CopyLink: "Copy Link"
+// Generated Content
+ShareImageGenerator [shape: rectangle, icon: image, color: green, title: "Share Image Generator"]
+ShareImage [shape: rectangle, icon: download, color: lightgreen, title: "Generated Share Image"]
+MetaTagsSystem [shape: rectangle, icon: tag, color: lightblue, title: "Social Media Meta Tags"]
 
-// Share Results
-SocialPlatforms > ShareSuccess: "Share Complete"
-CopyLink > ShareSuccess: "Link Copied"
-ProfileShare > PublicPage: "Public View"
-TreeShare > PublicPage: "Public View"
-PublicPage > ImageDownload: "Download Image"
-PublicPage > InteractiveLink: "Interactive View"
-InteractiveLink > AuthenticationRequired: "Login Required"
+// Success States
+LinkCopiedState [shape: rectangle, icon: check, color: green, title: "Link Copied Success"]
+ShareSuccessState [shape: rectangle, icon: check-circle, color: green, title: "Share Success"]
+
+// Application Flow
+TreePage > ShareButton: "Share Tree Action"
+ProfilePage > ShareButton: "Share Profile Action"
+ShareButton > ShareModal: "Open Modal"
+ShareModal > ShareProfileOption: "Profile Sharing"
+ShareModal > ShareTreeOption: "Tree Sharing"
+
+// Share Options Flow
+ShareProfileOption > CopyLinkButton: "Copy Profile Link"
+ShareProfileOption > SocialShareButtons: "Social Share"
+ShareTreeOption > CopyLinkButton: "Copy Tree Link"
+ShareTreeOption > SocialShareButtons: "Social Share"
+
+// Social Media Flow
+SocialShareButtons > FacebookShare: "Facebook"
+SocialShareButtons > XShare: "X"
+SocialShareButtons > WhatsAppShare: "WhatsApp"
+SocialShareButtons > LinkedInShare: "LinkedIn"
+
+// Backend Processing
+CopyLinkButton > PublicProfileView: "Profile Link Route"
+CopyLinkButton > PublicTreeView: "Tree Link Route"
+PublicProfileView > RailsShareController: "Redirect to Rails"
+PublicTreeView > RailsShareController: "Redirect to Rails"
+
+// Share Page Generation
+RailsShareController > ShareImageGenerator: "Generate Images"
+RailsShareController > MetaTagsSystem: "Add Meta Tags"
+RailsShareController > ProfileSharePage: "Profile Output"
+RailsShareController > TreeSharePage: "Tree Output"
+ShareImageGenerator > ShareImage: "Create Downloadable Image"
+
+// Success States
+CopyLinkButton > LinkCopiedState: "Copy Success"
+FacebookShare > ShareSuccessState: "Share Success"
+XShare > ShareSuccessState: "Share Success"
+WhatsAppShare > ShareSuccessState: "Share Success"
+LinkedInShare > ShareSuccessState: "Share Success"
 ```
 
-## Simplified Social Sharing
+## Social Sharing Application Components
 
-### Main Share Options
-- **Profile Share**: Share individual person profiles
-- **Tree Share**: Share family tree views
-- **Copy Link**: Generate shareable URLs
-- **Social Media**: Direct platform integration
+### Frontend Components
+- **Share Button**: Integrated into Tree and Profile pages
+- **Share Modal**: React modal component with sharing options
+- **Social Media Buttons**: Platform-specific sharing components
+- **Redirect Components**: PublicProfileView.jsx and PublicTreeView.jsx
 
-### Share Process
-- **Modal Interface**: Clean sharing interface
-- **Platform Selection**: Choose social media platform
-- **Link Generation**: Create public share URLs
-- **Success Feedback**: Confirm sharing completion
+### Backend Components
+- **PublicSharesController**: Rails controller handling public shares
+- **Share Image Generator**: Automated image creation system
+- **Meta Tags System**: Social media optimization
+- **Public Share Pages**: SEO-optimized profile and tree pages
 
-### Public Pages
-- **SEO Optimized**: Search-friendly shared content
-- **Mobile Responsive**: Works on all devices
-- **Generated Images**: High-quality profile/tree images available for download
-- **Interactive Options**: Links to full interactive experience (requires login)
+### Application States
+- **Link Copied**: Success feedback for copy operations
+- **Share Success**: Confirmation for social media shares
+- **Generated Images**: Downloadable share images
+- **Public Pages**: Non-authenticated share views
+
+### Integration Points
+- **React to Rails**: Redirect mechanism for public content
+- **Image Generation**: Backend service for share images
+- **Social Platforms**: Direct integration with major platforms
+- **Meta Tag Optimization**: Platform-specific social sharing metadata

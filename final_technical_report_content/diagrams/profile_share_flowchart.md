@@ -7,112 +7,124 @@
 title Profile Share Flow
 
 // Main Profile Share
-ProfileShareModal [shape: rectangle, icon: user, color: purple, title: "Profile Share Modal"]
-PersonProfile [shape: rectangle, icon: id-card, color: blue, title: "Person Profile Data"]
-SharePreview [shape: rectangle, icon: eye, color: lightblue, title: "Share Preview"]
+ProfileShareModal [shape: rectangle, icon: share-2, color: purple, title: "Profile Share Modal"]
+ShareTypeToggle [shape: rectangle, icon: toggle-left, color: cyan, title: "Share Type Toggle"]
+AdvancedOptions [shape: rectangle, icon: settings, color: orange, title: "Advanced Options"]
 
-// Privacy Settings
-PrivacySettings [shape: rectangle, icon: shield, color: orange, title: "Privacy Settings"]
-VisibleFields [shape: rectangle, icon: check, color: green, title: "Visible Profile Fields"]
-HiddenFields [shape: rectangle, icon: x, color: red, title: "Hidden Private Fields"]
+// Share Options
+StepRelationshipToggle [shape: rectangle, icon: users, color: lightgreen, title: "Include Step-Relationships"]
+GenerateContent [shape: rectangle, icon: zap, color: yellow, title: "Generate Share Content"]
 
-// Share Content
-ProfileImage [shape: rectangle, icon: image, color: pink, title: "Profile Photo"]
-BasicInfo [shape: rectangle, icon: info, color: lightgreen, title: "Name, Birth Date, Bio"]
-FamilyConnections [shape: rectangle, icon: users, color: yellow, title: "Family Relationships"]
-ShareMessage [shape: rectangle, icon: message-square, color: cyan, title: "Custom Share Message"]
+// Generated Content
+ProfileImage [shape: rectangle, icon: image, color: pink, title: "Profile Card Image"]
+ProfileDescription [shape: rectangle, icon: message-square, color: yellow, title: "Auto Profile Description"]
+ShareMetadata [shape: rectangle, icon: tag, color: lightblue, title: "Share Metadata"]
 
 // Social Platforms
 FacebookProfile [shape: rectangle, icon: facebook, color: blue, title: "Share to Facebook"]
-TwitterProfile [shape: rectangle, icon: twitter, color: cyan, title: "Share to Twitter"]
+XProfile [shape: rectangle, icon: x, color: cyan, title: "Share to X"]
 WhatsAppProfile [shape: rectangle, icon: message-circle, color: green, title: "Share to WhatsApp"]
+LinkedInProfile [shape: rectangle, icon: linkedin, color: blue, title: "Share to LinkedIn"]
+RedditProfile [shape: rectangle, icon: circle, color: orange, title: "Share to Reddit"]
 EmailProfile [shape: rectangle, icon: mail, color: orange, title: "Share via Email"]
 CopyProfileLink [shape: rectangle, icon: copy, color: gray, title: "Copy Profile Link"]
+DownloadImage [shape: rectangle, icon: download, color: green, title: "Download Profile Image"]
+
+// Backend Components
+RailsImageAPI [shape: rectangle, icon: server, color: red, title: "Rails Share Images API"]
+ProfileCardGenerator [shape: rectangle, icon: cpu, color: purple, title: "ProfileCardGenerator"]
+ShareImageModel [shape: rectangle, icon: database, color: blue, title: "Share Image Model"]
 
 // Public Profile Page
 PublicProfilePage [shape: rectangle, icon: globe, color: blue, title: "Public Profile Page (SEO/Crawlers)"]
-ProfileViewer [shape: rectangle, icon: eye, color: purple, title: "Profile Viewer"]
-ContactActions [shape: rectangle, icon: phone, color: green, title: "Contact Actions"]
+MetaTags [shape: rectangle, icon: tag, color: lightgreen, title: "Social Media Meta Tags"]
 FrontendRedirect [shape: rectangle, icon: arrow-right, color: orange, title: "Redirect to Frontend App"]
 AuthRequired [shape: rectangle, icon: lock, color: red, title: "Authentication Required"]
 
 // Success & Analytics
 ProfileShareSuccess [shape: rectangle, icon: check-circle, color: green, title: "Profile Share Success"]
-ProfileAnalytics [shape: rectangle, icon: bar-chart, color: orange, title: "Profile Share Analytics"]
 
 // Main Profile Flow
-ProfileShareModal > PersonProfile: "Load Profile Data"
-ProfileShareModal > PrivacySettings: "Configure Sharing"
-PersonProfile > SharePreview: "Generate Preview"
+ProfileShareModal > ShareTypeToggle: "Toggle Profile/Tree"
+ProfileShareModal > AdvancedOptions: "Open Advanced Options"
+AdvancedOptions > StepRelationshipToggle: "Include Step-Family"
+ProfileShareModal > GenerateContent: "Generate Share Content"
 
-// Privacy Configuration
-PrivacySettings > VisibleFields: "Public Information"
-PrivacySettings > HiddenFields: "Keep Private"
-VisibleFields > ProfileImage: "Show Photo"
-VisibleFields > BasicInfo: "Show Details"
-VisibleFields > FamilyConnections: "Show Relationships"
+// Content Generation Flow
+GenerateContent > RailsImageAPI: "API Call"
+RailsImageAPI > ProfileCardGenerator: "Create Profile Card"
+ProfileCardGenerator > ShareImageModel: "Save to Database"
+ShareImageModel > ProfileImage: "Return Profile Image"
+GenerateContent > ProfileDescription: "Auto Generate Description"
+GenerateContent > ShareMetadata: "Add Metadata"
 
-// Share Content Flow
-SharePreview > ShareMessage: "Add Custom Message"
-SharePreview > FacebookProfile: "Facebook Share"
-SharePreview > TwitterProfile: "Twitter Share"
-SharePreview > WhatsAppProfile: "WhatsApp Share"
-SharePreview > EmailProfile: "Email Share"
-SharePreview > CopyProfileLink: "Copy Link"
+// Share Distribution Flow
+ProfileImage > FacebookProfile: "Facebook Share"
+ProfileImage > XProfile: "X Share"
+ProfileImage > WhatsAppProfile: "WhatsApp Share"
+ProfileImage > LinkedInProfile: "LinkedIn Share"
+ProfileImage > RedditProfile: "Reddit Share"
+ProfileImage > EmailProfile: "Email Share"
+ProfileImage > CopyProfileLink: "Copy Link"
+ProfileImage > DownloadImage: "Download Image"
 
 // Social Media Results
 FacebookProfile > ProfileShareSuccess: "Facebook Posted"
-TwitterProfile > ProfileShareSuccess: "Tweet Sent"
+XProfile > ProfileShareSuccess: "Tweet Sent"
 WhatsAppProfile > ProfileShareSuccess: "WhatsApp Sent"
+LinkedInProfile > ProfileShareSuccess: "LinkedIn Posted"
+RedditProfile > ProfileShareSuccess: "Reddit Posted"
 EmailProfile > ProfileShareSuccess: "Email Sent"
 CopyProfileLink > ProfileShareSuccess: "Link Copied"
+DownloadImage > ProfileShareSuccess: "Image Downloaded"
 
 // Public Profile Access
 CopyProfileLink > PublicProfilePage: "External Access"
-PublicProfilePage > ProfileViewer: "View Profile"
-PublicProfilePage > ContactActions: "Contact Person"
+PublicProfilePage > MetaTags: "Load Meta Tags"
 PublicProfilePage > FrontendRedirect: "Browser Redirect"
 FrontendRedirect > AuthRequired: "Login Required"
-
-// Analytics Flow
-ProfileShareSuccess > ProfileAnalytics: "Track Performance"
 ```
 
 ## Profile Share Features
 
-### Profile Data Management
-- **Person Profile**: Individual family member information
-- **Privacy Settings**: Control what information is shared publicly
-- **Visible Fields**: Name, photo, birth date, bio, relationships
-- **Hidden Fields**: Private contact info, sensitive data
+### Profile Sharing Components
+- **ShareModal**: Same component used for both profile and tree sharing
+- **Share Type Toggle**: Switch between Profile Card and Family Tree modes
+- **Step-Relationship Toggle**: Include or exclude step-family connections
+- **Advanced Options**: Collapsible section for additional controls
 
-### Share Preview
-- **Visual Preview**: See exactly what others will view
-- **Custom Message**: Add personal message with profile share
-- **Profile Photo**: Include or exclude profile image
-- **Relationship Info**: Show family connections
+### Content Generation
+- **ProfileCardGenerator**: Backend service that creates profile card images
+- **Auto Description**: Generated descriptions with relationship statistics
+- **Share Image Model**: Database tracking of generated images with expiration
+- **Metadata**: Generation time, expiration dates, and performance metrics
 
 ### Social Media Integration
-- **Facebook**: Share profile with custom message
-- **Twitter**: Tweet about family member with profile link
-- **WhatsApp**: Send profile via messaging
-- **Email**: Email profile information
-- **Copy Link**: Generate shareable URL
+- **Facebook**: Share profile card with description
+- **X (formerly Twitter)**: Tweet profile card with family context
+- **WhatsApp**: Send profile card via messaging
+- **LinkedIn**: Professional family profile sharing
+- **Reddit**: Community sharing options
+- **Email**: Email profile card with detailed information
+- **Copy Link**: Generate shareable profile URL
+- **Download Image**: Save generated profile card images locally
 
 ### Public Profile Pages
-- **SEO Optimized**: Search engine friendly profile pages
-- **Mobile Responsive**: Works on all devices
-- **Contact Actions**: Ways to reach out to person
-- **Authentication Required**: Visitors redirected to login for interactive features
+- **Rails Backend**: PublicSharesController handles public profile pages
+- **SEO Optimization**: Meta tags, Open Graph, Twitter Cards for profile sharing
+- **Mobile Responsive**: Tailwind CSS responsive design
+- **Social Media Crawlers**: Optimized for Facebook, Twitter, LinkedIn bots
+- **Frontend Redirect**: Automatic redirect to React app for interactive features
 
-### Privacy & Security
-- **Granular Privacy**: Choose exactly what to share
-- **Safe Sharing**: No sensitive information exposed
-- **Consent Based**: Only share with permission
-- **Revokable**: Can disable sharing anytime
+### Backend Implementation
+- **Image Generation**: ProfileCardGenerator creates shareable profile cards
+- **Relationship Statistics**: Comprehensive family relationship calculations for profiles
+- **API Endpoints**: `/api/v1/share/profile/:id` with step-relationships parameter
+- **Cache Management**: Automatic cleanup of expired share content
+- **Performance Tracking**: Generation time tracking and optimization
 
-### Analytics & Tracking
-- **View Counts**: How many people viewed profile
-- **Platform Breakdown**: Which social media works best
-- **Engagement**: Clicks, contacts from shares
-- **Performance**: Most shared profiles and content
+### Analytics & Insights
+- **API Response Metadata**: Basic generation time and expiration data returned with share content
+- **Expiration Management**: Automatic cleanup of old share content
+- **Error Handling**: Graceful fallbacks when profile card generation fails
+- **Authentication Flow**: Visitors redirected to login for full interactive features
