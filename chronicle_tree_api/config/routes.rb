@@ -10,6 +10,10 @@ Rails.application.routes.draw do
   # Public sharing pages for social media crawlers
   get '/profile/:id', to: 'public_shares#profile', as: :public_profile_share
   get '/tree', to: 'public_shares#tree', as: :public_tree_share
+  
+  # Frontend redirect routes for login and registration
+  get '/login', to: 'public_shares#redirect_login'
+  get '/register', to: 'public_shares#redirect_register'
 
   # Background job monitoring interface (development environment only)
   if Rails.env.development?

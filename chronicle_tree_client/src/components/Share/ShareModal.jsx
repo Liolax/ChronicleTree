@@ -101,22 +101,23 @@ const ShareModal = ({
   const shareToSocial = (platform) => {
     if (!shareData) return;
 
-    const { title, description, share_url } = shareData;
+    const { title, description, share_url, image_url } = shareData;
     const encodedUrl = encodeURIComponent(share_url);
     const encodedTitle = encodeURIComponent(title);
     const encodedDescription = encodeURIComponent(description);
+    const encodedImage = image_url ? encodeURIComponent(image_url) : '';
 
     const urls = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodedDescription}&url=${encodedUrl}`,
-      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
-      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
+      twitter: `https://twitter.com/intent/tweet?text=${encodedDescription}&url=${encodedUrl}&via=ChronicleTree`,
+      facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}&quote=${encodedDescription}`,
+      linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}&title=${encodedTitle}&summary=${encodedDescription}`,
       reddit: `https://reddit.com/submit?url=${encodedUrl}&title=${encodedTitle}`,
       whatsapp: `https://wa.me/?text=${encodedDescription}%20${encodedUrl}`,
-      email: `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${encodedUrl}`
+      email: `mailto:?subject=${encodedTitle}&body=${encodedDescription}%0A%0A${share_url}%0A%0AShared via ChronicleTree`
     };
 
     if (urls[platform]) {
-      window.open(urls[platform], '_blank', 'width=600,height=400');
+      window.open(urls[platform], '_blank', 'width=600,height=400,scrollbars=yes,resizable=yes');
     }
   };
 

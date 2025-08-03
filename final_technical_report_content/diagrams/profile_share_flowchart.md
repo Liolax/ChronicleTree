@@ -103,7 +103,7 @@ ProfileShareSuccess > ProfileAnalytics: "Track Performance"
 - **SEO Optimized**: Search engine friendly profile pages
 - **Mobile Responsive**: Works on all devices
 - **Contact Actions**: Ways to reach out to person
-- **Join Prompts**: Convert visitors to ChronicleTree users
+- **Authentication Required**: Visitors redirected to login for interactive features
 
 ### Privacy & Security
 - **Granular Privacy**: Choose exactly what to share
@@ -114,5 +114,5 @@ ProfileShareSuccess > ProfileAnalytics: "Track Performance"
 ### Analytics & Tracking
 - **View Counts**: How many people viewed profile
 - **Platform Breakdown**: Which social media works best
-- **Engagement**: Clicks, contacts, sign-ups from shares
+- **Engagement**: Clicks, contacts from shares
 - **Performance**: Most shared profiles and content

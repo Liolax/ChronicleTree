@@ -17,9 +17,10 @@ SocialPlatforms [shape: rectangle, icon: globe, color: blue, title: "Social Medi
 CopyLink [shape: rectangle, icon: copy, color: orange, title: "Copy Share Link"]
 
 // Public Share Page
-PublicPage [shape: rectangle, icon: eye, color: lightblue, title: "Public Share Page (SEO/Crawlers)"]
-FrontendRedirect [shape: rectangle, icon: arrow-right, color: orange, title: "Redirect to Frontend App"]
-AuthenticationRequired [shape: rectangle, icon: lock, color: red, title: "Authentication Required"]
+PublicPage [shape: rectangle, icon: eye, color: lightblue, title: "Public Share Page with Image"]
+ImageDownload [shape: rectangle, icon: download, color: green, title: "Download Generated Image"]
+InteractiveLink [shape: rectangle, icon: arrow-right, color: orange, title: "View Interactive Version"]
+AuthenticationRequired [shape: rectangle, icon: lock, color: red, title: "Authentication Required (Interactive)"]
 
 // Share Success
 ShareSuccess [shape: rectangle, icon: check-circle, color: green, title: "Share Success"]
@@ -38,10 +39,11 @@ TreeShare > CopyLink: "Copy Link"
 // Share Results
 SocialPlatforms > ShareSuccess: "Share Complete"
 CopyLink > ShareSuccess: "Link Copied"
-ProfileShare > PublicPage: "Crawler View"
-TreeShare > PublicPage: "Crawler View"
-PublicPage > FrontendRedirect: "Browser Redirect"
-FrontendRedirect > AuthenticationRequired: "Login Required"
+ProfileShare > PublicPage: "Public View"
+TreeShare > PublicPage: "Public View"
+PublicPage > ImageDownload: "Download Image"
+PublicPage > InteractiveLink: "Interactive View"
+InteractiveLink > AuthenticationRequired: "Login Required"
 ```
 
 ## Simplified Social Sharing
@@ -61,4 +63,5 @@ FrontendRedirect > AuthenticationRequired: "Login Required"
 ### Public Pages
 - **SEO Optimized**: Search-friendly shared content
 - **Mobile Responsive**: Works on all devices
-- **Join Prompts**: Convert visitors to users
+- **Generated Images**: High-quality profile/tree images available for download
+- **Interactive Options**: Links to full interactive experience (requires login)
