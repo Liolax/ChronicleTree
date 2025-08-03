@@ -7,6 +7,8 @@ import Register from './pages/Auth/Register';
 import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 import TreeView from './pages/TreeView';
+import PublicTreeView from './pages/PublicTreeView';
+import PublicProfileView from './pages/PublicProfileView';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import PrivateRoute from './components/Auth/PrivateRoute';
@@ -28,6 +30,10 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+
+                {/* Public shared content routes (redirect to Rails share pages) */}
+                <Route path="/tree" element={<PublicTreeView />} />
+                <Route path="/shared/profile/:id" element={<PublicProfileView />} />
 
                 {/* Protected routes requiring authentication */}
                 <Route path="/" element={<PrivateRoute><TreeView /></PrivateRoute>} />

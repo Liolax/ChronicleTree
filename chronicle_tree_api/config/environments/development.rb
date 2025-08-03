@@ -12,6 +12,9 @@ Rails.application.configure do
     config.action_controller.perform_caching = false
   end
 
+  # Enable serving static files from public directory
+  config.public_file_server.enabled = true
+  
   config.cache_store = :memory_store
   config.active_storage.service = :local
   

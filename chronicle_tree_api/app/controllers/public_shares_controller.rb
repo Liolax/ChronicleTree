@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
 class PublicSharesController < ApplicationController
-  
   # No authentication needed for public sharing
   before_action :set_person, only: [:profile]
   before_action :set_root_person, only: [:tree]
-  
+
   def profile
-    
     # Set meta data for social sharing
-    @meta_title = "#{@person.full_name} - Family Profile | ChronicleTree"
+    @meta_title = "#{@person.full_name} | ChronicleTree"
     @meta_description = build_profile_description(@person)
     @meta_image_url = nil
     @share_url = request.original_url
@@ -133,7 +131,6 @@ class PublicSharesController < ApplicationController
   end
   
   def tree
-    
     @generations = params[:generations]&.to_i || 3
     
     # Set meta data for social sharing
@@ -141,7 +138,7 @@ class PublicSharesController < ApplicationController
     @meta_description = build_tree_description(@root_person, @generations)
     @meta_image_url = nil
     @share_url = request.original_url
-    
+
     # Generate share image
     begin
       generator = ImageGeneration::TreeSnippetGenerator.new
@@ -263,25 +260,25 @@ class PublicSharesController < ApplicationController
   protected
   
   def frontend_profile_url(person_id)
-    base_url = Rails.env.development? ? 'http://localhost:3000' : request.base_url
+    base_url = Rails.env.development? ? 'http://localhost:5178' : request.base_url
     return "#{base_url}/login" if person_id.blank?
     "#{base_url}/profile/#{person_id}"
   end
   
   def frontend_tree_url(person_id)
-    base_url = Rails.env.development? ? 'http://localhost:3000' : request.base_url
+    base_url = Rails.env.development? ? 'http://localhost:5178' : request.base_url
     return "#{base_url}/login" if person_id.blank?
     "#{base_url}/tree?root=#{person_id}"
   end
   
   def frontend_register_url
-    base_url = Rails.env.development? ? 'http://localhost:3000' : request.base_url
+    base_url = Rails.env.development? ? 'http://localhost:5178' : request.base_url
     "#{base_url}/register"
   end
   
   # Redirect routes for frontend login and registration
   def redirect_login
-    base_url = Rails.env.development? ? 'http://localhost:3000' : request.base_url
+    base_url = Rails.env.development? ? 'http://localhost:5178' : request.base_url
     redirect_to "#{base_url}/login", allow_other_host: true
   end
   

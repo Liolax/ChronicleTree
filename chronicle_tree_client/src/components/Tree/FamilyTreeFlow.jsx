@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ReactFlow,
   ReactFlowProvider,
@@ -37,6 +38,7 @@ const nodeTypes = {
 // Main family tree component
 // Uses ReactFlow to show the family tree with drag and drop
 const FamilyTree = () => {
+  const [searchParams] = useSearchParams();
   const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState(null);
   const [editPerson, setEditPerson] = useState(null);
@@ -48,6 +50,15 @@ const FamilyTree = () => {
   const [showUnrelated, setShowUnrelated] = useState(false);
   const [showConnectionLegend, setShowConnectionLegend] = useState(false);
   const [isNavbarOpen, setIsNavbarOpen] = useState(false);
+
+  // Read root person ID from URL parameters
+  useEffect(() => {
+    const rootParam = searchParams.get('root');
+    if (rootParam && !rootPersonId && !hasSetDefaultRoot) {
+      setRootPersonId(parseInt(rootParam, 10));
+      setHasSetDefaultRoot(true);
+    }
+  }, [searchParams, rootPersonId, hasSetDefaultRoot]);
 
   // Handle legend toggle and close navbar if open
   const handleLegendToggle = useCallback(() => {
