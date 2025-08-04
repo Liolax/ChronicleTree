@@ -1,16 +1,17 @@
 # ChronicleTree Timeline & Facts API - Eraser.io Sequence Diagram
 
 ```
-// ChronicleTree Timeline & Facts Management Flow - Life Events & Custom Data
+// ChronicleTree Timeline & Facts Management Flow - Hybrid Implementation
+// Dev: Sidekiq+Redis+memory_store, Prod: Solid Queue+Solid Cache
 // For use with app.eraser.io
 
-title ChronicleTree Timeline & Facts Management API Endpoints
+title ChronicleTree Timeline & Facts Management API - Hybrid Implementation
 
 React Client [icon: react, color: blue]
 Rails API [icon: ruby, color: red]
 
 PostgreSQL [icon: database, color: blue]
-Solid Cache [icon: memory, color: green]
+Memory Store [icon: memory, color: green]
 
 activate React Client
 
@@ -36,9 +37,9 @@ PostgreSQL --> Rails API: Timeline item created
 Rails API > PostgreSQL: Update chronological ordering
 PostgreSQL --> Rails API: Timeline reordered
 deactivate PostgreSQL
-Rails API > Solid Cache: Invalidate timeline cache
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Invalidate timeline cache
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: New timeline item data
 deactivate Rails API
 
@@ -51,9 +52,9 @@ activate PostgreSQL
 PostgreSQL --> Rails API: Timeline item updated
 PostgreSQL --> Rails API: Recalculate order if date changed
 deactivate PostgreSQL
-Rails API > Solid Cache: Invalidate timeline cache
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Invalidate timeline cache
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Updated timeline item
 deactivate Rails API
 

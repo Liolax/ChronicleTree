@@ -1,18 +1,20 @@
 # ChronicleTree Media Management API - Eraser.io Sequence Diagram
 
 ```
-// ChronicleTree Media Management Flow - Active Storage Integration
+// ChronicleTree Media Management Flow - Hybrid Implementation
+// Dev: Sidekiq+Redis+memory_store, Prod: Solid Queue+Solid Cache
 // For use with app.eraser.io
 
-title ChronicleTree Media Management API Endpoints
+title ChronicleTree Media Management API - Hybrid Implementation
 
 React Client [icon: react, color: blue]
 Rails API [icon: ruby, color: red]
 
 Active Storage [icon: folder, color: orange]
 PostgreSQL [icon: database, color: blue]
-Solid Queue [icon: clock, color: purple]
-Solid Cache [icon: memory, color: green]
+Sidekiq Worker [icon: clock, color: purple]
+Redis Queue [icon: memory, color: red]
+Memory Store [icon: memory, color: green]
 
 activate React Client
 
@@ -35,10 +37,10 @@ activate Rails API
 Rails API > Rails API: Validate JWT token
 Rails API > Active Storage: Store avatar image
 activate Active Storage
-Active Storage > Solid Queue: Queue avatar processing
-activate Solid Queue
-Solid Queue > Active Storage: Generate avatar thumbnails
-Solid Queue > Active Storage: Create avatar variants
+Active Storage > Sidekiq Worker: Queue avatar processing
+activate Sidekiq Worker
+Sidekiq Worker > Active Storage: Generate avatar thumbnails
+Sidekiq Worker > Active Storage: Create avatar variants
 Active Storage --> Rails API: Avatar processed
 deactivate Active Storage
 Rails API > PostgreSQL: Update profile with avatar attachment
@@ -47,22 +49,22 @@ PostgreSQL --> Rails API: Profile updated with avatar
 deactivate PostgreSQL
 Rails API --> React Client: Profile with avatar URLs
 deactivate Rails API
-deactivate Solid Queue
+deactivate Sidekiq Worker
 
 // 3. Get Profile Data Flow
 React Client > Rails API: GET /api/v1/profiles
 activate Rails API
-Rails API > Solid Cache: Check cached profiles
-activate Solid Cache
-Solid Cache --> Rails API: Cache miss
-deactivate Solid Cache
+Rails API > Memory Store: Check cached profiles
+activate Memory Store
+Memory Store --> Rails API: Cache miss
+deactivate Memory Store
 Rails API > PostgreSQL: Query user's profiles with avatars
 activate PostgreSQL
 PostgreSQL --> Rails API: Profile data with avatar attachments
 deactivate PostgreSQL
-Rails API > Solid Cache: Cache profile data
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Cache profile data
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Profiles array with avatars
 deactivate Rails API
 
@@ -73,31 +75,31 @@ activate Rails API
 Rails API > Rails API: Validate JWT token
 Rails API > Active Storage: Store uploaded media file
 activate Active Storage
-Active Storage > Solid Queue: Queue media processing
-activate Solid Queue
-Solid Queue > Active Storage: Generate thumbnails
-Solid Queue > Active Storage: Create optimized variants
+Active Storage > Sidekiq Worker: Queue media processing
+activate Sidekiq Worker
+Sidekiq Worker > Active Storage: Generate thumbnails
+Sidekiq Worker > Active Storage: Create optimized variants
 Active Storage --> Rails API: Media file stored & processed
 deactivate Active Storage
 Rails API > PostgreSQL: Save media record
 activate PostgreSQL
 PostgreSQL --> Rails API: Media metadata saved
 deactivate PostgreSQL
-Rails API > Solid Cache: Invalidate person media cache
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Invalidate person media cache
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Media data with URLs
 deactivate Rails API
-deactivate Solid Queue
+deactivate Sidekiq Worker
 
 // 5. Get Person Media Flow
 React Client > Rails API: GET /api/v1/people/:id/media
 activate Rails API
 Rails API > Rails API: Validate JWT token
-Rails API > Solid Cache: Check cached media data
-activate Solid Cache
-Solid Cache --> Rails API: Cache miss
-deactivate Solid Cache
+Rails API > Memory Store: Check cached media data
+activate Memory Store
+Memory Store --> Rails API: Cache miss
+deactivate Memory Store
 Rails API > PostgreSQL: Query person's media attachments
 activate PostgreSQL
 PostgreSQL --> Rails API: Media records with metadata
@@ -106,9 +108,9 @@ Rails API > Active Storage: Generate signed URLs
 activate Active Storage
 Active Storage --> Rails API: Secure media URLs
 deactivate Active Storage
-Rails API > Solid Cache: Cache media URLs & metadata
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Cache media URLs & metadata
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Media array with URLs
 deactivate Rails API
 
@@ -140,9 +142,9 @@ deactivate Rails API
 
 // Background Processing Flow
 loop [label: continuous processing, color: purple] {
-  Solid Queue > Active Storage: Process image variants
-  Solid Queue > Active Storage: Generate thumbnails
-  Solid Queue > PostgreSQL: Update processing status
+  Sidekiq Worker > Active Storage: Process image variants
+  Sidekiq Worker > Active Storage: Generate thumbnails
+  Sidekiq Worker > PostgreSQL: Update processing status
 }
 
 deactivate React Client
@@ -173,7 +175,7 @@ deactivate React Client
 - **Multiple Variants**: Thumbnails and optimized versions generated
 - **File Type Support**: Images, documents, and other media types
 - **Secure URLs**: Signed URLs for protected file access
-- **Processing Queue**: Solid Queue handles all background processing
+- **Processing Queue**: Sidekiq workers handle all background processing with Redis
 
 ### Security & Ownership
 - **User Validation**: JWT-based ownership verification at every step
@@ -182,8 +184,8 @@ deactivate React Client
 - **Permission Hierarchy**: Profile owners control all associated media
 
 ### Performance Features
-- **Solid Cache Integration**: Rails 8 database-backed caching in production
-- **Environment-Specific Caching**: Memory store (dev), Solid Cache (prod), null store (test)
+- **Hybrid Caching**: Memory store (development), Solid Cache (production)
+- **Queue Management**: Sidekiq with Redis (development), Solid Queue (production)
 - **Cache Invalidation**: Media cache cleared on uploads and updates
 - **Signed URL Caching**: Active Storage URLs cached for performance
 - **Asynchronous Processing**: Non-blocking file upload experience

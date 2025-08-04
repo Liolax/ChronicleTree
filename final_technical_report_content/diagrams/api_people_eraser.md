@@ -1,15 +1,16 @@
 # ChronicleTree People Management API - Eraser.io Sequence Diagram
 
 ```
-// ChronicleTree People Management Flow - RESTful CRUD Operations
+// ChronicleTree People Management Flow - Hybrid Implementation
+// Dev: Sidekiq+Redis+memory_store, Prod: Solid Queue+Solid Cache
 // For use with app.eraser.io
 
-title ChronicleTree People Management API Endpoints
+title ChronicleTree People Management API - Hybrid Implementation
 
 React Client [icon: react, color: blue]
 Rails API [icon: ruby, color: red]
 PostgreSQL [icon: database, color: blue]
-Solid Cache [icon: memory, color: green]
+Memory Store [icon: memory, color: green]
 Tree Builder [icon: tree, color: purple]
 
 activate React Client
@@ -19,10 +20,10 @@ activate React Client
 React Client > Rails API: GET /api/v1/people/full_tree
 activate Rails API
 Rails API > Rails API: Validate JWT token
-Rails API > Solid Cache: Check tree cache
-activate Solid Cache
-Solid Cache --> Rails API: Cache hit
-deactivate Solid Cache
+Rails API > Memory Store: Check tree cache
+activate Memory Store
+Memory Store --> Rails API: Cache hit
+deactivate Memory Store
 Rails API --> React Client: Complete family tree data
 deactivate Rails API
 
@@ -54,17 +55,17 @@ deactivate Rails API
 // Get All People Flow - Directory View
 React Client > Rails API: GET /api/v1/people
 activate Rails API
-Rails API > Solid Cache: Check cached data
-activate Solid Cache
-Solid Cache --> Rails API: Cache miss
-deactivate Solid Cache
+Rails API > Memory Store: Check cached data
+activate Memory Store
+Memory Store --> Rails API: Cache miss
+deactivate Memory Store
 Rails API > PostgreSQL: Query all people + relationships
 activate PostgreSQL
 PostgreSQL --> Rails API: People data with family tree
 deactivate PostgreSQL
-Rails API > Solid Cache: Cache results
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Cache results
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: JSON people array
 deactivate Rails API
 
@@ -87,9 +88,9 @@ PostgreSQL --> Rails API: Person created
 Rails API > PostgreSQL: Create parent/child relationships
 PostgreSQL --> Rails API: Relationships established
 deactivate PostgreSQL
-Rails API > Solid Cache: Invalidate people cache
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Invalidate people cache
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: New person + relationships
 deactivate Rails API
 
@@ -100,9 +101,9 @@ Rails API > PostgreSQL: Update person details
 activate PostgreSQL
 PostgreSQL --> Rails API: Person updated
 deactivate PostgreSQL
-Rails API > Solid Cache: Invalidate cached data
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Invalidate cached data
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Updated person data
 deactivate Rails API
 
@@ -114,9 +115,9 @@ activate PostgreSQL
 Rails API > PostgreSQL: Update relationship statuses
 PostgreSQL --> Rails API: Person deleted
 deactivate PostgreSQL
-Rails API > Solid Cache: Clear related caches
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Clear related caches
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Deletion confirmed
 deactivate Rails API
 
@@ -165,7 +166,7 @@ deactivate React Client
 - **Extended Data**: Facts, timeline, media organized under people
 
 ### Performance Optimization
-- **Solid Cache**: Frequently accessed family data cached
+- **Hybrid Caching**: Memory store (development), Solid Cache (production)
 - **Smart Invalidation**: Cache updates on data modifications
 - **Efficient Queries**: Optimized database queries with eager loading
 

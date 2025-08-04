@@ -1,16 +1,17 @@
 # ChronicleTree Authentication API - Eraser.io Sequence Diagram
 
 ```
-// ChronicleTree Authentication Flow - Devise JWT Implementation
+// ChronicleTree Authentication Flow - Hybrid Implementation
+// Dev: Sidekiq+Redis+memory_store, Prod: Solid Queue+Solid Cache
 // For use with app.eraser.io
 
-title ChronicleTree Authentication API Endpoints
+title ChronicleTree Authentication API - Hybrid Implementation
 
 React Client [icon: react, color: blue]
 Rails API [icon: ruby, color: red]
 Devise JWT [icon: key, color: orange]
 PostgreSQL [icon: database, color: blue]
-Solid Cache [icon: memory, color: green]
+Memory Store [icon: memory, color: green]
 
 activate React Client
 
@@ -26,9 +27,9 @@ Rails API > Devise JWT: Generate JWT token
 activate Devise JWT
 Devise JWT --> Rails API: JWT token via cookie
 deactivate Devise JWT
-Rails API > Solid Cache: Store session
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Store session
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: User data + JWT cookie
 deactivate Rails API
 
@@ -44,9 +45,9 @@ Rails API > Devise JWT: Issue JWT token
 activate Devise JWT
 Devise JWT --> Rails API: JWT token
 deactivate Devise JWT
-Rails API > Solid Cache: Cache session
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Cache session
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: JWT token + user data
 deactivate Rails API
 
@@ -82,9 +83,9 @@ activate Rails API
 Rails API > Devise JWT: Invalidate JWT token
 activate Devise JWT
 deactivate Devise JWT
-Rails API > Solid Cache: Clear session
-activate Solid Cache
-deactivate Solid Cache
+Rails API > Memory Store: Clear session
+activate Memory Store
+deactivate Memory Store
 Rails API --> React Client: Logged out (no_content)
 deactivate Rails API
 
@@ -96,7 +97,7 @@ deactivate React Client
 ### Registration Pattern
 - **Account Creation**: User registration with email/password validation
 - **Automatic Login**: JWT token issued immediately upon registration
-- **Session Management**: Solid Cache session storage for performance
+- **Session Management**: Memory store (dev), Solid Cache (prod) for performance
 
 ### Login/Logout Pattern
 - **Credential Validation**: Database authentication with Devise
@@ -110,5 +111,5 @@ deactivate React Client
 
 ### Security Features
 - **Devise Integration**: Rails industry-standard authentication
-- **JWT Security**: Stateless authentication with Solid Cache caching
+- **JWT Security**: Stateless authentication with hybrid caching
 - **Controller Separation**: Dedicated controllers for each auth operation

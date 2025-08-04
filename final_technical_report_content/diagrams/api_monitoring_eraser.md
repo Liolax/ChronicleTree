@@ -1,15 +1,17 @@
 # ChronicleTree System Monitoring API - Eraser.io Sequence Diagram
 
 ```
-// ChronicleTree System Health & Public Access Flow
+// ChronicleTree System Health & Public Access Flow - Hybrid Implementation
+// Dev: Sidekiq+Redis, Prod: Solid Queue, Health monitoring for both
 // For use with app.eraser.io
 
-title ChronicleTree System Monitoring & Public API Endpoints
+title ChronicleTree System Monitoring - Hybrid Implementation
 
 React Client [icon: react, color: blue]
 Rails API [icon: ruby, color: red]
 PostgreSQL [icon: database, color: blue]
-Solid Queue [icon: clock, color: purple]
+Sidekiq Worker [icon: clock, color: purple]
+Redis Queue [icon: memory, color: red]
 Public Access [icon: globe, color: green]
 Image Generator [icon: image, color: orange]
 
@@ -23,10 +25,10 @@ Rails API > PostgreSQL: Database connectivity test
 activate PostgreSQL
 PostgreSQL --> Rails API: DB status OK
 deactivate PostgreSQL
-Rails API > Solid Queue: Background jobs health
-activate Solid Queue
-Solid Queue --> Rails API: Queue status OK
-deactivate Solid Queue
+Rails API > Sidekiq Worker: Background jobs health
+activate Sidekiq Worker
+Sidekiq Worker --> Rails API: Queue status OK
+deactivate Sidekiq Worker
 Rails API --> React Client: System health OK
 deactivate Rails API
 
@@ -71,17 +73,17 @@ deactivate Rails API
 React Client > Rails API: GET /sidekiq
 note right of Rails API: Development environment only
 activate Rails API
-Rails API > Solid Queue: Queue statistics
-activate Solid Queue
-Solid Queue --> Rails API: Job processing stats
-deactivate Solid Queue
+Rails API > Sidekiq Worker: Queue statistics
+activate Sidekiq Worker
+Sidekiq Worker --> Rails API: Job processing stats
+deactivate Sidekiq Worker
 Rails API --> React Client: Background job web interface
 deactivate Rails API
 
 // Background Health Monitoring
 loop [label: continuous monitoring, color: purple] {
-  Solid Queue > PostgreSQL: Check job processing
-  Solid Queue > Solid Queue: Process queued jobs
+  Sidekiq Worker > PostgreSQL: Check job processing
+  Sidekiq Worker > Redis Queue: Process queued jobs
   PostgreSQL > Rails API: Health status updates
 }
 
@@ -93,7 +95,7 @@ deactivate React Client
 ### Health Check System
 - **Rails Built-in**: Standard `/up` endpoint for system health
 - **Database Connectivity**: PostgreSQL connection verification
-- **Background Jobs**: Solid Queue processing status monitoring
+- **Background Jobs**: Sidekiq worker processing status monitoring (dev), Solid Queue (prod)
 
 ### Public Access Patterns
 - **Social Media Integration**: Open Graph meta tags for sharing
@@ -101,13 +103,13 @@ deactivate React Client
 - **Share Image Generation**: Dynamic social media share images
 
 ### Development Tools
-- **Sidekiq Interface**: Background job monitoring (development only)
-- **Queue Statistics**: Real-time job processing metrics
+- **Sidekiq Interface**: Background job monitoring (development environment)
+- **Queue Statistics**: Real-time job processing metrics via Redis
 - **System Diagnostics**: Comprehensive system status overview
 
 ### Performance Monitoring
 - **Continuous Health Checks**: Automated system monitoring
-- **Background Job Processing**: Queue health and performance tracking
+- **Background Job Processing**: Queue health and performance tracking (Sidekiq+Redis)
 - **Database Performance**: Connection and query health monitoring
 
 ### Security Considerations

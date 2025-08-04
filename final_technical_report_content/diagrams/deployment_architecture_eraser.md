@@ -1,7 +1,8 @@
-// ChronicleTree Deployment Architecture - Real Implementation
+// ChronicleTree Deployment Architecture - Hybrid Implementation
+// Dev: Sidekiq+Redis+memory_store, Prod: Solid Queue+Solid Cache
 // For use with app.eraser.io
 
-title ChronicleTree Deployment Architecture
+title ChronicleTree Deployment Architecture - Hybrid Implementation
 
 Users [icon: person, color: green, label: "Family Tree Users\nWeb Browsers (Chrome, Firefox, Safari)\nMobile Devices"]
 
@@ -10,7 +11,9 @@ Development Environment [icon: computer, color: blue] {
     Vite Dev Server [icon: react, color: blue, label: "React 19 + Vite\nPort 5178\nHMR + Hot Reload"]
     Rails API Server [icon: ruby, color: red, label: "Ruby 3.3.7 + Rails 8\nPort 4000\nAPI-only Mode"]
     PostgreSQL Development [icon: database, color: blue, label: "PostgreSQL 15+\nLocal Database\nDevelopment Data"]
-    Memory Cache [icon: memory, color: green, label: "Rails Memory Store\nDevelopment Caching\nSolid Queue Jobs"]
+    Memory Cache [icon: memory, color: green, label: "Rails Memory Store\nDevelopment Caching"]
+    Sidekiq Worker [icon: clock, color: purple, label: "Sidekiq Background Jobs\nRedis Queue\nDevelopment Processing"]
+    Redis Queue [icon: memory, color: red, label: "Redis In-Memory\nJob Queue Storage\nDevelopment Mode"]
   }
 }
 

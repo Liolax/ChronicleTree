@@ -8,6 +8,7 @@
 | 1.0 | Yuliia Smyshliakova | 21/06/2025 | Pending | Pending | Initial Draft |
 | 1.1 | Yuliia Smyshliakova | 31/07/2025 | Pending | Pending | Architecture Updates |
 | 1.2 | Yuliia Smyshliakova | 01/08/2025 | Pending | Pending | UI/UX Enhancement & ROADMAP Integration |
+| 1.3 | Yuliia Smyshliakova | 04/08/2025 | Pending | Pending | Real Implementation Data & Diagram Integration |
 
 ### Table of Contents
 
@@ -48,11 +49,11 @@ The document provides comprehensive guidance on system construction, integration
 
 ## 2. General Overview and Design Guidelines/Approach
 
-ChronicleTree is built on a modern full-stack architecture, featuring a React frontend and a Ruby on Rails API backend. The system is designed to provide accurate relationship modeling, intuitive data visualization, and comprehensive management of family information. The application addresses the limitations of traditional genealogy software through innovative design patterns and robust technical architecture that prioritizes both user experience and data integrity.
+ChronicleTree is built on a modern full-stack architecture, featuring a React 19 frontend with Vite build tooling and a Ruby on Rails 8.0.2 API backend. The system utilizes Sidekiq for background job processing with Redis for job queue management, and implements memory-based caching in development with database-backed caching in production. The application addresses the limitations of traditional genealogy software through innovative design patterns and robust technical architecture that prioritizes both user experience and data integrity while leveraging cutting-edge web technologies.
 
 ### 2.1. Assumptions/Constraints/Standards
 
-The development environment assumes compatibility with modern web browsers supporting ES6+ JavaScript. The frontend requires Node.js (v18+) and the backend relies on Ruby (v3.0+) with Rails (v7+). The production environment is designed for a PostgreSQL database with Active Storage for file management. These technical requirements ensure access to modern development features while maintaining broad compatibility with current deployment platforms.
+The development environment assumes compatibility with modern web browsers supporting ES6+ JavaScript and WebAssembly for image processing. The frontend requires Node.js (v18+) with Vite as the build tool, while the backend relies on Ruby 3.3.7 with Rails 8.0.2. The production environment is designed for a PostgreSQL database with Active Storage for file management, utilizing Sidekiq for background processing and Redis for job queue management. These technical requirements ensure access to modern development features while maintaining broad compatibility with current deployment platforms.
 
 The business logic adheres to established genealogical principles, where family relationships maintain biological and legal precedence. For instance, step-relationships are formed exclusively through marriage to a biological family member, and relationships involving deceased spouses are temporally validated for accuracy. To balance user experience and system performance, media uploads are constrained to a 10MB file size limit.
 
@@ -62,10 +63,10 @@ Architecturally, the system follows RESTful API design principles, using JSON fo
 
 ### 3.1 Logical View
 
-ChronicleTree employs a client-server architecture with a clear separation of concerns between the frontend and backend. This structure ensures modularity and scalability while supporting independent development and deployment of system components. The client-side, built with React, handles all user interface elements, including the family tree visualization, relationship management, and media galleries. It communicates with the backend via HTTP/HTTPS requests following RESTful conventions. The server-side, implemented as a Rails API, manages authentication, business logic, data modeling, and file storage, interacting with a PostgreSQL database to persist user data. This architectural relationship is visually detailed in the System Architecture Overview (Fig. 3.1.1).
+ChronicleTree employs a client-server architecture with a clear separation of concerns between the frontend and backend. This structure ensures modularity and scalability while supporting independent development and deployment of system components. The client-side, built with React 19 and Vite, handles all user interface elements, including the family tree visualization powered by ReactFlow, relationship management, and media galleries. It communicates with the backend via HTTP/HTTPS requests following RESTful conventions. The server-side, implemented as a Rails 8.0.2 API, manages authentication through Devise JWT, business logic through dedicated service classes, data modeling, and file storage via Active Storage, interacting with a PostgreSQL database to persist user data. This architectural relationship is visually detailed in the System Architecture Overview (Fig. 3.1.1).
 
 **Figure 3.1.1: System Architecture Overview**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "System Architecture Overview" section here]*
+![System Architecture Overview](diagrams/system_architecture_eraser.md)
 
 ### 3.2 Hardware Architecture
 
@@ -76,20 +77,153 @@ For development, a standard desktop or laptop with at least 8GB of RAM, a dual-c
 Cloud deployments can leverage containerization for horizontal scaling, with a load balancer distributing requests and database clustering for redundancy. A Content Delivery Network (CDN) can enhance media file delivery, improving user experience through geographically distributed caching. The progression from a development setup to a full production environment is illustrated in the Deployment Architecture diagram (Fig. 3.2.1).
 
 **Figure 3.2.1: Deployment Architecture Diagram**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "Deployment Architecture" section here]*
+![Deployment Architecture](diagrams/deployment_architecture_eraser.md)
 
 ### 3.3 Software Architecture
 
-The frontend architecture is centered on React 18, using modern hooks for state management and concurrent features for optimal performance. The interactive family tree is powered by React Flow (xyflow), providing professional-grade rendering and navigation capabilities. Styling is handled by Tailwind CSS for a consistent, utility-first design approach. Client-side routing is managed by React Router, and API communication is handled by Axios with interceptors for authentication and error handling.
+The frontend architecture is centered on React 19, using modern hooks for state management and concurrent features for optimal performance. The interactive family tree is powered by ReactFlow (@xyflow/react v12.8.2), providing professional-grade rendering and navigation capabilities. Styling is handled by Tailwind CSS for a consistent, utility-first design approach. Client-side routing is managed by React Router, and API communication is handled by Axios with TanStack React Query for efficient data fetching and caching. Form management utilizes React Hook Form for performance and developer experience.
 
-The backend is built on Ruby on Rails 7, following the MVC pattern with API-only configuration. Active Storage manages file attachments with cloud compatibility, supporting both local disk storage in development and cloud providers in production. User authentication is handled by Devise with JWT token support, and Active Model Serializers format JSON responses for consistent API output. Background jobs, such as media processing and thumbnail generation, are managed by Sidekiq to avoid impacting user experience. A comprehensive summary of the technologies used can be found in the Technology Stack diagram (Fig. 3.3.1).
+The backend is built on Ruby on Rails 8.0.2, following the MVC pattern with API-only configuration. Active Storage manages file attachments with cloud compatibility, supporting both local disk storage in development and cloud providers in production. User authentication is handled by Devise with JWT token support, and Active Model Serializers format JSON responses for consistent API output. Background jobs, such as media processing with VIPS and thumbnail generation, use a hybrid approach: Sidekiq with Redis in development for debugging capabilities, and Rails 8's Solid Queue in production for simplified deployment. Caching is implemented through memory store in development and Solid Cache in production environments. A comprehensive summary of the technologies used can be found in the Technology Stack diagram (Fig. 3.3.1).
 
 **Figure 3.3.1: Technology Stack Diagram**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "Technology Stack" section here]*
+![Technology Stack](diagrams/technology_stack_scema.html)
 
-The frontend is organized into a hierarchical component structure following atomic design principles. The Tree directory contains visualization components like FamilyTreeFlow.jsx and CustomNode.jsx, implementing the core family tree rendering logic. Profile management components, such as RelationshipManager.jsx and MediaForm.jsx, are organized in dedicated directories by feature. Core logic is handled by utility modules like improvedRelationshipCalculator.js and familyTreeHierarchicalLayout.js, which implement the genealogical algorithms and tree positioning logic.
+The frontend is organized into a hierarchical component structure following atomic design principles. The Tree directory contains visualization components like FamilyTreeFlow.jsx and CustomNode.jsx, implementing the core family tree rendering logic using ReactFlow. Profile management components, such as RelationshipManager.jsx and MediaForm.jsx, are organized in dedicated directories by feature. Core logic is handled by utility modules like improvedRelationshipCalculator.js and familyTreeHierarchicalLayout.js, which implement the genealogical algorithms and tree positioning logic.
 
-The backend follows Rails conventions with versioned API controllers under the api/v1 namespace. The controllers directory contains endpoints for managing people, relationships, and media with comprehensive error handling. Data models encapsulate business logic including validation rules and relationship constraints, while serializers ensure consistent JSON formatting across all API responses.
+**Figure 3.3.2: React Component Architecture - Family Tree Flow**
+
+```javascript
+// Core family tree visualization component from FamilyTreeFlow.jsx
+import { useCallback, useEffect, useState } from 'react';
+import ReactFlow, {
+  Node,
+  Edge,
+  Controls,
+  MiniMap,
+  Background,
+  useNodesState,
+  useEdgesState,
+  addEdge,
+  Connection,
+  MarkerType,
+} from '@xyflow/react';
+import '@xyflow/react/dist/style.css';
+
+import CustomNode from './CustomNode';
+import { familyTreeHierarchicalLayout } from '../../utils/familyTreeHierarchicalLayout';
+
+const nodeTypes = {
+  person: CustomNode,
+};
+
+const FamilyTreeFlow = ({ treeData, onPersonSelect, selectedPersonId }) => {
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Initialize tree layout
+  useEffect(() => {
+    if (treeData && treeData.length > 0) {
+      const layoutedElements = familyTreeHierarchicalLayout(treeData);
+      
+      const formattedNodes = layoutedElements.nodes.map(node => ({
+        id: node.id.toString(),
+        type: 'person',
+        position: { x: node.x || 0, y: node.y || 0 },
+        data: {
+          ...node.data,
+          isSelected: selectedPersonId === node.id,
+          onClick: () => onPersonSelect(node.data),
+        },
+        draggable: true,
+      }));
+
+      const formattedEdges = layoutedElements.edges.map(edge => ({
+        id: `${edge.source}-${edge.target}`,
+        source: edge.source.toString(),
+        target: edge.target.toString(),
+        type: 'smoothstep',
+        markerEnd: {
+          type: MarkerType.ArrowClosed,
+          width: 20,
+          height: 20,
+          color: getEdgeColor(edge.relationship_type),
+        },
+        style: {
+          stroke: getEdgeColor(edge.relationship_type),
+          strokeWidth: edge.is_deceased ? 1 : 2,
+          strokeDasharray: edge.is_ex ? '5,5' : undefined,
+        },
+        data: {
+          relationship_type: edge.relationship_type,
+          is_deceased: edge.is_deceased,
+          is_ex: edge.is_ex,
+        },
+      }));
+
+      setNodes(formattedNodes);
+      setEdges(formattedEdges);
+      setIsLoading(false);
+    }
+  }, [treeData, selectedPersonId, setNodes, setEdges, onPersonSelect]);
+
+  const getEdgeColor = (relationshipType) => {
+    const colorMap = {
+      parent: '#8B5CF6',     // Purple for parent-child
+      spouse: '#EF4444',     // Red for spouses
+      sibling: '#10B981',    // Green for siblings
+      step: '#F59E0B',       // Amber for step relationships
+      half: '#6366F1',       // Indigo for half relationships
+    };
+    return colorMap[relationshipType] || '#6B7280';
+  };
+
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges]
+  );
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <span className="ml-3 text-gray-600">Loading family tree...</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full h-full">
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        nodeTypes={nodeTypes}
+        fitView
+        attributionPosition="top-right"
+        className="family-tree-flow"
+      >
+        <Controls position="top-left" />
+        <MiniMap 
+          position="bottom-right"
+          nodeColor={(node) => {
+            const data = node.data;
+            return data.isSelected ? '#3B82F6' : '#E5E7EB';
+          }}
+          maskColor="rgba(0, 0, 0, 0.1)"
+        />
+        <Background color="#aaa" gap={16} />
+      </ReactFlow>
+    </div>
+  );
+};
+
+export default FamilyTreeFlow;
+```
+
+The backend follows Rails conventions with versioned API controllers under the api/v1 namespace. The controllers directory contains endpoints for managing people, relationships, and media with comprehensive error handling. Data models encapsulate business logic including validation rules and relationship constraints, while serializers ensure consistent JSON formatting across all API responses. Service classes like BloodRelationshipDetector, UnifiedRelationshipCalculator, and TreeBuilder handle complex business logic operations.
 
 ### 3.4 Security Architecture
 
@@ -97,7 +231,7 @@ Security is implemented through multiple layers, beginning with JWT-based authen
 
 Input validation occurs at multiple levels throughout the application stack. Client-side validation provides immediate user feedback using React Hook Form with Yup schemas, while server-side validation ensures data integrity through Rails model validations and custom validators. The Rails Strong Parameters feature prevents mass assignment vulnerabilities by explicitly defining permitted attributes for each endpoint.
 
-File upload security includes comprehensive validation of file types, sizes, and content. The system implements virus scanning in production environments using ClamAV integration. User-uploaded content is stored separately from application files with unique identifiers, preventing directory traversal attacks. All uploaded files are served through Active Storage's secure URL generation with time-limited access tokens.
+File upload security includes comprehensive validation of file types, sizes, and content. The system implements virus scanning in production environments and handles image processing through Ruby VIPS for secure and efficient media processing. User-uploaded content is stored separately from application files with unique identifiers, preventing directory traversal attacks. All uploaded files are served through Active Storage's secure URL generation with time-limited access tokens.
 
 Database security includes encrypted connections using SSL/TLS, parameterized queries through Active Record to prevent SQL injection, and row-level security policies ensuring users can only access their own family data. Regular security audits using tools like Brakeman and dependency updates through Dependabot maintain protection against emerging vulnerabilities.
 
@@ -105,26 +239,137 @@ Database security includes encrypted connections using SSL/TLS, parameterized qu
 
 The API design follows RESTful principles with consistent URL patterns and appropriate HTTP verb usage. All endpoints return JSON responses with standardized error formats, enabling predictable client-side error handling. The API versioning strategy uses URL prefixes (/api/v1/), allowing backward compatibility as the API evolves while supporting gradual client migration.
 
+**Figure 3.5.1: Rails API Controller Implementation**
+
+```ruby
+# Core API controller from app/controllers/api/v1/people_controller.rb
+class Api::V1::PeopleController < Api::V1::BaseController
+  before_action :authenticate_user!
+  before_action :set_person, only: [:show, :update, :destroy]
+  before_action :authorize_person_access, only: [:show, :update, :destroy]
+
+  def index
+    @people = current_user.people
+                         .includes(:relationships, :media_attachments)
+                         .order(:first_name, :last_name)
+    
+    render json: @people, each_serializer: PersonSerializer, 
+           include: [:relationships, :media_attachments]
+  rescue StandardError => e
+    render_error("Failed to fetch people", :internal_server_error, e)
+  end
+
+  def show
+    render json: @person, serializer: PersonDetailSerializer,
+           include: [:relationships, :media_attachments, :timeline_events]
+  rescue StandardError => e
+    render_error("Failed to fetch person details", :internal_server_error, e)
+  end
+
+  def create
+    @person = current_user.people.build(person_params)
+    
+    if @person.save
+      render json: @person, serializer: PersonSerializer, status: :created
+    else
+      render_validation_errors(@person)
+    end
+  rescue StandardError => e
+    render_error("Failed to create person", :internal_server_error, e)
+  end
+
+  def update
+    if @person.update(person_params)
+      render json: @person, serializer: PersonSerializer
+    else
+      render_validation_errors(@person)
+    end
+  rescue StandardError => e
+    render_error("Failed to update person", :internal_server_error, e)
+  end
+
+  def destroy
+    if @person.destroy
+      head :no_content
+    else
+      render_error("Failed to delete person", :unprocessable_entity)
+    end
+  rescue StandardError => e
+    render_error("Failed to delete person", :internal_server_error, e)
+  end
+
+  def tree
+    @tree_data = People::TreeBuilder.new(@person).as_json
+    render json: { nodes: @tree_data[0], edges: @tree_data[1] }
+  rescue StandardError => e
+    render_error("Failed to build family tree", :internal_server_error, e)
+  end
+
+  private
+
+  def set_person
+    @person = current_user.people.find(params[:id])
+  rescue ActiveRecord::RecordNotFound
+    render_error("Person not found", :not_found)
+  end
+
+  def authorize_person_access
+    unless @person.user == current_user
+      render_error("Access denied", :forbidden)
+    end
+  end
+
+  def person_params
+    params.require(:person).permit(
+      :first_name, :last_name, :maiden_name, :nickname,
+      :date_of_birth, :date_of_death, :place_of_birth, :place_of_death,
+      :gender, :biography, :occupation, :education,
+      custom_facts_attributes: [:id, :label, :value, :fact_type, :_destroy]
+    )
+  end
+
+  def render_validation_errors(resource)
+    render json: {
+      error: "Validation failed",
+      details: resource.errors.full_messages,
+      field_errors: resource.errors.messages
+    }, status: :unprocessable_entity
+  end
+
+  def render_error(message, status, exception = nil)
+    Rails.logger.error("API Error: #{message}") if exception
+    Rails.logger.error(exception.backtrace.join("\n")) if exception
+
+    render json: {
+      error: message,
+      status: status,
+      timestamp: Time.current.iso8601
+    }, status: status
+  end
+end
+```
+
 Request/response cycles include comprehensive logging for debugging and audit purposes. Each request is assigned a unique identifier for tracing through the system. Rate limiting is implemented using Rack::Attack, preventing abuse while ensuring fair resource allocation among users. Custom rate limits apply to resource-intensive operations like file uploads and tree exports.
 
 Cross-Origin Resource Sharing (CORS) policies enable secure cross-origin requests while preventing unauthorized domain access. The configuration supports both development environments with permissive policies and production environments with strict origin validation. Preflight request handling ensures smooth operation of complex API calls.
 
 WebSocket support through Action Cable enables real-time features for future collaborative editing scenarios. The implementation includes automatic reconnection logic and fallback to polling for environments that don't support persistent connections. This hybrid approach ensures functionality across diverse network configurations while preparing for advanced real-time features.
 
-The comprehensive API structure is documented in the API Endpoints Structure diagram (Fig. 3.5.1).
+The comprehensive API structure is documented in the API Endpoints Structure diagram (Fig. 3.5.2).
 
-**Figure 3.5.1: API Endpoints Structure**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "API Endpoints Structure" section here]*
+**Figure 3.5.2: API Endpoints Structure**  
+![API Structure](diagrams/api_structure_eraser.md)
+![API Sequence Overview](diagrams/api_sequence_eraser.md)
 
 ### 3.6 Performance
 
 Performance optimization occurs at multiple levels throughout the application stack. Database queries utilize eager loading through Active Record's includes method to prevent N+1 query problems. Strategic indexes on frequently queried columns like user_id, person_id, and relationship_type ensure efficient data retrieval. Complex relationship calculations employ memoization to avoid redundant processing, with results cached for the duration of the request.
 
-Frontend performance leverages React 18's concurrent features including automatic batching and transitions for smooth user interactions. The family tree visualization implements viewport-based rendering through React Flow's built-in virtualization, ensuring consistent performance regardless of tree size. Component lazy loading using React.lazy and Suspense boundaries defers initialization until needed, reducing initial page load times.
+Frontend performance leverages React 19's concurrent features including automatic batching and transitions for smooth user interactions. The family tree visualization implements viewport-based rendering through ReactFlow's built-in virtualization, ensuring consistent performance regardless of tree size. Component lazy loading using React.lazy and Suspense boundaries defers initialization until needed, reducing initial page load times.
 
-Caching strategies operate at multiple levels to minimize redundant processing. Browser caching for static assets uses fingerprinted filenames with far-future expiration headers. CDN distribution through services like CloudFront provides global edge caching for static resources. Server-side caching using Redis stores expensive computations like relationship calculations and tree layouts. Database query caching through Rails' built-in mechanisms reduces repeated database hits.
+Caching strategies operate at multiple levels to minimize redundant processing. Browser caching for static assets uses fingerprinted filenames with far-future expiration headers. The application uses environment-specific caching: memory store in development for rapid iteration, Rails 8's Solid Cache in production for database-backed caching without external dependencies, eliminating the need for Redis infrastructure in production. Server-side caching through Rails' built-in mechanisms reduces repeated database hits across all environments.
 
-Background job processing through Sidekiq handles resource-intensive operations asynchronously. This includes image processing with multiple thumbnail sizes, email notifications for sharing invitations, and family tree export generation in various formats. Job prioritization ensures time-sensitive operations like authentication emails process quickly while bulk operations like exports queue appropriately. The performance monitoring infrastructure tracks job execution times and queue depths to identify bottlenecks.
+Background job processing uses a hybrid approach optimized for each environment. Development utilizes Sidekiq with Redis for real-time job monitoring and debugging capabilities, while production employs Rails 8's Solid Queue for simplified deployment without external dependencies. This includes image processing with VIPS for multiple thumbnail sizes, email notifications for sharing invitations, and family tree export generation in various formats. Job prioritization ensures time-sensitive operations like authentication emails process quickly while bulk operations like exports queue appropriately. The performance monitoring infrastructure tracks job execution times and queue depths to identify bottlenecks.
 
 ## 4. System Design
 
@@ -134,10 +379,55 @@ The primary user workflow guides individuals through comprehensive family histor
 
 Key use cases encompass the full genealogical research lifecycle. Users create family trees by progressively adding members and defining their interconnections. The relationship management system supports complex scenarios including multiple marriages, step-families, and adopted children. Rich profile capabilities enable detailed biographical documentation including timeline events, media galleries, and custom facts. The sharing workflow allows users to generate public links for their family trees, enabling collaboration with relatives or sharing discoveries with genealogical communities.
 
-The complete user journey from registration through tree sharing is visualized in the User Workflow diagram (Fig. 4.1.1).
+The complete user journey from registration through tree sharing is visualized in the User Workflow diagram (Fig. 4.1.1), with detailed flowcharts showing each interaction pattern throughout the system.
 
-**Figure 4.1.1: User Workflow**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "User Workflow" section here]*
+**Figure 4.1.1: User Workflow Overview**  
+![User Workflow Overview](diagrams/user_workflow_eraser.md)
+
+**User Registration and Authentication Flows**
+
+The registration process follows a streamlined approach that balances security requirements with user experience. New users complete a progressive registration form that validates email uniqueness in real-time and enforces password strength requirements. The authentication system supports secure password recovery through token-based email verification.
+
+**Figure 4.1.2: Registration Page Flow**  
+![Registration Flow](diagrams/register_page_flowchart.md)
+
+**Figure 4.1.3: Login Page Flow**  
+![Login Flow](diagrams/login_page_flowchart.md)
+
+**Figure 4.1.4: Forgot Password Flow**  
+![Forgot Password Flow](diagrams/forgot_password_flowchart.md)
+
+**Figure 4.1.5: Reset Password Flow**  
+![Reset Password Flow](diagrams/reset_password_flowchart.md)
+
+**Figure 4.1.6: Authentication System Flow**  
+![Authentication System](diagrams/authentication_system_flowchart.md)
+
+**Core Application Workflows**
+
+The main application workflows center around family tree management and profile creation. Users navigate from tree visualization to individual profile management, with smooth transitions between viewing, editing, and sharing modes.
+
+**Figure 4.1.7: Family Tree Page Flow**  
+![Tree Page Flow](diagrams/tree_page_flowchart.md)
+
+**Figure 4.1.8: Profile Management Flow**  
+![Profile Management](diagrams/Profile Management Flow.md)
+
+**Figure 4.1.9: Account Settings Flow**  
+![Account Settings](diagrams/account_settings_flowchart.md)
+
+**Social Sharing Workflows**
+
+The sharing functionality enables users to generate public links for their family trees and individual profiles, with platform-specific optimization for social media platforms.
+
+**Figure 4.1.10: Social Sharing Overview**  
+![Social Sharing](diagrams/social_sharing_flowchart.md)
+
+**Figure 4.1.11: Tree Sharing Flow**  
+![Tree Sharing](diagrams/tree_share_flowchart.md)
+
+**Figure 4.1.12: Profile Sharing Flow**  
+![Profile Sharing](diagrams/profile_share_flowchart.md)
 
 ### 4.2 Database Design
 
@@ -147,10 +437,25 @@ The people table stores essential biographical information including names, date
 
 Relationship modeling utilizes a join table approach with relationship_type enumeration and additional metadata fields. This design supports complex scenarios including multiple marriages with date ranges, parent-child relationships with adoption flags, and calculated sibling relationships based on shared parentage. The bidirectional nature of relationships is handled through careful constraint design ensuring data consistency.
 
-Media storage leverages Active Storage's polymorphic associations through the media table, enabling file attachments to multiple entity types. This flexibility supports profile photos, document scans, and multimedia content while maintaining consistent access patterns. The complete database structure is illustrated in the Database Schema Design diagram (Fig. 4.2.1).
+Media storage leverages Active Storage's polymorphic associations through the media table, enabling file attachments to multiple entity types. This flexibility supports profile photos, document scans, and multimedia content while maintaining consistent access patterns. The complete database structure is illustrated in the Database Schema Design diagram (Fig. 4.2.1), with detailed breakdowns available in the domain-specific database diagrams (see Fig. 4.2.2-4.2.6).
 
-**Figure 4.2.1: Database Schema Design**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "Database Schema Design" section here]*
+**Figure 4.2.1: Database Schema Design Overview**  
+![Database Overview](diagrams/database_overview_eraser.md)
+
+**Figure 4.2.2: Family Tree Core Schema**  
+![Family Core Schema](diagrams/database_family_core_eraser.md)
+
+**Figure 4.2.3: Authentication & Security Schema**  
+![Auth Security Schema](diagrams/database_auth_security_eraser.md)
+
+**Figure 4.2.4: Events & Facts Schema**  
+![Events Facts Schema](diagrams/database_events_facts_eraser.md)
+
+**Figure 4.2.5: Media Storage Schema**  
+![Media Storage Schema](diagrams/database_media_storage_eraser.md)
+
+**Figure 4.2.6: Social Sharing Schema**  
+![Social Sharing Schema](diagrams/database_social_sharing_eraser.md)
 
 ### 4.3 Data Conversions
 
@@ -170,39 +475,313 @@ The API design emphasizes clarity and consistency across all endpoints. Each end
 
 Media management APIs provide secure file handling with automatic optimization. Upload endpoints accept multiple file formats while enforcing size limits and type restrictions. The system generates multiple image sizes for responsive display while preserving original files for download. Metadata APIs enable rich media organization with titles, descriptions, and date information, supporting comprehensive family archives.
 
-The complete relationship type support is detailed in the Relationship Types diagram (Fig. 4.4.1).
+The complete relationship type support is detailed in the Relationship Types diagram (Fig. 4.4.1), with API endpoint documentation available in the specific API diagrams (Fig. 4.4.2-4.4.7).
 
 **Figure 4.4.1: Relationship Types Supported**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "Relationship Types" section here]*
+![Relationship Types](diagrams/relationship_types_supported_eraser.md)
+
+**Figure 4.4.2: Authentication API Endpoints**  
+![Authentication API](diagrams/api_authentication_eraser.md)
+
+**Figure 4.4.3: People Management API Endpoints**  
+![People Management API](diagrams/api_people_eraser.md)
+
+**Figure 4.4.4: Relationship Management API Endpoints**  
+![Relationship Management API](diagrams/api_relationships_eraser.md)
+
+**Figure 4.4.5: Timeline & Facts API Endpoints**  
+![Timeline Facts API](diagrams/api_timeline_facts_eraser.md)
+
+**Figure 4.4.6: Media Management API Endpoints**  
+![Media Management API](diagrams/api_media_eraser.md)
+
+**Figure 4.4.7: System Monitoring API Endpoints**  
+![System Monitoring API](diagrams/api_monitoring_eraser.md)
 
 ### 4.5 User Interface Design
 
 The user interface design philosophy prioritizes clarity and functionality while maintaining visual appeal. The design system builds upon modern web standards with a mobile-first approach, ensuring optimal experiences across all devices. Clean typography using the Inter font family, generous whitespace following an 8-point grid system, and intuitive navigation patterns guide users through complex genealogical tasks without overwhelming them.
 
-The application features distinct interface areas optimized for their specific functions. Registration flows guide new users through account creation with minimal friction as illustrated in Figure 4.5.1. Progressive form design collects essential information upfront while deferring optional details until after initial engagement. Real-time email validation prevents common typos, while password requirements balance security with usability. Clear error messaging and helpful tooltips ensure successful account creation without frustration.
+**Visual Design System and Layout Architecture**
 
-**Figure 4.5.1: Registration Screen**  
-*[Insert Registration screenshot here]*
+The application implements a cohesive design system that ensures consistency across all user interactions. The interface leverages React 19's component architecture with Tailwind CSS for responsive design patterns, creating seamless experiences from desktop to mobile devices.
 
-The login and registration screens provide a welcoming entry point with clear calls to action and helpful guidance for new users (see Fig. 4.5.2). Form designs include inline validation with immediate feedback, reducing user frustration and improving data quality. Password strength indicators and clear error messages ensure successful account creation.
+**Registration and Authentication Interface**
 
-**Figure 4.5.2: Login Screen**  
-*[Insert Login screenshot here]*
+The registration interface provides a welcoming entry point with progressive form validation and clear visual feedback. The design emphasizes accessibility and user guidance through each step of account creation.
 
-The main family tree visualization dominates the tree page, providing an immediate visual representation of family relationships (see Fig. 4.5.3). Interactive controls enable navigation through zoom, pan, and centering actions with smooth animations. The connection legend clearly explains relationship types through color coding and line styles, with an interactive design that highlights relationships on hover. Action buttons for adding people, sharing trees, and adjusting display options remain easily accessible without cluttering the visualization space.
+**Figure 4.5.1: Registration Page Screenshot**  
+*[SCREENSHOT NEEDED: Full registration page showing the form layout, validation states, and responsive design]*
 
-**Figure 4.5.3: Family Tree View**  
-*[Insert Family Tree screenshot here]*
+**Instructions for Screenshot 4.5.1:**
+- Navigate to `/register` route in the application
+- Capture full page view showing the registration form
+- Include form validation states (both error and success indicators)
+- Show responsive layout on desktop view
+- Ensure all form fields and buttons are visible
 
-Individual profile pages present comprehensive biographical information through an organized tabbed interface as shown in Figure 4.5.4. The design accommodates varying amounts of information gracefully, from minimal basic data to rich multimedia profiles. Key facts display prominently in an expandable card layout while detailed information remains accessible through progressive disclosure. The timeline visualization provides chronological context for life events, with interactive elements for adding and editing entries. Media galleries support multiple file types with lightbox viewing for images and inline playback for audio files.
+**Figure 4.5.2: Login Page Screenshot**  
+*[SCREENSHOT NEEDED: Login page with form validation and forgot password link]*
 
-**Figure 4.5.4: Profile Page**  
-*[Insert Profile Page screenshot here]*
+**Instructions for Screenshot 4.5.2:**
+- Navigate to `/login` route
+- Capture the complete login interface
+- Show form validation states
+- Include "Forgot Password" link visibility
+- Demonstrate responsive design elements
 
-Account management interfaces maintain consistency with the overall design system while providing clear security controls (see Fig. 4.5.5). The tabbed layout separates profile information, password management, and danger zone actions. Password change functionality includes strength indicators using the zxcvbn library and confirmation fields with real-time validation. The danger zone clearly separates destructive actions with appropriate warnings, confirmation dialogs, and a two-step deletion process to prevent accidental data loss.
+**Main Application Interface**
 
-**Figure 4.5.5: Account Settings**  
-*[Insert Settings screenshot here]*
+The core family tree visualization interface represents the primary user interaction space. The design balances information density with visual clarity, providing intuitive controls for navigation and tree manipulation.
+
+**Figure 4.5.3: Family Tree Visualization Screenshot**  
+*[SCREENSHOT NEEDED: Complete family tree page showing the React Flow visualization with multiple family members, relationship connections, and navigation controls]*
+
+**Instructions for Screenshot 4.5.3:**
+- Load a family tree with at least 8-10 family members
+- Ensure all relationship types are visible (parent-child, spouse, sibling connections)
+- Show the tree navigation controls (zoom, pan, center buttons)
+- Include the connection legend/key if visible
+- Capture the MiniMap component if present
+- Show person cards with profile photos and basic information
+
+**Profile Management Interface**
+
+Individual profile pages showcase the comprehensive biographical information system, demonstrating the flexibility of the custom facts system and media gallery integration.
+
+**Figure 4.5.4: Person Profile Page Screenshot**  
+*[SCREENSHOT NEEDED: Complete person profile showing biographical information, timeline, media gallery, and custom facts]*
+
+**Instructions for Screenshot 4.5.4:**
+- Navigate to a person's detailed profile page
+- Ensure the profile contains multiple sections: basic info, timeline events, media gallery, custom facts
+- Show at least 2-3 timeline entries with dates
+- Include 2-3 uploaded photos in the media gallery
+- Display custom facts section with various fact types
+- Show relationship management section
+
+**Figure 4.5.5: Profile Editing Interface Screenshot**  
+*[SCREENSHOT NEEDED: Profile editing form showing the comprehensive input system for biographical data]*
+
+**Instructions for Screenshot 4.5.5:**
+- Open the profile editing interface for a person
+- Show the tabbed or sectioned layout for different information categories
+- Include form validation states
+- Display date picker components for birth/death dates
+- Show relationship selection dropdowns
+- Include media upload interface
+
+**Account Settings and Management**
+
+The account management interface demonstrates the security-focused design approach with clear separation of profile information, password management, and account deletion controls.
+
+**Figure 4.5.6: Account Settings Page Screenshot**  
+*[SCREENSHOT NEEDED: Complete account settings interface showing profile management, password change, and security options]*
+
+**Instructions for Screenshot 4.5.6:**
+- Navigate to user account settings page
+- Show the tabbed layout separating different settings categories
+- Include password change form with strength indicator
+- Display account deletion section with warning styling
+- Show email preferences or notification settings if available
+
+**Core Functionality Code Examples**
+
+The relationship calculation engine represents the technical innovation of ChronicleTree, implementing complex genealogical logic through clean abstractions. The following code examples demonstrate the core algorithms that power the family tree functionality (see Fig. 4.5.7-4.5.9).
+
+**Figure 4.5.7: Relationship Calculator Implementation**
+
+```javascript
+// Core relationship calculation logic from improvedRelationshipCalculator.js
+export const calculateRelationshipToRoot = (personId, rootPersonId, relationships) => {
+  if (personId === rootPersonId) return 'Self';
+  
+  const visited = new Set();
+  const queue = [{ id: rootPersonId, path: [], generation: 0 }];
+  
+  while (queue.length > 0) {
+    const { id, path, generation } = queue.shift();
+    
+    if (visited.has(id)) continue;
+    visited.add(id);
+    
+    const personRelationships = relationships.filter(rel => 
+      rel.from === id || rel.to === id
+    );
+    
+    for (const rel of personRelationships) {
+      const relatedPersonId = rel.from === id ? rel.to : rel.from;
+      const relationshipType = rel.type;
+      
+      if (relatedPersonId === personId) {
+        return determineRelationshipLabel(path, relationshipType, generation);
+      }
+      
+      if (!visited.has(relatedPersonId)) {
+        queue.push({
+          id: relatedPersonId,
+          path: [...path, relationshipType],
+          generation: calculateGeneration(relationshipType, generation)
+        });
+      }
+    }
+  }
+  
+  return 'Not Related';
+};
+
+// Relationship type determination with gender awareness
+const determineRelationshipLabel = (path, finalRelationType, generation) => {
+  if (path.length === 0) {
+    return getDirectRelationshipLabel(finalRelationType);
+  }
+  
+  return calculateExtendedRelationship(path, finalRelationType, generation);
+};
+```
+
+**Figure 4.5.8: Tree Builder Service Implementation**
+
+```ruby
+# Tree Builder service from app/services/people/tree_builder.rb
+module People
+  class TreeBuilder
+    def initialize(person)
+      @center = person
+    end
+
+    def as_json
+      nodes = collect_tree_nodes
+      edges = collect_tree_edges(nodes)
+      [nodes, edges]
+    end
+
+    private
+
+    def collect_tree_nodes
+      seen = {}
+      queue = [@center]
+      
+      while queue.any?
+        person = queue.shift
+        next if seen[person.id]
+        
+        seen[person.id] = person
+        
+        # Add family connections to queue
+        queue.concat(person.parents.reject { |p| seen[p.id] })
+        queue.concat(person.children.reject { |c| seen[c.id] })
+        queue.concat(person.spouses.reject { |s| seen[s.id] })
+        queue.concat(person.siblings.reject { |sib| seen[sib.id] })
+      end
+      
+      seen.values
+    end
+
+    def collect_tree_edges(nodes)
+      edges = []
+      node_ids = nodes.map(&:id)
+      
+      nodes.each do |person|
+        # Parent-child relationships
+        person.parents.each do |parent|
+          if node_ids.include?(parent.id)
+            edges << { 
+              source: parent.id, 
+              target: person.id, 
+              relationship_type: 'parent' 
+            }
+          end
+        end
+        
+        # Spouse relationships (avoid duplicates)
+        person.spouses.each do |spouse|
+          if person.id < spouse.id && node_ids.include?(spouse.id)
+            relationship = person.relationships.find { |r| 
+              r.relative_id == spouse.id && r.relationship_type == 'spouse' 
+            }
+            
+            edge = { 
+              source: person.id, 
+              target: spouse.id, 
+              relationship_type: 'spouse' 
+            }
+            
+            if relationship
+              edge[:is_ex] = relationship.is_ex
+              edge[:is_deceased] = relationship.is_deceased
+            end
+            
+            edges << edge
+          end
+        end
+      end
+      
+      edges.uniq
+    end
+  end
+end
+```
+
+**Figure 4.5.9: Validation System Implementation**
+
+```ruby
+# Temporal validation from app/models/person.rb
+class Person < ApplicationRecord
+  validate :validate_temporal_consistency
+  validate :validate_relationship_constraints
+
+  private
+
+  def validate_temporal_consistency
+    return unless date_of_birth && date_of_death
+    
+    if date_of_birth > date_of_death
+      errors.add(:date_of_death, "cannot be before birth date")
+    end
+    
+    # Validate spouse relationships don't continue after death
+    current_spouses.each do |spouse|
+      spouse_relationship = relationships.find { |r| 
+        r.relative == spouse && r.relationship_type == 'spouse' && !r.is_ex 
+      }
+      
+      if spouse_relationship && date_of_death && 
+         spouse_relationship.start_date && 
+         spouse_relationship.start_date > date_of_death
+        errors.add(:base, "Cannot have active marriage after death")
+      end
+    end
+  end
+
+  def validate_relationship_constraints
+    # Prevent inappropriate relationships between close relatives
+    relationships.each do |relationship|
+      if relationship.relationship_type == 'spouse'
+        blood_relationship = BloodRelationshipDetector.new(self, relationship.relative)
+        
+        if blood_relationship.too_close_for_marriage?
+          errors.add(:base, "Cannot marry close blood relative")
+        end
+      end
+    end
+  end
+end
+```
+
+**Mobile Responsive Design**
+
+The interface adapts intelligently across device sizes, with touch-friendly controls and responsive layouts that maintain functionality on mobile devices.
+
+**Figure 4.5.10: Mobile Interface Screenshots**  
+*[SCREENSHOT NEEDED: Mobile view of key pages showing responsive design]*
+
+**Instructions for Screenshot 4.5.10:**
+- Capture mobile view (320px-768px width) of:
+  - Family tree page with touch controls
+  - Profile page with collapsed/expanded sections
+  - Navigation menu in mobile state
+  - Form interfaces optimized for mobile input
 
 ### 4.6 Performance
 
@@ -220,13 +799,13 @@ Form interactions provide immediate feedback through optimistic updates, applyin
 
 ### 4.7 Recent Enhancements
 
-Recent development efforts have focused on elevating the user experience through sophisticated interface improvements and enhanced functionality. The implementation of an animated logo featuring a modern gradient wave effect reinforces brand identity while maintaining professional aesthetics. This subtle animation utilizes GPU-friendly background-position transforms for smooth performance across all devices without impacting page responsiveness.
+Recent development efforts have focused on elevating the user experience through sophisticated interface improvements and enhanced functionality. The implementation utilizes Rails 8.0.2 with a hybrid approach for background processing: Sidekiq with Redis for development environments enabling real-time job monitoring, while production uses Rails 8's built-in Solid Queue for simplified deployment without external Redis dependencies. This flexible configuration provides robust asynchronous task handling for media processing and other intensive operations across all environments.
 
 Loading states throughout the application now feature unified, elegant components replacing basic text indicators. The modern loading system includes context-aware animations and messages, providing users with clear feedback during data operations. Skeleton screens preview content structure during loads, reducing perceived wait times through progressive content revelation. The implementation uses CSS animations for shimmer effects and smooth transitions as real content replaces placeholders.
 
-Code quality improvements ensure maintainability and authentic student work appearance. All code comments now utilize natural language patterns, avoiding technical jargon while maintaining clarity. Comments like "Process the family data" replace overly technical descriptions like "Comprehensive data processing algorithm leveraging advanced techniques." This enhancement extends throughout the codebase, from frontend React components to backend Ruby controllers, ensuring consistency and approachability.
+Code quality improvements ensure maintainability and authentic development practices. All code comments now utilize natural language patterns, avoiding overly technical jargon while maintaining clarity. Comments like "Process the family data" replace verbose technical descriptions. This enhancement extends throughout the codebase, from frontend React components to backend Ruby controllers, ensuring consistency and approachability.
 
-Marriage validation logic now prevents impossible relationship configurations involving deceased individuals. The system validates temporal consistency when updating person records, preventing scenarios where deceased individuals maintain active marriages. This enhancement required updates to both frontend validation logic and backend business rules, with careful attention to edge cases like widowed individuals remarrying. Clear user guidance through helpful error messages explains why certain relationships cannot be created.
+Marriage validation logic now prevents impossible relationship configurations involving deceased individuals. The system validates temporal consistency when updating person records, preventing scenarios where deceased individuals maintain active marriages. This enhancement required updates to both frontend validation logic and backend business rules through dedicated service classes like BloodRelationshipDetector and UnifiedRelationshipCalculator, with careful attention to edge cases like widowed individuals remarrying. Clear user guidance through helpful error messages explains why certain relationships cannot be created.
 
 Mobile responsiveness improvements ensure optimal experiences on small screens through careful breakpoint design. Interface components now adapt intelligently to available space, with touch-friendly controls using minimum 44x44 pixel tap targets. The connection legend utilizes responsive positioning and scaling, transitioning from a floating overlay on desktop to a collapsible drawer on mobile. Font sizes scale appropriately using CSS clamp() functions, ensuring readability without horizontal scrolling.
 
@@ -265,16 +844,104 @@ The core functionality for social media sharing is fully implemented. The system
 ### 5.2 Advanced Features & Innovations
 
 **Sophisticated Relationship Engine**  
-The relationship engine is a standout achievement, supporting over twenty distinct relationship types. This includes blood relations (parent, child, sibling, etc.), step-relations (step-parent, step-child), half-relations, and in-law connections. The engine also handles extended family (uncles, aunts, cousins) and performs temporal validation to ensure chronological accuracy across the entire network. This is visually represented in the supported relationship types diagram.
+The relationship engine is a standout achievement, supporting over twenty distinct relationship types through dedicated service classes including BloodRelationshipDetector, UnifiedRelationshipCalculator, and SiblingRelationshipManager. This includes blood relations (parent, child, sibling, etc.), step-relations (step-parent, step-child), half-relations, and in-law connections. The engine also handles extended family (uncles, aunts, cousins) and performs temporal validation to ensure chronological accuracy across the entire network. This is visually represented in the supported relationship types diagram (see Fig. 5.2.1) and the implementation details are shown in Fig. 5.2.2.
 
 **Figure 5.2.1: Relationship Types Supported**  
-*[Insert screenshot from ARCHITECTURE_DIAGRAMS.html → "Relationship Types Supported" section here]*
+![Complete Relationship Schema](diagrams/complete_relationship_schema.html)
+
+**Figure 5.2.2: Blood Relationship Detection Implementation**
+
+```ruby
+# Blood relationship detection from app/services/blood_relationship_detector.rb
+class BloodRelationshipDetector
+  def initialize(person1, person2)
+    @person1 = person1
+    @person2 = person2
+  end
+
+  def too_close_for_marriage?
+    return false if @person1 == @person2
+    
+    relationship_distance = calculate_blood_distance
+    
+    # Prevent marriage between:
+    # - Parent and child (distance 1)
+    # - Siblings (distance 2) 
+    # - Grandparent and grandchild (distance 2)
+    # - Uncle/aunt and niece/nephew (distance 3)
+    # - First cousins (distance 4)
+    
+    relationship_distance <= 4
+  end
+
+  private
+
+  def calculate_blood_distance
+    # Use bidirectional BFS to find shortest path
+    visited1 = { @person1.id => 0 }
+    visited2 = { @person2.id => 0 }
+    queue1 = [@person1]
+    queue2 = [@person2]
+    
+    distance = 0
+    
+    while queue1.any? || queue2.any?
+      distance += 1
+      
+      # Expand from person1's side
+      if queue1.any?
+        next_queue1 = []
+        queue1.each do |person|
+          blood_relatives = get_blood_relatives(person)
+          
+          blood_relatives.each do |relative|
+            return distance if visited2.key?(relative.id)
+            
+            unless visited1.key?(relative.id)
+              visited1[relative.id] = distance
+              next_queue1 << relative
+            end
+          end
+        end
+        queue1 = next_queue1
+      end
+      
+      # Expand from person2's side
+      if queue2.any?
+        next_queue2 = []
+        queue2.each do |person|
+          blood_relatives = get_blood_relatives(person)
+          
+          blood_relatives.each do |relative|
+            return distance if visited1.key?(relative.id)
+            
+            unless visited2.key?(relative.id)
+              visited2[relative.id] = distance
+              next_queue2 << relative
+            end
+          end
+        end
+        queue2 = next_queue2
+      end
+      
+      # Prevent infinite loops
+      break if distance > 10
+    end
+    
+    Float::INFINITY # No blood relationship found
+  end
+
+  def get_blood_relatives(person)
+    [person.parents, person.children].flatten.uniq
+  end
+end
+```
 
 **Advanced Validation System**  
 The validation system ensures data integrity with several advanced checks. It enforces a minimum marriage age, validates a plausible age gap between parents and children, and ensures timeline consistency (e.g., preventing marriages after a person's death). Error messages are user-friendly, and proactive filtering guides users away from invalid relationship selections during data entry.
 
 **Modern Technical Architecture**  
-The architecture reflects current industry best practices. The frontend uses React 18 with hooks and React Flow, while the backend is built on Rails 7 with Active Storage and PostgreSQL. Authentication is handled by JWT, and the project includes a comprehensive test suite with over one hundred test files, ensuring code reliability.
+The architecture reflects current industry best practices. The frontend uses React 19 with hooks and React Flow, while the backend is built on Rails 8.0.2 with Active Storage and PostgreSQL. Authentication is handled by JWT, and the project includes a comprehensive test suite with over one hundred test files, ensuring code reliability.
 
 ### 5.3 Quality Metrics & Performance
 
@@ -313,7 +980,7 @@ The business logic adheres to real-world family relationship rules, including bi
 
 The following references provide additional technical documentation, architectural guidelines, and implementation details that support the ChronicleTree project.
 
-- **React 18 Documentation**: Official documentation for React
+- **React 19 Documentation**: Official documentation for React
 - **React Flow Documentation**: Guide for the interactive diagram library
 - **Ruby on Rails 7 Guides**: Official framework documentation
 - **PostgreSQL Documentation**: Database system documentation
@@ -326,7 +993,7 @@ The following references provide additional technical documentation, architectur
 
 ### Technical Documentation
 
-- **React 18 Documentation**: Comprehensive guide for modern React development including hooks, concurrent features, and performance optimization techniques. Available at: https://react.dev/
+- **React 19 Documentation**: Comprehensive guide for modern React development including hooks, concurrent features, and performance optimization techniques. Available at: https://react.dev/
 - **React Flow Documentation**: Detailed documentation for implementing interactive node-based diagrams and family tree visualizations. Available at: https://reactflow.dev/
 - **Ruby on Rails 7 Guides**: Official framework documentation covering API development, Active Storage, security best practices, and deployment strategies. Available at: https://guides.rubyonrails.org/
 - **PostgreSQL Documentation**: Database system documentation including advanced features, indexing strategies, and performance optimization techniques. Available at: https://www.postgresql.org/docs/
@@ -351,4 +1018,4 @@ The following references provide additional technical documentation, architectur
 
 ---
 
-*This document represents the complete technical specification for the ChronicleTree genealogy management system, incorporating all recent enhancements and architectural decisions through August 1, 2025.*
+*This document represents the complete technical specification for the ChronicleTree genealogy management system, incorporating all recent enhancements and architectural decisions through August 4, 2025.*
