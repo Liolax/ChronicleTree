@@ -1,7 +1,7 @@
 -- ChronicleTree Database Cleanup: Remove Cross-Generational Sibling Relationships
 -- This SQL script identifies and removes invalid sibling relationships between different generations
 
--- 1. PREVIEW: Show invalid cross-generational sibling relationships
+-- 1. Show invalid cross-generational sibling relationships
 -- (Run this first to see what will be removed)
 
 SELECT 
@@ -45,7 +45,7 @@ AND (
     )
 );
 
--- 2. CLEANUP: Remove the invalid relationships
+-- 2. Remove the invalid relationships
 -- (Uncomment and run this after reviewing the preview above)
 
 /*
@@ -79,7 +79,6 @@ AND (
         SELECT 1 FROM ancestors WHERE id = relationships.person_b_id
     )
 );
-*/
 
 -- 3. VERIFICATION: Count relationships before and after
 SELECT 
@@ -89,7 +88,7 @@ FROM relationships
 GROUP BY relationship_type
 ORDER BY relationship_type;
 
--- 4. SPECIFIC MOLLY CASE: Find Molly's relationships
+-- 4. Example: Find Molly's relationships
 -- (Replace 'Molly' with the actual first name if different)
 
 SELECT 
@@ -114,3 +113,4 @@ JOIN people p1 ON r.person_b_id = p1.id
 JOIN people p2 ON r.person_a_id = p2.id
 WHERE p1.first_name LIKE '%Molly%'
 ORDER BY category, relationship_type;
+*/
