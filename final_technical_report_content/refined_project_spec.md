@@ -471,31 +471,36 @@ Import/export functionality transforms between ChronicleTree's internal format a
 
 The relationship calculator API represents the core innovation of ChronicleTree, implementing complex genealogical logic through elegant abstractions. The calculateRelationshipToRoot() function traverses family connections to determine precise relationships between any two individuals, supporting over 20 relationship types with gender-specific terminology. The algorithm handles edge cases including multiple paths between individuals, choosing the most direct biological relationship when alternatives exist.
 
+The decision-making process for relationship creation follows a sophisticated validation tree that ensures genealogical accuracy and prevents impossible relationships. This logic flow guides users through appropriate relationship selections while enforcing business rules such as preventing marriages between close blood relatives and validating temporal consistency (see Fig. 4.4.1).
+
+**Figure 4.4.1: Relationship Creation Decision Tree**  
+![Relationship Decision Tree](diagrams/decision_tree.md)
+
 The API design emphasizes clarity and consistency across all endpoints. Each endpoint follows predictable patterns with comprehensive documentation generated through API blueprints. Request validation ensures data integrity while providing helpful error messages for client-side handling. Response formats include relationship metadata enabling rich user interface interactions, such as highlighting connection paths in the tree visualization.
 
 Media management APIs provide secure file handling with automatic optimization. Upload endpoints accept multiple file formats while enforcing size limits and type restrictions. The system generates multiple image sizes for responsive display while preserving original files for download. Metadata APIs enable rich media organization with titles, descriptions, and date information, supporting comprehensive family archives.
 
-The complete relationship type support is detailed in the Relationship Types diagram (Fig. 4.4.1), with API endpoint documentation available in the specific API diagrams (Fig. 4.4.2-4.4.7).
+The complete relationship type support is detailed in the Relationship Types diagram (Fig. 4.4.2), with API endpoint documentation available in the specific API diagrams (Fig. 4.4.3-4.4.8).
 
-**Figure 4.4.1: Relationship Types Supported**  
+**Figure 4.4.2: Relationship Types Supported**  
 ![Relationship Types](diagrams/relationship_types_supported_eraser.md)
 
-**Figure 4.4.2: Authentication API Endpoints**  
+**Figure 4.4.3: Authentication API Endpoints**  
 ![Authentication API](diagrams/api_authentication_eraser.md)
 
-**Figure 4.4.3: People Management API Endpoints**  
+**Figure 4.4.4: People Management API Endpoints**  
 ![People Management API](diagrams/api_people_eraser.md)
 
-**Figure 4.4.4: Relationship Management API Endpoints**  
+**Figure 4.4.5: Relationship Management API Endpoints**  
 ![Relationship Management API](diagrams/api_relationships_eraser.md)
 
-**Figure 4.4.5: Timeline & Facts API Endpoints**  
+**Figure 4.4.6: Timeline & Facts API Endpoints**  
 ![Timeline Facts API](diagrams/api_timeline_facts_eraser.md)
 
-**Figure 4.4.6: Media Management API Endpoints**  
+**Figure 4.4.7: Media Management API Endpoints**  
 ![Media Management API](diagrams/api_media_eraser.md)
 
-**Figure 4.4.7: System Monitoring API Endpoints**  
+**Figure 4.4.8: System Monitoring API Endpoints**  
 ![System Monitoring API](diagrams/api_monitoring_eraser.md)
 
 ### 4.5 User Interface Design

@@ -17,7 +17,7 @@ ChronicleTree fixes this, offering a modern interface, powerful relationship mod
 
 ### Slide 3: Technical Highlights (60 sec)
 "Let's talk tech.  
-The frontend is a React 19 SPA using ReactFlow (@xyflow/react v12.8.2) for professional tree visualization.  
+The frontend is a React 19 SPA using ReactFlow (@xyflow/react v12.82) for professional tree visualization.  
 The backend is Rails 8.0.2 with Ruby 3.3.7, serving a secure API with JWT authentication.  
 We use a hybrid approach: Sidekiq with Redis for development debugging, and Rails 8's Solid Queue for production simplicity.  
 All data is stored in PostgreSQL, supporting complex relationships, facts, media, and more.  
