@@ -74,10 +74,15 @@ The ChronicleTree application is designed for a distributed hardware environment
 
 For development, a standard desktop or laptop with at least 8GB of RAM, a dual-core processor, and SSD storage is sufficient. In production, the architecture supports both traditional servers and containerized environments. The Rails API backend runs efficiently on a standard Linux server with a minimum of 4GB of RAM and a multi-core processor. The PostgreSQL database requires adequate storage with backup capabilities, preferably on SSDs for optimal query performance.
 
-Cloud deployments can leverage containerization for horizontal scaling, with a load balancer distributing requests and database clustering for redundancy. A Content Delivery Network (CDN) can enhance media file delivery, improving user experience through geographically distributed caching. The progression from a development setup to a full production environment is illustrated in the Deployment Architecture diagram (Fig. 3.2.1).
+Cloud deployments can leverage containerization for horizontal scaling, with a load balancer distributing requests and database clustering for redundancy. A Content Delivery Network (CDN) can enhance media file delivery, improving user experience through geographically distributed caching. The progression from a development setup to a full production environment is illustrated in the Deployment Architecture diagram (Fig. 3.2.1) and the deployment pipeline progression (see Fig. 3.2.2).
 
 **Figure 3.2.1: Deployment Architecture Diagram**  
 ![Deployment Architecture](diagrams/deployment_architecture_eraser.md)
+
+**Figure 3.2.2: Deployment Pipeline Progression**  
+![Deployment Pipeline](diagrams/deployment_pipeline_progression.md)
+
+The deployment pipeline clearly demonstrates the technology evolution from development to production environments. Development environments utilize Sidekiq with Redis for real-time job monitoring and debugging capabilities, while staging and production environments leverage Rails 8's Solid Queue for simplified deployment without external dependencies. This hybrid approach provides the best of both worlds: enhanced developer experience with immediate feedback during development, and streamlined production deployment with minimal infrastructure requirements.
 
 ### 3.3 Software Architecture
 
