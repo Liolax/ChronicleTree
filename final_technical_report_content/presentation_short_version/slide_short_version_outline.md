@@ -194,7 +194,7 @@ _"Looking ahead, we're planning advanced search capabilities - imagine being abl
 ## 🎤 SPEAKER NOTES FOR SEARCH FEATURE
 
 ### When mentioning future search functionality:
-_"Looking ahead, we're planning advanced search capabilities - imagine being able to search across your entire family tree by relationships, date ranges, or life events. Users could find connection paths between any two relatives, or get smart suggestions for missing family links. This builds on our solid foundation of 20+ relationship types and temporal validation."_
+_"Looking ahead, we're planning advanced search capabilities - imagine being able to search across the entire family tree by relationships, date ranges, or life events. Users could find connection paths between any two relatives, or get smart suggestions for missing family links. This builds on our solid foundation of 20+ relationship types and temporal validation."_
 
 ### Technical context for search:
 - **Database optimization:** Leveraging PostgreSQL's full-text search

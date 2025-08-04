@@ -100,8 +100,8 @@
 - `diagrams/api_sequence_eraser.md`
 
 ### UI Mockups:
-- `good_mock-ups/chronicle_main_family_tree.html`
-- `good_mock-ups/chronicle_individual_profile.html`
+- `chronicle_main_family_tree.html`
+- `chronicle_individual_profile.html`
 
 ## 🎤 Key Speaking Points Updated
 
