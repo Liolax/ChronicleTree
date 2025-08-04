@@ -168,7 +168,7 @@ deactivate React Client
 ### File Upload Pattern
 - **Active Storage Integration**: Rails-native file handling system
 - **Polymorphic Attachments**: Media files linked to people or profiles
-- **Background Processing**: Asynchronous image processing with Solid Queue
+- **Background Processing**: Asynchronous image processing with Sidekiq (dev) / Solid Queue (prod)
 - **Prioritized Processing**: Avatar processing takes priority over general media
 
 ### Media Processing
