@@ -10,7 +10,7 @@ Development Environment [icon: computer, color: blue] {
     Vite Dev Server [icon: react, color: blue, label: "React 19 + Vite\nPort 5178\nHMR + Hot Reload"]
     Rails API Server [icon: ruby, color: red, label: "Ruby 3.3.7 + Rails 8\nPort 4000\nAPI-only Mode"]
     PostgreSQL Development [icon: database, color: blue, label: "PostgreSQL 15+\nLocal Database\nDevelopment Data"]
-    Redis Development [icon: memory, color: red, label: "Redis Cache\nSidekiq Jobs\nSession Storage"]
+    Memory Cache [icon: memory, color: green, label: "Rails Memory Store\nDevelopment Caching\nSolid Queue Jobs"]
   }
 }
 
@@ -31,12 +31,12 @@ Production Environment [icon: cloud, color: purple] {
   
   Data Tier [icon: database, color: green] {
     PostgreSQL Production [icon: database, color: blue, label: "Primary Database\nFamily Tree Data\nUser Profiles"]
-    Redis Production [icon: memory, color: red, label: "Solid Cache Store\nSession Management\nJob Queue"]
+    Solid Cache [icon: memory, color: green, label: "Database-backed Cache\nRails 8 Solid Cache\nPerformance Layer"]
   }
   
   Storage Tier [icon: storage, color: orange] {
     Active Storage [icon: folder, color: orange, label: "Rails Active Storage\nProfile Photos\nFamily Media"]
-    File System Storage [icon: database, color: gray, label: "Local File Storage\nImage Processing\nGenerated Shares"]
+    File System Storage [icon: database, color: gray, label: "Local File Storage\nVIPS Image Processing\nGenerated Shares"]
   }
 }
 
@@ -53,11 +53,10 @@ Load Balancer > Rails API Instance: "API Requests /api/v1/*"
 
 Vite Dev Server > Rails API Server: "Development API Calls"
 Rails API Server > PostgreSQL Development: "Database Operations"
-Rails API Server > Redis Development: "Cache & Jobs"
+
 
 Rails API Instance > PostgreSQL Production: "Family Tree Data"
-Rails API Instance > Redis Production: "Cache Operations"
-Solid Queue Worker > Redis Production: "Job Processing"
+
 
 Rails API Instance > Active Storage: "File Upload/Download"
 Active Storage > File System Storage: "Media Storage"

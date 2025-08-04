@@ -7,35 +7,31 @@
 title ChronicleTree API Request Flow
 
 React Client [icon: react, color: blue]
-JWT Service [icon: key, color: orange] 
 Rails API [icon: ruby, color: red]
 PostgreSQL [icon: database, color: blue]
 Active Storage [icon: folder, color: orange]
 Solid Queue [icon: clock, color: purple]
-Redis Cache [icon: memory, color: red]
+Solid Cache [icon: memory, color: green]
 
 activate React Client
 
 // Authentication Flow
-React Client > JWT Service: POST /api/v1/auth/sign_in
-activate JWT Service
-JWT Service > PostgreSQL: Validate user credentials
+React Client > Rails API: POST /api/v1/auth/sign_in
+activate Rails API
+Rails API > PostgreSQL: Validate user credentials
 activate PostgreSQL
-PostgreSQL --> JWT Service: User data
+PostgreSQL --> Rails API: User data
 deactivate PostgreSQL
-JWT Service > Redis Cache: Store session
-activate Redis Cache
-deactivate Redis Cache
-JWT Service --> React Client: JWT token + user data
-deactivate JWT Service
+Rails API > Solid Cache: Store session
+activate Solid Cache
+deactivate Solid Cache
+Rails API --> React Client: JWT token + user data
+deactivate Rails API
 
 // Family Tree Data Request
 React Client > Rails API: GET /api/v1/people (with JWT)
 activate Rails API
-Rails API > JWT Service: Validate token
-activate JWT Service
-JWT Service --> Rails API: Token valid
-deactivate JWT Service
+Rails API > Rails API: Validate JWT token
 Rails API > PostgreSQL: Query family members
 activate PostgreSQL
 PostgreSQL --> Rails API: People data with relationships
@@ -46,9 +42,7 @@ deactivate Rails API
 // Add Person Flow
 React Client > Rails API: POST /api/v1/people
 activate Rails API
-Rails API > JWT Service: Validate token
-activate JWT Service
-deactivate JWT Service
+Rails API > Rails API: Validate JWT token
 Rails API > PostgreSQL: Create person record
 activate PostgreSQL
 PostgreSQL --> Rails API: Person created
@@ -86,9 +80,9 @@ Solid Queue > Active Storage: Generate OG image
 activate Active Storage
 Active Storage --> Solid Queue: Share image created
 deactivate Active Storage
-Solid Queue > Redis Cache: Cache share data
-activate Redis Cache
-deactivate Redis Cache
+Solid Queue > Solid Cache: Cache share data
+activate Solid Cache
+deactivate Solid Cache
 deactivate Solid Queue
 Rails API --> React Client: Share URL + metadata
 deactivate Rails API
@@ -100,9 +94,9 @@ Rails API > PostgreSQL: Create timeline event
 activate PostgreSQL
 PostgreSQL --> Rails API: Event created
 deactivate PostgreSQL
-Rails API > Redis Cache: Invalidate person cache
-activate Redis Cache
-deactivate Redis Cache
+Rails API > Solid Cache: Invalidate person cache
+activate Solid Cache
+deactivate Solid Cache
 Rails API --> React Client: Timeline event data
 deactivate Rails API
 
@@ -120,10 +114,10 @@ Rails API > PostgreSQL: Database health check
 activate PostgreSQL
 PostgreSQL --> Rails API: DB status
 deactivate PostgreSQL
-Rails API > Redis Cache: Cache health check
-activate Redis Cache
-Redis Cache --> Rails API: Cache status
-deactivate Redis Cache
+Rails API > Solid Cache: Cache health check
+activate Solid Cache
+Solid Cache --> Rails API: Cache status
+deactivate Solid Cache
 Rails API --> React Client: System health OK
 deactivate Rails API
 
@@ -133,9 +127,9 @@ deactivate React Client
 ## API Flow Patterns
 
 ### Authentication Pattern
-- **JWT Token Exchange**: Stateless authentication with Redis session storage
-- **Token Validation**: Every API request validates JWT token
-- **Secure Sessions**: User sessions cached in Redis for performance
+- **JWT Token Exchange**: Stateless authentication with Solid Cache session storage
+- **Token Validation**: Every API request validates JWT token within Rails API
+- **Secure Sessions**: User sessions cached in Solid Cache for performance
 
 ### CRUD Operations Pattern
 - **RESTful Endpoints**: Standard HTTP methods for all operations
@@ -144,15 +138,15 @@ deactivate React Client
 
 ### File Upload Pattern
 - **Active Storage Integration**: Rails handles file uploads seamlessly
-- **Background Processing**: Image processing happens asynchronously
+- **Background Processing**: Image processing happens asynchronously via Solid Queue
 - **Multiple Variants**: Thumbnails and optimized versions generated
 
 ### Caching Strategy
-- **Redis Integration**: Session storage and cache invalidation
-- **Performance Optimization**: Frequently accessed data cached
+- **Solid Cache Integration**: Database-backed caching for session storage and cache invalidation
+- **Performance Optimization**: Frequently accessed data cached in Solid Cache
 - **Real-time Updates**: Cache invalidation on data changes
 
 ### Background Jobs
 - **Solid Queue Processing**: Rails 8 built-in job processing
-- **Image Processing**: Thumbnail generation and optimization
+- **Image Processing**: Thumbnail generation and optimization via VIPS
 - **Email Notifications**: User notifications and system alerts

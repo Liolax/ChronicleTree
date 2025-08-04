@@ -4,59 +4,32 @@
 title ChronicleTree System Architecture Overview
 
 // Define cloud/group styles
-Client Side [icon: monitor, color: blue] {
-  React Frontend [icon: react, color: lightblue]
-  Family Tree Viz [icon: tree, color: green]
-  Profile Management [icon: user, color: purple]
-  Media Gallery [icon: image, color: orange]
-  Authentication [icon: lock, color: red]
-  State Management [icon: database, color: gray]
+Frontend [icon: monitor, color: blue] {
+  React App [icon: react, color: lightblue]
+  Family Tree [icon: tree, color: green]
+  User Interface [icon: user, color: purple]
 }
 
-Server Side [icon: server, color: darkblue] {
+Backend [icon: server, color: darkblue] {
   Rails API [icon: ruby, color: red]
-  Auth Service [icon: shield, color: orange]
-  Business Logic [icon: gear, color: gray]
-  Relationship Calculator [icon: network, color: green]
-  Media Processing [icon: image, color: purple]
-  Background Jobs [icon: clock, color: yellow]
+  Authentication [icon: shield, color: orange]
+  Core Services [icon: gear, color: gray]
 }
 
-Database Layer [icon: database, color: green] {
+Data Layer [icon: database, color: green] {
   PostgreSQL [icon: database, color: blue]
-  People Table [icon: users, color: lightblue]
-  Relationships Table [icon: network, color: green]
-  Media Table [icon: image, color: orange]
-  Timeline Events [icon: calendar, color: purple]
-}
-
-External Services [icon: cloud, color: gray] {
-  Redis Cache [icon: memory, color: red]
-  Active Storage [icon: folder, color: orange]
-  Sidekiq Queue [icon: list, color: yellow]
-  Email Service [icon: mail, color: blue]
+  File Storage [icon: folder, color: orange]
+  Cache System [icon: memory, color: teal]
 }
 
 // Define connections
-React Frontend > Rails API: HTTP/HTTPS Requests
-Family Tree Viz > Rails API: REST API Calls
-Profile Management > Rails API: CRUD Operations
-Media Gallery > Rails API: File Upload/Download
-Authentication > Auth Service: JWT Token Exchange
+React App > Rails API: API Requests
+Family Tree > Core Services: Tree Operations
+User Interface > Authentication: Login/Auth
 
-Rails API > Business Logic: Process Requests
-Business Logic > Relationship Calculator: Calculate Relationships
-Rails API > Auth Service: Validate Tokens
-Rails API > Media Processing: Handle Media
-Media Processing > Background Jobs: Queue Processing
+Rails API > Core Services: Business Logic
+Core Services > PostgreSQL: Data Access
+Authentication > PostgreSQL: User Validation
 
-Business Logic > People Table: Store/Retrieve People
-Business Logic > Relationships Table: Manage Relationships
-Media Processing > Media Table: Media Metadata
-Auth Service > PostgreSQL: User Authentication
-Business Logic > Timeline Events: Timeline Events
-
-Media Processing > Active Storage: Store Files
-Background Jobs > Sidekiq Queue: Background Processing
-Rails API > Redis Cache: Cache Data
-Auth Service > Email Service: Send Notifications
+Core Services > File Storage: Media Files
+Rails API > Cache System: Performance
