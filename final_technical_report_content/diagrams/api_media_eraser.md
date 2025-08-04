@@ -37,7 +37,9 @@ activate Rails API
 Rails API > Rails API: Validate JWT token
 Rails API > Active Storage: Store avatar image
 activate Active Storage
-Active Storage > Sidekiq Worker: Queue avatar processing
+Active Storage > Redis Queue: Queue avatar processing job
+activate Redis Queue
+Redis Queue > Sidekiq Worker: Process ImageGenerationJob
 activate Sidekiq Worker
 Sidekiq Worker > Active Storage: Generate avatar thumbnails
 Sidekiq Worker > Active Storage: Create avatar variants
@@ -50,6 +52,7 @@ deactivate PostgreSQL
 Rails API --> React Client: Profile with avatar URLs
 deactivate Rails API
 deactivate Sidekiq Worker
+deactivate Redis Queue
 
 // 3. Get Profile Data Flow
 React Client > Rails API: GET /api/v1/profiles
@@ -75,7 +78,9 @@ activate Rails API
 Rails API > Rails API: Validate JWT token
 Rails API > Active Storage: Store uploaded media file
 activate Active Storage
-Active Storage > Sidekiq Worker: Queue media processing
+Active Storage > Redis Queue: Queue media processing job
+activate Redis Queue
+Redis Queue > Sidekiq Worker: Process MediaProcessingJob
 activate Sidekiq Worker
 Sidekiq Worker > Active Storage: Generate thumbnails
 Sidekiq Worker > Active Storage: Create optimized variants
@@ -91,6 +96,7 @@ deactivate Memory Store
 Rails API --> React Client: Media data with URLs
 deactivate Rails API
 deactivate Sidekiq Worker
+deactivate Redis Queue
 
 // 5. Get Person Media Flow
 React Client > Rails API: GET /api/v1/people/:id/media
@@ -142,6 +148,7 @@ deactivate Rails API
 
 // Background Processing Flow
 loop [label: continuous processing, color: purple] {
+  Redis Queue > Sidekiq Worker: Process queued jobs
   Sidekiq Worker > Active Storage: Process image variants
   Sidekiq Worker > Active Storage: Generate thumbnails
   Sidekiq Worker > PostgreSQL: Update processing status

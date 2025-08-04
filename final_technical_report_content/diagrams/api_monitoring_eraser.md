@@ -25,9 +25,13 @@ Rails API > PostgreSQL: Database connectivity test
 activate PostgreSQL
 PostgreSQL --> Rails API: DB status OK
 deactivate PostgreSQL
+Rails API > Redis Queue: Check queue connectivity
+activate Redis Queue
+Redis Queue --> Rails API: Redis status OK
+deactivate Redis Queue
 Rails API > Sidekiq Worker: Background jobs health
 activate Sidekiq Worker
-Sidekiq Worker --> Rails API: Queue status OK
+Sidekiq Worker --> Rails API: Worker status OK
 deactivate Sidekiq Worker
 Rails API --> React Client: System health OK
 deactivate Rails API
@@ -39,6 +43,7 @@ Rails API --> React Client: pong
 deactivate Rails API
 
 // Public Profile Access Flow
+activate Public Access
 Public Access > Rails API: GET /profile/:id
 note right of Rails API: Social media crawlers
 activate Rails API
@@ -68,15 +73,20 @@ Image Generator --> Rails API: Generated share image
 deactivate Image Generator
 Rails API --> Public Access: Share image (VIPS processed)
 deactivate Rails API
+deactivate Public Access
 
 // Development Monitoring Flow (Development Only)
 React Client > Rails API: GET /sidekiq
 note right of Rails API: Development environment only
 activate Rails API
-Rails API > Sidekiq Worker: Queue statistics
+Rails API > Redis Queue: Query queue statistics
+activate Redis Queue
+Redis Queue > Sidekiq Worker: Get job processing stats
 activate Sidekiq Worker
-Sidekiq Worker --> Rails API: Job processing stats
+Sidekiq Worker --> Redis Queue: Job metrics data
 deactivate Sidekiq Worker
+Redis Queue --> Rails API: Queue and worker stats
+deactivate Redis Queue
 Rails API --> React Client: Background job web interface
 deactivate Rails API
 
