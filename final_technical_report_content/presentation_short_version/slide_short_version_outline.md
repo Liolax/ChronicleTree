@@ -47,7 +47,7 @@ This outline covers an **8-slide extended version** for comprehensive technical 
 - Development: Sidekiq + Redis for real-time monitoring
 - Production: Rails 8's Solid Queue for simplicity
 - Caching: Memory store (dev) / Solid Cache (prod)
-- Image Processing: VIPS for thumbnails
+- Image Processing: Ruby VIPS for share image generation
 
 ---
 
@@ -74,7 +74,7 @@ This outline covers an **8-slide extended version** for comprehensive technical 
 - Share profiles and trees to social platforms
 - Generated share images with metadata
 - JWT-based secure authentication
-- WCAG 2.1 accessibility compliance
+- Accessibility features with ARIA labels and keyboard navigation
 
 ---
 
@@ -97,7 +97,7 @@ Interactive walkthrough of all key features
 - All 6 core requirements exceeded (100% fulfillment)
 - 100+ test files with comprehensive coverage
 - Production-ready architecture with CI/CD
-- WCAG 2.1 compliant, mobile-first design
+- Accessibility features implemented, mobile-first design
 
 **Technical Innovation:**
 - Hybrid architecture: Sidekiq/Redis ↔ Solid Queue
@@ -256,7 +256,7 @@ _"Looking ahead, we're planning advanced search capabilities - imagine being abl
 1. **Modern Technology Stack:** React 19, Rails 8.0.2, hybrid processing approach
 2. **Production Ready:** 100+ tests, comprehensive coverage, CI/CD pipeline
 3. **Innovation:** Advanced genealogy engine with temporal validation
-4. **Professional Quality:** WCAG 2.1 compliance, security-first design
+4. **Professional Quality:** Accessibility features, security-first design
 5. **Future Vision:** Search, collaboration, AI-powered features
 
 ### Technical Discussion Preparation:
@@ -277,7 +277,7 @@ _"Our hybrid approach demonstrates real-world architectural thinking - Sidekiq w
 _"What makes ChronicleTree special is the genealogical intelligence. We support 20+ relationship types with gender-specific terminology - so you get 'nephew' vs 'niece', 'aunt' vs 'uncle'. The temporal validation prevents impossible family structures like marriages after death or children born before parents."_
 
 ### Slide 6 (Achievements):
-_"This isn't just a school project - it's production-ready software. Over 100 test files ensure reliability, WCAG 2.1 compliance makes it accessible to everyone, and the hybrid architecture shows understanding of real deployment challenges."_
+_"This isn't just a school project - it's production-ready software. Over 100 test files ensure reliability, accessibility features make it usable by diverse users, and the hybrid architecture shows understanding of real deployment challenges."_
 
 ### Slide 7 (Future Roadmap):
 _"The foundation we've built enables exciting possibilities. Imagine searching your entire family tree for 'who lived in Chicago in the 1940s' or finding connection paths between any two relatives. The relationship engine we've created makes these advanced features achievable."_

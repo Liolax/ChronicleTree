@@ -59,7 +59,7 @@ Active Storage > Redis Queue: Queue image processing job (Sidekiq)
 activate Redis Queue
 Redis Queue > Sidekiq Worker: Process ImageGenerationJob
 activate Sidekiq Worker
-Sidekiq Worker > Active Storage: Generate thumbnails via VIPS
+Sidekiq Worker > Active Storage: Generate thumbnails via Ruby VIPS
 Sidekiq Worker > Active Storage: Store processed images
 Active Storage --> Rails API: File metadata
 deactivate Active Storage
@@ -79,7 +79,7 @@ Rails API > Redis Queue: Queue share image generation (Sidekiq)
 activate Redis Queue
 Redis Queue > Sidekiq Worker: Process ShareImageJob
 activate Sidekiq Worker
-Sidekiq Worker > Active Storage: Generate OG image via VIPS
+Sidekiq Worker > Active Storage: Generate OG image via Ruby VIPS
 activate Active Storage
 Active Storage --> Sidekiq Worker: Share image created
 deactivate Active Storage
@@ -103,7 +103,7 @@ deactivate Rails API
 // Background Job Processing (Development Mode with Sidekiq)
 loop [label: continuous processing, color: purple] {
   Redis Queue > Sidekiq Worker: Process queued jobs
-  Sidekiq Worker > Active Storage: Image processing via VIPS
+  Sidekiq Worker > Active Storage: Image processing via Ruby VIPS
   Sidekiq Worker > PostgreSQL: Update job status
 }
 
@@ -148,7 +148,7 @@ deactivate React Client
 ### File Upload Pattern
 - **Active Storage Integration**: Rails handles file uploads seamlessly
 - **Background Processing**: Image processing via Sidekiq (dev) or Solid Queue (prod)
-- **Multiple Variants**: Thumbnails and optimized versions generated via VIPS
+- **Multiple Variants**: Thumbnails and optimized versions generated via Ruby VIPS
 
 ### Hybrid Caching Strategy
 - **Development**: Memory store for rapid iteration and testing
@@ -158,5 +158,5 @@ deactivate React Client
 ### Background Jobs
 - **Development**: Sidekiq with Redis for real-time monitoring and debugging
 - **Production**: Rails 8's Solid Queue for simplified deployment
-- **Image Processing**: VIPS-based thumbnail generation and optimization
+- **Image Processing**: Ruby VIPS-based thumbnail generation and optimization
 - **Email Notifications**: User notifications and system alerts

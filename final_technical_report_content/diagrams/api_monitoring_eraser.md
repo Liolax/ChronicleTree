@@ -71,7 +71,7 @@ Rails API > Image Generator: Validate & serve share image
 activate Image Generator
 Image Generator --> Rails API: Generated share image
 deactivate Image Generator
-Rails API --> Public Access: Share image (VIPS processed)
+Rails API --> Public Access: Share image (Ruby VIPS processed)
 deactivate Rails API
 deactivate Public Access
 

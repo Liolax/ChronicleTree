@@ -39,7 +39,7 @@ Production Environment [icon: cloud, color: purple] {
   
   Storage Tier [icon: storage, color: orange] {
     Active Storage [icon: folder, color: orange, label: "Rails Active Storage\nProfile Photos\nFamily Media"]
-    File System Storage [icon: database, color: gray, label: "Local File Storage\nVIPS Image Processing\nGenerated Shares"]
+    File System Storage [icon: database, color: gray, label: "Local File Storage\nRuby VIPS Processing\nGenerated Shares"]
   }
 }
 

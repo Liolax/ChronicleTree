@@ -57,7 +57,7 @@ The development environment assumes compatibility with modern web browsers suppo
 
 The business logic adheres to established genealogical principles, where family relationships maintain biological and legal precedence. For instance, step-relationships are formed exclusively through marriage to a biological family member, and relationships involving deceased spouses are temporally validated for accuracy. To balance user experience and system performance, media uploads are constrained to a 10MB file size limit.
 
-Architecturally, the system follows RESTful API design principles, using JSON for all data exchange. Security is centered on JWT authentication for API access control, and responsive design principles ensure a seamless experience on mobile devices. The application maintains WCAG 2.1 compliance for accessibility, ensuring that genealogical research remains accessible to users with diverse abilities.
+Architecturally, the system follows RESTful API design principles, using JSON for all data exchange. Security is centered on JWT authentication for API access control, and responsive design principles ensure a seamless experience on mobile devices. The application implements accessibility features including ARIA labels, focus management, and keyboard navigation support to improve usability for users with diverse abilities.
 
 ## 3. Architecture Design
 
@@ -88,7 +88,7 @@ The deployment pipeline clearly demonstrates the technology evolution from devel
 
 The frontend architecture is centered on React 19, using modern hooks for state management and concurrent features for optimal performance. The interactive family tree is powered by ReactFlow (@xyflow/react v12.8.2), providing professional-grade rendering and navigation capabilities. Styling is handled by Tailwind CSS for a consistent, utility-first design approach. Client-side routing is managed by React Router, and API communication is handled by Axios with TanStack React Query for efficient data fetching and caching. Form management utilizes React Hook Form for performance and developer experience.
 
-The backend is built on Ruby on Rails 8.0.2, following the MVC pattern with API-only configuration. Active Storage manages file attachments with cloud compatibility, supporting both local disk storage in development and cloud providers in production. User authentication is handled by Devise with JWT token support, and Active Model Serializers format JSON responses for consistent API output. Background jobs, such as media processing with VIPS and thumbnail generation, use a hybrid approach: Sidekiq with Redis in development for debugging capabilities, and Rails 8's Solid Queue in production for simplified deployment. Caching is implemented through memory store in development and Solid Cache in production environments. A comprehensive summary of the technologies used can be found in the Technology Stack diagram (Fig. 3.3.1).
+The backend is built on Ruby on Rails 8.0.2, following the MVC pattern with API-only configuration. Active Storage manages file attachments with cloud compatibility, supporting both local disk storage in development and cloud providers in production. User authentication is handled by Devise with JWT token support, and Active Model Serializers format JSON responses for consistent API output. Background jobs, such as share image generation with Ruby VIPS, use a hybrid approach: Sidekiq with Redis in development for debugging capabilities, and Rails 8's Solid Queue in production for simplified deployment. Caching is implemented through memory store in development and Solid Cache in production environments. A comprehensive summary of the technologies used can be found in the Technology Stack diagram (Fig. 3.3.1).
 
 **Figure 3.3.1: Technology Stack Diagram**  
 ![Technology Stack](diagrams/technology_stack_scema.html)
@@ -197,17 +197,27 @@ The backend follows Rails conventions with versioned API controllers under the a
 
 ### 3.4 Security Architecture
 
-Security is implemented through multiple layers, beginning with JWT-based authentication for stateless session management. Each API request includes a signed token containing user identification and expiration data, validated on every call to ensure authorized access. The token rotation strategy includes refresh tokens for extended sessions while maintaining security through short-lived access tokens.
+Security is implemented through multiple layers, beginning with JWT-based authentication using the devise-jwt gem for stateless session management. The authentication system includes dedicated controllers under `api/v1/auth/` namespace with SessionsController for login/logout and RegistrationsController for user signup. Each API request includes a signed token in the Authorization header (`Bearer <token>`), validated through the `authenticate_user!` before_action in the BaseController to ensure authorized access. 
 
-Input validation occurs at multiple levels throughout the application stack. Client-side validation provides immediate user feedback using React Hook Form with Yup schemas, while server-side validation ensures data integrity through Rails model validations and custom validators. The Rails Strong Parameters feature prevents mass assignment vulnerabilities by explicitly defining permitted attributes for each endpoint.
+The JWT implementation includes a denylist revocation strategy through the JwtDenylist model, allowing for secure token invalidation on logout. Tokens expire after 1 day as configured in the Devise initializer. The authentication flow is managed client-side through a React AuthContext that handles token storage in localStorage and automatic API header configuration.
 
-File upload security includes comprehensive validation of file types, sizes, and content. The system implements virus scanning in production environments and handles image processing through Ruby VIPS for secure and efficient media processing. User-uploaded content is stored separately from application files with unique identifiers, preventing directory traversal attacks. All uploaded files are served through Active Storage's secure URL generation with time-limited access tokens.
+The authentication endpoints include:
+- `POST /api/v1/auth/sign_in` for user login with email/password
+- `POST /api/v1/auth` for user registration with name, email, password, and confirmation
+- `DELETE /api/v1/auth/sign_out` for secure logout with token revocation
+- `POST /api/v1/auth/password` for password reset functionality (using Devise's recoverable module)
 
-Database security includes encrypted connections using SSL/TLS, parameterized queries through Active Record to prevent SQL injection, and row-level security policies ensuring users can only access their own family data. Regular security audits using tools like Brakeman and dependency updates through Dependabot maintain protection against emerging vulnerabilities.
+Input validation occurs at multiple levels throughout the application stack. Client-side validation provides immediate user feedback using React Hook Form for form management, while server-side validation ensures data integrity through Rails model validations and custom validators. The Rails Strong Parameters feature prevents mass assignment vulnerabilities by explicitly defining permitted attributes for each endpoint - for example, the PeopleController only permits specific fields like `:first_name`, `:last_name`, `:date_of_birth`, `:date_of_death`, `:gender`, and `:is_deceased`.
+
+File upload security leverages Active Storage with local disk storage in development environments. The system enforces file type and size restrictions, with user-uploaded content stored separately from application files using unique identifiers to prevent directory traversal attacks. All uploaded files are served through Active Storage's secure URL generation with built-in access controls.
+
+Database security includes SSL/TLS connections enforced in production through `config.force_ssl = true` and `config.assume_ssl = true` settings. Parameterized queries through Active Record prevent SQL injection attacks. Most importantly, strict user-scoped data access ensures users can only access their own family data - all controllers use `current_user.people` associations to enforce data isolation, preventing unauthorized access to other users' family information.
+
+Cross-Origin Resource Sharing (CORS) is configured to allow requests from specific development origins (localhost:5173, 5174, 5175, 5178) with controlled header exposure including the Authorization header for JWT tokens. Production deployments include SSL auto-certification via Let's Encrypt as configured in the deploy.yml. Regular security audits are maintained using Brakeman static analysis, which is included in the development dependencies to scan for common Rails security vulnerabilities.
 
 ### 3.5 Communication Architecture
 
-The API design follows RESTful principles with consistent URL patterns and appropriate HTTP verb usage. All endpoints return JSON responses with standardized error formats, enabling predictable client-side error handling. The API versioning strategy uses URL prefixes (/api/v1/), allowing backward compatibility as the API evolves while supporting gradual client migration.
+The API design follows RESTful principles with consistent URL patterns and appropriate HTTP verb usage. All endpoints return JSON responses with standardized error formats, enabling predictable client-side error handling. The API versioning strategy uses URL prefixes (/api/v1/), allowing backward compatibility as the API evolves while supporting gradual client migration. Core API controller is represented below (Fig. 3.5.1).
 
 **Figure 3.5.1: Rails API Controller Implementation**
 
@@ -314,7 +324,7 @@ module Api
 end
 ```
 
-Request/response cycles include comprehensive logging for debugging and audit purposes. Each request is assigned a unique identifier for tracing through the system. Rate limiting is implemented using Rack::Attack, preventing abuse while ensuring fair resource allocation among users. Custom rate limits apply to resource-intensive operations like file uploads and tree exports.
+Request/response cycles include standard Rails logging for debugging purposes. Production environments use tagged logging with unique request identifiers for tracing. Error handling includes custom logging in critical controllers for media management and sharing functionality. Standard HTTP request/response logging captures endpoint access, response times, and error conditions.
 
 Cross-Origin Resource Sharing (CORS) policies enable secure cross-origin requests while preventing unauthorized domain access. The configuration supports both development environments with permissive policies and production environments with strict origin validation. Preflight request handling ensures smooth operation of complex API calls.
 
@@ -334,7 +344,7 @@ Frontend performance leverages React 19's concurrent features including automati
 
 Caching strategies operate at multiple levels to minimize redundant processing. Browser caching for static assets uses fingerprinted filenames with far-future expiration headers. The application uses environment-specific caching: memory store in development for rapid iteration, Rails 8's Solid Cache in production for database-backed caching without external dependencies, eliminating the need for Redis infrastructure in production. Server-side caching through Rails' built-in mechanisms reduces repeated database hits across all environments.
 
-Background job processing uses a hybrid approach optimized for each environment. Development utilizes Sidekiq with Redis for real-time job monitoring and debugging capabilities, while production employs Rails 8's Solid Queue for simplified deployment without external dependencies. This includes image processing with VIPS for multiple thumbnail sizes, email notifications for sharing invitations, and family tree export generation in various formats. Job prioritization ensures time-sensitive operations like authentication emails process quickly while bulk operations like exports queue appropriately. The performance monitoring infrastructure tracks job execution times and queue depths to identify bottlenecks.
+Background job processing uses a hybrid approach optimized for each environment. Development utilizes Sidekiq with Redis for real-time job monitoring and debugging capabilities, while production employs Rails 8's Solid Queue for simplified deployment without external dependencies. This includes share image generation with Ruby VIPS, email notifications for sharing invitations, and potential future features like family tree exports. Job prioritization ensures time-sensitive operations like authentication emails process quickly while bulk operations queue appropriately. The performance monitoring infrastructure tracks job execution times and queue depths to identify bottlenecks.
 
 ## 4. System Design
 
@@ -880,7 +890,7 @@ Mobile responsiveness improvements ensure optimal experiences on small screens t
 
 The application is designed to comply with modern web accessibility standards, data protection regulations, and genealogical software best practices.
 
-Accessibility follows WCAG 2.1 standards, with comprehensive ARIA labeling, keyboard navigation, and screen reader compatibility. Data protection adheres to contemporary privacy regulations, with user-scoped access, secure data handling, and transparent privacy policies. Security compliance addresses common web vulnerabilities through systematic measures.
+Accessibility includes implemented ARIA labeling, keyboard navigation support, focus management, and responsive design principles. Data protection adheres to contemporary privacy regulations, with user-scoped access, secure data handling, and transparent privacy policies. Security compliance addresses common web vulnerabilities through systematic measures.
 
 Genealogical ethics are also considered, with respectful handling of family information, cultural sensitivity in relationship classifications, and privacy controls for sensitive data.
 

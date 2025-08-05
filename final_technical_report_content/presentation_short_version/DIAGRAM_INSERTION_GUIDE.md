@@ -82,7 +82,7 @@ This guide shows where to insert diagrams from the main documentation as slides 
 - 100+ Test Files 🧪
 - React 19 + Rails 8.0.2 🚀
 - 20+ Relationship Types 👥
-- WCAG 2.1 Compliant ♿
+- Accessibility Features ♿
 - Production Ready 🎯
 **Position:** Center background or side panel
 **Speaking notes:** "These metrics demonstrate production-ready quality and comprehensive coverage"
