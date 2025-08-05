@@ -1,88 +1,195 @@
-# ChronicleTree 5-Minute Live Presentation — Compact Version Outline
+# ChronicleTree 8-Slide Live Presentation — Extended Professional Version
 
-This outline focuses on a **compact 5-minute version** for live demo settings with embedded diagrams.  
-**Goal:** Communicate the project's value, innovations, and technical excellence clearly and quickly.
-
----
-
-## Slide 1 — Title & Elevator Pitch (30 sec)
-**ChronicleTree: Modern Family Tree Platform**
-- Your name, project, date
-- What is ChronicleTree?  
-  _"A modern web application for creating, managing, and visualizing complex family trees with advanced relationship logic and interactive features."_
+This outline covers an **8-slide extended version** for comprehensive technical presentations with detailed feature coverage.  
+**Goal:** Communicate the project's value, innovations, and technical excellence with in-depth technical discussion.
+**Duration:** 8-10 minutes with Q&A
 
 ---
 
-## Slide 2 — Problem & Solution (40 sec)
-**Why ChronicleTree?**
-- _Problem:_ Existing tools are outdated, lack rich relationship modeling, and are hard to use.
-- _Solution:_ ChronicleTree delivers intuitive UX, temporal validation, and professional tree visualization.
-- **📊 Embedded Visual:** Workflow preview from `user_workflow_eraser.md` (small corner preview)
+## Slide 1 — Title & Introduction (60 sec)
+**ChronicleTree: Your Family's Living Legacy**
+- A modern web application for creating, managing, and visualizing complex family trees with advanced relationship logic and interactive features
+- Presenter: Yuliia Smyshliakova
+- Date: August 4, 2025
+- Platform: Full-Stack Web Application
 
 ---
 
-## Slide 3 — Technical Highlights (60 sec)
-**How it Works: Modern Full Stack**
-- React 19 SPA frontend + ReactFlow (@xyflow/react v12.8.2) for tree visualization
-- Rails 8.0.2 API backend with JWT authentication & Ruby 3.3.7
-- PostgreSQL for complex genealogical data
-- Hybrid background processing: Sidekiq+Redis (dev) / Solid Queue (prod)
-- Advanced relationship engine: 20+ types, temporal checks, gender-specific terms
-- Mobile-first, accessible, and secure with Tailwind CSS
-- **📊 Embedded Visual:** `technology_stack_scema.html` as background or side panel
+## Slide 2 — Problem & Solution (60 sec)
+**The Problem:**
+- Existing genealogy tools are outdated and difficult to use
+- Lack advanced relationship modeling and validation
+- Poor user interfaces with limited interaction
+- No modern social sharing capabilities
+
+**Our Solution:**
+- Modern, intuitive interface with mobile-first design
+- Advanced genealogy engine: 20+ relationship types with temporal validation
+- Professional interactive tree visualization using ReactFlow
+- Rich profiles with media galleries and social sharing
 
 ---
 
-## Slide 4 — Demo (90 sec)
-**Live Demo: Key Features**
-- Sign up / Log in (JWT secure authentication)
-- Add people & relationships (parent/child, spouse, sibling, cousin, step-relations)
-- Interactive tree visualization (drag, zoom, center, MiniMap navigation)
-- Rich profiles: media gallery, timeline events, custom facts
-- Smart validation: impossible relationships blocked (temporal consistency)
-- **📊 Embedded Visual:** UI screenshots from `good_mock-ups/` folder (tree + profile views)
-- **Demo Backup:** Static screenshots if live demo fails
+## Slide 3 — Technical Architecture (90 sec)
+**Frontend:**
+- React 19 with modern hooks & concurrent features
+- ReactFlow (@xyflow/react v12.8.2) for tree visualization
+- Tailwind CSS for responsive design
+- Vite for optimized builds
+
+**Backend:**
+- Rails 8.0.2 API with Ruby 3.3.7
+- PostgreSQL for complex data relationships
+- JWT Authentication with Devise
+- Active Storage for media management
+
+**Hybrid Processing:**
+- Development: Sidekiq + Redis for real-time monitoring
+- Production: Rails 8's Solid Queue for simplicity
+- Caching: Memory store (dev) / Solid Cache (prod)
+- Image Processing: VIPS for thumbnails
 
 ---
 
-## Slide 5 — Achievements & Q&A (60 sec)
-**Impact & What's Next**
-- All 6 requirements exceeded (100% fulfillment, advanced features beyond baseline)
-- 100+ test files, comprehensive coverage, production-ready architecture
-- Modern best practices: React 19, Rails 8.0.2, hybrid processing approach
-- _Future:_ Advanced search functionality, real-time collaboration, native mobile apps, AI suggestions, GEDCOM import/export
-- **📊 Embedded Visual:** Metrics chart showing 6/6 requirements exceeded
-- Invite questions: _"Happy to answer any technical or architectural questions!"_
+## Slide 4 — Innovative Genealogy Features (90 sec)
+**Advanced Relationship Engine:**
+- 20+ relationship types (blood, step, half, in-law, ex-)
+- Temporal validation prevents impossible connections
+- Gender-specific relationship terminology
+- Automatic sibling generation from parent-child links
+
+**Rich Profile Management:**
+- Timeline events with dates and locations
+- Custom facts system for flexible data
+- Media galleries with photos and documents
+- Personal notes and biographical information
+
+**Interactive Tree Visualization:**
+- Professional ReactFlow-powered visualization
+- Drag, zoom, and pan navigation
+- Dynamic centering on selected family members
+- MiniMap for large tree navigation
+
+**Social Sharing & Security:**
+- Share profiles and trees to social platforms
+- Generated share images with metadata
+- JWT-based secure authentication
+- WCAG 2.1 accessibility compliance
 
 ---
 
-## 📊 COMPACT VERSION: EMBEDDED DIAGRAMS (5 Minutes Total)
+## Slide 5 — Live Demo (120 sec)
+**Demo Workflow:**
+1. Secure JWT authentication & login
+2. Add family members with relationships
+3. Interactive tree visualization with navigation
+4. Rich profiles with timeline & media
+5. Temporal validation in action
+6. Social sharing capabilities
 
-### Visual Integration Strategy:
-- **Slide 2:** Small workflow preview in corner showing user journey
-- **Slide 3:** Technology stack visual as background or side panel
-- **Slide 4:** UI screenshots embedded alongside demo steps
-- **Slide 5:** Simple metrics visual (6/6 requirements, 100+ tests, etc.)
-
-### Recommended Embedded Visuals:
-1. `diagrams/user_workflow_eraser.md` → Slide 2 (workflow preview)
-2. `diagrams/technology_stack_scema.html` → Slide 3 (tech stack background)
-3. `good_mock-ups/chronicle_main_family_tree.html` → Slide 4 (tree visualization)
-4. `good_mock-ups/chronicle_individual_profile.html` → Slide 4 (profile features)
-5. Simple metrics chart → Slide 5 (achievements visual)
+**LIVE DEMONSTRATION**
+Interactive walkthrough of all key features
 
 ---
 
-## 🔍 FUTURE FEATURES EXPANDED
+## Slide 6 — Project Achievements & Excellence (60 sec)
+**Requirements Fulfillment:**
+- All 6 core requirements exceeded (100% fulfillment)
+- 100+ test files with comprehensive coverage
+- Production-ready architecture with CI/CD
+- WCAG 2.1 compliant, mobile-first design
 
-### Advanced Search Functionality:
-- **Global family search** across all relationships
+**Technical Innovation:**
+- Hybrid architecture: Sidekiq/Redis ↔ Solid Queue
+- Advanced relationship engine (20+ types)
+- Temporal validation & security-first design
+- Modern React 19 with ReactFlow integration
+
+---
+
+## Slide 7 — Future Development Roadmap (60 sec)
+**Phase 1: Advanced Search**
+- Global family tree search
+- Relationship path finder
+- Temporal search by date ranges
+- Smart relationship suggestions
+
+**Phase 2: Collaboration**
+- Real-time multi-user editing
+- Family tree sharing & permissions
+- Collaborative fact verification
+- Discussion threads on profiles
+
+**Phase 3: AI & Integration**
+- AI-powered relationship suggestions
+- GEDCOM import/export
+- Native mobile apps (iOS/Android)
+- Historical records integration
+
+Building the future of family history research
+
+---
+
+## Slide 8 — Questions & Discussion (Open)
+**Ready to discuss:**
+- Technical architecture decisions
+- Performance optimization strategies
+- Security implementation details
+- Genealogical challenges & solutions
+- Future feature development
+- Project management insights
+
+**Thank you for your attention!**
+ChronicleTree: Your Family's Living Legacy
+
+
+---
+
+## 📊 EXTENDED VERSION: DIAGRAM INTEGRATION (8-10 Minutes Total)
+
+### Visual Integration Strategy for Extended Version:
+- **Slide 2:** Problem/solution comparison visuals
+- **Slide 3:** Architecture diagrams and technology stack visuals
+- **Slide 4:** Feature demonstration screenshots and relationship diagrams
+- **Slide 5:** Live demo with backup screenshots
+- **Slide 6:** Achievement metrics and test coverage visuals
+- **Slide 7:** Roadmap timeline and future feature previews
+
+### Recommended Diagram Integrations:
+1. `diagrams/system_architecture_eraser.md` → Slide 3 (architecture overview)
+2. `diagrams/technology_stack_scema.html` → Slide 3 (tech stack details)
+3. `diagrams/deployment_pipeline_progression.md` → Slide 3 (hybrid approach)
+4. `diagrams/relationship_types_supported_eraser.md` → Slide 4 (relationship engine)
+5. `good_mock-ups/chronicle_main_family_tree.html` → Slides 4 & 5 (tree visualization)
+6. `good_mock-ups/chronicle_individual_profile.html` → Slides 4 & 5 (profile features)
+7. Achievement metrics visualization → Slide 6 (project success)
+
+---
+
+## 🎯 TIMING BREAKDOWN (Extended 8-Slide Version)
+
+| Slide | Duration | Content | Focus |
+|-------|----------|---------|-------|
+| 1 | 60s | Title & Introduction | Project positioning |
+| 2 | 60s | Problem & Solution | Market need & value |
+| 3 | 90s | Technical Architecture | Technology stack depth |
+| 4 | 90s | Innovative Features | Genealogy innovations |
+| 5 | 120s | Live Demo | Feature demonstration |
+| 6 | 60s | Achievements | Project success metrics |
+| 7 | 60s | Future Roadmap | Vision & development |
+| 8 | Open | Q&A Discussion | Technical deep dive |
+| **Total** | **8-10 min** | **+ Q&A** | **Professional presentation** |
+
+---
+
+## 🔍 ENHANCED FUTURE FEATURES DISCUSSION
+
+### Phase 1: Advanced Search Functionality
+- **Global family search** across all relationships with filtering
 - **Temporal search** by date ranges and life events
 - **Relationship path finder** between any two family members
-- **Smart suggestions** based on partial information
-- **Cross-tree search** for potential connections
-
-### Additional Future Enhancements:
+- **Smart suggestions** based on partial information and patterns
+- **Cross-tree search** for potential family connections
 - **Real-time collaboration:** Multi-user editing with live updates
 - **Native mobile apps:** iOS/Android with offline sync
 - **AI-powered suggestions:** Relationship predictions and data enrichment
@@ -110,67 +217,74 @@ This outline focuses on a **compact 5-minute version** for live demo settings wi
 _"Looking ahead, we're planning advanced search capabilities - imagine being able to search across your entire family tree by relationships, date ranges, or life events. Users could find connection paths between any two relatives, or get smart suggestions for missing family links. This builds on our solid foundation of 20+ relationship types and temporal validation."_
 
 ### Technical context for search:
-- **Database optimization:** Leveraging PostgreSQL's full-text search
+### Phase 2: Collaboration Features
+- **Real-time collaboration:** Multi-user editing with live updates
+- **Family tree sharing:** Granular permissions and access controls
+- **Collaborative verification:** Community fact-checking and validation
+- **Discussion threads:** Comments and conversations on profiles
+
+### Phase 3: AI & Advanced Integration
+- **AI-powered suggestions:** Relationship predictions and data enrichment
+- **GEDCOM import/export:** Full compatibility with genealogy standards
+- **Native mobile apps:** iOS/Android with offline sync capabilities
+- **Historical records:** Integration with archives and public records
+- **Advanced analytics:** Family statistics and relationship insights
+
+### Technical Implementation Context:
+- **Database optimization:** Leveraging PostgreSQL's full-text search capabilities
 - **Graph algorithms:** Relationship path finding using breadth-first search
 - **Caching strategy:** Search results cached using our hybrid approach
 - **Real-time updates:** Search index maintained as family data changes
 
 ---
 
-## 💡 DELIVERY TIPS FOR COMPACT VERSION
+## 💡 DELIVERY TIPS FOR EXTENDED VERSION
 
 ### Timing Management:
-- Keep transitions crisp between slides
-- If Q&A is required, leave 30-45 seconds at end
-- For demo steps: narrate actions, highlight unique features
-- Prepare static screenshots as backup for live demo
+- Allow 60-90 seconds per slide for technical depth
+- Keep live demo to 2 minutes maximum with backup screenshots
+- Reserve adequate time for Q&A discussion (3-5 minutes)
+- Practice smooth transitions between technical concepts
 
 ### Visual Strategy:
-- Use embedded diagrams to maintain flow
-- Point to visuals while speaking but don't read them
-- Screenshots should complement, not replace, live demo
-- Keep embedded visuals simple and readable
+- Use diagrams to illustrate complex architecture decisions
+- Point to visuals while explaining technical choices
+- Prepare high-resolution screenshots for projection
+- Have backup static images for all live demo components
 
 ### Key Messages to Emphasize:
-1. **Modern Technology Stack:** React 19, Rails 8.0.2, hybrid processing
-2. **Production Ready:** 100+ tests, comprehensive coverage
-3. **User-Focused:** Intuitive interface, temporal validation
-4. **Future Vision:** Search, collaboration, AI features
+1. **Modern Technology Stack:** React 19, Rails 8.0.2, hybrid processing approach
+2. **Production Ready:** 100+ tests, comprehensive coverage, CI/CD pipeline
+3. **Innovation:** Advanced genealogy engine with temporal validation
+4. **Professional Quality:** WCAG 2.1 compliance, security-first design
+5. **Future Vision:** Search, collaboration, AI-powered features
+
+### Technical Discussion Preparation:
+- **Architecture Questions:** Be ready to discuss React 19 features, hybrid background processing rationale
+- **Database Design:** Explain relationship modeling, temporal validation implementation
+- **Security Implementation:** JWT authentication, data access patterns, privacy controls
+- **Performance Optimization:** Caching strategies, query optimization, frontend rendering
+- **Future Features:** Search implementation plans, collaboration architecture, AI integration
 
 ---
 
-**Note:** This compact version maximizes impact while maintaining strict 5-minute timing. All technology references are verified and current. Search functionality adds exciting future dimension to the project vision.
+## 🎤 SPEAKER NOTES FOR EXTENDED VERSION
+
+### Slide 3 (Technical Architecture):
+_"Our hybrid approach demonstrates real-world architectural thinking - Sidekiq with Redis gives us excellent development debugging capabilities, while Solid Queue provides production simplicity without external dependencies. This isn't just academic - it's how modern applications handle different environment needs."_
+
+### Slide 4 (Genealogy Features):
+_"What makes ChronicleTree special is the genealogical intelligence. We support 20+ relationship types with gender-specific terminology - so you get 'nephew' vs 'niece', 'aunt' vs 'uncle'. The temporal validation prevents impossible family structures like marriages after death or children born before parents."_
+
+### Slide 6 (Achievements):
+_"This isn't just a school project - it's production-ready software. Over 100 test files ensure reliability, WCAG 2.1 compliance makes it accessible to everyone, and the hybrid architecture shows understanding of real deployment challenges."_
+
+### Slide 7 (Future Roadmap):
+_"The foundation we've built enables exciting possibilities. Imagine searching your entire family tree for 'who lived in Chicago in the 1940s' or finding connection paths between any two relatives. The relationship engine we've created makes these advanced features achievable."_
 
 ---
 
-## 📊 COMPACT VERSION: EMBEDDED DIAGRAMS (5 Minutes Total)
-
-### Visual Integration Strategy:
-- **Slide 2:** Small workflow preview in corner showing user journey
-- **Slide 3:** Technology stack visual as background or side panel
-- **Slide 4:** UI screenshots embedded alongside demo steps
-- **Slide 5:** Simple metrics visual (6/6 requirements, 100+ tests, etc.)
-
-### Recommended Embedded Visuals:
-1. `diagrams/user_workflow_eraser.md` → Slide 2 (workflow preview)
-2. `diagrams/technology_stack_scema.html` → Slide 3 (tech stack background)
-3. `good_mock-ups/chronicle_main_family_tree.html` → Slide 4 (tree visualization)
-4. `good_mock-ups/chronicle_individual_profile.html` → Slide 4 (profile features)
-5. Simple metrics chart → Slide 5 (achievements visual)
-
----
-
-## 🔍 FUTURE FEATURES EXPANDED
-
-### Advanced Search Functionality:
-- **Global family search** across all relationships
-- **Temporal search** by date ranges and life events
-- **Relationship path finder** between any two family members
-- **Smart suggestions** based on partial information
-- **Cross-tree search** for potential connections
-
-### Additional Future Enhancements:
-- **Real-time collaboration:** Multi-user editing with live updates
+**Note:** This extended version provides comprehensive technical coverage while maintaining professional presentation standards. All technology references are verified and current as of August 4, 2025.
 - **Native mobile apps:** iOS/Android with offline sync
 - **AI-powered suggestions:** Relationship predictions and data enrichment
 - **GEDCOM import/export:** Full compatibility with genealogy standards

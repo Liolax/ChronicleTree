@@ -63,7 +63,7 @@ Architecturally, the system follows RESTful API design principles, using JSON fo
 
 ### 3.1 Logical View
 
-ChronicleTree employs a client-server architecture with a clear separation of concerns between the frontend and backend. This structure ensures modularity and scalability while supporting independent development and deployment of system components. The client-side, built with React 19 and Vite, handles all user interface elements, including the family tree visualization powered by ReactFlow, relationship management, and media galleries. It communicates with the backend via HTTP/HTTPS requests following RESTful conventions. The server-side, implemented as a Rails 8.0.2 API, manages authentication through Devise JWT, business logic through dedicated service classes, data modeling, and file storage via Active Storage, interacting with a PostgreSQL database to persist user data. This architectural relationship is visually detailed in the System Architecture Overview (Fig. 3.1.1).
+ChronicleTree employs a client-server architecture with a clear separation of concerns between the frontend and backend. This structure ensures modularity and scalability while supporting independent development and deployment of system components. The client-side, built with React 19 and Vite, handles all user interface elements, including the family tree visualization powered by ReactFlow, relationship management, and media galleries. It communicates with the backend via HTTP/HTTPS requests following RESTful conventions. The server-side, implemented as a Rails 8.0.2 API, manages authentication through Devise JWT, business logic through dedicated service classes, data modeling, and file storage via Active Storage, interacting with a PostgreSQL database to persist user data. The architectural relationship is visually detailed in the System Architecture Overview (Fig. 3.1.1).
 
 **Figure 3.1.1: System Architecture Overview**  
 ![System Architecture Overview](diagrams/system_architecture_eraser.md)
@@ -93,139 +93,104 @@ The backend is built on Ruby on Rails 8.0.2, following the MVC pattern with API-
 **Figure 3.3.1: Technology Stack Diagram**  
 ![Technology Stack](diagrams/technology_stack_scema.html)
 
-The frontend is organized into a hierarchical component structure following atomic design principles. The Tree directory contains visualization components like FamilyTreeFlow.jsx and CustomNode.jsx, implementing the core family tree rendering logic using ReactFlow. Profile management components, such as RelationshipManager.jsx and MediaForm.jsx, are organized in dedicated directories by feature. Core logic is handled by utility modules like improvedRelationshipCalculator.js and familyTreeHierarchicalLayout.js, which implement the genealogical algorithms and tree positioning logic.
+The frontend is organized into a hierarchical component structure following atomic design principles. Profile management components, such as RelationshipManager.jsx and MediaForm.jsx, are organized in dedicated directories by feature. Core logic is handled by utility modules like improvedRelationshipCalculator.js and familyTreeHierarchicalLayout.js, which implement the genealogical algorithms and tree positioning logic. The Tree directory contains visualization components like FamilyTreeFlow.jsx and CustomNode.jsx, implementing the core family tree rendering logic using ReactFlow. Core family tree visualization component from FamilyTreeFlow.jsx is shown below (Fig. 3.3.2).
 
-**Figure 3.3.2: React Component Architecture - Family Tree Flow**
+**Figure 3.3.2: React Component Architecture - Family Tree Component**
 
 ```javascript
 // Core family tree visualization component from FamilyTreeFlow.jsx
-import { useCallback, useEffect, useState } from 'react';
-import ReactFlow, {
-  Node,
-  Edge,
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import {
+  ReactFlow,
+  ReactFlowProvider,
+  Background,
   Controls,
   MiniMap,
-  Background,
   useNodesState,
   useEdgesState,
-  addEdge,
-  Connection,
-  MarkerType,
+  useReactFlow,
+  Panel,
 } from '@xyflow/react';
+import { useQueryClient } from '@tanstack/react-query';
 import '@xyflow/react/dist/style.css';
+import { FaShareAlt, FaLink, FaTimes } from 'react-icons/fa';
 
-import CustomNode from './CustomNode';
-import { familyTreeHierarchicalLayout } from '../../utils/familyTreeHierarchicalLayout';
+import Button from '../UI/Button';
+import AddPersonModal from './modals/AddPersonModal';
+import EditPersonModal from './modals/EditPersonModal';
+import DeletePersonModal from '../UI/DeletePersonModal';
+import { FamilyTreeLoader } from '../UI/PageLoader';
+import Error from '../UI/Error';
+import PersonCard from './PersonCard';
+import PersonCardNode from './PersonCardNode';
+import { useFullTree, useDeletePerson } from '../../services/people';
+import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout';
+import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
+import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
+import { ShareModal } from '../Share';
 
+// Custom node types for the tree
 const nodeTypes = {
-  person: CustomNode,
+  personCard: PersonCardNode,
 };
 
-const FamilyTreeFlow = ({ treeData, onPersonSelect, selectedPersonId }) => {
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-  const [isLoading, setIsLoading] = useState(true);
+// Main family tree component
+// Uses ReactFlow to show the family tree with drag and drop
+const FamilyTree = () => {
+  const [searchParams] = useSearchParams();
+  const [isAddPersonModalOpen, setAddPersonModalOpen] = useState(false);
+  const [selectedPerson, setSelectedPerson] = useState(null);
+  const [editPerson, setEditPerson] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [personCardPosition, setPersonCardPosition] = useState(null);
+  const [rootPersonId, setRootPersonId] = useState(null);
+  const [hasSetDefaultRoot, setHasSetDefaultRoot] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showUnrelated, setShowUnrelated] = useState(false);
+  const [showConnectionLegend, setShowConnectionLegend] = useState(false);
+  const [isNavbarOpen, setIsNavbarOpen] = useState(false);
 
-  // Initialize tree layout
+  // Read root person ID from URL parameters
   useEffect(() => {
-    if (treeData && treeData.length > 0) {
-      const layoutedElements = familyTreeHierarchicalLayout(treeData);
-      
-      const formattedNodes = layoutedElements.nodes.map(node => ({
-        id: node.id.toString(),
-        type: 'person',
-        position: { x: node.x || 0, y: node.y || 0 },
-        data: {
-          ...node.data,
-          isSelected: selectedPersonId === node.id,
-          onClick: () => onPersonSelect(node.data),
-        },
-        draggable: true,
-      }));
-
-      const formattedEdges = layoutedElements.edges.map(edge => ({
-        id: `${edge.source}-${edge.target}`,
-        source: edge.source.toString(),
-        target: edge.target.toString(),
-        type: 'smoothstep',
-        markerEnd: {
-          type: MarkerType.ArrowClosed,
-          width: 20,
-          height: 20,
-          color: getEdgeColor(edge.relationship_type),
-        },
-        style: {
-          stroke: getEdgeColor(edge.relationship_type),
-          strokeWidth: edge.is_deceased ? 1 : 2,
-          strokeDasharray: edge.is_ex ? '5,5' : undefined,
-        },
-        data: {
-          relationship_type: edge.relationship_type,
-          is_deceased: edge.is_deceased,
-          is_ex: edge.is_ex,
-        },
-      }));
-
-      setNodes(formattedNodes);
-      setEdges(formattedEdges);
-      setIsLoading(false);
+    const rootParam = searchParams.get('root');
+    if (rootParam && !rootPersonId && !hasSetDefaultRoot) {
+      setRootPersonId(parseInt(rootParam, 10));
+      setHasSetDefaultRoot(true);
     }
-  }, [treeData, selectedPersonId, setNodes, setEdges, onPersonSelect]);
+  }, [searchParams, rootPersonId, hasSetDefaultRoot]);
 
-  const getEdgeColor = (relationshipType) => {
-    const colorMap = {
-      parent: '#8B5CF6',     // Purple for parent-child
-      spouse: '#EF4444',     // Red for spouses
-      sibling: '#10B981',    // Green for siblings
-      step: '#F59E0B',       // Amber for step relationships
-      half: '#6366F1',       // Indigo for half relationships
-    };
-    return colorMap[relationshipType] || '#6B7280';
-  };
+  // Process the family data to build tree
+  const processedData = useMemo(() => {
+    if (!data) return { nodes: [], edges: [] };
 
-  const onConnect = useCallback(
-    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
+    // Use oldest person as root by default
+    if (!rootPersonId && !hasSetDefaultRoot && data.oldest_person_id) {
+      setRootPersonId(data.oldest_person_id);
+      setHasSetDefaultRoot(true);
+    }
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-3 text-gray-600">Loading family tree...</span>
-      </div>
-    );
-  }
+    // Only show family members connected to root person
+    let filteredNodes = data.nodes;
+    let filteredEdges = data.edges;
+    if (rootPersonId) {
+      const result = collectConnectedFamily(rootPersonId, data.nodes, data.edges);
+      filteredNodes = result.persons;
+      filteredEdges = result.relationships;
+    }
 
-  return (
-    <div className="w-full h-full">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        nodeTypes={nodeTypes}
-        fitView
-        attributionPosition="top-right"
-        className="family-tree-flow"
-      >
-        <Controls position="top-left" />
-        <MiniMap 
-          position="bottom-right"
-          nodeColor={(node) => {
-            const data = node.data;
-            return data.isSelected ? '#3B82F6' : '#E5E7EB';
-          }}
-          maskColor="rgba(0, 0, 0, 0.1)"
-        />
-        <Background color="#aaa" gap={16} />
-      </ReactFlow>
-    </div>
-  );
+    // Figure out relationships to root person
+    const rootPerson = rootPersonId
+      ? filteredNodes.find(n => n.id === rootPersonId)
+      : null;
+    
+    return { nodes: filteredNodes, edges: filteredEdges, rootPerson };
+  }, [data, rootPersonId, hasSetDefaultRoot, showUnrelated]);
+
+  // ... rest of component implementation
 };
 
-export default FamilyTreeFlow;
+export default FamilyTree;
 ```
 
 The backend follows Rails conventions with versioned API controllers under the api/v1 namespace. The controllers directory contains endpoints for managing people, relationships, and media with comprehensive error handling. Data models encapsulate business logic including validation rules and relationship constraints, while serializers ensure consistent JSON formatting across all API responses. Service classes like BloodRelationshipDetector, UnifiedRelationshipCalculator, and TreeBuilder handle complex business logic operations.
@@ -248,108 +213,103 @@ The API design follows RESTful principles with consistent URL patterns and appro
 
 ```ruby
 # Core API controller from app/controllers/api/v1/people_controller.rb
-class Api::V1::PeopleController < Api::V1::BaseController
-  before_action :authenticate_user!
-  before_action :set_person, only: [:show, :update, :destroy]
-  before_action :authorize_person_access, only: [:show, :update, :destroy]
+module Api
+  module V1
+    class PeopleController < BaseController
+      before_action :set_person, only: %i[show update destroy tree relatives]
 
-  def index
-    @people = current_user.people
-                         .includes(:relationships, :media_attachments)
-                         .order(:first_name, :last_name)
-    
-    render json: @people, each_serializer: PersonSerializer, 
-           include: [:relationships, :media_attachments]
-  rescue StandardError => e
-    render_error("Failed to fetch people", :internal_server_error, e)
-  end
+      def index
+        people = current_user.people
+        render json: people, each_serializer: Api::V1::PersonSerializer, status: :ok
+      end
 
-  def show
-    render json: @person, serializer: PersonDetailSerializer,
-           include: [:relationships, :media_attachments, :timeline_events]
-  rescue StandardError => e
-    render_error("Failed to fetch person details", :internal_server_error, e)
-  end
+      def show
+        render json: @person, serializer: Api::V1::PersonSerializer, status: :ok
+      end
 
-  def create
-    @person = current_user.people.build(person_params)
-    
-    if @person.save
-      render json: @person, serializer: PersonSerializer, status: :created
-    else
-      render_validation_errors(@person)
+      def create
+        ActiveRecord::Base.transaction do
+          person = current_user.people.build(person_params)
+          is_first_person = current_user.people.count == 0
+          rel_type = params[:person][:relation_type]
+          rel_person_id = params[:person][:related_person_id]
+          
+          if !is_first_person && (rel_type.blank? || rel_person_id.blank?)
+            render json: { errors: [ "Please select both a relationship type and a person to connect to. Both fields are required when adding new family members." ] }, status: :unprocessable_entity
+            raise ActiveRecord::Rollback
+          end
+          
+          if person.save
+            if rel_type.present? && rel_person_id.present?
+              related_person = current_user.people.find(rel_person_id)
+              
+              # Parent-child age validation
+              if ['child', 'parent'].include?(rel_type)
+                if rel_type == 'child'
+                  validation_result = related_person.can_be_parent_of?(person)
+                elsif rel_type == 'parent'
+                  validation_result = person.can_be_parent_of?(related_person)
+                end
+
+                unless validation_result[:valid]
+                  render json: { 
+                    errors: [validation_result[:error]]
+                  }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+              end
+              
+              case rel_type
+              when 'child'
+                Relationship.create!(person_id: rel_person_id, relative_id: person.id, relationship_type: 'child')
+                Relationship.create!(person_id: person.id, relative_id: rel_person_id, relationship_type: 'parent')
+              when 'spouse'
+                # Determine if this should be an ex-spouse relationship
+                is_ex_spouse = person.date_of_death.present?
+                
+                # Check if selected person already has a current spouse
+                if !is_ex_spouse && related_person.current_spouses.any?
+                  current_spouse_names = related_person.current_spouses.map(&:full_name).join(', ')
+                  render json: { 
+                    errors: ["#{related_person.full_name} already has a current spouse (#{current_spouse_names}). A person can only have one current spouse at a time."]
+                  }, status: :unprocessable_entity
+                  raise ActiveRecord::Rollback
+                end
+                
+                Relationship.create!(
+                  person_id: person.id, 
+                  relative_id: rel_person_id, 
+                  relationship_type: 'spouse',
+                  is_ex: is_ex_spouse
+                )
+              end
+            end
+            
+            render json: person, serializer: Api::V1::PersonSerializer, status: :created
+          else
+            render json: { errors: person.errors.full_messages }, status: :unprocessable_entity
+          end
+        end
+      rescue StandardError => e
+        render json: { errors: ["An error occurred while creating the person"] }, status: :internal_server_error
+      end
+
+      private
+
+      def set_person
+        @person = current_user.people.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { error: "Person not found" }, status: :not_found
+      end
+
+      def person_params
+        params.require(:person).permit(
+          :first_name, :last_name, :maiden_name, :nickname,
+          :date_of_birth, :date_of_death, :place_of_birth, :place_of_death,
+          :gender, :biography, :occupation, :education
+        )
+      end
     end
-  rescue StandardError => e
-    render_error("Failed to create person", :internal_server_error, e)
-  end
-
-  def update
-    if @person.update(person_params)
-      render json: @person, serializer: PersonSerializer
-    else
-      render_validation_errors(@person)
-    end
-  rescue StandardError => e
-    render_error("Failed to update person", :internal_server_error, e)
-  end
-
-  def destroy
-    if @person.destroy
-      head :no_content
-    else
-      render_error("Failed to delete person", :unprocessable_entity)
-    end
-  rescue StandardError => e
-    render_error("Failed to delete person", :internal_server_error, e)
-  end
-
-  def tree
-    @tree_data = People::TreeBuilder.new(@person).as_json
-    render json: { nodes: @tree_data[0], edges: @tree_data[1] }
-  rescue StandardError => e
-    render_error("Failed to build family tree", :internal_server_error, e)
-  end
-
-  private
-
-  def set_person
-    @person = current_user.people.find(params[:id])
-  rescue ActiveRecord::RecordNotFound
-    render_error("Person not found", :not_found)
-  end
-
-  def authorize_person_access
-    unless @person.user == current_user
-      render_error("Access denied", :forbidden)
-    end
-  end
-
-  def person_params
-    params.require(:person).permit(
-      :first_name, :last_name, :maiden_name, :nickname,
-      :date_of_birth, :date_of_death, :place_of_birth, :place_of_death,
-      :gender, :biography, :occupation, :education,
-      custom_facts_attributes: [:id, :label, :value, :fact_type, :_destroy]
-    )
-  end
-
-  def render_validation_errors(resource)
-    render json: {
-      error: "Validation failed",
-      details: resource.errors.full_messages,
-      field_errors: resource.errors.messages
-    }, status: :unprocessable_entity
-  end
-
-  def render_error(message, status, exception = nil)
-    Rails.logger.error("API Error: #{message}") if exception
-    Rails.logger.error(exception.backtrace.join("\n")) if exception
-
-    render json: {
-      error: message,
-      status: status,
-      timestamp: Time.current.iso8601
-    }, status: status
   end
 end
 ```
@@ -603,35 +563,83 @@ The relationship calculation engine represents the technical innovation of Chron
 
 ```javascript
 // Core relationship calculation logic from improvedRelationshipCalculator.js
-export const calculateRelationshipToRoot = (personId, rootPersonId, relationships) => {
-  if (personId === rootPersonId) return 'Self';
-  
-  const visited = new Set();
-  const queue = [{ id: rootPersonId, path: [], generation: 0 }];
+/**
+ * Determines the relationship between any person and the root person.
+ * Returns a human-readable relationship (e.g., "Uncle", "2nd Cousin").
+ * Explains logic and edge cases for educational clarity.
+ * @param {Object} person - The person we want to find the relationship for
+ * @param {Object} rootPerson - The reference person (center of the tree)
+ * @param {Array} allPeople - Everyone in the family database
+ * @param {Array} relationships - All the family connections
+ * @returns {string} - Human-readable relationship like "Uncle" or "2nd Cousin"
+ */
+export const calculateRelationshipToRoot = (person, rootPerson, allPeople, relationships) => {
+  // Defensive: If any required argument is missing, return empty string
+  if (!person || !rootPerson || !allPeople || !relationships) {
+    return '';
+  }
+
+  // Special case: If person is viewing their own profile, return "Root"
+  if (person.id === rootPerson.id) {
+    return 'Root';
+  }
+
+  // Extract birth and death dates for timeline validation
+  const personBirth = person.date_of_birth ? new Date(person.date_of_birth) : null;
+  const personDeath = person.date_of_death ? new Date(person.date_of_death) : null;
+  const rootBirth = rootPerson.date_of_birth ? new Date(rootPerson.date_of_birth) : null;
+  const rootDeath = rootPerson.date_of_death ? new Date(rootPerson.date_of_death) : null;
+
+  // Timeline check: If person was born after root died, they never lived at the same time
+  // Only show direct biological relationships (parent, child, grandparent, etc.)
+  if (personBirth && rootDeath && personBirth > rootDeath) {
+    const relationshipMaps = buildRelationshipMaps(relationships, allPeople);
+    const { childToParents, parentToChildren } = relationshipMaps;
+    
+    // Look for direct ancestor-descendant relationships
+    const personParents = childToParents.get(String(person.id)) || new Set();
+    const rootChildren = parentToChildren.get(String(rootPerson.id)) || new Set();
+    const personChildren = parentToChildren.get(String(person.id)) || new Set();
+    
+    // Check if root is person's parent
+    if (personParents.has(String(rootPerson.id))) {
+      return getGenderSpecificRelation(rootPerson.id, 'Father', 'Mother', allPeople, 'Parent');
+    }
+    
+    // Check if person is root's child
+    if (rootChildren.has(String(person.id))) {
+      return getGenderSpecificRelation(person.id, 'Son', 'Daughter', allPeople, 'Child');
+    }
+    
+    // Return empty for non-direct relationships when they never lived together
+    return '';
+  }
+
+  // Use breadth-first search to find shortest relationship path
+  const queue = [{ personId: rootPerson.id, path: [], visited: new Set([rootPerson.id]) }];
   
   while (queue.length > 0) {
-    const { id, path, generation } = queue.shift();
+    const { personId, path, visited } = queue.shift();
     
-    if (visited.has(id)) continue;
-    visited.add(id);
-    
+    // Get all relationships for current person
     const personRelationships = relationships.filter(rel => 
-      rel.from === id || rel.to === id
+      (rel.person_id === personId || rel.relative_id === personId) && !rel.is_ex
     );
     
     for (const rel of personRelationships) {
-      const relatedPersonId = rel.from === id ? rel.to : rel.from;
-      const relationshipType = rel.type;
+      const nextPersonId = rel.person_id === personId ? rel.relative_id : rel.person_id;
+      const relationshipType = rel.relationship_type;
       
-      if (relatedPersonId === personId) {
-        return determineRelationshipLabel(path, relationshipType, generation);
+      if (nextPersonId === person.id) {
+        // Found the target person - calculate relationship
+        return determineRelationshipFromPath([...path, relationshipType], allPeople);
       }
       
-      if (!visited.has(relatedPersonId)) {
+      if (!visited.has(nextPersonId)) {
         queue.push({
-          id: relatedPersonId,
+          personId: nextPersonId,
           path: [...path, relationshipType],
-          generation: calculateGeneration(relationshipType, generation)
+          visited: new Set([...visited, nextPersonId])
         });
       }
     }
@@ -640,13 +648,13 @@ export const calculateRelationshipToRoot = (personId, rootPersonId, relationship
   return 'Not Related';
 };
 
-// Relationship type determination with gender awareness
-const determineRelationshipLabel = (path, finalRelationType, generation) => {
-  if (path.length === 0) {
-    return getDirectRelationshipLabel(finalRelationType);
-  }
+// Helper function to determine relationship from path
+const determineRelationshipFromPath = (path, allPeople) => {
+  if (path.length === 0) return '';
+  if (path.length === 1) return getDirectRelationshipLabel(path[0]);
   
-  return calculateExtendedRelationship(path, finalRelationType, generation);
+  // Complex relationship calculation for multi-step paths
+  return calculateExtendedRelationship(path, allPeople);
 };
 ```
 
@@ -663,7 +671,7 @@ module People
     def as_json
       nodes = collect_tree_nodes
       edges = collect_tree_edges(nodes)
-      [nodes, edges]
+      [ nodes, edges ]
     end
 
     private
@@ -671,20 +679,25 @@ module People
     def collect_tree_nodes
       seen = {}
       queue = [@center]
-      
       while queue.any?
         person = queue.shift
         next if seen[person.id]
-        
         seen[person.id] = person
         
-        # Add family connections to queue
-        queue.concat(person.parents.reject { |p| seen[p.id] })
-        queue.concat(person.children.reject { |c| seen[c.id] })
-        queue.concat(person.spouses.reject { |s| seen[s.id] })
-        queue.concat(person.siblings.reject { |sib| seen[sib.id] })
+        # Add family connections using respond_to? for safety
+        if person.respond_to?(:parents)
+          queue.concat(person.parents.reject { |p| seen[p.id] })
+        end
+        if person.respond_to?(:children)
+          queue.concat(person.children.reject { |c| seen[c.id] })
+        end
+        if person.respond_to?(:spouses)
+          queue.concat(person.spouses.reject { |s| seen[s.id] })
+        end
+        if person.respond_to?(:siblings)
+          queue.concat(person.siblings.reject { |sib| seen[sib.id] })
+        end
       end
-      
       seen.values
     end
 
@@ -692,37 +705,49 @@ module People
       edges = []
       node_ids = nodes.map(&:id)
       
-      nodes.each do |person|
+      nodes.each do |n|
         # Parent-child relationships
-        person.parents.each do |parent|
-          if node_ids.include?(parent.id)
-            edges << { 
-              source: parent.id, 
-              target: person.id, 
-              relationship_type: 'parent' 
-            }
+        if n.respond_to?(:parents)
+          n.parents.each do |parent|
+            if node_ids.include?(parent.id)
+              edges << { source: parent.id, target: n.id, relationship_type: 'parent' }
+            end
           end
         end
         
-        # Spouse relationships (avoid duplicates)
-        person.spouses.each do |spouse|
-          if person.id < spouse.id && node_ids.include?(spouse.id)
-            relationship = person.relationships.find { |r| 
-              r.relative_id == spouse.id && r.relationship_type == 'spouse' 
-            }
-            
-            edge = { 
-              source: person.id, 
-              target: spouse.id, 
-              relationship_type: 'spouse' 
-            }
-            
-            if relationship
-              edge[:is_ex] = relationship.is_ex
-              edge[:is_deceased] = relationship.is_deceased
+        # Child relationships (alternative direction)
+        if n.respond_to?(:children)
+          n.children.each do |child|
+            if node_ids.include?(child.id)
+              edges << { source: n.id, target: child.id, relationship_type: 'parent' }
             end
-            
-            edges << edge
+          end
+        end
+        
+        # Spouse relationships (avoid duplicates with id comparison)
+        if n.respond_to?(:spouses)
+          n.spouses.each do |spouse|
+            if n.id < spouse.id && node_ids.include?(spouse.id)
+              relationship = n.relationships.find { |r| 
+                r.relative_id == spouse.id && r.relationship_type == 'spouse' 
+              }
+              
+              edge = { source: n.id, target: spouse.id, relationship_type: 'spouse' }
+              if relationship
+                edge[:is_ex] = relationship.is_ex
+                edge[:is_deceased] = relationship.is_deceased
+              end
+              edges << edge
+            end
+          end
+        end
+        
+        # Sibling relationships (avoid duplicates)
+        if n.respond_to?(:siblings)
+          n.siblings.each do |sib|
+            if n.id < sib.id && node_ids.include?(sib.id)
+              edges << { source: n.id, target: sib.id, relationship_type: 'sibling' }
+            end
           end
         end
       end
@@ -736,45 +761,77 @@ end
 **Figure 4.5.9: Validation System Implementation**
 
 ```ruby
-# Temporal validation from app/models/person.rb
+# Age and temporal validation from app/models/person.rb
 class Person < ApplicationRecord
-  validate :validate_temporal_consistency
-  validate :validate_relationship_constraints
+  # Age validation for parent-child relationships
+  def can_be_parent_of?(child)
+    return { valid: false, error: "Child person is required" } if child.nil?
+    return { valid: false, error: "Parent cannot be same as child" } if self == child
 
-  private
+    if self.date_of_birth.present? && child.date_of_birth.present?
+      parent_birth = Date.parse(self.date_of_birth.to_s)
+      child_birth = Date.parse(child.date_of_birth.to_s)
+      age_difference = (child_birth - parent_birth) / 365.25
 
-  def validate_temporal_consistency
-    return unless date_of_birth && date_of_death
-    
-    if date_of_birth > date_of_death
-      errors.add(:date_of_death, "cannot be before birth date")
-    end
-    
-    # Validate spouse relationships don't continue after death
-    current_spouses.each do |spouse|
-      spouse_relationship = relationships.find { |r| 
-        r.relative == spouse && r.relationship_type == 'spouse' && !r.is_ex 
-      }
-      
-      if spouse_relationship && date_of_death && 
-         spouse_relationship.start_date && 
-         spouse_relationship.start_date > date_of_death
-        errors.add(:base, "Cannot have active marriage after death")
-      end
-    end
-  end
-
-  def validate_relationship_constraints
-    # Prevent inappropriate relationships between close relatives
-    relationships.each do |relationship|
-      if relationship.relationship_type == 'spouse'
-        blood_relationship = BloodRelationshipDetector.new(self, relationship.relative)
-        
-        if blood_relationship.too_close_for_marriage?
-          errors.add(:base, "Cannot marry close blood relative")
+      if age_difference < 12
+        if age_difference < 0
+          return { 
+            valid: false, 
+            error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is #{age_difference.abs.round(1)} years YOUNGER than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent cannot be younger than their child."
+          }
+        else
+          return { 
+            valid: false, 
+            error: "#{self.first_name} #{self.last_name} (born #{parent_birth.strftime('%B %d, %Y')}) is only #{age_difference.round(1)} years older than #{child.first_name} #{child.last_name} (born #{child_birth.strftime('%B %d, %Y')}). A parent must be at least 12 years older than their child."
+          }
         end
       end
     end
+
+    # Validate parent wasn't deceased before child's birth
+    if self.date_of_death.present? && child.date_of_birth.present?
+      parent_death = Date.parse(self.date_of_death.to_s)
+      child_birth = Date.parse(child.date_of_birth.to_s)
+      
+      if parent_death < child_birth
+        return { 
+          valid: false, 
+          error: "#{self.first_name} #{self.last_name} died on #{parent_death.strftime('%B %d, %Y')}, which is #{((child_birth - parent_death) / 365.25).round(1)} years before #{child.first_name} #{child.last_name} was born (#{child_birth.strftime('%B %d, %Y')}). A parent cannot have died before their child was born."
+        }
+      end
+    end
+    
+    { valid: true }
+  end
+
+  # Helper method to get current non-ex spouses
+  def current_spouses
+    spouse_relationships = relationships.where(relationship_type: 'spouse', is_ex: false)
+    Person.where(id: spouse_relationships.pluck(:relative_id))
+  end
+
+  # Validation for spouse relationship constraints
+  def validate_spouse_relationship(spouse_person, is_ex: false)
+    return { valid: false, error: "Cannot marry yourself" } if self == spouse_person
+    
+    # Check if already have a current spouse (unless this is an ex-spouse)
+    if !is_ex && current_spouses.any?
+      current_names = current_spouses.map(&:full_name).join(', ')
+      return { 
+        valid: false, 
+        error: "#{self.full_name} already has a current spouse (#{current_names}). A person can only have one current spouse at a time."
+      }
+    end
+    
+    # Prevent marriage to deceased person (unless ex-spouse)
+    if !is_ex && spouse_person.date_of_death.present?
+      return {
+        valid: false,
+        error: "Cannot marry #{spouse_person.full_name} because they are deceased. You can only add them as a former spouse."
+      }
+    end
+    
+    { valid: true }
   end
 end
 ```
@@ -869,80 +926,121 @@ class BloodRelationshipDetector
     @person2 = person2
   end
 
-  def too_close_for_marriage?
+  def self.blood_related?(person1, person2)
+    new(person1, person2).blood_related?
+  end
+  
+  def self.marriage_allowed?(person1, person2)
+    new(person1, person2).marriage_allowed?
+  end
+  
+  def self.sibling_allowed?(person1, person2)
+    new(person1, person2).sibling_allowed?
+  end
+
+  def blood_related?
+    return false if @person1.nil? || @person2.nil?
+    return false if @person1 == @person2
+
+    return true if direct_parent_child?
+    return true if siblings?
+    return true if ancestor_descendant?
+    return true if uncle_aunt_nephew_niece?
+    return true if first_cousins?
+
+    false
+  end
+  
+  def marriage_allowed?
+    return false if blood_related?
+    
+    # Allow remarriage to in-laws in certain circumstances
+    allowed_through_ex_spouse = allowed_remarriage_relative?(@person1, @person2) || 
+                               allowed_remarriage_relative?(@person2, @person1)
+    
+    return true if allowed_through_ex_spouse
+    
+    true
+  end
+  
+  def sibling_allowed?
+    return false if @person1.nil? || @person2.nil?
     return false if @person1 == @person2
     
-    relationship_distance = calculate_blood_distance
+    # Check blood relationship restrictions
+    if blood_related?
+      desc = relationship_description
+      return false if desc && (
+        desc.include?('parent') || desc.include?('child') ||
+        desc.include?('grandparent') || desc.include?('grandchild') ||
+        desc.include?('uncle') || desc.include?('aunt') ||
+        desc.include?('nephew') || desc.include?('niece') ||
+        desc.include?('great-grand')
+      )
+      
+      return false if siblings?
+      return false if first_cousins?
+    end
     
-    # Prevent marriage between:
-    # - Parent and child (distance 1)
-    # - Siblings (distance 2) 
-    # - Grandparent and grandchild (distance 2)
-    # - Uncle/aunt and niece/nephew (distance 3)
-    # - First cousins (distance 4)
+    # Age gap validation for siblings
+    if @person1.date_of_birth && @person2.date_of_birth
+      person1_birth = Date.parse(@person1.date_of_birth.to_s)
+      person2_birth = Date.parse(@person2.date_of_birth.to_s)
+      age_gap_years = (person1_birth - person2_birth).abs / 365.25
+      
+      return false if age_gap_years > 25
+    end
     
-    relationship_distance <= 4
+    # Timeline validation - siblings should have overlapping lifespans
+    if @person1.date_of_birth && @person2.date_of_birth
+      person1_birth = Date.parse(@person1.date_of_birth.to_s)
+      person2_birth = Date.parse(@person2.date_of_birth.to_s)
+      
+      if @person1.date_of_death
+        person1_death = Date.parse(@person1.date_of_death.to_s)
+        return false if person2_birth > person1_death
+      end
+      
+      if @person2.date_of_death
+        person2_death = Date.parse(@person2.date_of_death.to_s)
+        return false if person1_birth > person2_death
+      end
+    end
+    
+    true
   end
 
   private
 
-  def calculate_blood_distance
-    # Use bidirectional BFS to find shortest path
-    visited1 = { @person1.id => 0 }
-    visited2 = { @person2.id => 0 }
-    queue1 = [@person1]
-    queue2 = [@person2]
-    
-    distance = 0
-    
-    while queue1.any? || queue2.any?
-      distance += 1
-      
-      # Expand from person1's side
-      if queue1.any?
-        next_queue1 = []
-        queue1.each do |person|
-          blood_relatives = get_blood_relatives(person)
-          
-          blood_relatives.each do |relative|
-            return distance if visited2.key?(relative.id)
-            
-            unless visited1.key?(relative.id)
-              visited1[relative.id] = distance
-              next_queue1 << relative
-            end
-          end
-        end
-        queue1 = next_queue1
-      end
-      
-      # Expand from person2's side
-      if queue2.any?
-        next_queue2 = []
-        queue2.each do |person|
-          blood_relatives = get_blood_relatives(person)
-          
-          blood_relatives.each do |relative|
-            return distance if visited1.key?(relative.id)
-            
-            unless visited2.key?(relative.id)
-              visited2[relative.id] = distance
-              next_queue2 << relative
-            end
-          end
-        end
-        queue2 = next_queue2
-      end
-      
-      # Prevent infinite loops
-      break if distance > 10
-    end
-    
-    Float::INFINITY # No blood relationship found
+  def direct_parent_child?
+    @person1.parents.include?(@person2) || @person2.parents.include?(@person1)
   end
 
-  def get_blood_relatives(person)
-    [person.parents, person.children].flatten.uniq
+  def siblings?
+    return false unless @person1.parents.any? && @person2.parents.any?
+    
+    (@person1.parents & @person2.parents).any?
+  end
+
+  def ancestor_descendant?
+    # Check if one is ancestor/descendant of the other
+    check_ancestor_descendant(@person1, @person2) || check_ancestor_descendant(@person2, @person1)
+  end
+
+  def check_ancestor_descendant(ancestor, descendant)
+    visited = Set.new
+    queue = [descendant]
+    
+    while queue.any?
+      current = queue.shift
+      next if visited.include?(current.id)
+      visited.add(current.id)
+      
+      return true if current.parents.include?(ancestor)
+      queue.concat(current.parents)
+    end
+    
+    false
   end
 end
 ```

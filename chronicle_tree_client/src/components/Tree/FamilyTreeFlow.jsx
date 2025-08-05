@@ -28,7 +28,6 @@ import { createFamilyTreeLayout } from '../../utils/familyTreeHierarchicalLayout
 import { collectConnectedFamily } from '../../utils/familyTreeHierarchicalLayout';
 import { getAllRelationshipsToRoot } from '../../utils/improvedRelationshipCalculator';
 import { ShareModal } from '../Share';
-// import { testRelationshipCalculation } from '../../utils/test-relationship-debug';
 
 // Custom node types for the tree
 const nodeTypes = {
