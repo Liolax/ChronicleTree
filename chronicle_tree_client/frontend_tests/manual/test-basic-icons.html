@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SweetAlert Icon Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <h1>SweetAlert Icon Test</h1>
+    <button onclick="testDeleteWarning()">Test Delete Warning (like your screenshot)</button>
+    <button onclick="testSuccess()">Test Success Alert</button>
+    
+    <script>
+        function testDeleteWarning() {
+            Swal.fire({
+                title: 'Delete Fact',
+                text: 'Are you sure you want to delete this fact? This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'OK',
+                cancelButtonText: 'Cancel',
+                confirmButtonColor: '#4F46E5',
+                cancelButtonColor: '#6B7280'
+            });
+        }
+
+        function testSuccess() {
+            Swal.fire({
+                title: 'Fact Deleted Successfully',
+                text: 'Fact deleted successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4F46E5'
+            });
+        }
+    </script>
+</body>
+</html>
