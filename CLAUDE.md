@@ -1,118 +1,145 @@
 i still have issues. fix please.
 
-1. 
-please i have little time before my presentation, so please fix asap. Browser alert test - if you see this, JavaScript is working . 
-compare this sweetalerts with the previous commit, and make sure that the sweetalert test is working properly. no sweetalert is shown now because of the changes in the sweetalert-custom.css file, so please fix it. Let me continue by running the development server and testing the SweetAlert modal hiding functionality: Let me check the package.json to see the correct script name: The script should be correct. Let me try from the correct directory: Let me try using the task directly: Let me run npx vite instead: Great! Now the development server is running. Let me open it: Now I've successfully implemented the enhanced modal management system for SweetAlert. Here's what I've accomplished:
+1. DEBUG: All generations with people:
+familyTreeHierarchicalLayout.js:1367   Gen 0 (index 0): Robert Doe, Molly Doe, Richard Sharma, Margaret Sharma, Carol Doe, William O'Sullivan, Patricia Smith
+familyTreeHierarchicalLayout.js:1367   Gen 1 (index 1): Thomas Anderson, Sarah Anderson, John Doe, Jane Doe, Lisa Doe
+familyTreeHierarchicalLayout.js:1367   Gen 2 (index 2): David Anderson, Alice Doe, Charlie Doe, Michael Doe
+familyTreeHierarchicalLayout.js:1367   Gen 3 (index 3): Bob Anderson, Emily Anderson, Emma Doe
+familyTreeHierarchicalLayout.js:1379 DEBUG: John is in generation 1, generationIndex 1, calculated Y = 450
+familyTreeHierarchicalLayout.js:1380 DEBUG: sortedGenerations array: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:1381 DEBUG: All generation groups: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:170 DEBUG: Immediately after node creation:
+familyTreeHierarchicalLayout.js:173 John Doe: (-500, 1330)
+familyTreeHierarchicalLayout.js:173 Alice Doe: (50, 900)
+familyTreeHierarchicalLayout.js:173 Michael Doe: (1390, 900)
+familyTreeHierarchicalLayout.js:179 DEBUG: ID 30 is Lisa Doe at (-170, 1330)
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - John Doe (ID: 19) -> Gen: 1
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Alice Doe (ID: 21) -> Gen: 2
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Michael Doe (ID: 31) -> Gen: 2
+familyTreeHierarchicalLayout.js:197 DEBUG: Before anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:201 John Doe: (-500, 1330) Gen: 1
+familyTreeHierarchicalLayout.js:201 Alice Doe: (50, 900) Gen: 2
+familyTreeHierarchicalLayout.js:201 Michael Doe: (1390, 900) Gen: 2
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 27 (gen 0) and 57 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 35 (gen 0) and 36 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 19 (gen 1) and 30 (gen 1)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 29 (gen 1) and 28 (gen 1)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+familyTreeHierarchicalLayout.js:206 DEBUG: After anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:210 John Doe: (-900, 1350) Gen: 1
+familyTreeHierarchicalLayout.js:210 Alice Doe: (-180, 900) Gen: 2
+familyTreeHierarchicalLayout.js:210 Michael Doe: (540, 900) Gen: 2
+familyTreeHierarchicalLayout.js:1363 DEBUG: All generations with people:
+familyTreeHierarchicalLayout.js:1367   Gen 0 (index 0): Robert Doe, Molly Doe, Richard Sharma, Margaret Sharma, Carol Doe, William O'Sullivan, Patricia Smith
+familyTreeHierarchicalLayout.js:1367   Gen 1 (index 1): Thomas Anderson, Sarah Anderson, John Doe, Jane Doe, Lisa Doe
+familyTreeHierarchicalLayout.js:1367   Gen 2 (index 2): David Anderson, Alice Doe, Charlie Doe, Michael Doe
+familyTreeHierarchicalLayout.js:1367   Gen 3 (index 3): Bob Anderson, Emily Anderson, Emma Doe
+familyTreeHierarchicalLayout.js:1379 DEBUG: John is in generation 1, generationIndex 1, calculated Y = 450
+familyTreeHierarchicalLayout.js:1380 DEBUG: sortedGenerations array: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:1381 DEBUG: All generation groups: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:170 DEBUG: Immediately after node creation:
+familyTreeHierarchicalLayout.js:173 John Doe: (-500, 1330)
+familyTreeHierarchicalLayout.js:173 Alice Doe: (50, 900)
+familyTreeHierarchicalLayout.js:173 Michael Doe: (1390, 900)
+familyTreeHierarchicalLayout.js:179 DEBUG: ID 30 is Lisa Doe at (-170, 1330)
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - John Doe (ID: 19) -> Gen: 1
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Alice Doe (ID: 21) -> Gen: 2
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Michael Doe (ID: 31) -> Gen: 2
+familyTreeHierarchicalLayout.js:197 DEBUG: Before anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:201 John Doe: (-500, 1330) Gen: 1
+familyTreeHierarchicalLayout.js:201 Alice Doe: (50, 900) Gen: 2
+familyTreeHierarchicalLayout.js:201 Michael Doe: (1390, 900) Gen: 2
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 27 (gen 0) and 57 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 35 (gen 0) and 36 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 19 (gen 1) and 30 (gen 1)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 29 (gen 1) and 28 (gen 1)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+familyTreeHierarchicalLayout.js:206 DEBUG: After anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:210 John Doe: (-900, 1350) Gen: 1
+familyTreeHierarchicalLayout.js:210 Alice Doe: (-180, 900) Gen: 2
+familyTreeHierarchicalLayout.js:210 Michael Doe: (540, 900) Gen: 2
+familyTreeHierarchicalLayout.js:1363 DEBUG: All generations with people:
+familyTreeHierarchicalLayout.js:1367   Gen 0 (index 0): Robert Doe, Molly Doe, Carol Doe, William O'Sullivan, Patricia Smith
+familyTreeHierarchicalLayout.js:1367   Gen 1 (index 1): John Doe, Lisa Doe
+familyTreeHierarchicalLayout.js:1367   Gen 2 (index 2): Alice Doe, Charlie Doe, Michael Doe
+familyTreeHierarchicalLayout.js:1367   Gen 3 (index 3): Bob Anderson, Emily Anderson, Emma Doe
+familyTreeHierarchicalLayout.js:1379 DEBUG: John is in generation 1, generationIndex 1, calculated Y = 450
+familyTreeHierarchicalLayout.js:1380 DEBUG: sortedGenerations array: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:1381 DEBUG: All generation groups: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:170 DEBUG: Immediately after node creation:
+familyTreeHierarchicalLayout.js:173 John Doe: (-90, 1110)
+familyTreeHierarchicalLayout.js:173 Alice Doe: (-600, 900)
+familyTreeHierarchicalLayout.js:173 Michael Doe: (740, 900)
+familyTreeHierarchicalLayout.js:179 DEBUG: ID 30 is Lisa Doe at (240, 1110)
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - John Doe (ID: 19) -> Gen: 1
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Alice Doe (ID: 21) -> Gen: 2
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Michael Doe (ID: 31) -> Gen: 2
+familyTreeHierarchicalLayout.js:197 DEBUG: Before anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:201 John Doe: (-90, 1110) Gen: 1
+familyTreeHierarchicalLayout.js:201 Alice Doe: (-600, 900) Gen: 2
+familyTreeHierarchicalLayout.js:201 Michael Doe: (740, 900) Gen: 2
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 25 (gen 2) and 24 (gen 3)
+antiOverlapLayout.js:243   -> Skipping vertical movement (different generations: 2 vs 3)
+antiOverlapLayout.js:236 DEBUG: Collision between 27 (gen 0) and 57 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 19 (gen 1) and 30 (gen 1)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+familyTreeHierarchicalLayout.js:206 DEBUG: After anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:210 John Doe: (-180, 900) Gen: 1
+familyTreeHierarchicalLayout.js:210 Alice Doe: (-540, 900) Gen: 2
+familyTreeHierarchicalLayout.js:210 Michael Doe: (540, 900) Gen: 2
+familyTreeHierarchicalLayout.js:1363 DEBUG: All generations with people:
+familyTreeHierarchicalLayout.js:1367   Gen 0 (index 0): Robert Doe, Molly Doe, Carol Doe, William O'Sullivan, Patricia Smith
+familyTreeHierarchicalLayout.js:1367   Gen 1 (index 1): John Doe, Lisa Doe
+familyTreeHierarchicalLayout.js:1367   Gen 2 (index 2): Alice Doe, Charlie Doe, Michael Doe
+familyTreeHierarchicalLayout.js:1367   Gen 3 (index 3): Bob Anderson, Emily Anderson, Emma Doe
+familyTreeHierarchicalLayout.js:1379 DEBUG: John is in generation 1, generationIndex 1, calculated Y = 450
+familyTreeHierarchicalLayout.js:1380 DEBUG: sortedGenerations array: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:1381 DEBUG: All generation groups: (4) [0, 1, 2, 3]
+familyTreeHierarchicalLayout.js:170 DEBUG: Immediately after node creation:
+familyTreeHierarchicalLayout.js:173 John Doe: (-90, 1110)
+familyTreeHierarchicalLayout.js:173 Alice Doe: (-600, 900)
+familyTreeHierarchicalLayout.js:173 Michael Doe: (740, 900)
+familyTreeHierarchicalLayout.js:179 DEBUG: ID 30 is Lisa Doe at (240, 1110)
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - John Doe (ID: 19) -> Gen: 1
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Alice Doe (ID: 21) -> Gen: 2
+familyTreeHierarchicalLayout.js:192 DEBUG: Generation mapping - Michael Doe (ID: 31) -> Gen: 2
+familyTreeHierarchicalLayout.js:197 DEBUG: Before anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:201 John Doe: (-90, 1110) Gen: 1
+familyTreeHierarchicalLayout.js:201 Alice Doe: (-600, 900) Gen: 2
+familyTreeHierarchicalLayout.js:201 Michael Doe: (740, 900) Gen: 2
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 25 (gen 2) and 24 (gen 3)
+antiOverlapLayout.js:243   -> Skipping vertical movement (different generations: 2 vs 3)
+antiOverlapLayout.js:236 DEBUG: Collision between 27 (gen 0) and 57 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 19 (gen 1) and 30 (gen 1)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+antiOverlapLayout.js:236 DEBUG: Collision between 57 (gen 0) and 26 (gen 0)
+antiOverlapLayout.js:239   -> Moving vertically (same generation or no constraint)
+familyTreeHierarchicalLayout.js:206 DEBUG: After anti-overlap - key positions:
+familyTreeHierarchicalLayout.js:210 John Doe: (-180, 900) Gen: 1
+familyTreeHierarchicalLayout.js:210 Alice Doe: (-540, 900) Gen: 2
+familyTreeHierarchicalLayout.js:210 Michael Doe: (540, 900) Gen: 2
 
-## ✅ **Enhanced Modal Management System**
-
-### **1. Comprehensive Modal Detection & Hiding**
-I enhanced the `hideAllOtherModals()` function to detect and hide various types of modals including:
-- Standard modals (`.modal`, `.dialog`, `[role="dialog"]`)
-- Framework-specific modals (MUI, React Modal, Chakra UI)
-- Custom modal attributes (`[data-modal]`, `[data-dialog]`)
-- Overlay elements (`.overlay`, `.popup`, `.modal-backdrop`)
-
-### **2. Robust Hiding Mechanism**
-The system now uses multiple methods to ensure modals are properly hidden:
-- **`display: none !important`** - Primary hiding method
-- **`visibility: hidden !important`** - Secondary hiding method
-- **`opacity: 0 !important`** - Visual hiding
-- **`z-index: -1`** - Layering control
-- **`pointer-events: none`** - Interaction prevention
-- **`aria-hidden="true"`** - Accessibility compliance
-
-### **3. State Preservation & Restoration**
-- **Stores original state**: Preserves `display` and `visibility` values before hiding
-- **Graceful restoration**: Restores exact original properties when SweetAlert closes
-- **Cleanup**: Removes temporary data attributes after restoration
-
-### **4. Enhanced CSS Rules**
-Added comprehensive CSS rules in `sweetalert-custom.css`:
-- **Targeted hiding**: `[data-was-visible="true"]` elements
-- **Body class targeting**: `body.swal2-shown` automatic hiding
-- **Maximum z-index**: `2147483647` for SweetAlert container
-- **Multiple fallback selectors**: Covers various modal frameworks
-
-### **5. Improved Timing & Performance**
-- **Immediate hiding**: Starts within 10ms of SweetAlert opening
-- **Force hiding scan**: Additional check for stubborn high z-index modals
-- **Delayed restoration**: 50ms delay ensures proper timing
-- **Cleanup verification**: Additional cleanup for any remaining hidden elements
-
-### **6. Test Demonstration**
-I created a test file . I see the issue! The SweetAlert is not showing at all now. This is likely because our modal management code is interfering with SweetAlert itself or there's an issue with the implementation. Let me check and fix this.
-
-First, let me examine what might be going wrong by checking if there are any console errors: I see the issue! The complex modal detection logic might be interfering with SweetAlert itself. Let me simplify the implementation and fix the problem: 
-```
-
-
-Made changes.
-
-
-```
-Now let me also simplify the `didClose` function: 
-```
-
-
-Made changes.
-
-
-```
-Now let me also simplify the `hideAllOtherModals` function to be less aggressive: 
-```
-
-
-Made changes.
-
-
-```
-Now let me create a simple test to verify SweetAlert is working. Let me add a test button to trigger a SweetAlert: 
-
-Made changes.
-
-Now let me add this test component to the main app so we can test if SweetAlert is working: 
-```
-
-
-Made changes.
-
-
-```
-
-```
-
-
-Made changes.
-
-
-```
-Now let me also check if there are any issues with the SweetAlert import in main.jsx: Good, the CSS is imported. Now let me check if there are any syntax errors in the sweetAlerts.js file by creating a simpler version for testing: 
-
-Made changes.
-
-Now let me update the test component to use the simple version first: 
-```
-
-
-Made changes.
-
-
-```
-Now the page should have a test panel in the top-right corner. You can try clicking the "Test Basic" button to see if SweetAlert works at all. 
-
-If the simple version works, then the issue is in our complex sweetAlerts.js configuration. If even the simple version doesn't work, then there's a more fundamental issue with the SweetAlert2 installation or import.
-
-Try the test buttons and let me know what happens:
-1. **Test Basic** - Should show a simple SweetAlert without any custom styling
-2. **Simple Success** - Should show a success icon with green styling  
-3. **Simple Error** - Should show an error icon with red styling
-
-This will help us determine if the issue is with:
-- SweetAlert2 installation/import (if nothing shows)
-- Our custom configuration (if simple works but complex doesn't)
-- Browser console errors (check dev tools)
-
-What happens when you click the test buttons?
 
 PS. Please, if you create tests, move them to frontend_tests and backend_tests so we have only one folder for each type. Upgrade the organization of these folders every time after you test the app. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. Centralize all alerts in validationAlerts.js with sweetallert, not standart allerts. always update ROADMAP.md after code changes.

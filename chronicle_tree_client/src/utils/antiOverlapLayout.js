@@ -11,7 +11,7 @@
  * @param {Array} persons - Person data from database
  * @returns {Array} - Fixed node positions with no overlaps
  */
-export function preventNodeOverlap(nodes, edges, relationshipMaps, persons) {
+export function preventNodeOverlap(nodes, edges, relationshipMaps, persons, generationLookup = null) {
   // Set spacing constants for node positioning
   const NODE_WIDTH = 280;
   const NODE_HEIGHT = 120;
@@ -38,7 +38,7 @@ export function preventNodeOverlap(nodes, edges, relationshipMaps, persons) {
       break; // No more collisions, we're done
     }
     
-    adjustedNodes = resolveCollisions(adjustedNodes, currentCollisions, complexNodes, MIN_HORIZONTAL_SPACING);
+    adjustedNodes = resolveCollisions(adjustedNodes, currentCollisions, complexNodes, MIN_HORIZONTAL_SPACING, generationLookup);
     iterations++;
   }
   
@@ -185,7 +185,7 @@ function calculateCollisionSeverity(boundsA, boundsB, minHSpacing, minVSpacing) 
  * @param {number} minHSpacing - Minimum horizontal spacing
  * @returns {Array} - Nodes with adjusted positions
  */
-function resolveCollisions(nodes, collisions, complexNodes, minHSpacing) {
+function resolveCollisions(nodes, collisions, complexNodes, minHSpacing, generationLookup = null) {
   const adjustedNodes = nodes.map(node => ({ ...node, position: { ...node.position } }));
   const nodeMap = new Map(adjustedNodes.map(node => [node.id, node]));
   
@@ -226,10 +226,18 @@ function resolveCollisions(nodes, collisions, complexNodes, minHSpacing) {
       
       // Apply opposing forces to separate the nodes (more aggressive)
       nodeA.position.x -= dirX * adjustment * 1.2; // 120% of adjustment for stronger separation
-      nodeA.position.y -= dirY * adjustment * 0.4; // Slightly more vertical adjustment
       
       nodeB.position.x += dirX * adjustment * 1.2;
-      nodeB.position.y += dirY * adjustment * 0.4;
+      
+      // Only move vertically if nodes are in the same generation
+      const genA = generationLookup ? generationLookup.get(nodeA.id) : null;
+      const genB = generationLookup ? generationLookup.get(nodeB.id) : null;
+      
+      
+      if (!generationLookup || genA === genB) {
+        nodeA.position.y -= dirY * adjustment * 0.4; // Slightly more vertical adjustment
+        nodeB.position.y += dirY * adjustment * 0.4;
+      }
     }
   });
   

@@ -165,23 +165,44 @@ export const createFamilyTreeLayout = (persons, relationships, handlers = {}, ro
 
   // Step 5: Create simplified edges (no duplication)
   const edges = createSimplifiedEdges(relationships, relationshipMaps, persons);
+  
 
   // Step 6: Apply anti-overlap positioning to prevent overlapping nodes
-  const antiOverlapNodes = preventNodeOverlap(nodes, edges, relationshipMaps, persons);
+  
+  // Pass generation information to anti-overlap system to preserve hierarchy
+  const generationLookup = new Map();
+  nodes.forEach(node => {
+    const person = persons.find(p => String(p.id) === node.id);
+    if (person) {
+      const generation = generations.get(String(person.id));
+      generationLookup.set(node.id, generation);
+    }
+  });
+  
+  
+  const antiOverlapNodes = preventNodeOverlap(nodes, edges, relationshipMaps, persons, generationLookup);
+  
+  
   
   // Step 7: Apply relationship-specific spacing adjustments
+  
   const spacedNodes = applyRelationshipSpacing(antiOverlapNodes, edges, relationshipMaps);
   
+  
   // Step 8: Apply visual complexity spacing for better readability
+  
   const visuallySpacedNodes = applyVisualComplexitySpacing(spacedNodes, edges, relationshipMaps);
+  
   
   // Step 9: Enhance node visuals based on relationship complexity
   const enhancedNodes = visuallySpacedNodes.map(node => 
     enhanceNodeVisuals(node, relationshipMaps, edges)
   );
   
+  
   // Step 10: Enhance edge visuals for better relationship visualization
   const enhancedEdges = enhanceEdgeVisuals(edges, relationshipMaps);
+
 
   return { nodes: enhancedNodes, edges: enhancedEdges };
 };
@@ -692,13 +713,8 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
           if (!visited.has(parentId)) {
             // const parent = persons.find(p => String(p.id) === parentId);
             
-            // When we have a specific root person selected, prioritize the root's direct lineage
-            // Put spouse's parents at a different generation offset to avoid mixing families
-            const isSpouseParent = currentPerson?.first_name !== 'Lisa' && 
-                                 currentPerson?.first_name === 'John' && 
-                                 currentPerson?.last_name === 'Doe';
-            
-            const parentGeneration = isSpouseParent ? generation - 2 : generation - 1;
+            // Parents are always one generation above their children
+            const parentGeneration = generation - 1;
             
             queue.push({ id: parentId, generation: parentGeneration });
           }
@@ -992,8 +1008,32 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
               .filter(gen => gen !== undefined);
             
             if (parentGenerations.length >= 2) {
-              // Find the minimum generation (highest in hierarchy) 
-              const targetGeneration = Math.min(...parentGenerations);
+              // Get the spouse pair's generation to determine where parents should be
+              const spouseGeneration = Math.max(generations.get(personId), generations.get(spouseId));
+              // Parents should be one generation above their children
+              const targetGeneration = spouseGeneration - 1;
+              
+              // Don't move parents if they would conflict with existing root positioning
+              // Check if any parent is already positioned correctly relative to other children
+              const shouldSkipAlignment = allParents.some(parentId => {
+                if (!generations.has(parentId)) return false;
+                const parentGen = generations.get(parentId);
+                
+                // Check if this parent has other children at correct generational distance
+                if (parentToChildren && parentToChildren.has(parentId)) {
+                  const parentChildren = Array.from(parentToChildren.get(parentId) || []);
+                  const hasCorrectlyPositionedChild = parentChildren.some(childId => {
+                    const childGen = generations.get(childId);
+                    return childGen !== undefined && childGen === parentGen + 1;
+                  });
+                  return hasCorrectlyPositionedChild;
+                }
+                return false;
+              });
+              
+              if (shouldSkipAlignment) {
+                return;
+              }
               
               // FORCEFULLY align all parents to this generation (parent-in-law priority)
               allParents.forEach(parentId => {
@@ -1027,7 +1067,31 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
             .filter(gen => gen !== undefined);
           
           if (parentGenerations.length >= 2) {
-            const targetGeneration = Math.min(...parentGenerations);
+            // Get the spouse pair's generation to determine where parents should be
+            const spouseGeneration = Math.max(generations.get(personId), generations.get(spouseId));
+            // Parents should be one generation above their children
+            const targetGeneration = spouseGeneration - 1;
+            
+            // Don't move parents if they would conflict with existing root positioning
+            const shouldSkipAlignment = allParents.some(parentId => {
+              if (!generations.has(parentId)) return false;
+              const parentGen = generations.get(parentId);
+              
+              // Check if this parent has other children at correct generational distance
+              if (parentToChildren && parentToChildren.has(parentId)) {
+                const parentChildren = Array.from(parentToChildren.get(parentId) || []);
+                const hasCorrectlyPositionedChild = parentChildren.some(childId => {
+                  const childGen = generations.get(childId);
+                  return childGen !== undefined && childGen === parentGen + 1;
+                });
+                return hasCorrectlyPositionedChild;
+              }
+              return false;
+            });
+            
+            if (shouldSkipAlignment) {
+              return;
+            }
             
             // FORCE all parents to the same generation (overrides all other alignments)
             allParents.forEach(parentId => {
@@ -1039,6 +1103,40 @@ const calculateGenerations = (persons, childToParents, rootNodes, parentToChildr
         }
       }
     });
+  }
+
+  // Final validation: enforce parent-child generation relationships
+  // Children must ALWAYS be one generation below their parents
+  // Run multiple passes to handle cascading effects
+  
+  if (childToParents) {
+    for (let pass = 0; pass < 3; pass++) {
+      let changed = false;
+      
+      childToParents.forEach((parents, childId) => {
+        if (generations.has(childId)) {
+          const childGeneration = generations.get(childId);
+          
+          parents.forEach(parentId => {
+            if (generations.has(parentId)) {
+              const parentGeneration = generations.get(parentId);
+              
+              // Parent must be exactly one generation above child (lower number = higher in tree)
+              // If parent generation >= child generation, move child down
+              if (parentGeneration >= childGeneration) {
+                const newChildGeneration = parentGeneration + 1;
+                const person = persons.find(p => String(p.id) === childId);
+                const parent = persons.find(p => String(p.id) === parentId);
+                generations.set(childId, newChildGeneration);
+                changed = true;
+              }
+            }
+          });
+        }
+      });
+      
+      if (!changed) break; // Stop if no changes were made
+    }
   }
 
 
@@ -1178,6 +1276,7 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     generationGroups.get(generation).push(person);
   });
 
+
   // Sort each generation to prioritize root person first, then oldest person first (leftmost position)
   for (const [generation, generationPersons] of generationGroups) {
     generationPersons.sort((a, b) => {
@@ -1232,11 +1331,13 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
   // Create sorted generation array for consistent positioning
   const sortedGenerations = Array.from(generationGroups.keys()).sort((a, b) => a - b);
   
+  
   // Position nodes generation by generation
   for (const [generation, generationPersons] of generationGroups) {
     // Calculate Y position based on the index in sorted generations (more compact)
     const generationIndex = sortedGenerations.indexOf(generation);
     const y = generationIndex * GENERATION_HEIGHT;
+    
     const processedPersons = new Set();
 
     // Calculate total width needed for this generation with proper spacing
@@ -1472,8 +1573,8 @@ const createHierarchicalNodes = (persons, generations, spouseMap, handlers, root
     return nodes;
   }
 
-  // Nudge unrelated nodes to avoid overlap
-  avoidNodeOverlap(nodes, unrelatedNodeIds);
+  // Nudge unrelated nodes to avoid overlap - DISABLED: conflicts with external anti-overlap system
+  // avoidNodeOverlap(nodes, unrelatedNodeIds);
 
   return nodes;
 };

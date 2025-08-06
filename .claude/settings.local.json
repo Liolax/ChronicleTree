@@ -59,7 +59,8 @@
       "Bash(bundle install:*)",
       "Bash(bundle list:*)",
       "Bash(echo $RAILS_ENV)",
-      "Bash(echo $BUNDLE_WITHOUT)"
+      "Bash(echo $BUNDLE_WITHOUT)",
+      "Bash(realpath:*)"
     ],
     "deny": []
   }
