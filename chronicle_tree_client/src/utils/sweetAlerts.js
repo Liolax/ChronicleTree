@@ -70,14 +70,15 @@ export const showWarning = (title, text) => {
   });
 };
 
-export const showInfo = (title, text) => {
+// Allow custom popup class for special cases (e.g., flexible size)
+export const showInfo = (title, text, customPopupClass = null) => {
   return Swal.fire({
     title,
     text,
     icon: 'info',
     confirmButtonText: 'OK',
     customClass: {
-      popup: 'swal-popup-custom',
+      popup: customPopupClass || 'swal-popup-custom',
       title: 'swal-title-custom',
       htmlContainer: 'swal-content-custom',
       actions: 'swal-actions-custom',

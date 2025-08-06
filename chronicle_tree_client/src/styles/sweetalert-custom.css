@@ -1,3 +1,18 @@
+/* Flexible popup for large info modals (no fixed width/height) */
+.swal-popup-flex {
+  font-family: 'Inter', sans-serif !important;
+  background: #FEFEFA !important;
+  border-radius: 1.5rem !important;
+  border: 2px solid #A0C49D !important;
+  padding: 2rem !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: 700px !important;
+  min-height: 0 !important;
+  max-height: 90vh !important;
+  overflow: auto !important;
+}
 /* Simple SweetAlert2 styling to match app modals */
 
 /* Ensure SweetAlert2 has the highest z-index and higher than modals */

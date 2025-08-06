@@ -1109,7 +1109,7 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
       alertMessage += `• Review family relationship structure\n`;
     }
     
-    showInfo('Relationship Filtering', alertMessage);
+    showInfo('Relationship Filtering', alertMessage, 'swal-popup-flex');
   };
 
   // Filter people for each relationship type
