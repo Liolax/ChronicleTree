@@ -22,6 +22,12 @@ module ChronicleTreeApi
     # API-only application configuration
     config.api_only = true
 
+    # Security middleware for comprehensive monitoring
+    config.middleware.use SecurityMiddleware
+    
+    # Rate limiting middleware
+    config.middleware.use Rack::Attack
+
     # JWT authentication middleware
     config.middleware.use Warden::JWTAuth::Middleware
   end

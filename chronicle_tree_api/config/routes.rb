@@ -83,6 +83,18 @@ Rails.application.routes.draw do
         get 'tree/:id', to: 'images#tree'
         delete 'cleanup', to: 'images#cleanup'
       end
+      
+      # Admin-only audit and security monitoring
+      namespace :admin do
+        resources :audit, only: [] do
+          collection do
+            get :logs
+            get :versions
+            get :security_events
+            get :rate_limits
+          end
+        end
+      end
     end
   end
 end

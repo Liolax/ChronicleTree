@@ -1,6 +1,9 @@
 # Core relationship model for Chronicle Tree family tree project
 # Handles complex family relationships including step-families, marriages, and divorces
 class Relationship < ApplicationRecord
+  include PaperTrailCustom
+  chronicle_versioned
+
   belongs_to :person,
              class_name: "Person",
              foreign_key: "person_id",

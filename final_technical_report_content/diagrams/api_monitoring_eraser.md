@@ -1,55 +1,74 @@
 # ChronicleTree System Monitoring API - Eraser.io Sequence Diagram
 
 ```
-// ChronicleTree System Health & Public Access Flow - Hybrid Implementation
-// Dev: Sidekiq+Redis, Prod: Solid Queue, Health monitoring for both
+// ChronicleTree System Health & Security Monitoring - Hybrid Implementation
+// Dev: Sidekiq+Redis, Prod: Solid Queue, Comprehensive security with Rack::Attack
 // For use with app.eraser.io
 
-title ChronicleTree System Monitoring - Hybrid Implementation
+title ChronicleTree System Monitoring - Security Enhanced
 
 React Client [icon: react, color: blue]
+Rack Attack [icon: shield, color: orange]
 Rails API [icon: ruby, color: red]
 PostgreSQL [icon: database, color: blue]
 Sidekiq Worker [icon: clock, color: purple]
 Redis Queue [icon: memory, color: red]
+Security Logger [icon: file-text, color: green]
 Public Access [icon: globe, color: green]
 Image Generator [icon: image, color: orange]
 
 activate React Client
 
-// Health Check Flow
-React Client > Rails API: GET /up
-note right of Rails API: Rails built-in health check
+// Health Check Flow with Rate Limiting
+React Client > Rack Attack: GET /up
+note right of Rack Attack: Rate limit check first
+activate Rack Attack
+Rack Attack > Rack Attack: Verify request limits
+Rack Attack > Rails API: Forward if allowed
+deactivate Rack Attack
+
 activate Rails API
 Rails API > PostgreSQL: Database connectivity test
 activate PostgreSQL
 PostgreSQL --> Rails API: DB status OK
 deactivate PostgreSQL
+
 Rails API > Redis Queue: Check queue connectivity
 activate Redis Queue
 Redis Queue --> Rails API: Redis status OK
 deactivate Redis Queue
+
 Rails API > Sidekiq Worker: Background jobs health
 activate Sidekiq Worker
 Sidekiq Worker --> Rails API: Worker status OK
 deactivate Sidekiq Worker
+
 Rails API --> React Client: System health OK
 deactivate Rails API
 
-// Ping Endpoint Flow
-React Client > Rails API: GET /ping
-activate Rails API
-Rails API --> React Client: pong
-deactivate Rails API
+// Rate Limited Request Example
+React Client > Rack Attack: Excessive requests
+activate Rack Attack
+Rack Attack > Rack Attack: Rate limit exceeded
+Rack Attack > Security Logger: Log rate limit violation
+activate Security Logger
+Security Logger --> Rack Attack: Violation logged
+deactivate Security Logger
+Rack Attack --> React Client: 429 Too Many Requests
+note right of React Client: X-RateLimit headers included
+deactivate Rack Attack
 
-// Public Profile Access Flow
+// Public Profile Access Flow (with Rate Limiting)
 activate Public Access
-Public Access > Rails API: GET /profile/:id
-note right of Rails API: Social media crawlers
+Public Access > Rack Attack: GET /profile/:id
+note right of Rack Attack: Rate limit public access
+activate Rack Attack
+Rack Attack > Rack Attack: Check public endpoint limits
+Rack Attack > Rails API: Forward if allowed
+deactivate Rack Attack
+
 activate Rails API
 Rails API > PostgreSQL: Query public profile data
-activate PostgreSQL
-PostgreSQL --> Rails API: Profile data
 deactivate PostgreSQL
 Rails API --> Public Access: HTML with OG meta tags
 deactivate Rails API

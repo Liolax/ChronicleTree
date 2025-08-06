@@ -1,6 +1,9 @@
 # Central person model for Chronicle Tree family tree project
 # Manages family relationships, genealogical connections, and demographic data
 class Person < ApplicationRecord
+  include PaperTrailCustom
+  chronicle_versioned
+
   belongs_to :user
 
   has_many :relationships,

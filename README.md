@@ -166,6 +166,37 @@ See the application for specific error messages and validation feedback.
 
 ---
 
+## Security Features
+
+ChronicleTree implements comprehensive security and monitoring:
+
+### Rate Limiting (Rack::Attack)
+- **General API Protection**: Implements comprehensive IP-based throttling allowing a maximum of 300 requests per 5-minute window from any single IP address, effectively preventing brute force attacks and automated scraping attempts while maintaining reasonable access for legitimate users
+- **User-Specific Limits**: Provides authenticated user throttling with a generous allowance of 1000 requests per hour per user account, ensuring normal application usage remains unimpacted while preventing abuse from compromised accounts or malicious users
+- **Authentication Security**: Enforces strict rate limiting on critical authentication endpoints including login attempts (maximum 5 attempts per 20-second window), user registration (limited to 3 registrations per hour per IP), and password reset requests (maximum 5 requests per hour), providing robust protection against credential stuffing and account enumeration attacks
+- **Resource Protection**: Implements specialized throttling for resource-intensive operations including media file uploads (limited to 20 uploads per hour per user) and family tree share generation (maximum 50 share creations per hour per user), preventing system resource exhaustion and ensuring equitable access to computational resources
+- **Exponential Backoff**: Features intelligent escalation mechanisms that automatically increase rate limiting severity for repeat offenders, implementing progressively longer blocking periods for IPs or users that consistently violate rate limits, effectively deterring persistent attackers while allowing legitimate users to recover from temporary violations
+
+### Comprehensive Audit Logging
+- **Paper Trail Integration**: Maintains complete audit trails for all data modifications with comprehensive user attribution, ensuring full accountability and traceability for every change made to genealogical data throughout the system
+- **Request Tracking**: Implements detailed logging of all API requests capturing essential metadata including IP addresses, user agents, request methods, response times, and timestamps, providing comprehensive visibility into system usage patterns and potential security threats
+- **Security Events**: Continuously monitors and logs suspicious activities including rate limit violations, potential attack vectors, unusual access patterns, and security incidents, enabling rapid threat detection and response capabilities
+- **Genealogical Activity**: Provides specialized logging for genealogical operations including person management, relationship modifications, media uploads, and family tree sharing activities, ensuring complete documentation of all family history changes
+
+### Security Monitoring
+- **Admin Dashboard**: Offers comprehensive real-time security monitoring through dedicated administrative endpoints accessible at `/admin/audit`, providing immediate visibility into system security status, current threats, and ongoing security events
+- **Structured Logging**: Utilizes JSON-formatted logging throughout the application enabling easy integration with log analysis tools, security information and event management (SIEM) systems, and automated monitoring solutions
+- **Threat Detection**: Implements automatic identification of suspicious request patterns including path traversal attempts, XSS injection attempts, bot traffic, and other potential security threats through intelligent pattern recognition and behavior analysis
+- **Performance Monitoring**: Continuously tracks critical performance metrics including response times, error rates, system resource utilization, and application health indicators, ensuring optimal performance while identifying potential security impacts on system performance
+
+### Data Protection
+- **User-Scoped Access**: Enforces strict data isolation mechanisms ensuring users can only access their own family data through comprehensive authorization controls, preventing unauthorized access to other users' genealogical information and maintaining complete privacy separation
+- **JWT Authentication**: Implements stateless session management using JSON Web Tokens with comprehensive token revocation support through blacklisting mechanisms, providing secure authentication while maintaining scalability and security best practices
+- **Input Validation**: Deploys multi-layer validation strategies including client-side validation for immediate user feedback and server-side validation for security and data integrity, preventing malicious input and ensuring data quality throughout the application
+- **Secure File Handling**: Provides protected file upload capabilities with comprehensive type and size restrictions, secure storage mechanisms, and access controls preventing directory traversal attacks and unauthorized file access
+
+---
+
 ## Testing
 
 - **Backend:**

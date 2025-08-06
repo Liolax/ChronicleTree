@@ -39,13 +39,17 @@ users [icon: user, color: blue] {
 
 people [icon: users, color: green] {
   id bigint pk
+  user_id bigint fk
   first_name varchar(255)
   last_name varchar(255)
 }
 
 // --- Relationships ---
 users.id > shares.user_id
+users.id > people.user_id
 people.id > share_images.person_id
+// Polymorphic association: shares.content_id > people.id (when content_type = 'profile')
+shares.content_id - people.id
 
 // Social Sharing Features:
 // - Multi-platform sharing (Facebook, Twitter, WhatsApp, Email)
