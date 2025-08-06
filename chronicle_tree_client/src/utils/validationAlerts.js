@@ -329,7 +329,22 @@ export const showOperationSuccess = (type, details = {}) => {
     mediaDeleted: 'Media deleted successfully!',
     notesUpdated: 'Notes and stories have been successfully updated!'
   };
-  showSuccess('Operation Complete', messages[type] || 'Operation completed successfully!');
+  
+  // Choose appropriate titles based on operation type (professional, no emojis)
+  const operationConfig = {
+    linkCopied: { title: 'Link Copied Successfully', icon: 'success' },
+    personAdded: { title: 'Person Added Successfully', icon: 'success' },
+    personUpdated: { title: 'Person Updated Successfully', icon: 'success' },
+    factDeleted: { title: 'Fact Deleted Successfully', icon: 'success' },
+    timelineDeleted: { title: 'Timeline Event Deleted', icon: 'success' },
+    mediaDeleted: { title: 'Media Deleted Successfully', icon: 'success' },
+    notesUpdated: { title: 'Notes Updated Successfully', icon: 'success' }
+  };
+  
+  const config = operationConfig[type] || { title: 'Operation Completed Successfully', icon: 'success' };
+  const message = messages[type] || 'Operation completed successfully!';
+  
+  showSuccess(config.title, message);
 };
 
 export const showFormError = (type, person = {}, child = {}, parent = {}) => {

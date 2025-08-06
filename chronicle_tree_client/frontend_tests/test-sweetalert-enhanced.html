@@ -216,6 +216,7 @@
             <button class="test-btn" onclick="testDeleteConfirm()">Test Delete Confirm</button>
             <button class="test-btn" onclick="testToast()">Test Toast</button>
             <button class="test-btn" onclick="testModalManagement()">Test Modal Management</button>
+            <button class="test-btn" onclick="testOperationSuccess()">Test Professional Success Messages</button>
         </div>
 
         <div class="test-results">
@@ -448,6 +449,37 @@
                 });
                 logResult('Modal management test - Existing modal hidden when SweetAlert appeared ✅');
             }, 1000);
+        }
+
+        function testOperationSuccess() {
+            // Test different operation success types with professional titles
+            const operations = [
+                { type: 'personAdded', title: 'Person Added Successfully', message: 'John Doe has been successfully added to the family tree!' },
+                { type: 'linkCopied', title: 'Link Copied Successfully', message: 'Profile link copied to clipboard!' },
+                { type: 'notesUpdated', title: 'Notes Updated Successfully', message: 'Notes and stories have been successfully updated!' },
+                { type: 'factDeleted', title: 'Fact Deleted Successfully', message: 'Fact deleted successfully!' },
+                { type: 'mediaDeleted', title: 'Media Deleted Successfully', message: 'Media deleted successfully!' }
+            ];
+
+            let index = 0;
+            function showNext() {
+                if (index < operations.length) {
+                    const op = operations[index];
+                    const config = getFullSweetAlertConfig('success', '#10b981');
+                    Swal.fire({
+                        title: op.title,
+                        text: op.message,
+                        ...config
+                    }).then(() => {
+                        index++;
+                        if (index < operations.length) {
+                            setTimeout(showNext, 500);
+                        }
+                    });
+                    logResult(`Operation success test - ${op.type} with professional title ✅`);
+                }
+            }
+            showNext();
         }
 
         function showExistingModal() {
