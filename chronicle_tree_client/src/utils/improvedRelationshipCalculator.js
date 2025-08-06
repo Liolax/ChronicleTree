@@ -825,6 +825,50 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
     }
   }
   
+  // Check for step-great-grandparent relationship
+  // Step-great-grandparent relationships only exist when someone new marries person's biological great-grandparent
+  // Example: If person's biological great-grandfather remarries, his new wife becomes person's step-great-grandmother
+  for (const parent of rootParentsForGrandparent) {
+    // Get this parent's parents (root's grandparents)
+    const grandparents = childToParents.get(parent) || new Set();
+    
+    for (const grandparent of grandparents) {
+      // Get this grandparent's parents (root's great-grandparents)
+      const greatGrandparents = childToParents.get(grandparent) || new Set();
+      
+      for (const greatGrandparent of greatGrandparents) {
+        // Check if person is married to this biological great-grandparent
+        const greatGrandparentSpouses = spouseMap.get(greatGrandparent) || new Set();
+        const greatGrandparentDeceasedSpouses = deceasedSpouseMap.get(greatGrandparent) || new Set();
+        
+        // Check current spouses
+        if (greatGrandparentSpouses.has(personId)) {
+          // Person is married to root's biological great-grandparent → step-great-grandparent
+          return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Great-Grandparent');
+        }
+        
+        // Check deceased spouses (but only if they were alive when the marriage was valid)
+        if (greatGrandparentDeceasedSpouses.has(personId)) {
+          // Additional timeline validation for deceased spouses
+          const personObj = allPeople.find(p => p.id == personId);
+          const rootObj = allPeople.find(p => p.id == rootId);
+          
+          if (personObj?.date_of_death && rootObj?.date_of_birth) {
+            const deathDate = new Date(personObj.date_of_death);
+            const birthDate = new Date(rootObj.date_of_birth);
+            
+            // If root was born after person's death, no step-great-grandparent relationship exists
+            if (birthDate > deathDate) {
+              continue; // Skip this deceased spouse, not a valid step-great-grandparent
+            }
+          }
+          
+          return getGenderSpecificRelation(personId, 'Step-Great-Grandfather', 'Step-Great-Grandmother', allPeople, 'Step-Great-Grandparent');
+        }
+      }
+    }
+  }
+  
   // Check for reverse step-grandparent relationship
   // Person is step-grandchild of root if: root is married to person's biological grandparent
   // This is the reverse of the step-grandparent logic above
@@ -865,6 +909,50 @@ const findStepRelationship = (personId, rootId, relationshipMaps, allPeople) => 
         }
         
         return getGenderSpecificRelation(personId, 'Step-Grandson', 'Step-Granddaughter', allPeople, 'Step-Grandchild');
+      }
+    }
+  }
+  
+  // Check for reverse step-great-grandparent relationship
+  // Person is step-great-grandchild of root if: root is married to person's biological great-grandparent
+  // This is the reverse of the step-great-grandparent logic above
+  for (const parent of personParentsForGrandparent) {
+    // Get this parent's parents (person's grandparents)
+    const grandparents = childToParents.get(parent) || new Set();
+    
+    for (const grandparent of grandparents) {
+      // Get this grandparent's parents (person's great-grandparents)
+      const greatGrandparents = childToParents.get(grandparent) || new Set();
+      
+      for (const greatGrandparent of greatGrandparents) {
+        // Check if root is married to this biological great-grandparent
+        const greatGrandparentSpouses = spouseMap.get(greatGrandparent) || new Set();
+        const greatGrandparentDeceasedSpouses = deceasedSpouseMap.get(greatGrandparent) || new Set();
+        
+        // Check current spouses
+        if (greatGrandparentSpouses.has(rootId)) {
+          // Root is married to person's biological great-grandparent → person is step-great-grandchild
+          return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
+        }
+        
+        // Check deceased spouses (but only if they were alive when the marriage was valid)
+        if (greatGrandparentDeceasedSpouses.has(rootId)) {
+          // Additional timeline validation for deceased spouses
+          const rootObj = allPeople.find(p => p.id == rootId);
+          const personObj = allPeople.find(p => p.id == personId);
+          
+          if (rootObj?.date_of_death && personObj?.date_of_birth) {
+            const deathDate = new Date(rootObj.date_of_death);
+            const birthDate = new Date(personObj.date_of_birth);
+            
+            // If person was born after root's death, no step-great-grandchild relationship exists
+            if (birthDate > deathDate) {
+              continue; // Skip this deceased spouse, not a valid step-great-grandchild
+            }
+          }
+          
+          return getGenderSpecificRelation(personId, 'Step-Great-Grandson', 'Step-Great-Granddaughter', allPeople, 'Step-Great-Grandchild');
+        }
       }
     }
   }
