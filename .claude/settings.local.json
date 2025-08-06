@@ -54,7 +54,9 @@
       "Bash(rg:*)",
       "Bash(bin/rails:*)",
       "Bash(npm audit:*)",
-      "Bash(npm update:*)"
+      "Bash(npm update:*)",
+      "Bash(\"C:/Users/User/chronicle_tree/chronicle_tree_api/bundle\" exec rails runner lib/debug_molly.rb)",
+      "Bash(bundle install:*)"
     ],
     "deny": []
   }

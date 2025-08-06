@@ -9,17 +9,33 @@ module Api
       end
 
       def create
-        media = @person.media.build(title: media_params[:title], description: media_params[:description])
-        media.file.attach(media_params[:file])
-        if media.save
-          render json: media,
-                 serializer: Api::V1::MediumSerializer,
-                 status: :created
-        else
-          Rails.logger.error("MEDIA SAVE ERROR: #{media.errors.full_messages.inspect}")
-          Rails.logger.error("PARAMS: #{params.inspect}")
-          render json: { errors: media.errors.full_messages },
-                 status: :unprocessable_entity
+        begin
+          Rails.logger.info("Creating media for person #{@person.id}")
+          Rails.logger.info("Media params: #{media_params.inspect}")
+          
+          media = @person.media.build(title: media_params[:title], description: media_params[:description])
+          
+          if media_params[:file].present?
+            Rails.logger.info("Attaching file: #{media_params[:file].original_filename}")
+            media.file.attach(media_params[:file])
+          end
+          
+          if media.save
+            Rails.logger.info("Media created successfully with ID: #{media.id}")
+            render json: media,
+                   serializer: Api::V1::MediumSerializer,
+                   status: :created
+          else
+            Rails.logger.error("MEDIA SAVE ERROR: #{media.errors.full_messages.inspect}")
+            Rails.logger.error("PARAMS: #{params.inspect}")
+            render json: { errors: media.errors.full_messages },
+                   status: :unprocessable_entity
+          end
+        rescue => e
+          Rails.logger.error("MEDIA CREATION EXCEPTION: #{e.message}")
+          Rails.logger.error("BACKTRACE: #{e.backtrace.first(10).join("\n")}")
+          render json: { error: "Failed to create media: #{e.message}" }, 
+                 status: :internal_server_error
         end
       end
 
@@ -36,10 +52,27 @@ module Api
       end
 
       def update
-        if @media.update(media_params)
-          render json: @media, status: :ok
-        else
-          render json: { errors: @media.errors.full_messages }, status: :unprocessable_entity
+        begin
+          Rails.logger.info("Updating media #{@media.id}")
+          Rails.logger.info("Update params: #{media_params.inspect}")
+          
+          if media_params[:file].present?
+            Rails.logger.info("Updating file attachment: #{media_params[:file].original_filename}")
+            @media.file.attach(media_params[:file])
+          end
+          
+          if @media.update(media_params.except(:file))
+            Rails.logger.info("Media updated successfully")
+            render json: @media, status: :ok
+          else
+            Rails.logger.error("MEDIA UPDATE ERROR: #{@media.errors.full_messages.inspect}")
+            render json: { errors: @media.errors.full_messages }, status: :unprocessable_entity
+          end
+        rescue => e
+          Rails.logger.error("MEDIA UPDATE EXCEPTION: #{e.message}")
+          Rails.logger.error("BACKTRACE: #{e.backtrace.first(10).join("\n")}")
+          render json: { error: "Failed to update media: #{e.message}" }, 
+                 status: :internal_server_error
         end
       end
 
@@ -61,14 +94,18 @@ module Api
             Rails.logger.info("Media authorized for user #{current_user.id}")
           else
             Rails.logger.warn("Media authorization failed: Media belongs to user #{media.attachable.user_id if media.attachable_type == 'Person'}, current user: #{current_user.id}")
-            render json: { error: "Media not found or you don't have permission to access it" }, status: :not_found
+            render json: { error: "This media item was not found or you don't have permission to access it. It may have already been deleted." }, status: :not_found
+            return
           end
         rescue ActiveRecord::RecordNotFound => e
           Rails.logger.error("Media not found: ID #{params[:id]}")
-          render json: { error: "Media not found" }, status: :not_found
+          Rails.logger.info("Available media IDs: #{Medium.pluck(:id).join(', ')}")
+          render json: { error: "Media item not found. It may have already been deleted or never existed." }, status: :not_found
+          return
         rescue => e
           Rails.logger.error("Error in set_media: #{e.message}")
           render json: { error: "Unable to access media" }, status: :internal_server_error
+          return
         end
       end
 

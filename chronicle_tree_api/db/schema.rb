@@ -186,6 +186,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_26_005348) do
     t.text "user_agent"
     t.string "request_id"
     t.datetime "created_at"
+    t.integer "user_id"
     t.index ["created_at"], name: "index_versions_on_created_at"
     t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
     t.index ["request_id"], name: "index_versions_on_request_id"

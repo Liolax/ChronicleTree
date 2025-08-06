@@ -202,10 +202,6 @@ export default function Profile() {
   };
 
   // --- Refactored Layout ---
-  const handlePersonUpdated = updated => {
-    Object.assign(person, updated); // update local person object
-    setEditingDetails(false);
-  };
 
   // Group relationships for DeletePersonModal
   function groupRelationships(person) {
@@ -220,15 +216,6 @@ export default function Profile() {
     }
     return groups;
   }
-
-  // Handler to open DeletePersonModal
-  const handleOpenDeleteModal = async () => {
-    // Fetch full person with relationships
-    const data = await getPerson(person.id);
-    setDeletePersonData(data);
-    setDeleteRelationships(groupRelationships(data));
-    setShowDeleteModal(true);
-  };
 
   // Handler to confirm deletion
   const handleConfirmDelete = async () => {
@@ -247,33 +234,13 @@ export default function Profile() {
   const handleToggleSpouseEx = async (relationshipId) => {
     if (!relationshipId) return;
     try {
-      const resp = await toggleSpouseExMutation.mutateAsync(relationshipId);
+      await toggleSpouseExMutation.mutateAsync(relationshipId);
       // Refresh the person and relationships for the modal
       const data = await getPerson(person.id);
       setDeletePersonData(data);
       setDeleteRelationships(groupRelationships(data));
     } catch (err) {
       showOperationError('updateFailed');
-    }
-  };
-
-  // Sharing functions
-  const handleCloseShareModal = () => {
-    setShowShare(false);
-    setShareCaption('');
-  };
-
-  const handleSocialShareClick = async (platform) => {
-    try {
-      const shareContent = generateProfileShareContent(person.id, shareCaption);
-      await handleSocialShare(platform, shareContent);
-      
-      if (platform === 'copy') {
-        // Show success message for copy
-        showOperationSuccess('linkCopied');
-      }
-    } catch (error) {
-      showOperationError('shareFailed', { message: error.message });
     }
   };
 
@@ -384,7 +351,14 @@ export default function Profile() {
               )}
             </div>
             <ProfileDetails person={person} editing={editingDetails} onPersonUpdated={updated => {
-              Object.assign(person, updated);
+              // Trigger re-render by updating people data
+              if (updated && updated.person) {
+                const updatedPerson = updated.person;
+                // Update the person object directly for immediate UI updates
+                Object.assign(person, updatedPerson);
+                // Force component re-render by updating state
+                window.location.reload();
+              }
               setEditingDetails(false);
             }} />
           </section>
