@@ -83,7 +83,7 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
             id="label"
             value={factType}
             onChange={handleFactTypeChange}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
           >
             {FACT_TYPE_OPTIONS.map(option => (
               <option key={option} value={option}>{option}</option>
@@ -110,7 +110,13 @@ export default function FactForm({ personId, fact, onFactAdded, onFactUpdated, o
         </div>
         <div className="md:col-span-2">
           <label htmlFor="value" className="block text-sm font-medium text-gray-700">Value / Description</label>
-          <textarea id="value" value={value} onChange={e => setValue(e.target.value)} rows="3" className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></textarea>
+          <textarea
+            id="value"
+            value={value}
+            onChange={e => setValue(e.target.value)}
+            rows="3"
+            className="mt-1 block w-full rounded-md border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+          ></textarea>
         </div>
       </div>
       <div className="flex justify-end gap-2 mt-4">
