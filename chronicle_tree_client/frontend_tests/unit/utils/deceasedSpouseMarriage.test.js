@@ -1,6 +1,6 @@
 /**
- * Frontend test for deceased spouse marriage functionality
- * Tests the UI behavior when making deceased spouses alive
+ * Tests for deceased spouse marriage functionality
+ * Validates UI behavior when making deceased spouses alive
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -75,7 +75,7 @@ describe('Deceased Spouse Marriage Updates', () => {
       robertSarahMarriage
     ];
 
-    // Try to make Molly alive - should detect conflict
+    // Make Molly alive - should detect conflict
     const result = validateMarriageUpdate(
       mockPersonData.molly,
       { ...mockPersonData.molly, date_of_death: null, is_deceased: false },
@@ -158,7 +158,7 @@ describe('Deceased Spouse Marriage Updates', () => {
       marriageToMolly
     ];
 
-    // This should work because both Robert and John only have deceased marriages
+    // Should work because both Robert and John only have deceased marriages
     const result = validateMarriageUpdate(
       mockPersonData.molly,
       { ...mockPersonData.molly, date_of_death: null, is_deceased: false },
@@ -171,7 +171,7 @@ describe('Deceased Spouse Marriage Updates', () => {
   });
 });
 
-// Mock validation function (this would be imported from actual utils)
+// Mock validation function implementation for testing
 function validateMarriageUpdate(originalPerson, updatedPerson, relationships, allPeople) {
   if (originalPerson.is_deceased && !updatedPerson.is_deceased) {
     // Person is being marked as alive

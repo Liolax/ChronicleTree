@@ -366,7 +366,7 @@ module ImageGeneration
           if event[:location].present? && y_pos + 18 <= start_y + @content_sections[:timeline][:height] - 20
             location_max_chars = get_max_chars_for_column_width(column_width - 50, 10)
             location_text = event[:location].length > location_max_chars ? "#{event[:location][0...location_max_chars-3]}..." : event[:location]
-            content += %{<text x="#{right_x + 30}" y="#{y_pos + 20}" font-family="Arial, sans-serif" font-size="10" fill="#{COLORS[:text_secondary]}">📍 #{escape_xml(location_text)}</text>}
+            content += %{<text x="#{right_x + 30}" y="#{y_pos + 20}" font-family="Arial, sans-serif" font-size="10" fill="#{COLORS[:text_secondary]}">#{escape_xml(location_text)}</text>}
             y_pos += 35
           else
             y_pos += 30
@@ -409,7 +409,7 @@ module ImageGeneration
       # Parents
       parents = @person.parents
       if parents.any?
-        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">👨‍👩‍👧‍👦 Parents: #{parents.map(&:full_name).join(', ')}</text>}
+        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">Parents: #{parents.map(&:full_name).join(', ')}</text>}
         y_pos += 25
       end
       
@@ -422,7 +422,7 @@ module ImageGeneration
           "#{spouse_type}: #{spouse.full_name}"
         end
         spouse_text = spouse_displays.join(', ')
-        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">💑 #{spouse_text}</text>}
+        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">Spouses: #{spouse_text}</text>}
         y_pos += 25
       end
       
@@ -430,7 +430,7 @@ module ImageGeneration
       children = @person.children
       if children.any?
         children_text = children.count > 3 ? "#{children.limit(3).map(&:full_name).join(', ')} and #{children.count - 3} more" : children.map(&:full_name).join(', ')
-        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">👶 Children: #{children_text}</text>}
+        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">Children: #{children_text}</text>}
         y_pos += 25
       end
       
@@ -438,7 +438,7 @@ module ImageGeneration
       siblings = @person.siblings
       if siblings.any?
         siblings_text = siblings.count > 2 ? "#{siblings.limit(2).map(&:full_name).join(', ')} and #{siblings.count - 2} more" : siblings.map(&:full_name).join(', ')
-        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">👫 Siblings: #{siblings_text}</text>}
+        content += %{<text x="#{left_column_x}" y="#{y_pos}" font-family="Arial, sans-serif" font-size="16" fill="#{COLORS[:text_primary]}">Siblings: #{siblings_text}</text>}
         y_pos += 25
       end
       
@@ -911,7 +911,7 @@ module ImageGeneration
           if event[:location].present? && y_pos + 22 <= y_start + available_height - 20
             location_max_chars = get_max_chars_for_width(max_text_width - 80, 11)  # Account for location emoji text
             location_text = event[:location].length > location_max_chars ? "#{event[:location][0...location_max_chars-3]}..." : event[:location]
-            content += %{<text x="125" y="#{y_pos + 22}" font-family="Arial, sans-serif" font-size="11" fill="#{COLORS[:text_secondary]}">📍 #{escape_xml(location_text)}</text>}
+            content += %{<text x="125" y="#{y_pos + 22}" font-family="Arial, sans-serif" font-size="11" fill="#{COLORS[:text_secondary]}">#{escape_xml(location_text)}</text>}
             y_pos += 40
           else
             y_pos += 35

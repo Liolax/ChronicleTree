@@ -74,11 +74,7 @@ export const useAddPerson = () => {
       queryClient.invalidateQueries({ queryKey: ['full-tree'] });
     },
     onError: (error) => {
-      console.log('=== ADD PERSON ERROR DETAILS ===');
-      console.log('Status:', error.response?.status);
-      console.log('Error data:', error.response?.data);
-      console.log('Full error:', error);
-      console.log('================================');
+      // Add person error handling - validation alerts will show appropriate user messages
     }
   });
 };

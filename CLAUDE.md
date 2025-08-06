@@ -1,6 +1,6 @@
 i still have issues. fix please.
 
-1. 
-
-
+1. check why when i set late Molly Doe as ex-spouse (on profile page) of Robert Doe, the system sets her as ex of Robert Doe, but when i try to change is_ex to false, it doesnt return their marriage to is_deceased. 
+2. please fix that 4 and more generations of family tree shares are not displayed correctly, it shows under nodes overlapped the footer - see 1754501666_tree_27_with_steps_bc54345dfec4f214.
+3. please clean up the tests code, replace all emojis with text (eg. OK, FAIL), remove all AI-like comments, and make sure the code is student-friendly and professional.
 PS. Please, if you create tests, move them to frontend_tests and backend_tests so we have only one folder for each type. Upgrade the organization of these folders every time after you test the app. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. Centralize all alerts in validationAlerts.js with sweetallert, not standart allerts. always update ROADMAP.md after code changes.

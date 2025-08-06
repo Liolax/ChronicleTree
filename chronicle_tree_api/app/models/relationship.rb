@@ -138,14 +138,38 @@ class Relationship < ApplicationRecord
     )
     
     if reciprocal
+      # When is_ex changes from true to false, check if person is actually deceased
+      # and restore the is_deceased status appropriately
+      if saved_change_to_is_ex? && is_ex == false && was_ex_now_current?
+        if person.date_of_death || person.is_deceased
+          self.is_deceased = true
+          reciprocal.update_column(:is_deceased, true)
+        elsif relative.date_of_death || relative.is_deceased
+          reciprocal.is_deceased = true
+          reciprocal.save!
+        else
+          # Both alive, ensure not marked as deceased
+          self.is_deceased = false
+          reciprocal.update_column(:is_deceased, false)
+        end
+      end
+      
+      # Sync is_ex status
       if reciprocal.is_ex != is_ex
         reciprocal.update_column(:is_ex, is_ex)
       end
       
-      if reciprocal.is_deceased != is_deceased
+      # Sync is_deceased status (if not handled above)
+      if reciprocal.is_deceased != is_deceased && !saved_change_to_is_ex?
         reciprocal.update_column(:is_deceased, is_deceased)
       end
     end
+  end
+
+  private
+
+  def was_ex_now_current?
+    saved_change_to_is_ex? && saved_change_to_is_ex[0] == true && saved_change_to_is_ex[1] == false
   end
 
   def update_sibling_relationships

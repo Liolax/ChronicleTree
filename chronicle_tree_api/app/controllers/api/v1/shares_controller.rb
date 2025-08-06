@@ -53,11 +53,11 @@ class Api::V1::SharesController < Api::V1::BaseController
       # Root person specified
       person = current_user.people.find(share_params[:content_id])
       title = "#{person.first_name} #{person.last_name}'s Family Tree"
-      description = "Explore #{person.first_name}'s family tree with #{current_user.people.count} family members! 🌳"
+      description = "Explore #{person.first_name}'s family tree with #{current_user.people.count} family members!"
     else
       # Full tree
       title = "Complete Family Tree"
-      description = "Discover our complete family tree with #{current_user.people.count} family members across multiple generations! 🌳"
+      description = "Discover our complete family tree with #{current_user.people.count} family members across multiple generations!"
     end
     
     # Add family stats and timeline info
@@ -148,7 +148,7 @@ class Api::V1::SharesController < Api::V1::BaseController
       description += " Key facts: #{key_facts}."
     end
     
-    description += " 🌳"
+    description += " View in our family tree."
     
     {
       title: "#{person.first_name} #{person.last_name}'s Profile",

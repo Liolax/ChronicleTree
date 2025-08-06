@@ -62,56 +62,56 @@ puts "\n" + "="*80
 puts "RELATIONSHIP TYPE SUMMARY"
 puts "="*80
 
-puts "\n📊 FULL SIBLINGS (share both parents):"
-puts "  Alice ↔ Charlie: #{alice.parents.map(&:full_name)} ∩ #{charlie.parents.map(&:full_name)}"
+puts "\nFULL SIBLINGS (share both parents):"
+puts "  Alice <-> Charlie: #{alice.parents.map(&:full_name)} intersect #{charlie.parents.map(&:full_name)}"
 shared = alice.parents & charlie.parents
-puts "  Shared: #{shared.map(&:full_name)} (#{shared.length} parents) → FULL siblings SUCCESS:"
+puts "  Shared: #{shared.map(&:full_name)} (#{shared.length} parents) - FULL siblings PASS"
 
-puts "\n📊 HALF SIBLINGS (share one parent):"
-puts "  Alice ↔ Michael: #{alice.parents.map(&:full_name)} ∩ #{michael.parents.map(&:full_name)}"
+puts "\nHALF SIBLINGS (share one parent):"
+puts "  Alice <-> Michael: #{alice.parents.map(&:full_name)} intersect #{michael.parents.map(&:full_name)}"
 shared = alice.parents & michael.parents  
-puts "  Shared: #{shared.map(&:full_name)} (#{shared.length} parent) → HALF siblings SUCCESS:"
+puts "  Shared: #{shared.map(&:full_name)} (#{shared.length} parent) - HALF siblings PASS"
 
-puts "  Charlie ↔ Michael: #{charlie.parents.map(&:full_name)} ∩ #{michael.parents.map(&:full_name)}"
+puts "  Charlie <-> Michael: #{charlie.parents.map(&:full_name)} intersect #{michael.parents.map(&:full_name)}"
 shared = charlie.parents & michael.parents
-puts "  Shared: #{shared.map(&:full_name)} (#{shared.length} parent) → HALF siblings SUCCESS:"
+puts "  Shared: #{shared.map(&:full_name)} (#{shared.length} parent) - HALF siblings PASS"
 
-puts "\n📊 STEP RELATIONSHIPS (no biological connection, connected by marriage):"
-puts "  Alice → Lisa: Lisa married Alice's father John → STEP-Mother SUCCESS:"
-puts "  Michael → Jane: Jane was married to Michael's father John → STEP-Mother SUCCESS:"
-puts "  Alice → William/Patricia: Lisa's parents → STEP-Grandparents SUCCESS:"
-puts "  Michael → Richard/Margaret: Jane's parents → STEP-Grandparents SUCCESS:"
+puts "\nSTEP RELATIONSHIPS (no biological connection, connected by marriage):"
+puts "  Alice -> Lisa: Lisa married Alice's father John - STEP-Mother PASS"
+puts "  Michael -> Jane: Jane was married to Michael's father John - STEP-Mother PASS"
+puts "  Alice -> William/Patricia: Lisa's parents - STEP-Grandparents PASS"
+puts "  Michael -> Richard/Margaret: Jane's parents - STEP-Grandparents PASS"
 
-puts "\n📊 BIOLOGICAL RELATIONSHIPS:"
-puts "  All → John: Biological father (Alice/Charlie from first marriage, Michael from second) SUCCESS:"
-puts "  Alice/Charlie → Jane: Biological mother SUCCESS:"
-puts "  Michael → Lisa: Biological mother SUCCESS:"
+puts "\nBIOLOGICAL RELATIONSHIPS:"
+puts "  All -> John: Biological father (Alice/Charlie from first marriage, Michael from second) PASS"
+puts "  Alice/Charlie -> Jane: Biological mother PASS"
+puts "  Michael -> Lisa: Biological mother PASS"
 
 puts "\n" + "="*80
 puts "IMPLEMENTATION VERIFICATION"
 puts "="*80
 
-puts "\nSUCCESS: Tree Sharing Implementation:"
+puts "\nTree Sharing Implementation Results:"
 puts "  - Half-siblings display as 'Half-Brother'/'Half-Sister'"
 puts "  - Full siblings display as 'Brother'/'Sister'"
 puts "  - Step-relationships preserved (Step-Mother, Step-Grandparents)"
-puts "  - Works bidirectionally (Alice→Michael = Half-Brother, Michael→Alice = Half-Sister)"
+puts "  - Works bidirectionally (Alice->Michael = Half-Brother, Michael->Alice = Half-Sister)"
 
-puts "\nSUCCESS: Profile Sharing Implementation:"
+puts "\nProfile Sharing Implementation Results:"
 puts "  - Half-sibling detection prevents incorrect step-sibling classification"
 puts "  - Step-sibling logic properly excludes half-siblings"
 puts "  - All relationship types display correctly in generated profiles"
 
-puts "\nSUCCESS: Database Consistency:"
+puts "\nDatabase Consistency Results:"
 puts "  - Sibling relationships exist for all combinations"
 puts "  - Parent-child relationships properly established"
 puts "  - Marriage relationships (current and deceased) correctly marked"
 
-puts "\n🎯 FINAL RESULT: Perfect distinction between Step and Half relationships!"
+puts "\nFINAL RESULT: Proper distinction between Step and Half relationships confirmed"
 puts "   Step = No biological connection (connected by marriage)"
 puts "   Half = Share exactly one biological parent"
 puts "   Full = Share both biological parents"
 
 puts "\n" + "="*80
-puts "TEST COMPLETE - ALL RELATIONSHIP TYPES WORKING CORRECTLY! 🎉"
+puts "TEST COMPLETE - ALL RELATIONSHIP TYPES WORKING CORRECTLY"
 puts "="*80

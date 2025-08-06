@@ -1,7 +1,7 @@
 require "test_helper"
 
-# Test suite for Person model and family relationship logic
-# Validates spouse tracking, in-law relationships, and deceased status handling
+# Person model unit tests
+# Tests spouse tracking, in-law relationships, and deceased status handling
 class PersonTest < ActiveSupport::TestCase
   def setup
     @user = User.create!(email: 'test@example.com', password: 'password123', name: 'Test User')
@@ -15,7 +15,7 @@ class PersonTest < ActiveSupport::TestCase
   end
 
   test "current_spouses excludes deceased spouses" do
-    # Test scenario: John has deceased spouse Jane and living spouse Lisa
+    # John has deceased spouse Jane and living spouse Lisa
     Relationship.create!(person: @john, relative: @jane, relationship_type: 'spouse', is_ex: false, is_deceased: true)
     Relationship.create!(person: @jane, relative: @john, relationship_type: 'spouse', is_ex: false, is_deceased: true)
     
@@ -29,7 +29,7 @@ class PersonTest < ActiveSupport::TestCase
   end
 
   test "current_spouses excludes ex-spouses even if alive" do
-    # Test scenario: John divorced from Jane and currently married to Lisa
+    # John divorced from Jane and currently married to Lisa
     Relationship.create!(person: @john, relative: @jane, relationship_type: 'spouse', is_ex: true, is_deceased: false)
     Relationship.create!(person: @jane, relative: @john, relationship_type: 'spouse', is_ex: true, is_deceased: false)
     
@@ -43,7 +43,7 @@ class PersonTest < ActiveSupport::TestCase
   end
 
   test "current_spouses excludes ex-spouses who died later" do
-    # Test scenario: John's ex-spouse Jane died after their divorce
+    # John's ex-spouse Jane died after their divorce
     # Configure Jane as initially alive to simulate post-divorce death
     @jane.update!(is_deceased: false, date_of_death: nil)
     
@@ -63,7 +63,7 @@ class PersonTest < ActiveSupport::TestCase
   end
 
   test "parents_in_law only includes current spouses parents" do
-    # Configure family tree with parent-child relationships for in-law testing
+    # Set up family tree with parent-child relationships for in-law testing
     Relationship.create!(person: @jane, relative: @richard, relationship_type: 'parent')
     Relationship.create!(person: @richard, relative: @jane, relationship_type: 'child')
     Relationship.create!(person: @jane, relative: @margaret, relationship_type: 'parent')
@@ -74,7 +74,7 @@ class PersonTest < ActiveSupport::TestCase
     Relationship.create!(person: @lisa, relative: @patricia, relationship_type: 'parent')
     Relationship.create!(person: @patricia, relative: @lisa, relationship_type: 'child')
     
-    # Test scenario: John has deceased spouse Jane and living spouse Lisa
+    # John has deceased spouse Jane and living spouse Lisa
     Relationship.create!(person: @john, relative: @jane, relationship_type: 'spouse', is_ex: false, is_deceased: true)
     Relationship.create!(person: @jane, relative: @john, relationship_type: 'spouse', is_ex: false, is_deceased: true)
     
@@ -83,7 +83,7 @@ class PersonTest < ActiveSupport::TestCase
     
     parents_in_law = @john.parents_in_law
     
-    # Verify in-law relationships exclude deceased spouse's parents
+    # In-law relationships exclude deceased spouse's parents
     assert_includes parents_in_law, @william
     assert_includes parents_in_law, @patricia
     assert_not_includes parents_in_law, @richard
@@ -91,7 +91,7 @@ class PersonTest < ActiveSupport::TestCase
   end
 
   test "parents_in_law excludes ex-spouse parents" do
-    # Configure family tree with parent-child relationships for in-law testing
+    # Set up family tree with parent-child relationships for in-law testing
     Relationship.create!(person: @jane, relative: @richard, relationship_type: 'parent')
     Relationship.create!(person: @richard, relative: @jane, relationship_type: 'child')
     Relationship.create!(person: @jane, relative: @margaret, relationship_type: 'parent')
@@ -102,8 +102,8 @@ class PersonTest < ActiveSupport::TestCase
     Relationship.create!(person: @lisa, relative: @patricia, relationship_type: 'parent')
     Relationship.create!(person: @patricia, relative: @lisa, relationship_type: 'child')
     
-    # Test scenario: John's ex-spouse is alive but divorced, current spouse is Lisa
-    @jane.update!(is_deceased: false, date_of_death: nil) # Configure Jane as living but no longer married to John
+    # John's ex-spouse is alive but divorced, current spouse is Lisa
+    @jane.update!(is_deceased: false, date_of_death: nil) # Jane is living but no longer married to John
     
     Relationship.create!(person: @john, relative: @jane, relationship_type: 'spouse', is_ex: true, is_deceased: false)
     Relationship.create!(person: @jane, relative: @john, relationship_type: 'spouse', is_ex: true, is_deceased: false)
@@ -113,7 +113,7 @@ class PersonTest < ActiveSupport::TestCase
     
     parents_in_law = @john.parents_in_law
     
-    # Verify in-law relationships exclude ex-spouse's parents regardless of life status
+    # In-law relationships exclude ex-spouse's parents regardless of life status
     assert_includes parents_in_law, @william
     assert_includes parents_in_law, @patricia
     assert_not_includes parents_in_law, @richard

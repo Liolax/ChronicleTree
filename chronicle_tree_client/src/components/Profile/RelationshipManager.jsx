@@ -4,7 +4,7 @@ import { createRelationship, deletePerson, getPerson, useToggleSpouseEx, useFull
 import { FaUsers, FaPlus, FaTrash, FaUserFriends, FaChild, FaVenusMars, FaUserTie, FaUserEdit, FaQuestionCircle } from 'react-icons/fa';
 import DeletePersonModal from '../UI/DeletePersonModal';
 import { buildRelationshipMaps, calculateRelationshipToRoot, detectAnyBloodRelationship } from '../../utils/improvedRelationshipCalculator';
-import { showInfo } from '../../utils/sweetAlerts';
+import { showInfo, showConfirm } from '../../utils/sweetAlerts';
 
 /**
  * Determines how to display spouse relationship based on deceased status
@@ -1593,7 +1593,8 @@ const RelationshipManager = ({ person, people = [], onRelationshipAdded, onRelat
                                   const action = rel.is_ex ? 'remarry' : 'divorce';
                                   const confirmMsg = `${person.first_name} ${person.last_name} and ${rel.full_name} are blood relatives (${bloodCheck.relationship}). Do you want to ${action} them anyway? Marriage between blood relatives is generally inappropriate.`;
                                   
-                                  if (!confirm(confirmMsg)) {
+                                  const result = await showConfirm('Blood Relationship Warning', confirmMsg, 'Continue', 'Cancel');
+                                  if (!result.isConfirmed) {
                                     setToggleLoadingId(null);
                                     return;
                                   }

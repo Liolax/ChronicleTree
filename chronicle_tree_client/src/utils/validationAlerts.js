@@ -126,10 +126,7 @@ export const handleBackendError = (error) => {
   if (error.response?.status === 422) {
     const errorData = error?.response?.data;
     const errorMsg = errorData?.errors?.[0] || errorData?.message || errorData?.exception || error?.message || '';
-    console.log('=== 422 VALIDATION ERROR ===');
-    console.log('Raw error message:', errorMsg);
-    console.log('Error data structure:', errorData);
-    console.log('===========================');
+    // Processing 422 validation error for appropriate user alert
     
     // Check what type of validation error this is
     const lowerErrorMsg = errorMsg.toLowerCase();
@@ -137,8 +134,7 @@ export const handleBackendError = (error) => {
     // Check for multiple spouse errors
     if (lowerErrorMsg.includes('current spouse') || lowerErrorMsg.includes('only have one spouse') || 
         lowerErrorMsg.includes('already has a spouse')) {
-      console.log('✓ Detected as multiple spouse error');
-      console.log('Error message was:', errorMsg);
+      // Detected as multiple spouse error
       showWarning('Multiple Spouse Warning', errorMsg);
       return;
     }
@@ -147,8 +143,7 @@ export const handleBackendError = (error) => {
     if ((lowerErrorMsg.includes('marriage') && (lowerErrorMsg.includes('minimum') || lowerErrorMsg.includes('16'))) ||
         lowerErrorMsg.includes('marriage age') ||
         (lowerErrorMsg.includes('minimum marriage age') || lowerErrorMsg.includes('years old') && lowerErrorMsg.includes('minimum'))) {
-      console.log('✓ Detected as marriage age error');
-      console.log('Error message was:', errorMsg);
+      // Detected as marriage age error
       showWarning('Marriage Age Warning', 'Marriage is allowed for people 16 years old and older.');
       return;
     }
@@ -156,16 +151,14 @@ export const handleBackendError = (error) => {
     // Check parent-child age problems
     if ((lowerErrorMsg.includes('years older') || lowerErrorMsg.includes('age difference')) ||
         (lowerErrorMsg.includes('parent') && lowerErrorMsg.includes('child') && lowerErrorMsg.includes('years'))) {
-      console.log('✓ Detected as parent-child age error');
-      console.log('Error message was:', errorMsg);
+      // Detected as parent-child age error
       showWarning('Age Difference Warning', 'Parents must be at least 12 years older than their children.');
       return;
     }
     
     // Check for blood relationship problems
     if (lowerErrorMsg.includes('blood relative') || lowerErrorMsg.includes('incestuous')) {
-      console.log('✓ Detected as blood relationship error');
-      console.log('Error message was:', errorMsg);
+      // Detected as blood relationship error
       showWarning('Relationship Warning', errorMsg);
       return;
     }
@@ -173,19 +166,17 @@ export const handleBackendError = (error) => {
     // Check for other age-related errors
     if ((lowerErrorMsg.includes('age') || lowerErrorMsg.includes('young') || lowerErrorMsg.includes('old')) &&
         !lowerErrorMsg.includes('spouse') && !lowerErrorMsg.includes('marriage')) {
-      console.log('✓ Detected as true age error');
-      console.log('Error message was:', errorMsg);
+      // Detected as age validation error
       showWarning('Age Validation', errorMsg);
       return;
     }
     
-    console.log('✗ Not detected as specific validation error, falling through to general handling');
-    console.log('Error message was:', errorMsg);
+    // Error type not specifically detected, using general handling
     
     // Additional fallback check for common patterns that might have been missed
     if (lowerErrorMsg.includes('8.3 years old') || 
         (lowerErrorMsg.includes('years old') && lowerErrorMsg.includes('16'))) {
-      console.log('✓ Fallback detected marriage age error');
+      // Fallback marriage age error detection
       showWarning('Marriage Age Warning', 'Marriage is allowed for people 16 years old and older.');
       return;
     }
@@ -262,7 +253,7 @@ export const handleBackendError = (error) => {
   } else {
     // Check if this is about marriage age
     if (errorMsg.toLowerCase().includes('age') || errorMsg.includes('16') || errorMsg.toLowerCase().includes('marriage')) {
-      console.log('Potential marriage age error:', errorMsg);
+      // Potential marriage age error detected
       showWarning('Age Validation', errorMsg);
     } else {
       // Show the error message if we don't recognize it

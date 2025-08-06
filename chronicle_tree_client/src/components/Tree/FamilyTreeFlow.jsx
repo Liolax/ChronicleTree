@@ -475,10 +475,10 @@ const FamilyTree = () => {
                   </div>
                   <div className="mt-3 pt-2 border-t border-gray-200">
                     <div className="text-xs text-gray-500">
-                      🏠 Click home icon to change root person
+                      Click home icon to change root person
                     </div>
                     <div className="text-xs text-gray-500">
-                      👥 Sibling relationships shown through positioning
+                      Sibling relationships shown through positioning
                     </div>
                   </div>
                 </div>
@@ -494,7 +494,7 @@ const FamilyTree = () => {
                   variant="secondary"
                   className="text-xs px-2 py-1"
                 >
-                  ✕
+                  Close
                 </Button>
               </div>
               <div className="p-4">
@@ -520,12 +520,10 @@ const FamilyTree = () => {
                     <span className="text-sm">Siblings (if no parents)</span>
                   </div>
                   <div className="mt-4 pt-3 border-t border-gray-200">
-                    <div className="text-sm text-gray-500 flex items-start gap-2 mb-2">
-                      <span className="flex-shrink-0">🏠</span>
+                    <div className="text-sm text-gray-500 mb-2">
                       <span>Click home icon to change root person</span>
                     </div>
-                    <div className="text-sm text-gray-500 flex items-start gap-2">
-                      <span className="flex-shrink-0">👥</span>
+                    <div className="text-sm text-gray-500">
                       <span>Sibling relationships shown through positioning</span>
                     </div>
                   </div>

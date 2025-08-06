@@ -1,5 +1,5 @@
-# Test for deceased spouse marriage fix
-# This test verifies that marking a deceased spouse as alive properly updates relationship status
+# Tests for deceased spouse marriage fix
+# Verifies that marking a deceased spouse as alive properly updates relationship status
 
 require_relative '../test_helper'
 
@@ -51,7 +51,7 @@ class DeceasedSpouseMarriageTest < ActiveSupport::TestCase
   end
   
   def test_deceased_spouse_becomes_alive_updates_relationship_status
-    # Verify initial state - Molly is deceased, marriage is marked deceased
+    # Initial state - Molly is deceased, marriage is marked deceased
     assert @molly.is_deceased
     assert_not_nil @molly.date_of_death
     
@@ -78,7 +78,7 @@ class DeceasedSpouseMarriageTest < ActiveSupport::TestCase
     molly_to_robert.reload
     robert_to_molly.reload
     
-    # Verify relationships are now marked as current (not deceased)
+    # Relationships are now marked as current (not deceased)
     assert_not molly_to_robert.is_deceased, "Marriage relationship should no longer be marked as deceased"
     assert_not robert_to_molly.is_deceased, "Marriage relationship should no longer be marked as deceased"
     
@@ -96,7 +96,7 @@ class DeceasedSpouseMarriageTest < ActiveSupport::TestCase
       @molly.id, @molly.id
     ).update_all(is_deceased: false)
     
-    # Verify Molly is now alive and has current marriage
+    # Molly is now alive and has current marriage
     molly_to_robert = Relationship.find_by(person: @molly, relative: @robert, relationship_type: 'spouse')
     assert_not molly_to_robert.is_deceased, "Marriage should be current"
     assert_includes @robert.current_spouses, @molly, "Molly should be Robert's current spouse"
@@ -111,7 +111,7 @@ class DeceasedSpouseMarriageTest < ActiveSupport::TestCase
     )
     spouse_relationships_to_mark_deceased.update_all(is_deceased: true)
     
-    # Reload and verify
+    # Reload and check results
     molly_to_robert.reload
     assert molly_to_robert.is_deceased, "Marriage should be marked as deceased"
     assert_empty @robert.current_spouses, "Robert should have no current spouses"
@@ -145,17 +145,17 @@ class DeceasedSpouseMarriageTest < ActiveSupport::TestCase
       is_deceased: false
     )
     
-    # Verify Robert has Sarah as current spouse
+    # Robert has Sarah as current spouse
     assert_includes @robert.current_spouses, @sarah
     
-    # Now try to make Molly alive - this should create conflict
-    # The controller should detect this and prevent the update
+    # Making Molly alive creates conflict
+    # Controller should detect this and prevent the update
     other_living_spouses = @robert.current_spouses.reject { |s| s.id == @molly.id }
     
     assert_not_empty other_living_spouses, "Robert should have other living spouses"
     assert_includes other_living_spouses, @sarah, "Sarah should be Robert's current spouse"
     
-    # This verifies the conflict detection logic works
+    # Verifies the conflict detection logic works
     # In the real controller, this would return an error message
   end
 end

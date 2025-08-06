@@ -1,6 +1,6 @@
 /**
- * Integration test for the deceased spouse marriage fix
- * Tests the complete user workflow from frontend to backend
+ * Integration tests for deceased spouse marriage fix
+ * Tests complete user workflow from frontend to backend
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
@@ -35,7 +35,7 @@ describe('Deceased Spouse Marriage Fix Integration', () => {
       }
     });
 
-    // Simulate the API call that would be made
+    // Expected API call data
     const expectedAPICall = {
       id: 26,
       first_name: 'Molly',
@@ -46,7 +46,7 @@ describe('Deceased Spouse Marriage Fix Integration', () => {
       gender: 'Female'
     };
 
-    // Call the mocked API
+    // Execute API call
     await mockAPI.put(`/people/${MOCK_MOLLY.id}`, { person: expectedAPICall });
 
     // Verify the API was called with correct data
@@ -67,7 +67,7 @@ describe('Deceased Spouse Marriage Fix Integration', () => {
       }
     ];
 
-    // Function to check marriage conflicts (simplified version)
+    // Marriage conflict checker (simplified version)
     const checkMarriageConflict = (person, newStatus, relationships) => {
       if (person.date_of_death && !newStatus.isDeceased) {
         // Person is being marked as alive
@@ -161,7 +161,7 @@ describe('Deceased Spouse Marriage Fix Integration', () => {
   });
 
   it('should properly update relationship records when person becomes alive', () => {
-    // Mock the relationship update logic that should happen in backend
+    // Relationship update logic that happens in backend
     const updateRelationshipRecords = (personId, isBecomingAlive) => {
       if (isBecomingAlive) {
         return {
