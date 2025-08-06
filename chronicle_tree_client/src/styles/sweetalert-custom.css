@@ -1,11 +1,11 @@
 /* Simple SweetAlert2 styling to match app modals */
 
-/* Ensure SweetAlert2 has the highest z-index */
+/* Ensure SweetAlert2 has the highest z-index and higher than modals */
 .swal2-container {
-  z-index: 2147483647 !important;
+  z-index: 9999 !important;
 }
 
-/* Simple popup styling matching app modals */
+/* Simple popup styling matching app modals - same height as other modals */
 .swal-popup-custom {
   font-family: 'Inter', sans-serif !important;
   background: #FEFEFA !important;
@@ -16,6 +16,8 @@
   max-width: 400px !important;
   width: 100% !important;
   box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+  min-height: 500px !important;
+  max-height: 600px !important;
 }
 
 /* Simple title styling */
