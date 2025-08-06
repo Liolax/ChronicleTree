@@ -69,15 +69,6 @@ export default function AddPersonModal({ isOpen = true, onClose, isFirstPerson =
         aria-describedby="add-person-instructions"
         cancelVariant="grey"
       />
-      {addPerson.isError && (
-        <div
-          className="text-red-600 mt-2 text-sm"
-          role="alert"
-          aria-live="assertive"
-        >
-          {addPerson.error?.response?.data?.message || 'Unable to add person. Please check the form.'}
-        </div>
-      )}
     </Modal>
   );
 }

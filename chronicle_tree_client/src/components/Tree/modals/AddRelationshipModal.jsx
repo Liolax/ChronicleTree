@@ -4,7 +4,7 @@ import Modal from '../../UI/Modal';
 import RelationshipForm from '../../Forms/RelationshipForm';
 import { createRelationship, useFullTree } from '../../../services/people';
 import { calculateRelationshipToRoot, detectAnyBloodRelationship } from '../../../utils/improvedRelationshipCalculator';
-import { showValidationAlert } from '../../../utils/validationAlerts';
+import { showValidationAlert, showOperationError } from '../../../utils/validationAlerts';
 
 const RELATIONSHIP_TYPE_OPTIONS = [
   { value: 'parent', label: 'Parent' },
@@ -18,7 +18,6 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
   const queryClient = useQueryClient();
   const [selectedType, setSelectedType] = useState('');
   const [selectedPerson, setSelectedPerson] = useState(null);
-  const [warning, setWarning] = useState('');
   
   // Get full tree data for blood relationship validation
   const { data: treeData } = useFullTree();
@@ -31,26 +30,22 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       onClose();
     },
     onError: (error) => {
-      let errorMessage = 'Failed to create relationship. Please try again.';
-      
       // Handle specific 422 errors with user-friendly messages
       if (error?.response?.status === 422) {
         const serverError = error?.response?.data?.errors?.[0] || error?.response?.data?.message || '';
         
         if (serverError.includes('age') || serverError.includes('16') || serverError.includes('marriage')) {
-          errorMessage = 'Both people must be at least 16 years old to marry. Please check their birth dates.';
+          showValidationAlert('marriageAge');
         } else if (serverError.includes('deceased') || serverError.includes('death')) {
-          errorMessage = 'Cannot create current spouse relationship with deceased person. Use "Late Spouse" instead.';
+          showOperationError('deceasedSpouseError', { message: 'Cannot create current spouse relationship with deceased person. Use "Late Spouse" instead.' });
         } else if (serverError.includes('spouse') && serverError.includes('already')) {
-          errorMessage = 'This person already has a current spouse. You can only add an ex-spouse.';
+          showValidationAlert('maxSpouse');
         } else {
-          errorMessage = serverError || errorMessage;
+          showOperationError('relationshipFailed', { message: serverError || 'Failed to create relationship. Please try again.' });
         }
       } else {
-        errorMessage = error?.response?.data?.errors?.[0] || errorMessage;
+        showOperationError('relationshipFailed', { message: error?.response?.data?.errors?.[0] || 'Failed to create relationship. Please try again.' });
       }
-      
-      setWarning(errorMessage);
     },
   });
 
@@ -505,7 +500,6 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
   };
 
   const handleSubmit = (data) => {
-    setWarning('');
     
     // Validate relationship constraints before submitting
     const validation = validateRelationshipConstraints(selectedPerson?.id, data.selectedId, selectedType);
@@ -538,7 +532,6 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
       }
       
       showValidationAlert(alertType, alertDetails);
-      setWarning(validation.reason);
       return;
     }
     
@@ -559,11 +552,6 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="Add New Relationship">
       <div className="space-y-4">
-        {warning && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-            <p className="text-sm text-red-800">{warning}</p>
-          </div>
-        )}
         
         <div>
           <label htmlFor="selectedPerson" className="block text-sm font-medium text-gray-700">
@@ -577,7 +565,6 @@ const AddRelationshipModal = ({ isOpen = true, onClose, people }) => {
               const person = people.find(p => p.id === parseInt(personId));
               setSelectedPerson(person);
               setSelectedType(''); // Reset relationship type when person changes
-              setWarning(''); // Clear any warnings
             }}
             className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
           >

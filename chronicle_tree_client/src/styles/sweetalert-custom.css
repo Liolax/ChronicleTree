@@ -1,0 +1,145 @@
+/* SweetAlert2 custom styles for proper z-index and positioning */
+
+/* High z-index class for ensuring modals appear above all content */
+.swal-high-z-index {
+  z-index: 2147483647 !important;
+}
+
+/* Ensure SweetAlert container has maximum z-index */
+.swal2-container {
+  z-index: 2147483647 !important;
+}
+
+/* Ensure backdrop is below the modal but above everything else */
+.swal2-backdrop-show {
+  z-index: 2147483646 !important;
+}
+
+/* Custom styles for consistent modal appearance */
+.swal-container-custom {
+  z-index: 2147483647 !important;
+}
+
+.swal-popup-custom {
+  font-family: 'Inter', sans-serif !important;
+  background: #FEFEFA !important;
+  border-radius: 1.5rem !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
+  border: 2px solid #A0C49D !important;
+  padding: 2rem !important;
+  min-width: 320px !important;
+  max-width: 400px !important;
+  width: 100% !important;
+  z-index: 2147483647 !important;
+}
+
+.swal-title-custom {
+  color: #4F868E !important;
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+  margin-bottom: 1rem !important;
+}
+
+.swal-content-custom {
+  color: #374151 !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.swal-actions-custom {
+  margin-top: 1.5rem !important;
+  gap: 0.75rem !important;
+}
+
+.swal-ok-btn {
+  background: #4F46E5 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal-ok-btn:hover {
+  background: #4338CA !important;
+  transform: translateY(-1px) !important;
+}
+
+.swal-confirm-btn {
+  background: #dc2626 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal-confirm-btn:hover {
+  background: #b91c1c !important;
+  transform: translateY(-1px) !important;
+}
+
+.swal-cancel-btn {
+  background: #6b7280 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 0.75rem !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  font-size: 0.95rem !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.swal-cancel-btn:hover {
+  background: #4b5563 !important;
+  transform: translateY(-1px) !important;
+}
+
+.swal-icon-custom {
+  border: none !important;
+  margin: 0 auto 1rem !important;
+}
+
+/* Modal management - hide other modals when SweetAlert is active */
+.modal[data-was-visible="true"],
+.dialog[data-was-visible="true"],
+[role="dialog"][data-was-visible="true"],
+.overlay[data-was-visible="true"],
+.popup[data-was-visible="true"] {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Ensure SweetAlert always appears above everything */
+.swal2-container {
+  z-index: 2147483647 !important;
+}
+
+.swal2-backdrop {
+  z-index: 2147483646 !important;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 480px) {
+  .swal-popup-custom {
+    margin: 1rem !important;
+    min-width: 280px !important;
+    max-width: calc(100% - 2rem) !important;
+  }
+  
+  .swal-title-custom {
+    font-size: 1.1rem !important;
+  }
+  
+  .swal-content-custom {
+    font-size: 0.9rem !important;
+  }
+}

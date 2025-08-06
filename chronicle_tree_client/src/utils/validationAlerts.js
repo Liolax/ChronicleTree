@@ -143,9 +143,10 @@ export const handleBackendError = (error) => {
       return;
     }
     
-    // Check for marriage age errors
+    // Check for marriage age errors - enhanced pattern matching
     if ((lowerErrorMsg.includes('marriage') && (lowerErrorMsg.includes('minimum') || lowerErrorMsg.includes('16'))) ||
-        lowerErrorMsg.includes('marriage age')) {
+        lowerErrorMsg.includes('marriage age') ||
+        (lowerErrorMsg.includes('minimum marriage age') || lowerErrorMsg.includes('years old') && lowerErrorMsg.includes('minimum'))) {
       console.log('✓ Detected as marriage age error');
       console.log('Error message was:', errorMsg);
       showWarning('Marriage Age Warning', 'Marriage is allowed for people 16 years old and older.');
@@ -180,6 +181,18 @@ export const handleBackendError = (error) => {
     
     console.log('✗ Not detected as specific validation error, falling through to general handling');
     console.log('Error message was:', errorMsg);
+    
+    // Additional fallback check for common patterns that might have been missed
+    if (lowerErrorMsg.includes('8.3 years old') || 
+        (lowerErrorMsg.includes('years old') && lowerErrorMsg.includes('16'))) {
+      console.log('✓ Fallback detected marriage age error');
+      showWarning('Marriage Age Warning', 'Marriage is allowed for people 16 years old and older.');
+      return;
+    }
+    
+    // Show the raw error message if no pattern matched
+    showError('Validation Error', errorMsg);
+    return;
   }
   
   if (error.response?.status >= 500) {
@@ -299,7 +312,9 @@ export const showOperationError = (type, details = {}) => {
     shareWindowFailed: 'Failed to open sharing window',
     missingRelationType: 'Please select a relationship type.',
     missingPerson: 'Please select a person to relate to.',
-    generateContentFailed: 'Failed to generate shareable content'
+    generateContentFailed: 'Failed to generate shareable content',
+    deceasedSpouseError: details.message || 'Cannot create current spouse relationship with deceased person.',
+    relationshipFailed: details.message || 'Failed to create relationship. Please try again.'
   };
   showError('Operation Failed', messages[type] || 'Operation failed.');
 };

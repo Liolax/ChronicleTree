@@ -4,6 +4,22 @@ This document tracks major development milestones, feature implementations, bug 
 
 ## Recent Completed Features (August 2025)
 
+### ✅ Accessibility & Modal Z-Index Enhancement (August 6, 2025) - COMPLETED ✓
+- **Aria-Hidden Accessibility Fix**: Enhanced SweetAlert2 integration to completely prevent aria-hidden attribute on root element, eliminating accessibility warnings about focused elements inside hidden containers
+- **Maximum Z-Index Implementation**: Added maximum z-index value (2147483647) to all SweetAlert modals ensuring they appear above all other UI elements including tree modals and overlays
+- **Enhanced Validation Pattern Matching**: Improved marriage age validation error detection with comprehensive pattern matching including fallback patterns for edge cases
+- **Custom SweetAlert Styling**: Created dedicated CSS file with professional styling and proper z-index hierarchy for consistent modal appearance across the application
+- **Mutation Observer Enhancement**: Implemented more robust aria-hidden prevention with enhanced SweetAlert2 override that prevents the issue at the source during modal creation
+- **Validation Error Enhancement**: Added fallback error detection for marriage age validation (8.3 years old pattern) and improved error message display for tree modal scenarios
+- **Professional Test Coverage**: Created comprehensive frontend and backend test scripts for accessibility fixes and validation error handling with clear documentation and troubleshooting guides
+
+### ✅ UI Consistency & Alert System Standardization (August 6, 2025) - COMPLETED ✓
+- **Deceased Checkbox UI Consistency**: Standardized deceased checkbox styling across all components (PersonForm, EditPersonForm, ProfileDetails) with consistent custom checkbox design, blue selected state, and SVG checkmark icons
+- **Tree Modal Alert Centralization**: Converted all tree modal error messages to use centralized SweetAlert system instead of inline error displays, removing inconsistent red warning boxes from AddPersonModal and AddRelationshipModal
+- **SweetAlert Accessibility Fix**: Resolved aria-hidden focus issue by preventing SweetAlert2 from setting aria-hidden attribute on root element, eliminating accessibility warnings about hidden focused elements
+- **Alert System Enhancement**: Added new error message types (deceasedSpouseError, relationshipFailed) to validationAlerts.js for comprehensive tree modal error handling
+- **Professional Modal Experience**: All modals now use uniform SweetAlert styling with consistent error handling, warning displays, and success notifications for seamless user experience
+
 ### ✅ Redis Timeout & SweetAlert Standardization (August 6, 2025) - COMPLETED ✓
 - **Redis Connection Issue Resolution**: Fixed persistent Redis timeout errors during media creation by implementing comprehensive Redis disabling strategy for development environment
 - **ActiveStorage Background Job Prevention**: Added specific ActiveStorage job queue adapter overrides to prevent image processing jobs from attempting Redis connections
