@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
+import 'sweetalert2/dist/sweetalert2.min.css';
 import './styles/sweetalert-custom.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 

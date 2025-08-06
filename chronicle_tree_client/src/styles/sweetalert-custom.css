@@ -87,52 +87,13 @@
   transform: translateY(-1px) !important;
 }
 
-/* Use standard SweetAlert2 icons naturally */
+/* Use standard SweetAlert2 icons */
 
-/* Ensure SweetAlert2 icons display properly with custom popup */
+/* Icon styling to ensure proper size and spacing */
 .swal-popup-custom .swal2-icon {
   width: 5rem !important;
   height: 5rem !important;
   margin: 0 auto 1.625rem !important;
-  border: 4px solid transparent !important;
-  border-radius: 50% !important;
-  position: relative !important;
-  box-sizing: content-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  font-size: 3.75rem !important;
-  line-height: 5rem !important;
-}
-
-.swal-popup-custom .swal2-icon.swal2-warning {
-  border-color: #facea8 !important;
-  color: #f8bb86 !important;
-  background: transparent !important;
-}
-
-.swal-popup-custom .swal2-icon.swal2-success {
-  border-color: #a5dc86 !important;
-  color: #a5dc86 !important;
-  background: transparent !important;
-}
-
-.swal-popup-custom .swal2-icon.swal2-error {
-  border-color: #f27474 !important;
-  color: #f27474 !important;
-  background: transparent !important;
-}
-
-.swal-popup-custom .swal2-icon.swal2-info {
-  border-color: #9de0f6 !important;
-  color: #3fc3ee !important;
-  background: transparent !important;
-}
-
-.swal-popup-custom .swal2-icon.swal2-question {
-  border-color: #c9dae1 !important;
-  color: #87adbd !important;
-  background: transparent !important;
 }
 
 /* Modal management - hide other modals when SweetAlert is active */
