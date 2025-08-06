@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../../api/api';
 import { FaBookOpen, FaPencilAlt, FaSave, FaTimes } from 'react-icons/fa';
 import Button from '../UI/Button';
+import { showOperationSuccess } from '../../utils/validationAlerts';
 
 export default function Notes({ person, onNotesUpdated }) {
   const [editing, setEditing] = useState(false);
@@ -29,6 +30,7 @@ export default function Notes({ person, onNotesUpdated }) {
         if (onNotesUpdated) onNotesUpdated(response.data.content);
       }
       setEditing(false);
+      showOperationSuccess('notesUpdated');
     } catch (err) {
       setError('Failed to save notes.');
     } finally {

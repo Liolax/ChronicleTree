@@ -311,7 +311,8 @@ export const showOperationSuccess = (type, details = {}) => {
     personUpdated: `${details.firstName || 'Person'} ${details.lastName || ''} has been successfully updated!`,
     factDeleted: 'Fact deleted successfully!',
     timelineDeleted: 'Timeline event deleted successfully!',
-    mediaDeleted: 'Media deleted successfully!'
+    mediaDeleted: 'Media deleted successfully!',
+    notesUpdated: 'Notes and stories have been successfully updated!'
   };
   showSuccess('Operation Complete', messages[type] || 'Operation completed successfully!');
 };
