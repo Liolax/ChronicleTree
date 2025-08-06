@@ -182,7 +182,7 @@ export const handleBackendError = (error) => {
   }
   
   if (error.response?.status >= 500) {
-    showError('Server Error', 'Please try again in a moment, or contact support if the problem continues.');
+    showError('Server Error', 'Please try again in a moment. If the problem continues, please check your data and try again.');
     return;
   }
 
@@ -244,7 +244,7 @@ export const handleBackendError = (error) => {
   } else if (errorMsg.includes('invalid') && errorMsg.includes('date')) {
     showError('Invalid Date', 'Please enter a valid date in the correct format (YYYY-MM-DD).');
   } else if (errorMsg.includes('internal server error') || errorMsg.includes('500')) {
-    showError('Server Error', 'Something went wrong on our end. Please try again in a moment, or contact support if the problem continues.');
+    showError('Server Error', 'Something went wrong. Please try again in a moment. If the problem continues, please check your data and try again.');
   } else {
     // Check if this is about marriage age
     if (errorMsg.toLowerCase().includes('age') || errorMsg.includes('16') || errorMsg.toLowerCase().includes('marriage')) {

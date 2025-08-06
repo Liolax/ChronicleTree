@@ -42,19 +42,19 @@ module PaperTrailCustom
   end
 
   def current_user_email
-    PaperTrail.request[:user_email]
+    PaperTrail.request.controller_info.try(:[], :user_email) || 'system@chronicletree.app'
   end
 
   def current_ip
-    PaperTrail.request[:ip_address]
+    PaperTrail.request.controller_info.try(:[], :ip_address) || '127.0.0.1'
   end
 
   def current_user_agent
-    PaperTrail.request[:user_agent]
+    PaperTrail.request.controller_info.try(:[], :user_agent)
   end
 
   def current_request_id
-    PaperTrail.request[:request_id]
+    PaperTrail.request.controller_info.try(:[], :request_id)
   end
 end
 

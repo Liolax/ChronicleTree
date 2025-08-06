@@ -86,7 +86,7 @@ export const useAddPerson = () => {
 export const useUpdatePerson = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...person }) => api.put(`/people/${id}`, { person }),
+    mutationFn: ({ id, ...person }) => api.patch(`/people/${id}`, { person }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['people'] });
       queryClient.invalidateQueries({ queryKey: ['tree'] });

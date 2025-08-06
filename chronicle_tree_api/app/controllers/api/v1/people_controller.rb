@@ -192,9 +192,53 @@ module Api
               }, status: :unprocessable_entity
               raise ActiveRecord::Rollback
             end
+            
+            # Mark marriage relationships as deceased when person dies
+            if @person.date_of_death.blank?
+              # Person is being marked as deceased (adding death date)
+              spouse_relationships_to_mark_deceased = Relationship.where(
+                "(person_id = :person_id OR relative_id = :person_id) AND relationship_type = 'spouse' AND is_deceased = false",
+                person_id: @person.id
+              )
+              spouse_relationships_to_mark_deceased.update_all(is_deceased: true)
+            end
+          end
+          
+          # Handle marriage status when making deceased person alive
+          if @person.date_of_death.present? && new_death_date.blank?
+            # Person is being marked as alive (removing death date)
+            # Check if this creates any marriage conflicts
+            current_spouses = @person.all_spouses_including_deceased
+            
+            current_spouses.each do |spouse|
+              # Check if spouse has other LIVING current spouses (excluding this person)
+              other_living_spouses = spouse.current_spouses.reject { |s| s.id == @person.id }
+              
+              if other_living_spouses.any?
+                spouse_names = other_living_spouses.map(&:full_name).join(', ')
+                render json: { 
+                  errors: ["Cannot mark #{@person.first_name} #{@person.last_name} as alive. Their spouse #{spouse.full_name} already has a current marriage with #{spouse_names}. A person can only have one current spouse at a time."]
+                }, status: :unprocessable_entity
+                raise ActiveRecord::Rollback
+              end
+            end
+            
+            # Update relationship records to mark marriage as current (not deceased)
+            spouse_relationships_to_update = Relationship.where(
+              "(person_id = :person_id OR relative_id = :person_id) AND relationship_type = 'spouse' AND is_deceased = true",
+              person_id: @person.id
+            )
+            spouse_relationships_to_update.update_all(is_deceased: false)
           end
           
           if @person.update(person_params)
+            # Automatically set deceased status based on death date
+            if @person.date_of_death.present? && !@person.is_deceased
+              @person.update_column(:is_deceased, true)
+            elsif @person.date_of_death.blank? && @person.is_deceased
+              @person.update_column(:is_deceased, false)
+            end
+            
             render json: {
               person: Api::V1::PersonSerializer.new(@person).as_json,
               message: "#{@person.first_name} #{@person.last_name} has been successfully updated!"
@@ -309,6 +353,10 @@ module Api
 
       def set_person
         @person = current_user.people.find(params[:id])
+      rescue ActiveRecord::RecordNotFound
+        render json: { 
+          errors: ["Person not found or you don't have permission to access this record."] 
+        }, status: :not_found
       end
 
       def person_params

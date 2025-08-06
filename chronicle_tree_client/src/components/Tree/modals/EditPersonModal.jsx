@@ -14,17 +14,14 @@ const EditPersonModal = ({ person, isOpen = true, onClose }) => {
       last_name: data.lastName,
       date_of_birth: data.birthDate,
       date_of_death: data.deathDate,
+      is_deceased: data.isDeceased,
       gender: data.gender,
     };
     
     updatePersonMutation.mutate(personData, {
       onSuccess: (response) => {
-        // Show confirmation message after successful update
-        if (response?.message) {
-          showOperationError('updateFailed');
-        } else {
-          showOperationSuccess('personUpdated', data);
-        }
+        // Show success message after successful update
+        showOperationSuccess('personUpdated', data);
         onClose();
       },
       onError: (error) => {

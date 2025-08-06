@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaUser, FaVenusMars, FaBirthdayCake, FaSkullCrossbones, FaSave, FaTimes } from 'react-icons/fa';
 import api from '../../api/api';
 import Button from '../UI/Button'; // Adjust the import path as necessary
+import { handleBackendError, showOperationSuccess } from '../../utils/validationAlerts';
 
 export default function ProfileDetails({ person, editing, onPersonUpdated }) {
   const [form, setForm] = useState({
@@ -12,7 +13,6 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
     date_of_death: person?.date_of_death || '',
   });
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState(null);
 
   React.useEffect(() => {
     setForm({
@@ -43,7 +43,6 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
 
   const handleSave = async () => {
     setSaving(true);
-    setError(null);
     try {
       const res = await api.patch(`/people/${person.id}`, {
         person: {
@@ -52,11 +51,14 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
           gender: form.gender,
           date_of_birth: form.date_of_birth,
           date_of_death: form.date_of_death,
+          is_deceased: form.date_of_death ? true : false,
         },
       });
       if (onPersonUpdated) onPersonUpdated(res.data);
+      showOperationSuccess('update', { personName: `${form.first_name} ${form.last_name}` });
     } catch (err) {
-      setError('Unable to update profile. Please check your information.');
+      console.error('Profile update error:', err);
+      handleBackendError(err);
     } finally {
       setSaving(false);
     }
@@ -133,24 +135,34 @@ export default function ProfileDetails({ person, editing, onPersonUpdated }) {
         <input name="date_of_birth" type="date" value={form.date_of_birth ? form.date_of_birth.slice(0,10) : ''} onChange={handleChange} className="w-full p-2 border rounded-md mt-1" />
       </div>
       <div className="flex items-center gap-2 mt-2">
-        <input
-          id="deceased-checkbox"
-          type="checkbox"
-          checked={isDeceased}
-          onChange={handleDeceasedChange}
-          className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-        />
+        <div className="relative">
+          <input
+            id="deceased-checkbox"
+            type="checkbox"
+            checked={isDeceased}
+            onChange={handleDeceasedChange}
+            className="w-4 h-4 opacity-0 absolute"
+          />
+          <div className={`w-4 h-4 border-2 border-gray-400 rounded flex items-center justify-center ${isDeceased ? 'bg-blue-600 border-blue-600' : 'bg-white'}`}>
+            {isDeceased && (
+              <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+        </div>
         <label htmlFor="deceased-checkbox" className="font-medium text-gray-500 flex items-center gap-2 cursor-pointer">
           <FaSkullCrossbones className="text-blue-400" /> Deceased
         </label>
       </div>
-      <div>
-        <label className="font-medium text-gray-500 flex items-center gap-2">
-          <FaSkullCrossbones className="text-blue-400" /> Date of Death
-        </label>
-        <input name="date_of_death" type="date" value={form.date_of_death ? form.date_of_death.slice(0,10) : ''} onChange={handleChange} className="w-full p-2 border rounded-md mt-1" />
-      </div>
-      {error && <div className="text-red-500 md:col-span-2">{error}</div>}
+      {isDeceased && (
+        <div>
+          <label className="font-medium text-gray-500 flex items-center gap-2">
+            <FaSkullCrossbones className="text-blue-400" /> Date of Death
+          </label>
+          <input name="date_of_death" type="date" value={form.date_of_death ? form.date_of_death.slice(0,10) : ''} onChange={handleChange} className="w-full p-2 border rounded-md mt-1" />
+        </div>
+      )}
       <div className="md:col-span-2 flex gap-2 justify-end mt-2">
         <Button type="button" onClick={() => onPersonUpdated(person)} variant="grey" disabled={saving}>
           <FaTimes /> Cancel
