@@ -1,109 +1,105 @@
-/* SweetAlert2 custom styles for proper positioning and appearance */
+/* Simple SweetAlert2 styling to match app modals */
 
-/* Custom styles for consistent modal appearance */
-.swal-container-custom {
-  z-index: 9999 !important;
+/* Ensure SweetAlert2 has the highest z-index */
+.swal2-container {
+  z-index: 2147483647 !important;
 }
 
+/* Simple popup styling matching app modals */
 .swal-popup-custom {
   font-family: 'Inter', sans-serif !important;
   background: #FEFEFA !important;
   border-radius: 1.5rem !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
   border: 2px solid #A0C49D !important;
   padding: 2rem !important;
   min-width: 320px !important;
   max-width: 400px !important;
   width: 100% !important;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18) !important;
 }
 
+/* Simple title styling */
 .swal-title-custom {
-  color: #4F868E !important;
+  color: #374151 !important;
   font-weight: 600 !important;
   font-size: 1.25rem !important;
   margin-bottom: 1rem !important;
+  text-align: center !important;
 }
 
+/* Simple content styling */
 .swal-content-custom {
-  color: #374151 !important;
+  color: #6b7280 !important;
   font-size: 0.95rem !important;
   line-height: 1.5 !important;
   margin-bottom: 1.5rem !important;
+  text-align: center !important;
 }
 
+/* Simple button container */
 .swal-actions-custom {
   margin-top: 1.5rem !important;
   gap: 0.75rem !important;
+  display: flex !important;
+  justify-content: center !important;
 }
 
+/* Simple OK button */
 .swal-ok-btn {
-  background: #4F46E5 !important;
+  background: #4f46e5 !important;
   color: white !important;
   border: none !important;
-  border-radius: 0.75rem !important;
+  border-radius: 0.5rem !important;
   padding: 0.75rem 1.5rem !important;
-  font-weight: 600 !important;
-  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: background-color 0.2s !important;
 }
 
 .swal-ok-btn:hover {
-  background: #4338CA !important;
-  transform: translateY(-1px) !important;
+  background: #3730a3 !important;
 }
 
+/* Simple confirm (delete) button */
 .swal-confirm-btn {
   background: #dc2626 !important;
   color: white !important;
   border: none !important;
-  border-radius: 0.75rem !important;
+  border-radius: 0.5rem !important;
   padding: 0.75rem 1.5rem !important;
-  font-weight: 600 !important;
-  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: background-color 0.2s !important;
 }
 
 .swal-confirm-btn:hover {
   background: #b91c1c !important;
-  transform: translateY(-1px) !important;
 }
 
+/* Simple cancel button */
 .swal-cancel-btn {
-  background: #6b7280 !important;
-  color: white !important;
-  border: none !important;
-  border-radius: 0.75rem !important;
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+  border-radius: 0.5rem !important;
   padding: 0.75rem 1.5rem !important;
-  font-weight: 600 !important;
-  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  font-size: 0.875rem !important;
   cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  transition: background-color 0.2s !important;
 }
 
 .swal-cancel-btn:hover {
-  background: #4b5563 !important;
-  transform: translateY(-1px) !important;
+  background: #e5e7eb !important;
 }
 
-/* Use standard SweetAlert2 icons */
-
-/* Icon styling to ensure proper size and spacing */
-.swal-popup-custom .swal2-icon {
+/* Basic icon styling - standard size */
+.swal2-icon {
   width: 5rem !important;
   height: 5rem !important;
-  margin: 0 auto 1.625rem !important;
-}
-
-/* Modal management - hide other modals when SweetAlert is active */
-.modal[data-was-visible="true"],
-.dialog[data-was-visible="true"],
-[role="dialog"][data-was-visible="true"],
-.overlay[data-was-visible="true"],
-.popup[data-was-visible="true"] {
-  display: none !important;
-  visibility: hidden !important;
+  margin: 1rem auto 1.5rem !important;
 }
 
 /* Responsive design for smaller screens */
@@ -112,6 +108,7 @@
     margin: 1rem !important;
     min-width: 280px !important;
     max-width: calc(100% - 2rem) !important;
+    padding: 1.5rem !important;
   }
   
   .swal-title-custom {
@@ -119,6 +116,11 @@
   }
   
   .swal-content-custom {
-    font-size: 0.9rem !important;
+    font-size: 0.875rem !important;
+  }
+
+  .swal2-icon {
+    width: 4rem !important;
+    height: 4rem !important;
   }
 }
