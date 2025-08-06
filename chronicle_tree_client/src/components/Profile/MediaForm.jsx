@@ -151,7 +151,7 @@ export default function MediaForm({ personId, media, onMediaAdded, onMediaUpdate
         <div>
           <label className="block mb-1 font-medium" htmlFor="media-file">{isEdit ? 'Replace File' : 'Media File'}</label>
           <div className="text-xs text-gray-500 mb-2">
-            Images (JPG, PNG, GIF) or PDF, max 10MB each. Recommended image size: up to 4000×4000px.
+            Supported: Images (JPG, PNG, GIF), Documents (PDF), Video (MP4, WEBM), Audio (MP3, WAV). Max 10MB each.
           </div>
           {/* Only show preview below file input if a new file is selected */}
           {renderFilePreview()}
