@@ -1,5 +1,5 @@
 # Simple test to check if person ID 26 exists and what the issue is
-require_relative 'config/environment'
+require_relative '../chronicle_tree_api/config/environment'
 
 puts "=== CHECKING PERSON ID 26 STATUS ==="
 
@@ -14,9 +14,9 @@ begin
   puts "\n=== TESTING SIMPLE UPDATE ==="
   begin
     person.update!(first_name: person.first_name) # No actual change
-    puts "✓ Simple update successful"
+    puts "Simple update successful"
   rescue => e
-    puts "✗ Simple update failed: #{e.message}"
+    puts "Simple update failed: #{e.message}"
     puts e.backtrace[0..3]
   end
   
@@ -27,9 +27,9 @@ begin
       date_of_death: nil,
       is_deceased: false
     )
-    puts "✓ Deceased status update successful"
+    puts "Deceased status update successful"
   rescue => e
-    puts "✗ Deceased status update failed: #{e.message}"
+    puts "Deceased status update failed: #{e.message}"
     puts e.backtrace[0..3]
   end
   

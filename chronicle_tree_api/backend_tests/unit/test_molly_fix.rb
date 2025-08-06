@@ -1,4 +1,6 @@
 # Test fix for Molly/Robert marriage issue using Rails runner
+require_relative '../chronicle_tree_api/config/environment'
+
 puts "=== Testing Deceased Spouse Marriage Fix ==="
 
 # Find Molly and Robert

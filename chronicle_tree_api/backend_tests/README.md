@@ -9,7 +9,9 @@ backend_tests/
 ├── unit/                      # Unit tests for individual classes/modules
 │   ├── models/               # ActiveRecord model tests
 │   ├── services/             # Service object tests
-│   └── controllers/          # Controller unit tests
+│   ├── controllers/          # Controller unit tests
+│   ├── test_person_26.rb     # Test script for person ID 26 operations
+│   └── test_molly_fix.rb     # Test script for deceased spouse marriage fix
 ├── integration/              # Integration tests
 │   ├── api/                  # API endpoint integration tests
 │   ├── relationships/        # Family relationship logic tests
@@ -23,7 +25,13 @@ backend_tests/
 └── scripts/                 # Utility scripts
     ├── debug/               # Debugging and data analysis scripts
     ├── maintenance/         # Data verification and cleanup scripts
-    └── setup/               # Test environment setup scripts
+    ├── setup/               # Test environment setup scripts
+    ├── debug_molly_fix.rb   # Debug script for Molly/Robert marriage issue
+    ├── debug_molly.rb       # Script to understand Molly/Robert relationship status
+    ├── debug_api_call.rb    # Debug specific API call failures
+    ├── direct_ownership_fix.rb # Direct database fix for user ownership issues
+    ├── investigate_person_26.rb # Investigation script for person ID 26 issues
+    └── investigate_500_error.rb # Investigation script for 500 error causes
 ```
 
 ## Test Types

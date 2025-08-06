@@ -1,5 +1,5 @@
 # Debug script to specifically test the exact API call that's failing
-require_relative 'config/environment'
+require_relative '../chronicle_tree_api/config/environment'
 
 puts "=== DEBUGGING EXACT API CALL FAILURE ==="
 
@@ -58,10 +58,10 @@ begin
       if other_living_spouses.any?
         spouse_names = other_living_spouses.map(&:full_name).join(', ')
         error_msg = "Cannot mark #{person.first_name} #{person.last_name} as alive. Their spouse #{spouse.full_name} already has a current marriage with #{spouse_names}. A person can only have one current spouse at a time."
-        puts "   ✗ CONFLICT DETECTED: #{error_msg}"
+        puts "   Conflict detected: #{error_msg}"
         raise error_msg
       else
-        puts "   ✓ No conflicts with #{spouse.full_name}"
+        puts "   No conflicts with #{spouse.full_name}"
       end
     end
     
@@ -89,24 +89,24 @@ begin
   )
   
   if person.valid?
-    puts "   ✓ Person attributes are valid"
+    puts "   Person attributes are valid"
     person.save!
-    puts "   ✓ Person updated successfully!"
+    puts "   Person updated successfully!"
     
     # Update relationship records if needed
     if is_being_made_alive
       spouse_relationships_to_update.update_all(is_deceased: false)
-      puts "   ✓ Relationship records updated"
+      puts "   Relationship records updated"
     end
     
-    puts "\n🎉 SUCCESS! The update should work without errors."
+    puts "\nSUCCESS! The update should work without errors."
   else
-    puts "   ✗ Person validation failed:"
+    puts "   Person validation failed:"
     person.errors.full_messages.each { |msg| puts "     - #{msg}" }
   end
   
 rescue => e
-  puts "\n❌ ERROR OCCURRED:"
+  puts "\nERROR OCCURRED:"
   puts "Message: #{e.message}"
   puts "Type: #{e.class}"
   puts "Backtrace:"

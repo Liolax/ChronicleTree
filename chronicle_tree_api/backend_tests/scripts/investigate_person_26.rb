@@ -1,5 +1,5 @@
 # Investigation script for person ID 26 and the Molly/Robert marriage issue
-require_relative 'config/environment'
+require_relative '../chronicle_tree_api/config/environment'
 
 puts "=== INVESTIGATING PERSON ID 26 AND MOLLY/ROBERT MARRIAGE ==="
 
@@ -71,13 +71,13 @@ if person_26
       )
       
       if other_marriages.any?
-        puts "  ⚠️  CONFLICT: Spouse has other current marriages:"
+        puts "  Warning: Spouse has other current marriages:"
         other_marriages.each do |other_rel|
           other_person = Person.find(other_rel.person_id == spouse.id ? other_rel.relative_id : other_rel.person_id)
           puts "    - Married to: #{other_person.first_name} #{other_person.last_name} (ID #{other_person.id})"
         end
       else
-        puts "  ✓ No marriage conflicts detected"
+        puts "  No marriage conflicts detected"
       end
     end
   end

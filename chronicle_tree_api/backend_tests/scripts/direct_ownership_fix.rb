@@ -1,5 +1,5 @@
 # Direct SQL fix for ownership issue - bypasses Rails to avoid process conflicts
-require_relative 'config/environment'
+require_relative '../chronicle_tree_api/config/environment'
 
 puts "=== DIRECT DATABASE FIX FOR OWNERSHIP ==="
 

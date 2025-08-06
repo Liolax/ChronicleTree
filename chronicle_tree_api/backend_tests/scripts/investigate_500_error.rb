@@ -1,7 +1,7 @@
 # Investigation script for the 500 error when making Molly alive
 # This script will examine all relationships to understand the marriage logic
 
-require_relative 'config/environment'
+require_relative '../chronicle_tree_api/config/environment'
 
 puts "=== INVESTIGATING 500 ERROR FOR MOLLY ==="
 
@@ -80,10 +80,10 @@ if molly && robert
   end
   
   if other_current_marriages.count > 0
-    puts "\n⚠️  MARRIAGE CONFLICT DETECTED!"
+    puts "\nMarriage conflict detected!"
     puts "Robert has other current marriages, so Molly cannot be made alive."
   else
-    puts "\n✓ No marriage conflicts detected. Molly can be made alive."
+    puts "\nNo marriage conflicts detected. Molly can be made alive."
   end
   
 end
@@ -99,7 +99,7 @@ if robert
     # Check if any of the children are Lisa or have Lisa as spouse
     child_spouses.each do |spouse|
       if spouse.first_name == 'Lisa'
-        puts "  ⚠️  Found Lisa as #{child.full_name}'s spouse!"
+        puts "  Found Lisa as #{child.full_name}'s spouse!"
         
         # Check Lisa's marriage status
         lisa_marriages = Relationship.where(

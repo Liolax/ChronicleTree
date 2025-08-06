@@ -2,7 +2,7 @@
 # This script simulates the fix for making Molly alive
 
 # Load Rails environment
-require_relative 'config/environment'
+require_relative '../chronicle_tree_api/config/environment'
 
 puts "=== DEBUGGING MOLLY ISSUE ==="
 

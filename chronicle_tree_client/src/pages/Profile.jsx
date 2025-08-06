@@ -469,7 +469,11 @@ export default function Profile() {
                   type="button"
                   className="mb-4 px-3 py-1 bg-red-100 text-red-600 rounded hover:bg-red-200 transition"
                   onClick={async () => {
-                    if (window.confirm('Remove profile picture?')) {
+                    const result = await showDeleteConfirm(
+                      'Remove Profile Picture?',
+                      'This will permanently remove the profile picture. This action cannot be undone.'
+                    );
+                    if (result.isConfirmed) {
                       try {
                         await api.patch(`/profiles/${profileId}`, { profile: { avatar: null } });
                         window.location.reload();
