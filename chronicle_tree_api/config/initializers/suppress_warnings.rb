@@ -1,25 +1,15 @@
 # Suppress VIPS warnings about missing DLL modules
 # These warnings are common on Windows and don't affect functionality
 
-# Redirect VIPS warnings to /dev/null on Windows
+# Set environment variables to suppress VIPS warnings
+ENV['VIPS_WARNING'] = '0'
+ENV['G_MESSAGES_DEBUG'] = ''
+ENV['VIPS_CONCURRENCY'] = '1'
+
+# On Windows, suppress VIPS GLib warnings through environment
 if Gem.win_platform?
-  begin
-    # Suppress VIPS warnings by setting environment variable
-    ENV['VIPS_WARNING'] = '0'
-    ENV['G_MESSAGES_DEBUG'] = ''
-    
-    # Alternative: Redirect stderr for VIPS operations
-    # This prevents the DLL not found warnings from showing
-    original_stderr = $stderr
-    $stderr = File.new('NUL', 'w') if Gem.win_platform?
-    
-    # Only during initialization, restore stderr after gems are loaded
-    Rails.application.config.after_initialize do
-      $stderr = original_stderr if defined?(original_stderr)
-    end
-  rescue => e
-    Rails.logger.debug "Could not suppress VIPS warnings: #{e.message}"
-  end
+  ENV['G_MESSAGES_PREFIXED'] = 'VIPS-WARNING'  
+  ENV['G_DEBUG'] = ''
 end
 
 # Suppress other common development warnings (Ruby 2.7+)

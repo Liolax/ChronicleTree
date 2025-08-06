@@ -51,7 +51,8 @@
       "Bash(claude auth:*)",
       "Bash(claude setup-token)",
       "Bash(claude auth logout)",
-      "Bash(rg:*)"
+      "Bash(rg:*)",
+      "Bash(bin/rails:*)"
     ],
     "deny": []
   }

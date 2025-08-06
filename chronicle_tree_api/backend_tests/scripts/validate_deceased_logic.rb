@@ -1,6 +1,7 @@
 # Validation Test for Deceased Spouse Relationship Logic
+# This script validates deceased spouse relationship logic using existing seeded data
 # Run this in Rails console: rails console
-# Then copy and paste this code
+# Then: load 'backend_tests/scripts/validate_deceased_logic.rb'
 
 puts "=== Deceased Spouse Relationship Logic Test ==="
 puts
@@ -70,5 +71,5 @@ if john && jane && lisa && robert && molly
   
   puts "\n✓ Implementation complete! Deceased spouse logic working as expected."
 else
-  puts "❌ Could not find test people. Please run: rails db:seed"
+  puts "ERROR Could not find test people. Please run: rails db:seed"
 end

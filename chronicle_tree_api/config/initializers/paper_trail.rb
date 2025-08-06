@@ -4,7 +4,6 @@
 PaperTrail.configure do |config|
   # Store comprehensive metadata with each version
   config.version_limit = 1000
-  config.track_associations = true
   
   # Custom serializer for better data storage
   config.serializer = PaperTrail::Serializers::JSON

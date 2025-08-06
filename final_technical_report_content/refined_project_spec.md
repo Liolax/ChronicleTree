@@ -494,7 +494,7 @@ Media management APIs provide secure file handling with automatic optimization. 
 The complete relationship type support is detailed in the Relationship Types diagram (Fig. 4.4.2), with API endpoint documentation available in the specific API diagrams (Fig. 4.4.3-4.4.8).
 
 **Figure 4.4.2: Relationship Types Supported**  
-![Relationship Types](diagrams/relationship_types_supported_eraser.md)
+![Complete Relationship Schema](diagrams/complete_relationship_schema.html)
 
 **Figure 4.4.3: Authentication API Endpoints**  
 ![Authentication API](diagrams/api_authentication_eraser.md)
@@ -524,7 +524,7 @@ The application implements a cohesive design system that ensures consistency acr
 
 **Registration and Authentication Interface**
 
-The registration interface provides a welcoming entry point with progressive form validation and clear visual feedback. The design emphasizes accessibility and user guidance through each step of account creation.
+The registration interface provides a welcoming entry point with progressive form validation and clear visual feedback. The design emphasizes accessibility and user guidance through each step of account creation (see Fig. 4.5.1-4.5.2).
 
 **Figure 4.5.1: Registration Page Screenshot**  
 *[SCREENSHOT NEEDED: Full registration page showing the form layout, validation states, and responsive design]*
@@ -548,7 +548,7 @@ The registration interface provides a welcoming entry point with progressive for
 
 **Main Application Interface**
 
-The core family tree visualization interface represents the primary user interaction space. The design balances information density with visual clarity, providing intuitive controls for navigation and tree manipulation.
+The core family tree visualization interface represents the primary user interaction space. The design balances information density with visual clarity, providing intuitive controls for navigation and tree manipulation (see Fig. 4.5.3).
 
 **Figure 4.5.3: Family Tree Visualization Screenshot**  
 *[SCREENSHOT NEEDED: Complete family tree page showing the React Flow visualization with multiple family members, relationship connections, and navigation controls]*
@@ -563,7 +563,7 @@ The core family tree visualization interface represents the primary user interac
 
 **Profile Management Interface**
 
-Individual profile pages showcase the comprehensive biographical information system, demonstrating the flexibility of the custom facts system and media gallery integration.
+Individual profile pages showcase the comprehensive biographical information system, demonstrating the flexibility of the custom facts system and media gallery integration (see Fig. 4.5.4-4.5.5).
 
 **Figure 4.5.4: Person Profile Page Screenshot**  
 *[SCREENSHOT NEEDED: Complete person profile showing biographical information, timeline, media gallery, and custom facts]*
@@ -589,7 +589,7 @@ Individual profile pages showcase the comprehensive biographical information sys
 
 **Account Settings and Management**
 
-The account management interface demonstrates the security-focused design approach with clear separation of profile information, password management, and account deletion controls.
+The account management interface demonstrates the security-focused design approach with clear separation of profile information, password management, and account deletion controls (see Fig. 4.5.6).
 
 **Figure 4.5.6: Account Settings Page Screenshot**  
 *[SCREENSHOT NEEDED: Complete account settings interface showing profile management, password change, and security options]*
@@ -884,7 +884,7 @@ end
 
 **Mobile Responsive Design**
 
-The interface adapts intelligently across device sizes, with touch-friendly controls and responsive layouts that maintain functionality on mobile devices.
+The interface adapts intelligently across device sizes, with touch-friendly controls and responsive layouts that maintain functionality on mobile devices (see Fig. 4.5.10).
 
 **Figure 4.5.10: Mobile Interface Screenshots**  
 *[SCREENSHOT NEEDED: Mobile view of key pages showing responsive design]*

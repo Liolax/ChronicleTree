@@ -11,10 +11,10 @@ rails db:reset 2>&1 | findstr /v /c:"log shifting failed" | findstr /v /c:"close
 
 if %errorlevel% == 0 (
     echo.
-    echo ✅ Database reset completed successfully!
+    echo OK Database reset completed successfully!
 ) else (
     echo.
-    echo ❌ Database reset failed!
+    echo ERROR Database reset failed!
     pause
     exit /b 1
 )

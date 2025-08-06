@@ -1,10 +1,13 @@
 # Chronicle Tree - Family Tree Application
-# Student project for genealogical research and family relationship management
+# for genealogical research and family relationship management
 require_relative "boot"
 
 require "rails/all"
 
 Bundler.require(*Rails.groups)
+
+# Require custom middleware
+require_relative '../app/middleware/security_middleware'
 
 module ChronicleTreeApi
   class Application < Rails::Application
