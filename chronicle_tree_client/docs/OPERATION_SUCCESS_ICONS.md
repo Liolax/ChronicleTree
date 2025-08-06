@@ -1,19 +1,19 @@
 # Enhanced Operation Success Messages
 
-The `showOperationSuccess` function now includes contextual titles for different operation types to provide clear feedback to users with professional messaging.
+The `showOperationSuccess` function now includes contextual titles for different operation types to provide clear feedback to users with professional messaging. All success operations use the standard SweetAlert2 success icon (green checkmark).
 
 ## Available Operation Types with Professional Titles
 
-| Operation Type | Title | Usage |
-|---|---|---|
-| `linkCopied` | Link Copied Successfully | When profile links are copied to clipboard |
-| `personAdded` | Person Added Successfully | When a new person is added to the family tree |
-| `personUpdated` | Person Updated Successfully | When person details are updated |
-| `factDeleted` | Fact Deleted Successfully | When facts are deleted from profiles |
-| `timelineDeleted` | Timeline Event Deleted | When timeline events are removed |
-| `mediaDeleted` | Media Deleted Successfully | When media files are deleted |
-| `notesUpdated` | Notes Updated Successfully | When notes and stories are updated |
-| Default | Operation Completed Successfully | For any unspecified operation type |
+| Operation Type | Title | Icon Used | Usage |
+|---|---|---|---|
+| `linkCopied` | Link Copied Successfully | Success (✓) | When profile links are copied to clipboard |
+| `personAdded` | Person Added Successfully | Success (✓) | When a new person is added to the family tree |
+| `personUpdated` | Person Updated Successfully | Success (✓) | When person details are updated |
+| `factDeleted` | Fact Deleted Successfully | Success (✓) | When facts are deleted from profiles |
+| `timelineDeleted` | Timeline Event Deleted | Success (✓) | When timeline events are removed |
+| `mediaDeleted` | Media Deleted Successfully | Success (✓) | When media files are deleted |
+| `notesUpdated` | Notes Updated Successfully | Success (✓) | When notes and stories are updated |
+| Default | Operation Completed Successfully | Success (✓) | For any unspecified operation type |
 
 ## Usage Examples
 
@@ -51,6 +51,8 @@ The enhancement is backward compatible - all existing `showOperationSuccess()` c
 
 The function now:
 1. Maps operation types to specific professional titles
-2. Uses the enhanced SweetAlert styling system  
+2. Uses the enhanced SweetAlert styling system with standard success icon (green checkmark)
 3. Provides fallback to generic "Operation Completed Successfully" for unknown operation types
 4. Maintains modal management (hiding other modals when alert appears)
+
+**Note**: All success operations use the same SweetAlert2 'success' icon (green checkmark). The enhancement is in the contextual titles, not custom icons.

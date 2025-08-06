@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug SweetAlert Icons Issue</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 2rem;
+            background: #f3f4f6;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            max-width: 1200px;
+        }
+        .test-btn {
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .test-btn:hover {
+            background: #4338CA;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug SweetAlert Icons Issue</h1>
+    <p>Testing specific icon issues with minimal configuration vs enhanced configuration</p>
+    
+    <div class="test-grid">
+        <button class="test-btn" onclick="testMinimalSuccess()">Minimal Success (No Config)</button>
+        <button class="test-btn" onclick="testMinimalWarning()">Minimal Warning (No Config)</button>
+        <button class="test-btn" onclick="testFactDeletedMinimal()">Fact Deleted - Minimal</button>
+        <button class="test-btn" onclick="testFactDeletedEnhanced()">Fact Deleted - Enhanced Style</button>
+        <button class="test-btn" onclick="testWarningEnhanced()">Warning - Enhanced Style</button>
+        <button class="test-btn" onclick="testSuccessEnhanced()">Success - Enhanced Style</button>
+    </div>
+
+    <script>
+        // Test with absolutely minimal configuration
+        function testMinimalSuccess() {
+            Swal.fire({
+                title: 'Success Test',
+                text: 'This should show standard green checkmark',
+                icon: 'success'
+            });
+        }
+
+        function testMinimalWarning() {
+            Swal.fire({
+                title: 'Warning Test',
+                text: 'This should show standard yellow exclamation',
+                icon: 'warning'
+            });
+        }
+
+        function testFactDeletedMinimal() {
+            Swal.fire({
+                title: 'Fact Deleted Successfully',
+                text: 'Fact deleted successfully!',
+                icon: 'success'
+            });
+        }
+
+        // Test with enhanced configuration that might be causing issues
+        function testFactDeletedEnhanced() {
+            Swal.fire({
+                title: 'Fact Deleted Successfully',
+                text: 'Fact deleted successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4F46E5',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+                backdrop: 'rgba(0, 0, 0, 0.6)',
+                position: 'center',
+                showClass: {
+                    popup: 'swal2-show',
+                    backdrop: 'swal2-backdrop-show',
+                    icon: 'swal2-icon-show'
+                },
+                customClass: {
+                    container: 'swal-high-z-index',
+                    popup: 'swal-popup-custom',
+                    title: 'swal-title-custom',
+                    htmlContainer: 'swal-content-custom',
+                    actions: 'swal-actions-custom',
+                    confirmButton: 'swal-ok-btn'
+                },
+                buttonsStyling: false
+            });
+        }
+
+        function testWarningEnhanced() {
+            Swal.fire({
+                title: 'Warning Test Enhanced',
+                text: 'This should show standard yellow exclamation with enhanced styling',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4F46E5',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+                backdrop: 'rgba(0, 0, 0, 0.6)',
+                position: 'center',
+                showClass: {
+                    popup: 'swal2-show',
+                    backdrop: 'swal2-backdrop-show',
+                    icon: 'swal2-icon-show'
+                },
+                customClass: {
+                    container: 'swal-high-z-index',
+                    popup: 'swal-popup-custom',
+                    title: 'swal-title-custom',
+                    htmlContainer: 'swal-content-custom',
+                    actions: 'swal-actions-custom',
+                    confirmButton: 'swal-ok-btn'
+                },
+                buttonsStyling: false
+            });
+        }
+
+        function testSuccessEnhanced() {
+            Swal.fire({
+                title: 'Success Test Enhanced',
+                text: 'This should show standard green checkmark with enhanced styling',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#4F46E5',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+                backdrop: 'rgba(0, 0, 0, 0.6)',
+                position: 'center',
+                showClass: {
+                    popup: 'swal2-show',
+                    backdrop: 'swal2-backdrop-show',
+                    icon: 'swal2-icon-show'
+                },
+                customClass: {
+                    container: 'swal-high-z-index',
+                    popup: 'swal-popup-custom',
+                    title: 'swal-title-custom',
+                    htmlContainer: 'swal-content-custom',
+                    actions: 'swal-actions-custom',
+                    confirmButton: 'swal-ok-btn'
+                },
+                buttonsStyling: false
+            });
+        }
+    </script>
+</body>
+</html>

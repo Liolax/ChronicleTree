@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Force icons to be visible and large */
+        .swal2-icon {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            margin: 1.5rem auto !important;
+            width: 80px !important;
+            height: 80px !important;
+            font-size: 60px !important;
+            border: 4px solid transparent !important;
+        }
+
+        .swal2-icon.swal2-success {
+            border: 4px solid #a5dc86 !important;
+            border-radius: 50% !important;
+        }
+
+        .swal2-icon.swal2-error {
+            border: 4px solid #f27474 !important;
+            border-radius: 50% !important;
+        }
+
+        .swal2-icon.swal2-warning {
+            border: 4px solid #facea8 !important;
+            border-radius: 50% !important;
+        }
+
+        .swal2-icon.swal2-info {
+            border: 4px solid #9de0f6 !important;
+            border-radius: 50% !important;
+        }
+
+        .swal2-icon.swal2-question {
+            border: 4px solid #c9dae1 !important;
+            border-radius: 50% !important;
+        }
+    </style>
+</head>
+<body>
+    <h1>SweetAlert Icon Test - Large Icons</h1>
+    <button onclick="testBasicSuccess()">Test Basic Success Icon (Large)</button>
+    <button onclick="testBasicError()">Test Basic Error Icon (Large)</button>
+    <button onclick="testBasicWarning()">Test Basic Warning Icon (Large)</button>
+    <button onclick="testBasicInfo()">Test Basic Info Icon (Large)</button>
+
+    <script>
+        function testBasicSuccess() {
+            Swal.fire({
+                title: 'Success Test',
+                text: 'This should show a LARGE green checkmark icon (80px)',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                didOpen: () => {
+                    // Force icon to be visible and large
+                    const icon = document.querySelector('.swal2-icon');
+                    if (icon) {
+                        icon.style.display = 'block';
+                        icon.style.visibility = 'visible';
+                        icon.style.opacity = '1';
+                        icon.style.width = '80px';
+                        icon.style.height = '80px';
+                        icon.style.fontSize = '60px';
+                        icon.style.margin = '1.5rem auto';
+                        console.log('Icon found and styled:', icon);
+                    } else {
+                        console.log('No icon found!');
+                    }
+                }
+            });
+        }
+
+        function testBasicError() {
+            Swal.fire({
+                title: 'Error Test', 
+                text: 'This should show a LARGE red X icon (80px)',
+                icon: 'error',
+                confirmButtonText: 'OK',
+                didOpen: () => {
+                    const icon = document.querySelector('.swal2-icon');
+                    if (icon) {
+                        icon.style.display = 'block';
+                        icon.style.visibility = 'visible';
+                        icon.style.opacity = '1';
+                        icon.style.width = '80px';
+                        icon.style.height = '80px';
+                        icon.style.fontSize = '60px';
+                        icon.style.margin = '1.5rem auto';
+                    }
+                }
+            });
+        }
+
+        function testBasicWarning() {
+            Swal.fire({
+                title: 'Warning Test',
+                text: 'This should show a LARGE yellow warning icon (80px)',
+                icon: 'warning',
+                confirmButtonText: 'OK',
+                didOpen: () => {
+                    const icon = document.querySelector('.swal2-icon');
+                    if (icon) {
+                        icon.style.display = 'block';
+                        icon.style.visibility = 'visible';
+                        icon.style.opacity = '1';
+                        icon.style.width = '80px';
+                        icon.style.height = '80px';
+                        icon.style.fontSize = '60px';
+                        icon.style.margin = '1.5rem auto';
+                    }
+                }
+            });
+        }
+
+        function testBasicInfo() {
+            Swal.fire({
+                title: 'Info Test',
+                text: 'This should show a LARGE blue info icon (80px)',
+                icon: 'info',
+                confirmButtonText: 'OK',
+                didOpen: () => {
+                    const icon = document.querySelector('.swal2-icon');
+                    if (icon) {
+                        icon.style.display = 'block';
+                        icon.style.visibility = 'visible';
+                        icon.style.opacity = '1';
+                        icon.style.width = '80px';
+                        icon.style.height = '80px';
+                        icon.style.fontSize = '60px';
+                        icon.style.margin = '1.5rem auto';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

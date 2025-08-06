@@ -110,10 +110,9 @@ const restoreHiddenModals = () => {
 };
 
 // Enhanced SweetAlert configuration for consistent styling
-const getFullSweetAlertConfig = (icon, iconColor = null) => {
+const getFullSweetAlertConfig = (icon) => {
   return {
     icon,
-    iconColor: iconColor || (icon === 'error' ? '#dc2626' : icon === 'success' ? '#10b981' : icon === 'warning' ? '#f59e0b' : '#3b82f6'),
     confirmButtonText: 'OK',
     confirmButtonColor: '#4F46E5',
     allowOutsideClick: false,
@@ -121,13 +120,12 @@ const getFullSweetAlertConfig = (icon, iconColor = null) => {
     backdrop: 'rgba(0, 0, 0, 0.6)',
     position: 'center',
     customClass: {
-      container: 'swal-container-custom swal-high-z-index',
+      container: 'swal-container-custom',
       popup: 'swal-popup-custom',
       title: 'swal-title-custom',
       htmlContainer: 'swal-content-custom',
       actions: 'swal-actions-custom',
-      confirmButton: 'swal-ok-btn',
-      icon: 'swal-icon-custom'
+      confirmButton: 'swal-ok-btn'
     },
     buttonsStyling: false,
     didRender: () => {
@@ -178,7 +176,7 @@ const getFullSweetAlertConfig = (icon, iconColor = null) => {
   };
 };
 export const showError = (title, text) => {
-  const config = getFullSweetAlertConfig('error', '#dc2626');
+  const config = getFullSweetAlertConfig('error');
   return Swal.fire({
     title,
     text,
@@ -187,7 +185,7 @@ export const showError = (title, text) => {
 };
 
 export const showSuccess = (title, text) => {
-  const config = getFullSweetAlertConfig('success', '#10b981');
+  const config = getFullSweetAlertConfig('success');
   return Swal.fire({
     title,
     text,
@@ -196,7 +194,7 @@ export const showSuccess = (title, text) => {
 };
 
 export const showWarning = (title, text) => {
-  const config = getFullSweetAlertConfig('warning', '#f59e0b');
+  const config = getFullSweetAlertConfig('warning');
   return Swal.fire({
     title,
     text,
@@ -205,7 +203,7 @@ export const showWarning = (title, text) => {
 };
 
 export const showInfo = (title, text) => {
-  const config = getFullSweetAlertConfig('info', '#3b82f6');
+  const config = getFullSweetAlertConfig('info');
   return Swal.fire({
     title,
     text,
@@ -214,20 +212,25 @@ export const showInfo = (title, text) => {
 };
 
 export const showConfirm = (title, text, confirmText = 'Yes', cancelText = 'No') => {
-  const config = getFullSweetAlertConfig('question', '#3b82f6');
+  const config = getFullSweetAlertConfig('question');
   return Swal.fire({
     title,
     text,
     showCancelButton: true,
     confirmButtonText: confirmText,
     cancelButtonText: cancelText,
+    confirmButtonColor: '#4F46E5',
     cancelButtonColor: '#6B7280',
+    customClass: {
+      ...config.customClass,
+      cancelButton: 'swal-cancel-btn',
+    },
     ...config
   });
 };
 
 export const showDeleteConfirm = (title, text) => {
-  const config = getFullSweetAlertConfig('warning', '#f59e0b');
+  const config = getFullSweetAlertConfig('warning');
   return Swal.fire({
     title,
     text,

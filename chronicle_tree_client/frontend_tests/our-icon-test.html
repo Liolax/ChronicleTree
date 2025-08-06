@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChronicleTree SweetAlert Icon Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Include our custom CSS -->
+    <link rel="stylesheet" href="src/styles/sweetalert-custom.css">
+</head>
+<body>
+    <h1>ChronicleTree SweetAlert Icon Test</h1>
+    <button onclick="testOurSuccess()">Test Our Success Function</button>
+    <button onclick="testOurError()">Test Our Error Function</button>
+    <button onclick="testOperationSuccess()">Test Operation Success</button>
+
+    <script type="module">
+        // Import our SweetAlert functions
+        import { showSuccess, showError } from './src/utils/sweetAlerts.js';
+        import { showOperationSuccess } from './src/utils/validationAlerts.js';
+
+        window.testOurSuccess = function() {
+            showSuccess('Test Success', 'This should show a success icon with our styling');
+        };
+
+        window.testOurError = function() {
+            showError('Test Error', 'This should show an error icon with our styling');
+        };
+
+        window.testOperationSuccess = function() {
+            showOperationSuccess('factDeleted');
+        };
+    </script>
+</body>
+</html>

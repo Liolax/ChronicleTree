@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Standard SweetAlert Icons Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 2rem;
+            background: #f3f4f6;
+        }
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            max-width: 1000px;
+        }
+        .test-btn {
+            background: #4F46E5;
+            color: white;
+            border: none;
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .test-btn:hover {
+            background: #4338CA;
+        }
+        #results {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            border: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Standard SweetAlert Icons Test</h1>
+    <p>This test uses minimal configuration to ensure standard SweetAlert2 icons appear properly.</p>
+    
+    <div class="test-grid">
+        <button class="test-btn" onclick="testStandardError()">Standard Error</button>
+        <button class="test-btn" onclick="testStandardSuccess()">Standard Success</button>
+        <button class="test-btn" onclick="testStandardWarning()">Standard Warning</button>
+        <button class="test-btn" onclick="testStandardInfo()">Standard Info</button>
+        <button class="test-btn" onclick="testStandardQuestion()">Standard Question</button>
+    </div>
+
+    <div id="results">
+        <h3>Test Results:</h3>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            document.getElementById('log').innerHTML += `<div>[${timestamp}] ${message}</div>`;
+        }
+
+        // Test with absolute minimal configuration to ensure standard icons work
+        function testStandardError() {
+            Swal.fire({
+                title: 'Error Test',
+                text: 'This should show a standard red X error icon',
+                icon: 'error'
+            });
+            log('Standard error icon test triggered');
+        }
+
+        function testStandardSuccess() {
+            Swal.fire({
+                title: 'Success Test', 
+                text: 'This should show a standard green checkmark success icon',
+                icon: 'success'
+            });
+            log('Standard success icon test triggered');
+        }
+
+        function testStandardWarning() {
+            Swal.fire({
+                title: 'Warning Test',
+                text: 'This should show a standard yellow exclamation warning icon',
+                icon: 'warning'
+            });
+            log('Standard warning icon test triggered');
+        }
+
+        function testStandardInfo() {
+            Swal.fire({
+                title: 'Info Test',
+                text: 'This should show a standard blue i info icon',
+                icon: 'info'
+            });
+            log('Standard info icon test triggered');
+        }
+
+        function testStandardQuestion() {
+            Swal.fire({
+                title: 'Question Test',
+                text: 'This should show a standard question mark icon',
+                icon: 'question',
+                showCancelButton: true
+            });
+            log('Standard question icon test triggered');
+        }
+
+        log('Page loaded - ready to test standard SweetAlert2 icons');
+    </script>
+</body>
+</html>

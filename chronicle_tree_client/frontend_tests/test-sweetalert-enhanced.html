@@ -217,6 +217,7 @@
             <button class="test-btn" onclick="testToast()">Test Toast</button>
             <button class="test-btn" onclick="testModalManagement()">Test Modal Management</button>
             <button class="test-btn" onclick="testOperationSuccess()">Test Professional Success Messages</button>
+            <button class="test-btn" onclick="testIconSizes()">Test Icon Sizes</button>
         </div>
 
         <div class="test-results">
@@ -477,6 +478,37 @@
                         }
                     });
                     logResult(`Operation success test - ${op.type} with professional title ✅`);
+                }
+            }
+            showNext();
+        }
+
+        function testIconSizes() {
+            // Test different icon types with proper sizing
+            const iconTests = [
+                { icon: 'success', title: 'Large Success Icon', text: 'This success icon should be 80px and clearly visible' },
+                { icon: 'error', title: 'Large Error Icon', text: 'This error icon should be 80px and clearly visible' },
+                { icon: 'warning', title: 'Large Warning Icon', text: 'This warning icon should be 80px and clearly visible' },
+                { icon: 'info', title: 'Large Info Icon', text: 'This info icon should be 80px and clearly visible' },
+                { icon: 'question', title: 'Large Question Icon', text: 'This question icon should be 80px and clearly visible' }
+            ];
+
+            let index = 0;
+            function showNext() {
+                if (index < iconTests.length) {
+                    const test = iconTests[index];
+                    const config = getFullSweetAlertConfig(test.icon);
+                    Swal.fire({
+                        title: test.title,
+                        text: test.text,
+                        ...config
+                    }).then(() => {
+                        index++;
+                        if (index < iconTests.length) {
+                            setTimeout(showNext, 500);
+                        }
+                    });
+                    logResult(`Icon size test - ${test.icon} icon displayed ✅`);
                 }
             }
             showNext();
