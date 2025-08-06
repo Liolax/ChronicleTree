@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import Button from '../UI/Button';
+import Modal from '../UI/Modal';
 
 const DeletePersonModal = ({ person, relationships = {}, onConfirm, onCancel, isLoading }) => {
   const [input, setInput] = useState('');
@@ -14,18 +15,23 @@ const DeletePersonModal = ({ person, relationships = {}, onConfirm, onCancel, is
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-      <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full border border-red-200">
-        <h2 className="text-xl font-bold text-red-700 mb-2">Delete {person.first_name} {person.last_name}?</h2>
-        <p className="text-gray-700 mb-3">
-          This action <span className="font-semibold text-red-600">cannot be undone</span>.<br/>
+    <Modal
+      isOpen={true}
+      onClose={onCancel}
+      title={`Delete ${person.first_name} ${person.last_name}?`}
+    >
+      <div className="space-y-4">
+        <p className="text-red-700 font-semibold">
+          This action <span className="font-bold">cannot be undone</span>.
+        </p>
+        <p className="text-gray-700">
           Deleting this person will remove them from the family tree and delete all their relationships.
         </p>
-        <div className="mb-3">
-          <div className="font-semibold text-gray-800 mb-1">
+        <div>
+          <div className="font-semibold text-gray-800 mb-2">
             Relationships of <span className="text-red-700">{person.first_name} {person.last_name}</span> affected:
           </div>
-          <ul className="list-disc list-inside text-sm text-gray-600">
+          <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
             {directGroups.map(group =>
               group.rels.length > 0 && (
                 <li key={group.label}>
@@ -47,8 +53,12 @@ const DeletePersonModal = ({ person, relationships = {}, onConfirm, onCancel, is
             )}
           </ul>
         </div>
-        <div className="mb-3">
-          <label className="block text-sm text-gray-700 mb-1">Type <span className="font-semibold">{person.first_name} {person.last_name}</span> to confirm:</label>
+        <div>
+          <p className="text-gray-700 mb-2">
+            Please type{' '}
+            <span className="font-mono font-bold">{person.first_name} {person.last_name}</span>{' '}
+            to confirm.
+          </p>
           <input
             type="text"
             className="w-full border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-red-400"
@@ -61,11 +71,11 @@ const DeletePersonModal = ({ person, relationships = {}, onConfirm, onCancel, is
         <div className="flex justify-end gap-2 mt-4">
           <Button type="button" onClick={onCancel} variant="grey" disabled={isLoading}>Cancel</Button>
           <Button type="button" onClick={onConfirm} disabled={!canDelete || isLoading} variant="danger">
-            {isLoading ? 'Deleting...' : 'Delete'}
+            {isLoading ? 'Deleting...' : 'Delete Person'}
           </Button>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

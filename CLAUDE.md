@@ -1,11 +1,4 @@
-1. fix please everywhere where is related - PageLoader.jsx:20 Received `true` for a non-boolean attribute `jsx`.
-
-If you want to write it to the DOM, pass a string instead: jsx="true" or jsx={value.toString()}.
-
-﻿
-
-
-
+1. why Confirm Account Deletion and Delete Person modal have different styling (ui)? we must have costistance
 
 
 PS. Please, if you create tests, move them to frontend_tests and backend_tests so we have only one folder for each type. Upgrade the organization of these folders every time after you test the app. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. Centralize all alerts in validationAlerts.js with sweetallert, not standart allerts. always update ROADMAP.md after code changes.
