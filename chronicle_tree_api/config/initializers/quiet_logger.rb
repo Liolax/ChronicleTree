@@ -14,7 +14,12 @@ class QuietLogger < Logger
       'vips-heif.dll',
       'vips-jxl.dll', 
       'vips-magick.dll',
-      'The specified module could not be found'
+      'The specified module could not be found',
+      'SIGUSR2 not implemented',
+      'SIGUSR1 not implemented', 
+      'SIGHUP not implemented',
+      'signal based restart unavailable',
+      'signal based logs reopening unavailable'
     ]
     
     # Skip the message if it contains any filtered terms
