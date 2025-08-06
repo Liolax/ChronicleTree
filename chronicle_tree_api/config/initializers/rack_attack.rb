@@ -8,15 +8,15 @@ class Rack::Attack
   Rack::Attack.cache.store = ActiveSupport::Cache::MemoryStore.new
 
   # Enable detailed logging for rate limiting events
-  ActiveSupport::Notifications.subscribe("rack.attack") do |name, start, finish, request_id, req|
+  ActiveSupport::Notifications.subscribe("rack.attack") do |name, start, finish, request_id, payload|
     Rails.logger.info({
       event: 'rack_attack',
       name: name,
-      ip: req.ip,
-      path: req.path,
-      matched: req.env['rack.attack.matched'],
-      match_type: req.env['rack.attack.match_type'],
-      match_data: req.env['rack.attack.match_data'],
+      ip: payload[:request].ip,
+      path: payload[:request].path,
+      matched: payload[:request].env['rack.attack.matched'],
+      match_type: payload[:request].env['rack.attack.match_type'],
+      match_data: payload[:request].env['rack.attack.match_data'],
       timestamp: Time.current
     }.to_json)
   end

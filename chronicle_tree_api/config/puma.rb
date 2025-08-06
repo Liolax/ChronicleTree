@@ -6,6 +6,12 @@ threads threads_count, threads_count
 
 port ENV.fetch("PORT", 4000)
 
+# Suppress signal warnings on Windows
+if Gem.win_platform?
+  bind "tcp://127.0.0.1:#{ENV.fetch('PORT', 4000)}"
+  quiet
+end
+
 # Enable restart capability
 plugin :tmp_restart
 
