@@ -102,7 +102,7 @@ export default function Profile() {
     try {
       await api.delete(`/facts/${factId}`);
       setFacts(prev => prev.filter(f => f.id !== factId));
-      showOperationSuccess('Fact deleted successfully');
+      showOperationSuccess('factDeleted');
     } catch (error) {
       console.error('Delete fact error:', error);
       showOperationError('Failed to delete fact');
@@ -140,7 +140,7 @@ export default function Profile() {
     try {
       await api.delete(`/timeline_items/${eventId}`);
       setTimeline(prev => prev.filter(e => e.id !== eventId));
-      showOperationSuccess('Timeline event deleted successfully');
+      showOperationSuccess('timelineDeleted');
     } catch (error) {
       console.error('Delete timeline error:', error);
       showOperationError('Failed to delete timeline event');
@@ -152,6 +152,8 @@ export default function Profile() {
     setMedia(prev => [...prev, newMedia]);
     setShowAddMedia(false);
     setEditingMedia(null);
+    // Force page reload to ensure media displays properly
+    setTimeout(() => window.location.reload(), 1000);
   };
 
   // Edit media handler
@@ -165,6 +167,8 @@ export default function Profile() {
     setMedia(prev => prev.map(m => m.id === updatedMedia.id ? updatedMedia : m));
     setShowAddMedia(false);
     setEditingMedia(null);
+    // Force page reload to ensure updated media displays properly
+    setTimeout(() => window.location.reload(), 1000);
   };
 
   // Delete media handler
@@ -179,7 +183,9 @@ export default function Profile() {
     try {
       await api.delete(`/media/${mediaId}`);
       setMedia(prev => prev.filter(m => m.id !== mediaId));
-      showOperationSuccess('Media deleted successfully');
+      showOperationSuccess('mediaDeleted');
+      // Force page reload to ensure deleted media is removed from UI
+      setTimeout(() => window.location.reload(), 1000);
     } catch (error) {
       console.error('Delete media error:', error);
       const errorMsg = error.response?.data?.error || 

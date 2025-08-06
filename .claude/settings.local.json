@@ -56,7 +56,10 @@
       "Bash(npm audit:*)",
       "Bash(npm update:*)",
       "Bash(\"C:/Users/User/chronicle_tree/chronicle_tree_api/bundle\" exec rails runner lib/debug_molly.rb)",
-      "Bash(bundle install:*)"
+      "Bash(bundle install:*)",
+      "Bash(bundle list:*)",
+      "Bash(echo $RAILS_ENV)",
+      "Bash(echo $BUNDLE_WITHOUT)"
     ],
     "deny": []
   }

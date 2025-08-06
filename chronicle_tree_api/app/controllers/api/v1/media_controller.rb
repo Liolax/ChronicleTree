@@ -41,12 +41,26 @@ module Api
 
       def destroy
         begin
-          @media.destroy
-          Rails.logger.info("Media deleted successfully: ID #{@media.id}")
-          head :no_content
+          Rails.logger.info("Attempting to delete media ID #{@media.id}")
+          
+          # Check if media has attached files
+          if @media.file.attached?
+            Rails.logger.info("Purging attached file for media #{@media.id}")
+            @media.file.purge
+          end
+          
+          # Destroy the media record
+          if @media.destroy
+            Rails.logger.info("Media deleted successfully: ID #{@media.id}")
+            head :no_content
+          else
+            Rails.logger.error("Media deletion validation failed: #{@media.errors.full_messages}")
+            render json: { error: "Cannot delete media: #{@media.errors.full_messages.join(', ')}" }, status: :unprocessable_entity
+          end
         rescue => e
-          Rails.logger.error("Media deletion failed: #{e.message}")
+          Rails.logger.error("Media deletion exception: #{e.message}")
           Rails.logger.error("Media ID: #{params[:id]}, User ID: #{current_user.id}")
+          Rails.logger.error("Exception backtrace: #{e.backtrace.first(5).join('\n')}")
           render json: { error: "Failed to delete media: #{e.message}" }, status: :unprocessable_entity
         end
       end

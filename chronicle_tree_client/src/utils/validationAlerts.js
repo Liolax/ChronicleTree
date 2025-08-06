@@ -1,4 +1,5 @@
 // Validation alerts for family tree forms
+import { showError, showWarning, showSuccess } from './sweetAlerts';
 
 export const showValidationAlert = (type, details = {}) => {
   const { personName, targetName, age, relationship } = details;
@@ -307,9 +308,12 @@ export const showOperationSuccess = (type, details = {}) => {
   const messages = {
     linkCopied: 'Profile link copied to clipboard!',
     personAdded: `${details.firstName || 'Person'} ${details.lastName || ''} has been successfully added to the family tree!`,
-    personUpdated: `${details.firstName || 'Person'} ${details.lastName || ''} has been successfully updated!`
+    personUpdated: `${details.firstName || 'Person'} ${details.lastName || ''} has been successfully updated!`,
+    factDeleted: 'Fact deleted successfully!',
+    timelineDeleted: 'Timeline event deleted successfully!',
+    mediaDeleted: 'Media deleted successfully!'
   };
-  showToast(messages[type] || 'Operation completed successfully!');
+  showSuccess('Operation Complete', messages[type] || 'Operation completed successfully!');
 };
 
 export const showFormError = (type, person = {}, child = {}, parent = {}) => {
@@ -336,5 +340,3 @@ export const showFormError = (type, person = {}, child = {}, parent = {}) => {
     showError('Validation Error', messages[type] || 'Please check the information and try again.');
   }
 };
-
-import { showError, showWarning, showToast } from './sweetAlerts';

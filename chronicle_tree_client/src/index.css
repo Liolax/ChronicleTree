@@ -78,11 +78,27 @@
   background-color: #e5e7eb !important;
 }
 
+.swal-ok-btn {
+  background-color: #4F46E5 !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  padding: 0.5rem 1rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+  min-width: 80px !important;
+}
+
+.swal-ok-btn:hover {
+  background-color: #3730a3 !important;
+}
+
 .swal-icon-custom {
   border: none !important;
   margin: 1rem auto !important;
   font-size: 3rem !important;
-  color: #f59e0b !important;
 }
 
 /* Browser compatibility and normalization */
