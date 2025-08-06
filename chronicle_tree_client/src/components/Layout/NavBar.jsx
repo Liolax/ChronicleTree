@@ -10,52 +10,36 @@ export default function NavBar() {
   const navLinkClasses = ({ isActive }) =>
     `px-4 py-2 rounded transition-colors duration-150 hover:text-app-primary hover:bg-app-accent/20 ${isActive ? 'font-bold text-app-primary bg-app-accent/30' : 'text-app-secondary'}`;
 
+  const logoWaveStyle = {
+    backgroundSize: '200% auto',
+    backgroundClip: 'text',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundImage: 'linear-gradient(to right, #000000 45%, #4F868E 50%, #000000 55%)',
+    animation: 'gradientWave 4s linear infinite'
+  };
+
+  const fadeInStyle = {
+    animation: 'fadeIn 0.3s ease-out forwards'
+  };
+
+  const keyframes = `
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes gradientWave {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+  `;
+
   return (
     <>
-      <style jsx>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-          animation: fadeIn 0.3s ease-out forwards;
-        }
-
-        /* Gradient Wave Animation */
-        @keyframes gradientWave {
-          0% {
-            background-position: -200% center;
-          }
-          100% {
-            background-position: 200% center;
-          }
-        }
-        .logo-wave {
-          /* The gradient is much larger than the text, allowing for a smooth slide */
-          background-size: 200% auto;
-          
-          /* The magic: clip the background to the text */
-          background-clip: text;
-          -webkit-background-clip: text;
-          
-          /* Make the text color transparent so the background shows through */
-          -webkit-text-fill-color: transparent;
-          
-          /* Define the gradient colors for the thinner wave effect */
-          background-image: linear-gradient(
-            to right,
-            #000000 45%,   /* black */
-            #4F868E 50%,   /* teal - the thin "wave" */
-            #000000 55%    /* black */
-          );
-          
-          /* Apply the animation */
-          animation: gradientWave 4s linear infinite;
-        }
-      `}</style>
+      <style dangerouslySetInnerHTML={{ __html: keyframes }} />
       <header className="bg-app-container shadow-md flex items-center justify-between px-6 py-4 sticky top-0 z-50">
         <Link to="/" className="text-2xl font-bold">
-          <span className="logo-wave">Chronicle</span><span className="text-app-primary">Tree</span>
+          <span style={logoWaveStyle}>Chronicle</span><span className="text-app-primary">Tree</span>
         </Link>
         {/* Desktop navigation menu with conditional authentication links */}
         <nav className="hidden md:flex items-center space-x-2">
@@ -107,7 +91,7 @@ export default function NavBar() {
               style={{ top: '100%', left: 0, right: 0, bottom: 0 }}
               onClick={() => setMobileOpen(false)}
             />
-            <div className="absolute top-full left-0 w-full bg-app-container shadow-lg border-t md:hidden flex flex-col items-center py-6 z-50 animate-fade-in" style={{ height: 'auto', maxHeight: '60vh' }}>
+            <div className="absolute top-full left-0 w-full bg-app-container shadow-lg border-t md:hidden flex flex-col items-center py-6 z-50" style={{ height: 'auto', maxHeight: '60vh', ...fadeInStyle }}>
               {user ? (
                 <>
                   <NavLink to="/" className={navLinkClasses} onClick={() => setMobileOpen(false)}>Tree</NavLink>

@@ -27,7 +27,7 @@ module AuditLogging
       path: request.path,
       params: filtered_params,
       timestamp: @audit_start_time,
-      session_id: session.id
+      session_id: (session.id rescue nil)
     }.to_json)
   end
 
@@ -63,7 +63,7 @@ module AuditLogging
       response_status: response.status,
       duration_ms: duration ? (duration * 1000).round(2) : nil,
       timestamp: Time.current,
-      session_id: session.id,
+      session_id: (session.id rescue nil),
       success: response.successful?
     }.to_json)
 

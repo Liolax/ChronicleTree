@@ -19,9 +19,15 @@ class ApplicationController < ActionController::API
   end
 
   def set_paper_trail_metadata
-    PaperTrail.request[:user_email] = current_user&.email
-    PaperTrail.request[:ip_address] = request.remote_ip
-    PaperTrail.request[:user_agent] = request.user_agent
-    PaperTrail.request[:request_id] = request.uuid
+    return unless defined?(PaperTrail)
+    
+    PaperTrail.request.controller_info = {
+      user_email: current_user&.email,
+      ip_address: request.remote_ip,
+      user_agent: request.user_agent,
+      request_id: request.uuid
+    }
+  rescue => e
+    Rails.logger.debug "PaperTrail metadata setup failed: #{e.message}"
   end
 end
