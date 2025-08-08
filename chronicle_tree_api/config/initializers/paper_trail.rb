@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-# Paper Trail configuration for comprehensive audit trails
+# Paper Trail configuration for audit trails
 PaperTrail.configure do |config|
-  # Store comprehensive metadata with each version
+  # Store metadata with each version
   config.version_limit = 1000
   
   # Custom serializer for better data storage

@@ -2,7 +2,7 @@
 
 Devise.setup do |config|
   # ==> Mailer Configuration
-  config.mailer_sender = "please-change-me@example.com"
+  config.mailer_sender = "noreply@chronicle-tree.com"
 
   # ==> ORM configuration
   require "devise/orm/active_record"
