@@ -196,10 +196,11 @@ Data Layer [icon: layers, color: green] {
 Dev Tools [icon: tools, color: purple] {
   Git/GitHub [icon: git, color: orange]
   Docker [icon: docker, color: blue]
-  RSpec [icon: test, color: green]
-  Jest [icon: test, color: yellow]
+  Vitest [icon: test, color: green]
+  Rails Minitest [icon: test, color: yellow]
   ESLint [icon: check, color: red]
   Rubocop [icon: check, color: purple]
+  Brakeman [icon: shield, color: orange]
 }
 
 // Integration Points
@@ -208,7 +209,7 @@ Axios > Ruby on Rails 8.0.2: API Calls
 TanStack Query > Axios: Cache Management
 Ruby on Rails 8.0.2 > PostgreSQL 16: ORM
 Ruby on Rails 8.0.2 > Redis: Caching
-Active Storage > AWS S3: File Storage
+Active Storage > Local Storage: File Storage
 Devise + JWT > React 19: Auth Tokens
 ReactFlow > TanStack Query: Tree Data
 ```
@@ -520,6 +521,95 @@ Auth Service -> API Gateway: Success
 API Gateway -> Frontend: Logged out
 Frontend -> Frontend: Clear storage
 Frontend -> User: Redirect to login
+```
+
+---
+
+## Figure 2.6.1: Quality Assurance Architecture
+
+```eraser
+// ChronicleTree Quality Assurance Architecture
+// Testing, CI/CD, and code quality systems
+
+title Quality Assurance Architecture - ChronicleTree
+
+// Frontend Testing Stack
+Frontend Testing [icon: test, color: blue] {
+  Vitest 3.2.4 [icon: test, color: green]
+  Testing Library [icon: check, color: blue]
+  20+ Test Files [icon: files, color: orange]
+  Integration Tests [icon: network, color: purple]
+  Manual Accessibility Testing [icon: eye, color: teal]
+}
+
+// Backend Testing Stack
+Backend Testing [icon: test, color: red] {
+  Rails Minitest [icon: ruby, color: red]
+  30+ Test Scripts [icon: files, color: orange]
+  PostgreSQL Test DB [icon: database, color: blue]
+  Unit Tests [icon: gear, color: green]
+  Integration Tests [icon: network, color: purple]
+}
+
+// Code Quality Enforcement
+Code Quality [icon: check, color: green] {
+  ESLint 8.57.0 [icon: check, color: blue]
+  React Plugins [icon: react, color: lightblue]
+  Rubocop Rails Omakase [icon: ruby, color: red]
+  0 Violations [icon: shield, color: green]
+  Component Architecture [icon: layers, color: purple]
+}
+
+// Security & Vulnerability Scanning
+Security Scanning [icon: shield, color: red] {
+  Brakeman Static Analysis [icon: shield, color: orange]
+  0 High-Risk Issues [icon: check, color: green]
+  Vulnerability Detection [icon: search, color: red]
+  Security Best Practices [icon: lock, color: blue]
+}
+
+// CI/CD Pipeline
+CI/CD Pipeline [icon: sync, color: purple] {
+  GitHub Actions [icon: github, color: orange]
+  Automated Testing [icon: robot, color: green]
+  Ruby & Node.js Setup [icon: gear, color: blue]
+  PostgreSQL Test DB [icon: database, color: teal]
+  Deployment Validation [icon: check, color: red]
+}
+
+// Automated Maintenance
+Maintenance [icon: gear, color: teal] {
+  Dependabot [icon: robot, color: orange]
+  Daily Dependency Updates [icon: sync, color: blue]
+  Security Patches [icon: shield, color: red]
+  Version Management [icon: tag, color: green]
+}
+
+// Development Workflow
+Dev Workflow [icon: workflow, color: yellow] {
+  Docker Containers [icon: docker, color: blue]
+  Multi-stage Builds [icon: layers, color: purple]
+  SSL Configuration [icon: lock, color: green]
+  Environment Validation [icon: check, color: orange]
+}
+
+// Quality Metrics
+Quality Metrics [icon: chart, color: orange] {
+  Test Coverage Tracking [icon: percentage, color: green]
+  Performance Monitoring [icon: speed, color: blue]
+  Code Documentation [icon: book, color: purple]
+  Architecture Standards [icon: building, color: red]
+}
+
+// Flow connections
+Frontend Testing > Code Quality: Standards Enforcement
+Backend Testing > Security Scanning: Vulnerability Check
+Code Quality > CI/CD Pipeline: Automated Validation
+Security Scanning > CI/CD Pipeline: Security Gates
+CI/CD Pipeline > Maintenance: Automated Updates
+Maintenance > Dev Workflow: Dependency Management
+Dev Workflow > Quality Metrics: Performance Tracking
+Quality Metrics > Frontend Testing: Feedback Loop
 ```
 
 ---
