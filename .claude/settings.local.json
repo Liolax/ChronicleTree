@@ -60,7 +60,9 @@
       "Bash(bundle list:*)",
       "Bash(echo $RAILS_ENV)",
       "Bash(echo $BUNDLE_WITHOUT)",
-      "Bash(realpath:*)"
+      "Bash(realpath:*)",
+      "Bash(bundle exec rubocop:*)",
+      "Bash(bundle exec brakeman:*)"
     ],
     "deny": []
   }

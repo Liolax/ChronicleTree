@@ -132,24 +132,39 @@ The primary aim of ChronicleTree is to democratize family history preservation b
 The technology stack for ChronicleTree was carefully selected to balance developer productivity, performance, and long-term maintainability:
 
 **Frontend Technologies:**
-- **React 19** provides a component-based architecture enabling code reusability and maintainable UI development
-- **Vite** offers lightning-fast development builds and optimized production bundles
-- **ReactFlow** powers the innovative family tree visualization with smooth pan/zoom and dynamic layouts
-- **Tailwind CSS** ensures consistent, responsive design across all screen sizes
-- **TanStack Query** manages server state with intelligent caching and background refetching
+- **React 19.1.0** with modern hooks and concurrent features for optimal performance
+- **Vite 7.0.0** provides lightning-fast development builds and optimized production bundles
+- **@xyflow/react 12.8.2** powers the interactive family tree visualization with professional-grade rendering
+- **Tailwind CSS 3.4.6** ensures consistent, utility-first responsive design across all screen sizes
+- **TanStack React Query 5.51.1** manages server state with intelligent caching and background refetching
+- **React Router DOM 6.25.0** handles client-side routing and navigation
+- **React Hook Form 7.52.1** provides efficient form management and validation
+- **SweetAlert2 11.4.8** delivers elegant user notification modals
+- **Axios 1.7.2** manages HTTP requests with interceptors and error handling
 
 **Backend Technologies:**
-- **Ruby on Rails 8.0.2** leverages convention over configuration for rapid development
-- **PostgreSQL 16** provides robust relational data storage with advanced indexing capabilities
-- **Redis** (development) and Solid Queue (production) handle background job processing
-- **Active Storage** manages file uploads with cloud storage compatibility
-- **JWT authentication** ensures secure, stateless API access
+- **Ruby 3.3.7** with **Rails 8.0.2** API-only configuration for rapid development
+- **PostgreSQL** provides robust relational data storage with advanced indexing and constraints
+- **Sidekiq 7.0** with **Redis 5.0** handle background job processing in production
+- **Ruby VIPS 2.1** and **Mini Magick 5.0** power high-performance image generation and processing
+- **Devise** with **Devise-JWT** provides secure token-based authentication
+- **Active Model Serializers 0.10.0** format consistent JSON API responses
+- **Rack-Attack** implements rate limiting and security protection
+- **PaperTrail** maintains comprehensive audit logging for data changes
+- **Puma 6.6** serves as the high-performance application server
 
 **Development & Deployment:**
-- **Docker** containerization ensures consistent environments across development and production
-- **GitHub Actions** automates testing and deployment pipelines
-- **RSpec** and **Jest** provide comprehensive test coverage
-- **Rubocop** and **ESLint** maintain code quality standards
+- **Docker** containerization with optimized multi-stage builds for production deployment
+- **Kamal** deployment orchestration with SSL auto-certification and zero-downtime deployments
+- **GitHub Actions CI/CD** automates testing, linting, and security scanning across both frontend and backend
+- **Dependabot** automated dependency management for security updates and version maintenance
+
+**Testing & Code Quality:**
+- **Vitest 3.2.4** and **Testing Library** provide comprehensive frontend test coverage with 50+ test files
+- **Rails Minitest** handles backend unit and integration testing with PostgreSQL test database
+- **ESLint 8.57.0** with React plugins maintains frontend code quality standards
+- **Rubocop Rails Omakase** enforces backend Ruby style conventions and best practices
+- **Brakeman** performs static security analysis and vulnerability detection
 
 ### 1.4 Structure
 
@@ -201,12 +216,16 @@ The functional requirements encompass six core categories based on the original 
 - Storage quota management (10MB per file)
 
 **Tree Visualization (Exceeded Requirements):**
-- Interactive pan and zoom navigation
-- Dynamic centering on selected individuals
-- Hierarchical layout with generation grouping
-- Relationship line rendering with type indicators
-- *Innovation:* 3D family tree view option for enhanced visualization
-- *Innovation:* Timeline view showing family events chronologically
+- Interactive pan and zoom navigation with ReactFlow
+- Dynamic root person selection with URL parameter support
+- Full tree view versus filtered connected family display
+- Show/Hide unrelated family members toggle
+- Hierarchical layout with generation-based positioning
+- Relationship line rendering with type-specific styling
+- Auto-fit tree functionality with intelligent padding
+- Connection legend with relationship type indicators
+- Mini-map overview for large family structures
+- Mobile-responsive slide-out navigation panel
 
 **Sharing & Privacy (Fully Implemented):**
 - Public link generation for trees and profiles
@@ -722,14 +741,32 @@ The user interface embodies modern design principles while maintaining genealogi
 Figure 2.5.1: Family Tree Main Interface
 Instructions for screenshot:
 - Show the main tree view with 10-15 family members
-- Display the zoom controls and navigation panel
-- Show relationship lines between members
-- Include the toolbar with add person, center, and share buttons
-- Display the generation labels on the left
-- Show hover state on one person node
+- Display the top toolbar with "Add Person", "Full Tree", root person indicator, and "Show Unrelated" button
+- Show relationship lines with different styles (solid, dashed, dotted)
+- Include the connection legend panel on the right side
+- Display ReactFlow controls (zoom, fit view) in bottom-left corner
+- Show mini-map in bottom-right corner
+- Include "Share Tree" and "Fit Tree" buttons in top-right
+- Show hover state on one person node with home icon visible
 ```
 
 The main tree interface provides intuitive navigation with smooth pan and zoom capabilities. Color coding indicates gender (blue for male, pink for female, purple for unknown), while node borders distinguish living (solid) from deceased (dashed) individuals.
+
+**Advanced Tree Navigation Features:**
+
+The tree view implements sophisticated navigation controls that set ChronicleTree apart from conventional genealogy software:
+
+- **Dynamic Root Selection**: Users can designate any family member as the tree root via URL parameters (?root=123) or by clicking the home icon on person cards. The entire tree restructures around the chosen root, providing different perspectives on family relationships.
+
+- **Connected Family Filtering**: The system intelligently filters the tree to show only family members connected to the selected root person, preventing overwhelming displays of unrelated individuals from merged family trees.
+
+- **Unrelated Member Toggle**: A dedicated button allows users to show or hide family members who have no genealogical connection to the current root person, essential for managing complex merged family datasets.
+
+- **Full Tree View**: The "Full Tree" button resets the view to display all family members without filtering, providing a comprehensive overview of the entire family database.
+
+- **Auto-Fit Intelligence**: The system automatically adjusts zoom and positioning when new data loads, with intelligent padding that accounts for the connection legend panel to prevent overlap.
+
+- **Visual Relationship Indicators**: Different line styles indicate relationship types: solid lines for parent-child connections, dashed lines for current spouses, gray dashed lines for ex-spouses, black dashed lines for deceased spouses, and dotted lines for sibling relationships where parents are unknown.
 
 **[SCREENSHOT PLACEHOLDER]**
 ```
