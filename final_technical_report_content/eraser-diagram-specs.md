@@ -55,10 +55,10 @@ Jobs [icon: clock, color: teal] {
 // Actual Data Layer
 Database [icon: database, color: green] {
   PostgreSQL Development [icon: database, color: blue]
-  18 People Records [icon: users, color: green]
-  54 Relationships [icon: network, color: orange]
-  80+ Timeline Events [icon: calendar, color: purple]
-  144+ PaperTrail Audits [icon: list, color: gray]
+  People Records [icon: users, color: green]
+  Relationships [icon: network, color: orange]
+  Timeline Events [icon: calendar, color: purple]
+  PaperTrail Audits [icon: list, color: gray]
 }
 
 // Real Performance Metrics
@@ -73,9 +73,9 @@ Performance [icon: chart, color: yellow] {
 React 19 App > API Layer: HTTPS with JWT
 API Layer > Rails 8.0.2 API: Authenticated Requests
 Rails API > BloodRelationshipDetector: Validation
-BloodRelationshipDetector > PostgreSQL Development: 54 Relationships
+BloodRelationshipDetector > PostgreSQL Development: Relationships
 TreeSnippetGenerator > Ruby VIPS Processing: 334ms Images
-PaperTrail Audits > PostgreSQL Development: 144+ Records
+PaperTrail Audits > PostgreSQL Development: Records
 ```
 
 ---
@@ -100,7 +100,7 @@ Development [icon: laptop, color: green] {
 
 // Frontend Development Stack
 Frontend Dev [icon: monitor, color: blue] {
-  Node.js 18+ [icon: nodejs, color: green]
+  Vite Build Tools [icon: nodejs, color: green]
   React 19 Dev Mode [icon: react, color: lightblue]
   Vite HMR [icon: lightning, color: orange]
   Tailwind JIT [icon: palette, color: purple]
@@ -135,8 +135,7 @@ Data Storage [icon: database, color: purple] {
 
 // Development Tools & Configuration
 Dev Tools [icon: gear, color: teal] {
-  Claude Code CLI [icon: terminal, color: black]
-  Git Version Control [icon: git, color: orange]
+    Git Version Control [icon: git, color: orange]
   Configuration Files [icon: settings, color: gray]
   Professional Code Style [icon: check, color: green]
 }
@@ -469,7 +468,7 @@ Frontend [icon: monitor, color: green]
 API Gateway [icon: shield, color: red]
 Auth Service [icon: key, color: orange]
 Database [icon: database, color: purple]
-Token Store [icon: memory, color: teal]
+JWT Denylist [icon: shield, color: teal]
 
 // Login Flow
 User -> Frontend: Enter credentials
@@ -478,7 +477,7 @@ API Gateway -> Auth Service: Validate request
 Auth Service -> Database: Check credentials
 Database -> Auth Service: User record
 Auth Service -> Auth Service: Generate JWT
-Auth Service -> Token Store: Store refresh token
+Auth Service -> JWT Denylist: Store refresh token
 Auth Service -> API Gateway: JWT + Refresh token
 API Gateway -> Frontend: Auth response
 Frontend -> Frontend: Store tokens
@@ -490,8 +489,8 @@ Frontend -> Frontend: Get JWT from storage
 Frontend -> API Gateway: GET /api/v1/people\n(Bearer token)
 API Gateway -> API Gateway: Validate JWT
 API Gateway -> Auth Service: Verify token
-Auth Service -> Token Store: Check blacklist
-Token Store -> Auth Service: Token valid
+Auth Service -> JWT Denylist: Check denylist
+JWT Denylist -> Auth Service: Token valid
 Auth Service -> API Gateway: Authorized
 API Gateway -> Database: Fetch data
 Database -> API Gateway: People data
@@ -503,8 +502,8 @@ Frontend -> API Gateway: Token expired
 API Gateway -> Frontend: 401 Unauthorized
 Frontend -> API Gateway: POST /auth/refresh
 API Gateway -> Auth Service: Refresh token
-Auth Service -> Token Store: Validate refresh
-Token Store -> Auth Service: Valid
+Auth Service -> JWT Denylist: Validate refresh
+JWT Denylist -> Auth Service: Valid
 Auth Service -> Auth Service: Generate new JWT
 Auth Service -> API Gateway: New tokens
 API Gateway -> Frontend: Updated tokens
@@ -515,8 +514,8 @@ Frontend -> API Gateway: Retry request
 User -> Frontend: Click logout
 Frontend -> API Gateway: POST /auth/logout
 API Gateway -> Auth Service: Logout request
-Auth Service -> Token Store: Blacklist tokens
-Token Store -> Auth Service: Confirmed
+Auth Service -> JWT Denylist: Add to denylist
+JWT Denylist -> Auth Service: Confirmed
 Auth Service -> API Gateway: Success
 API Gateway -> Frontend: Logged out
 Frontend -> Frontend: Clear storage
@@ -599,14 +598,14 @@ title Profile Card Generator - Dynamic Image Generation
 Profile Generator [icon: image, color: blue] {
   Person Data Input [icon: user, color: green]
   Content Analysis [icon: search, color: orange]
-  Dynamic Height Calc [icon: ruler, color: purple]
-  SVG Canvas Creation [icon: canvas, color: blue]
+  Dynamic Height Calc [icon: calculator, color: purple]
+  SVG Canvas Creation [icon: file, color: blue]
   VIPS Image Processing [icon: gear, color: red]
 }
 
 // Content Sections (Real Implementation)
 Content Sections [icon: layers, color: green] {
-  Basic Information [icon: card, color: blue]
+  Basic Information [icon: info, color: blue]
   Timeline Events [icon: clock, color: orange]
   Relationships [icon: network, color: purple]
   Custom Facts [icon: list, color: gray]
@@ -616,18 +615,18 @@ Content Sections [icon: layers, color: green] {
 // Dynamic Layout Engine
 Layout Engine [icon: grid, color: purple] {
   Two-Column Layout [icon: columns, color: blue]
-  Adaptive Height 750-1200px [icon: resize, color: orange]
+  Adaptive Height 750-1200px [icon: ruler, color: orange]
   Content-Based Sizing [icon: expand, color: green]
-  Step-Relationship Detection [icon: step, color: red]
-  Relationship Status Logic [icon: status, color: gray]
+  Step-Relationship Detection [icon: user-plus, color: red]
+  Relationship Status Logic [icon: user-check, color: gray]
 }
 
 // VIPS Processing Pipeline
 VIPS Pipeline [icon: workflow, color: red] {
-  SVG to Buffer [icon: transform, color: blue]
+  SVG to Buffer [icon: transformer, color: blue]
   High-Quality JPEG [icon: image, color: green]
   Q90 Optimization [icon: compress, color: orange]
-  Strip Metadata [icon: clean, color: gray]
+  Strip Metadata [icon: trash, color: gray]
   223ms Average Generation [icon: timer, color: yellow]
 }
 
@@ -669,116 +668,141 @@ title ReactFlow Family Tree Engine - Actual Implementation
 // ReactFlow Components
 ReactFlow Engine [icon: tree, color: green] {
   FamilyTreeFlow Component [icon: react, color: blue]
-  Person Card Nodes [icon: card, color: orange]
+  Person Card Nodes [icon: person, color: orange]
   Relationship Edges [icon: link, color: purple]
-  Layout Utilities [icon: grid, color: gray]
-  Navigation Controls [icon: controls, color: yellow]
+  LayoutUtilities [icon: grid, color: gray]
+  Navigation Controls [icon: navigation-2, color: yellow]
 }
 
-// Layout Utilities (Real Files)
-Layout Utilities [icon: tools, color: blue] {
-  familyTreeHierarchicalLayout.js [icon: file, color: green]
-  antiOverlapLayout.js [icon: prevent, color: orange]
+// Frontend Algorithm Systems (Real Files)
+Frontend Algorithms [icon: tools, color: blue] {
+  improvedRelationshipCalculator.js (2,056 lines) [icon: calculator, color: red]
+  familyTreeHierarchicalLayout.js [icon: grid, color: green]
+  antiOverlapLayout.js [icon: move, color: orange]
   visualConfiguration.js [icon: palette, color: purple]
-  improvedRelationshipCalculator.js [icon: calculator, color: red]
+  relationshipConsistency.js [icon: check, color: blue]
 }
 
-// Relationship Logic (Real Implementation)
-Relationship Logic [icon: network, color: purple] {
-  shouldMarkAsLateSpouse [icon: heart-broken, color: gray]
-  Deceased Status Tracking [icon: cross, color: red]
-  Marriage in Heaven Logic [icon: heaven, color: blue]
-  Step-Relationship Detection [icon: step, color: orange]
-  Bidirectional Connections [icon: arrows, color: green]
+// Advanced Relationship Analysis (2,056-line Frontend Engine)
+Relationship Analysis Engine [icon: network, color: purple] {
+  Timeline Validation System [icon: clock, color: gray]
+  Multi-Generation Traversal [icon: layers, color: red]
+  Step-Relationship Detection [icon: users, color: orange]
+  In-Law Connection Analysis [icon: link, color: blue]
+  Deceased Spouse Logic [icon: heart, color: green]
+  Complex Family Structure Support [icon: tree, color: purple]
 }
 
 // Tree Navigation Features
 Navigation Features [icon: navigation, color: yellow] {
-  Dynamic Root Selection [icon: root, color: green]
+  Dynamic Root Selection [icon: square-root, color: green]
   Full Tree Toggle [icon: expand, color: blue]
-  Show/Hide Unrelated [icon: filter, color: orange]
-  Auto-Fit Functionality [icon: fit, color: purple]
-  Pan and Zoom Controls [icon: zoom, color: gray]
+  ShowHide Unrelated [icon: filter, color: orange]
+  Auto-Fit Functionality [icon: zoom-in, color: purple]
+  Pan and Zoom Controls [icon: controller, color: gray]
 }
 
 // Visual Styling System
 Visual Styling [icon: palette, color: orange] {
-  Gender Color Coding [icon: colors, color: blue]
-  Relationship Line Types [icon: lines, color: green]
-  Node Border Styles [icon: border, color: purple]
+  Gender Color Coding [icon: palette, color: blue]
+  Relationship Line Types [icon: arrow-left-circle, color: green]
+  Node Border Styles [icon: square, color: purple]
   Hover State Effects [icon: cursor, color: gray]
   Mobile Responsive Design [icon: mobile, color: yellow]
 }
 
 // Real Data Integration
 Data Integration [icon: database, color: green] {
-  18 People Nodes [icon: users, color: blue]
-  54 Relationship Edges [icon: network, color: orange]
+  People Nodes [icon: users, color: blue]
+  Relationship Edges [icon: network, color: orange]
   URL Parameter Support [icon: link, color: purple]
   Query Invalidation [icon: refresh, color: red]
-  Performance Optimization [icon: speed, color: yellow]
+  Performance Optimization [icon: optimizely, color: yellow]
 }
 
-// Flow connections
-ReactFlow Engine > Layout Utilities: Generate Layout
-Layout Utilities > Relationship Logic: Apply Rules
-Relationship Logic > Navigation Features: Enable Controls
-Navigation Features > Visual Styling: Apply Styles
-Visual Styling > Data Integration: Render Data
-Data Integration > ReactFlow Engine: Update Display
+// Algorithm Integration Flow
+ReactFlow Engine > Frontend Algorithms: Process Data
+Frontend Algorithms > Relationship Analysis Engine: Analyze Relationships
+Relationship Analysis Engine > Navigation Features: Enable Advanced Features
+Navigation Features > Visual Styling: Apply Relationship-Based Styling
+Visual Styling > Data Integration: Render Complex Family Structures
+Data Integration > ReactFlow Engine: Update Visualization
 ```
 
 ---
 
-## Figure 2.4.1: Actual Test File Distribution
+## Figure 2.4.1: Deployment Environment Architecture
 
 ```eraser
-// ChronicleTree Real Testing Infrastructure
-// Actual test files and frameworks implemented
+// ChronicleTree Deployment Environment Architecture
+// Right-to-left flow showing development, staging, and production environments
 
-title Actual Testing Infrastructure - ChronicleTree
+direction: right
 
-// Frontend Testing Stack (Real)
-Frontend Testing [icon: test, color: blue] {
-  Vitest 3.2.4 Framework [icon: vitest, color: green]
-  Testing Library React [icon: react, color: blue]
-  33+ Test Files [icon: files, color: orange]
-  improvedRelationshipCalculator.test.js [icon: file, color: purple]
-  Login.test.jsx [icon: file, color: yellow]
+group_development [label: "Development Environment", color: green, icon: monitor] {
+    node_dev_react [label: "React 19 Dev Server\nVite HMR (port 5178)", icon: react]
+    node_dev_rails [label: "Rails API Server\nRuby 3.3.7 (port 4000)", icon: ruby]
+    node_dev_postgresql [label: "Local PostgreSQL\nDevelopment Data", icon: database]
+    node_dev_sidekiq [label: "Sidekiq Workers\nReal-time Monitoring", icon: clock]
+    node_dev_redis [label: "Redis Queue\nJob Storage", icon: memory]
+    node_dev_memory_cache [label: "Memory Store Cache\nDevelopment Caching", icon: memory]
+    node_dev_file_storage [label: "Local File Storage\nActive Storage", icon: hard-drive]
 }
 
-// Backend Testing Stack (Real)
-Backend Testing [icon: test, color: red] {
-  Rails Minitest Framework [icon: ruby, color: red]
-  32+ Test Scripts [icon: files, color: orange]
-  test_extended_family.rb [icon: file, color: green]
-  PostgreSQL Test Database [icon: database, color: blue]
-  Image Generation Tests [icon: image, color: purple]
+group_staging [label: "Staging Environment", color: orange, icon: server] {
+    node_staging_static [label: "Static React Build\nVite Production Build", icon: file]
+    node_staging_rails [label: "Containerized Rails API\nKamal Deploy", icon: package]
+    node_staging_postgresql [label: "Cloud PostgreSQL\nStaging Data", icon: database]
+    node_staging_solid_queue [label: "Solid Queue Workers\nDatabase-backed Jobs", icon: layers]
+    node_staging_solid_cache [label: "Solid Cache\nDatabase Caching", icon: database]
+    node_staging_cloud_storage [label: "Cloud Storage\nS3/GCS Compatible", icon: cloud]
+    node_staging_ssl [label: "SSL Certificates\nLet's Encrypt", icon: lock]
 }
 
-// Test Categories (Actual Count)
-Test Categories [icon: category, color: green] {
-  Unit Tests 23+ files [icon: gear, color: blue]
-  Integration Tests 22+ files [icon: network, color: orange]
-  Manual Tests 15+ files [icon: hand, color: purple]
-  Performance Tests 5 files [icon: speed, color: yellow]
-  Total 65+ Test Files [icon: sum, color: red]
+group_production [label: "Production Environment", color: blue, icon: cloud] {
+    node_prod_load_balancer [label: "Load Balancer\nKamal Proxy", icon: shuffle]
+    node_prod_cdn [label: "CDN Distribution\nStatic Assets", icon: globe]
+    node_prod_api_instances [label: "Multiple API Instances\nHorizontal Scaling", icon: layers]
+    node_prod_postgresql [label: "PostgreSQL Cluster\nHigh Availability", icon: database]
+    node_prod_solid_queue [label: "Solid Queue Pool\nBackground Processing", icon: clock]
+    node_prod_solid_cache [label: "Solid Cache Cluster\nPerformance Layer", icon: memory]
+    node_prod_monitoring [label: "Monitoring & Logging\nHealth Checks", icon: activity]
+    node_prod_backup [label: "Backup Strategy\nData Protection", icon: shield]
 }
 
-// Testing Frameworks (Real Implementation)
-Real Frameworks [icon: framework, color: purple] {
-  Vitest Configuration [icon: config, color: blue]
-  jsdom Environment [icon: browser, color: green]
-  Rails Test Suite [icon: rails, color: red]
-  Brakeman Security Scan [icon: shield, color: orange]
-  ESLint Code Quality [icon: check, color: yellow]
-}
+node_arrow_dev_staging [shape: diamond, label: "Deploy →", color: purple, icon: arrow-right]
+node_arrow_staging_prod [shape: diamond, label: "Promote →", color: purple, icon: arrow-right]
 
-// Test Execution (Actual Commands)
-Test Execution [icon: play, color: yellow] {
-  npm test (Frontend) [icon: npm, color: green]
-  Rails Test Suite [icon: rails, color: red]
-  Vitest Runner [icon: runner, color: blue]
+// Environment progression connections
+group_development > node_arrow_dev_staging
+node_arrow_dev_staging > group_staging
+group_staging > node_arrow_staging_prod
+node_arrow_staging_prod > group_production
+
+// Internal development connections
+node_dev_react > node_dev_rails: "API Calls"
+node_dev_rails > node_dev_postgresql: "Database"
+node_dev_rails > node_dev_sidekiq: "Queue Jobs"
+node_dev_sidekiq > node_dev_redis: "Job Storage"
+node_dev_rails > node_dev_memory_cache: "Cache Access"
+node_dev_rails > node_dev_file_storage: "File Operations"
+
+// Internal staging connections
+node_staging_static > node_staging_rails: "API Requests"
+node_staging_rails > node_staging_postgresql: "Database"
+node_staging_rails > node_staging_solid_queue: "Background Jobs"
+node_staging_rails > node_staging_solid_cache: "Cache Layer"
+node_staging_rails > node_staging_cloud_storage: "File Storage"
+node_staging_ssl > node_staging_rails: "Secure Connection"
+
+// Internal production connections
+node_prod_load_balancer > node_prod_api_instances: "Request Distribution"
+node_prod_cdn > node_prod_api_instances: "Asset Delivery"
+node_prod_api_instances > node_prod_postgresql: "Database Cluster"
+node_prod_api_instances > node_prod_solid_queue: "Job Processing"
+node_prod_api_instances > node_prod_solid_cache: "Cache Access"
+node_prod_monitoring > node_prod_api_instances: "Health Monitoring"
+node_prod_postgresql > node_prod_backup: "Data Backup"
   Security Scanning [icon: scan, color: orange]
   Performance Monitoring [icon: monitor, color: purple]
 }
@@ -812,9 +836,9 @@ title Quality Assurance Architecture - ChronicleTree
 
 // Frontend Testing Stack
 Frontend Testing [icon: test, color: blue] {
-  Vitest 3.2.4 [icon: test, color: green]
-  Testing Library [icon: check, color: blue]
-  20+ Test Files [icon: files, color: orange]
+  Vitest 3.2.4 [icon: check, color: green]
+  Testing Library [icon: library, color: blue]
+  20+ Test Files [icon: file, color: orange]
   Integration Tests [icon: network, color: purple]
   Manual Accessibility Testing [icon: eye, color: teal]
 }
@@ -822,7 +846,7 @@ Frontend Testing [icon: test, color: blue] {
 // Backend Testing Stack
 Backend Testing [icon: test, color: red] {
   Rails Minitest [icon: ruby, color: red]
-  30+ Test Scripts [icon: files, color: orange]
+  30+ Test Scripts [icon: file, color: orange]
   PostgreSQL Test DB [icon: database, color: blue]
   Unit Tests [icon: gear, color: green]
   Integration Tests [icon: network, color: purple]
@@ -843,15 +867,23 @@ Security Scanning [icon: shield, color: red] {
   0 High-Risk Issues [icon: check, color: green]
   Vulnerability Detection [icon: search, color: red]
   Security Best Practices [icon: lock, color: blue]
+  ESLint Linting [icon: check, color: blue]
+  Rubocop Linting [icon: ruby, color: red]
+  Automated Security Gates [icon: shield, color: purple]
 }
 
 // CI/CD Pipeline
 CI/CD Pipeline [icon: sync, color: purple] {
   GitHub Actions [icon: github, color: orange]
-  Automated Testing [icon: robot, color: green]
-  Ruby & Node.js Setup [icon: gear, color: blue]
+  Lint Backend (Rubocop) [icon: ruby, color: red]
+  Lint Frontend (ESLint) [icon: check, color: blue]
+  Security Scan (Brakeman) [icon: shield, color: orange]
+  Test Backend (Rails Minitest) [icon: test, color: red]
+  Test Frontend (Vitest) [icon: test, color: green]
+  Build Frontend (Vite, Node.js 20) [icon: lightning, color: yellow]
   PostgreSQL Test DB [icon: database, color: teal]
   Deployment Validation [icon: check, color: red]
+  Artifact Upload [icon: upload, color: purple]
 }
 
 // Automated Maintenance
@@ -872,8 +904,8 @@ Dev Workflow [icon: workflow, color: yellow] {
 
 // Quality Metrics
 Quality Metrics [icon: chart, color: orange] {
-  Test Coverage Tracking [icon: percentage, color: green]
-  Performance Monitoring [icon: speed, color: blue]
+  Test Coverage Tracking [icon: percent, color: green]
+  Performance Monitoring [icon: speedometer, color: blue]
   Code Documentation [icon: book, color: purple]
   Architecture Standards [icon: building, color: red]
 }
@@ -881,9 +913,9 @@ Quality Metrics [icon: chart, color: orange] {
 // Flow connections
 Frontend Testing > Code Quality: Standards Enforcement
 Backend Testing > Security Scanning: Vulnerability Check
-Code Quality > CI/CD Pipeline: Automated Validation
-Security Scanning > CI/CD Pipeline: Security Gates
-CI/CD Pipeline > Maintenance: Automated Updates
+Code Quality > CICD Pipeline: Automated Validation
+Security Scanning > CICD Pipeline: Security Gates
+CICD Pipeline > Maintenance: Automated Updates
 Maintenance > Dev Workflow: Dependency Management
 Dev Workflow > Quality Metrics: Performance Tracking
 Quality Metrics > Frontend Testing: Feedback Loop

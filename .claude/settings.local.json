@@ -62,7 +62,8 @@
       "Bash(echo $BUNDLE_WITHOUT)",
       "Bash(realpath:*)",
       "Bash(bundle exec rubocop:*)",
-      "Bash(bundle exec brakeman:*)"
+      "Bash(bundle exec brakeman:*)",
+      "WebFetch(domain:libguides.ncirl.ie)"
     ],
     "deny": []
   }

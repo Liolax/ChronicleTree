@@ -1,129 +1,260 @@
 i still have issues. fix please.
 
-1. use final-report-template.md. please check all chronicle-tree-final-report.md to have Actual Project Data - Incorporated our real implementation details, testing results, and achievements. compare with the original frontend and backend, and update the final report with our real data. make sure to have all our real data in the final report, not AI-generated or fake data. be descriptive and specific about our implementation, testing, and achievements. don't use emoji. try to not use many bullets. we need Professional Evaluation - Performance metrics, user testing results, and scalability analysis. as you can see, we have a lot of data in the final report, but it is not specific to our project. it is AI-generated and not real. we need to have our real data in the final report. so, please, check all chronicle-tree-final-report.md and update it with our real data. we have also useful data in refined_project_spec.md. we have started from PROPOSAL.md, then REQUIREMENTS.md, then INTERNIM.md, then refined_project_spec.md.
-2. please make Executive Summary more interesting. follow the template, but make it engaging and specific to our project. examples:
-   - BeerPort is a web application that is specifically designed to promote the craft
-beer industry and assist small breweries in attracting more clients. The craft beer
-industry has expanded significantly over the last 10 years (The Irish Food Board, 2020). While the rise of the craft beer market has been increasing, access to the
-greater ranges of beer product is still limited, especially in smaller towns or
-villages. The solution for this is BeerPort. The aim of BeerPort is to create a platform that allows local breweries to promote
-their products and make them available for a broader range of customers
-interested in beer tasting. The website will educate users on the sensory
-characteristics of primary beer styles and allow users to search for a beer of the
-particular style in the online shop.
-    - Accessing appointment information in the segmented Hospital industry in Ireland is a 
-challenge for patients. A solution needs to address the non-profit status, and hence budgetary
-constraints, of many hospitals and high barriers to entry that result. GraphQL and Azure 
-Cloud Computing are employed to develop a Hospital Appointments API that is easy to 
-implement with no change to staff workflows. The use of these technologies allows for future
-growth due to the capacity for complexity and scalability the provide respectively.
-A GraphQL backend is built using Java Spring Boot and a simple static website is employed 
-to demonstrate its use. To demonstrate real-world use two Databases have been designed
-using MS SQL Server and MySQL and connected to the backend. All are deployed on Azure 
-and leverage the resulting security benefits. GraphQL is used to query the database using the 
-GraphQL schema. Rapid Application development was used as the software development 
-methodology. This approach proved fruitful for research purposes as it has a built in 
-requirement for documentation and reporting. 
-The project aims to demonstrate the benefits of such new technologies and how they can be 
-implemented easily and cheaply, with potential for growth built in. While it may be a simple 
-implementation of GraphQL, the Soleir API successfully demonstrates its potential.
-    - PhotoBackup is an alternative to Google Photos backup solution.
-The solution is meant to provide similar features provided by Google Photos, the 
-key difference being that the main storage location for the backup is a personal 
-computer rather than cloud storage.
-Google announced last year that it is phasing out the free storage of photos in June 
-2021. It is timely, then, to offer users a new solution to automatically backup 
-pictures and images from their phone to a secure location.
-The project is meant to back up data but also to offer the possibility for the users 
-to enjoy their media on multiple devices that have access to the server. When 
-backed up, the pictures will be accessible on the server in their native format.
-An important consideration is designing this software was to provide an alternative 
-that offers users more privacy regarding their content. To this end, all data and 
-metadata is intended to be hosted on the user's computer. 
-In the testing process, some users reported that they found the UI difficult to 
-navigate. Others, who tested the product beyond what was requested, showed up
-some weaknesses in the upload process. Nonetheless, the program never 
-damaged or lost the data being treated and this is important in ensuring potential 
-customers' trust in the product. Therefore, despite some minor shortcomings, 
-PhotoBackup in its current state provides a reliable backup solution respectful of 
-users' data and has thus achieved the aim and objectives of this project.
-     - In a post-pandemic world, what does the future hold for tourism and the hospitality industry?
-According to the International Monetary Fund (IMO), tourism "has become one of the world's most 
-important growth engines, accounting for more than 10 percent of global GDP directly and 
-indirectly."1 On top of this, this major driver employs "above 300 million globally". The current 
-global crisis has put the world at a standstill. Tourism and in particular, the hospitality industry have 
-been hit the hardest through the onslaught of the pandemic. For example, the hospitality industry in 
-Ireland alone "employs 180,000 people"2 but it is expected that over 100,000 people will or have lost 
-their jobs.
-However, there is light at the end of the tunnel. Borders are beginning to open as vaccines are being 
-rolled out and special attention will be put on the recovery of the once-booming sector. There is a gap 
-in the market for a platform to connect workers in the hospitality sector that will increase the access 
-for job opportunities and skilled hospitality workers to aid in the revival of the tourism and hospitality 
-sector.
-FirstResort acts as this platform working on a two-user basis: Hosts are employers in the hospitality 
-industry who when registered can post jobs available in their workplace, and connect with the most 
-experienced Candidates on FirstResort; and Candidates are workers who wish to seek new 
-opportunities in the hospitality industry across the globe. Candidates can search and review available 
-jobs and reach out to its respective Host.
-     - "My son was delighted when he got his CAO offer in September. Sadly, as the weeks have 
-passed, his enthusiasm has waned, and he is finding it hard to motivate himself to log on to 
-lectures. He was on campus just once - but with few around, he found it a very depressing 
-experience. I fear he may drop out, remote learning is putting a huge strain on students, 
-particularly first years" (Mooney, 2020). 
-The COVID-19 pandemic has shifted the very nature of pedagogical life across all levels of 
-education, with third level education being no exception. The sudden pivot to emergency online 
-teaching at the beginning of the pandemic has drastically changed what would be considered 
-as a normal teaching day for lecturing staff and students alike, with both groups intertwined in 
-an increasingly complex learning curve littered with obstacles and challenges (Drumm & Jong, 
-2021).
-With this in mind, how can colleges and universities support students and keep them on track 
-to graduate? Studying in an online world can cause students to withdraw and some of the 
-reasons behind these withdrawals are the following (Varre et al, 2014):
-- Technology Problems: Glitches become an issue because they add to the sense of 
-frustration and disconnect. Digital poverty and students not having the same access to 
-technology as others is a huge issue. 
-- Lack of Teacher Immediacy: Students do not enjoy the online class because they 
-cannot talk face to face. They learn better by listening and taking notes rather than 
-reading, which is the only method of learning with an online class. They feel as if they 
-are "talking" to a computer screen all day. It has also been noted that they think it is 
-much easier for a teacher to be there in the classroom rather than on the computer. They 
-feel it is not interactive enough and need someone to explain to them and show 
-examples and make sure they understand it.
-- Personal Connections: They do not feel that the internet classroom is the best way for 
-them to learn as students. They feel more comfortable in a classroom with a teacher 
-giving them directions every day where they can ask a question and get an immediate 
+1. exapmle of chartjs - const config = {
+  type: 'bar',
+  data: data,
+  options: {
+    indexAxis: 'y',
+    // Elements options apply to all of the options unless overridden in a dataset
+    // In this case, we are setting the border of each horizontal bar to be 2px wide
+    elements: {
+      bar: {
+        borderWidth: 2,
+      }
+    },
+    responsive: true,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      title: {
+        display: true,
+        text: 'Chart.js Horizontal Bar Chart'
+      }
+    }
+  },
+};
+
+const DATA_COUNT = 7;
+const NUMBER_CFG = {count: DATA_COUNT, min: -100, max: 100};
+
+const labels = Utils.months({count: 7});
+const data = {
+  labels: labels,
+  datasets: [
+    {
+      label: 'Dataset 1',
+      data: Utils.numbers(NUMBER_CFG),
+      borderColor: Utils.CHART_COLORS.red,
+      backgroundColor: Utils.transparentize(Utils.CHART_COLORS.red, 0.5),
+    },
+    {
+      label: 'Dataset 2',
+      data: Utils.numbers(NUMBER_CFG),
+      borderColor: Utils.CHART_COLORS.blue,
+      backgroundColor: Utils.transparentize(Utils.CHART_COLORS.blue, 0.5),
+    }
+  ]
+};
+
+const actions = [
+  {
+    name: 'Randomize',
+    handler(chart) {
+      chart.data.datasets.forEach(dataset => {
+        dataset.data = Utils.numbers({count: chart.data.labels.length, min: -100, max: 100});
+      });
+      chart.update();
+    }
+  },
+  {
+    name: 'Add Dataset',
+    handler(chart) {
+      const data = chart.data;
+      const dsColor = Utils.namedColor(chart.data.datasets.length);
+      const newDataset = {
+        label: 'Dataset ' + (data.datasets.length + 1),
+        backgroundColor: Utils.transparentize(dsColor, 0.5),
+        borderColor: dsColor,
+        borderWidth: 1,
+        data: Utils.numbers({count: data.labels.length, min: -100, max: 100}),
+      };
+      chart.data.datasets.push(newDataset);
+      chart.update();
+    }
+  },
+  {
+    name: 'Add Data',
+    handler(chart) {
+      const data = chart.data;
+      if (data.datasets.length > 0) {
+        data.labels = Utils.months({count: data.labels.length + 1});
+
+        for (let index = 0; index < data.datasets.length; ++index) {
+          data.datasets[index].data.push(Utils.rand(-100, 100));
+        }
+
+        chart.update();
+      }
+    }
+  },
+  {
+    name: 'Remove Dataset',
+    handler(chart) {
+      chart.data.datasets.pop();
+      chart.update();
+    }
+  },
+  {
+    name: 'Remove Data',
+    handler(chart) {
+      chart.data.labels.splice(-1, 1); // remove the label first
+
+      chart.data.datasets.forEach(dataset => {
+        dataset.data.pop();
+      });
+
+      chart.update();
+    }
+  }
+];
+
+
+
+
+P.S. when change chronicle-tree-final-report.md, follow: 
 Executive Summary
-response. The impersonal feel of Moodle likewise attributes to their inability to forge a 
-personal connection to the instructor and other classmates.
-NCI on Track has been created to allow student support services and lecturers alike the ability 
-to check if a student is at risk of dropping out in a time when student-teacher relationships are 
-struggling to survive in the online world. Traditionally if a student feels overwhelmed or 
-stressed, they might seek help or advice from student support but now that these services have 
-moved online it takes the personal element out of asking for help. It also hopes to keep retention 
-levels at NCI as high as possible by identifying students who might drop out.
-3. Additional Enhancements to Consider:#
-also fix eraser-diagram-specs.md to follow real data. compare with the original frontend and backend, and update the eraser-diagram-specs.md with our real data. we have also useful data in refined_project_spec.md and in diagrams folder. we have started from PROPOSAL.md, then REQUIREMENTS.md, then INTERNIM.md, then refined_project_spec.md.
-Generate additional technical diagrams.
-Performance Graphs:
-Create actual performance charts using your test data
-Include load testing graphs showing response times under different loads
-Add memory usage charts.
-User Testing Evidence:
-Include anonymized quotes from actual user testing sessions
-Add photos of testing sessions (with permission)
-Create a heatmap of UI interactions if you have analytics data.
-Final Polish:
-Ensure all figure references are correct (search for "Fig." to verify).
-4. Demonstrating Excellence:
-The report shows several markers of distinction:
-Technical Depth: Detailed algorithms and implementation
-Innovation: eg relationship calculator
-Professional Testing: % code coverage, comprehensive test suites
-User-Centric: High satisfaction scores, accessibility compliance
-Scalability: Performance testing 
-Future Vision: Clear roadmap for commercialization.
+1 Introduction
+This template for technical report is provided for your convenience. It should be seen as a guide rather than an obligatory form. Your individual report might require changes in terms of format or content (i.e., headings) or both.
+Suggested wordcount: 6000-8000 words (starting with the Introduction up to and not including Bibliography)
+1.1 Background
+Why?
+1.2 Aims
+What?
+1.3 Technologies
+How? - Brief description of the technologies used in the project. Do not copy & paste descriptions from websites here, but describe what it is and how it contributes to your project.
+1.4 Structure
+Brief overview of each chapter
+2 System
+2.1 Requirements
+This section will be similar to your original requirements specification. Requirements have probably evolved somewhat since. Where this is the case explain what changed and why.
+2.1.1 Functional requirements
+2.1.2 Data requirements
+2.1.3 User requirements
+2.1.4 Environmental requirements
+2.1.5 Usability requirements
+2.2 Design and Architecture
+Describe the design, system architecture and components used. Describe the main algorithms used in the project. (Note: use standard mathematical notations if applicable).
+An architecture diagram may be useful. In case of a distributed system, it may be useful to describe functions and/or data structures in each component separately.
+2.3 Implementation
+Describe the main classes/functions used in the code. Consider to show and explain interesting code snippets where appropriate.
+2.4 Testing
+Describe any testing tools, test plans and test specifications used in the project
+2.5 Graphical User Interface (GUI) Layout
+Provide screenshots of key screens and explain.
+2.6 Customer testing
+Provide evidence for and results of customer testing. This may include ratings or quotes from the customer.
+2.7 Evaluation
+How was the system evaluated and what are the results? In many cases, this will include usage data and user feedback. It may also include performance evaluations, scalability, correctness, etc. depending on the focus of the project.
+Quantitative results may be reported in tables or figures. Note that tables have their caption above the table and need to be cross referenced in the text (see Table 1). In many cases, tables are better to read if you skip the vertical lines.
+
+Table 1: Performance with and without caching
+	Nwithout	Nwith	Std.-Deviationwith	Std.-Deviationwithout	p
+Records	100	200	2.54	3.97	.002
+Data (GB)	100	200	2.54	3.97	.002
+Speed	100	200	2.54	3.97	.002
 
 
-PS. Please, if you create tests, move them to frontend_tests and backend_tests so we have only one folder for each type. Upgrade the organization of these folders every time after you test the app. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. Centralize all alerts in validationAlerts.js with sweetalert, not standart alerts. always update ROADMAP.md after code changes.
+Figures have their caption below the figure as shown in Figure 1. Make sure that if you use colour, the figure is still readable when printed in black & white, e.g., by using additional symbols, patterns, etc.
 
-- Check if real #### 2.1.2 Data Requirements and #### 2.1.3 User Requirements and #### 2.1.4 Environmental Requirements and 2.1.5 Usability Requirements and ### 2.2 Design and Architecture and ### 2.3 Implementation content. Read CLAUDE.md
+Figure 1: Learning gain across different experimental groups
+
+3 Conclusions
+Describe the advantages/disadvantages, opportunities, and limits of the project.
+4 Further development or research
+With more resources, where could the results of this project lead to?
+5 References
+It is recommended that students use the APA, Berkeley, Harvard or other internationally approved style. Here is an example of the APA citation style:
+
+Wilcox, R. V. (1991). Shifting roles and synthetic women in Star Trek: The Next Generation. Studies in Popular Culture, 13(2), 53-65.
+
+In the text this article can be cited as “Wilcox (1991)” or “(Wilkox, 1991)”.
+
+References to websites must include the access dates.
+
+
+The NCI library provides a guide on referencing
+https://libguides.ncirl.ie/referencingandavoidingplagiarism
+
+
+
+6 Appendix
+6.1 Project Proposal
+6.2 Project Plan
+6.3 Requirement Specification
+6.4 Monthly Journal
+6.5 Other Material Used
+Any other reference material used in the project.
+
+follow Project Module Brief - Release date: 21 May 2025
+Due date: 9 August 2025 @11.55pm
+Lecturer: Hamilton V. Niculescu
+________________________________________________________________
+
+Project
+CA1 (Interim report) + Final project brief
+
+Submission extension: If you need to apply for an extension - https://nci360.ncirl.ie/
+
+TURNITIN: All report submissions will be electronically screened for evidence of academic misconduct (i.e., plagiarism and collusion).
+Use of AI in Teaching and Learning: Student Guide
+https://libguides.ncirl.ie/useofaiinteachingandlearning/studentguide 
+
+
+Learning outcomes:
+LO1	Specify, analyse, design, implement, test and document a medium to large scale project in the chosen area of specialisation under the supervision of a project co-ordinator
+LO2	Explain and justify the use and application of technology for a project
+LO3	Develop and enhance communication and presentation skills
+
+Please read, sign, add date, and submit this document using the upload point on Moodle, by 
+7 June 2025 @11.55pm (week 3)
+
+You are tasked with co-ordinating and delivering a showcase project which demonstrates your ability as a software/web developer or cyber security specialist. This project presents an opportunity for you to implement the skillset which you have acquired. The project you are required to produce will be a combination of a wide variety of skills which include:
+Conception – You must identify a project which displays innovation relating to the integration of technologies deployed to achieve your goal
+Project Management – You must take the concept identified and use project management skills to bring the concept to completion aiming to develop a commercially viable software tool. Ensuring that you meet each deadline and deliverable date is a crucial element of this process
+Development – You must use your skillset to develop a Software or Web application that is of excellent standard and comprises of a high level of complexity affording users both practicality and a quality user experience. Cyber-security students must enforce a strict adherence to secure programming principles throughout. For this you must implement a complex server-side functionality and integrate client-side scripting which will provide a rich internet application interface for the user
+Testing – Throughout the process you must maintain a detailed log of test plans and results. Details should include functionality tests, unit tests, integration testing, security testing, malicious intent testing, etc.
+Pitching - Once the project is complete you must pitch the idea through a presentation which showcases the innovation and functionality of the application. This presentation will be a perfect opportunity to show your talents and achievements
+The project 
+The project which you are about to undertake is entirely based upon concepts identified by yourself. The elements contained in the project will be of your own consideration and the underpinning concept will stem from an area of interest to you. 
+However, there are certain criteria which MUST be met:
+You must use a server-side programming language to maintain a complex persistent data storage pertaining to the application functionality
+You must use a client-side programming language to present a graphical user interface for the application
+You must produce detailed academic documentation of exceptional quality with academic references, correct structure, and precise formatting suitable for the level you are studying at
+Once you stick to the details outlined in this brief, then you will be free to choose the application concept and develop a software tool which interests you.
+This module is assessed with 100% Continuous Assessment, and it is the responsibility of the learner to ensure all project deadlines are adhered to!
+Start with… 
+7 June 2025 @11.55pm (week 3)
+1.Signed Project Brief (this document)
+2.Project Proposal
+3.NCI Ethics Approval Form
+
+As you go… 
+21 June 2025 @11.55pm (week 5)
+1.Project Requirements Specification
+
+Interim report…
+28 June 2025 @11.55pm (week 6)
+1.Interim progress report
+N.B. This will be in the form of a written report, weighting 20% of the overall grade 
+Continue with…
+19 July 2025 @11.55pm (week 9)
+1.Project Analysis & Design Documentation
+
+Live presentation *
+30 July & 6 August 2025 (weeks 11 & 12), during class (6pm – 10pm)
+1.Live presentation of your project via Teams. Duration: 5 min. max. each (subject to change), including any Q&A session.
+
+Final submission *
+9 August 2025 @11.55pm (week 12)
+1.Video of the final and complete project
+2.Project Final Report, including the Declaration Project Cover Sheet
+3.Project Code
+* weighting 80% of the overall grade
+
+Marking rubric: The dissertation is written in a formal academic style; with very clear statements and conclusions and discussion of the project findings and implication, and use proper Harvard Referencing Style (HRS).
+Excellent statements and clear presentation of results. Excellent use of illustrations, code samples, etc. Conclusions are clearly supported by the results. Clear, concise and detailed project planning throughout the life of the project. Reference to document trail for revisions to the project scope. Evidence of contingency plans activated in response to pre-planned triggers. Response to scope changes demonstrated clear prioritisation of project goals. A project that addresses complex issues, using sophisticated software development. An innovative solution based on novel research to produce a commercially viable software tool. Exploits leading edge features of new or emerging technologies or exploits chosen technologies to the fullest extent possible. Project is close to commercial implementation. Evidence of Evaluation/ System testing. 
+
+PS.S. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. always update ROADMAP.md after code changes.
+
+- Check if real content. 
