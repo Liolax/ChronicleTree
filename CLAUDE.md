@@ -39,21 +39,21 @@ to enjoy their media on multiple devices that have access to the server. When
 backed up, the pictures will be accessible on the server in their native format.
 An important consideration is designing this software was to provide an alternative 
 that offers users more privacy regarding their content. To this end, all data and 
-metadata is intended to be hosted on the user’s computer. 
+metadata is intended to be hosted on the user's computer. 
 In the testing process, some users reported that they found the UI difficult to 
 navigate. Others, who tested the product beyond what was requested, showed up
 some weaknesses in the upload process. Nonetheless, the program never 
 damaged or lost the data being treated and this is important in ensuring potential 
-customers’ trust in the product. Therefore, despite some minor shortcomings, 
+customers' trust in the product. Therefore, despite some minor shortcomings, 
 PhotoBackup in its current state provides a reliable backup solution respectful of 
-users’ data and has thus achieved the aim and objectives of this project.
+users' data and has thus achieved the aim and objectives of this project.
      - In a post-pandemic world, what does the future hold for tourism and the hospitality industry?
-According to the International Monetary Fund (IMO), tourism “has become one of the world’s most 
+According to the International Monetary Fund (IMO), tourism "has become one of the world's most 
 important growth engines, accounting for more than 10 percent of global GDP directly and 
-indirectly.”1 On top of this, this major driver employs “above 300 million globally”. The current 
+indirectly."1 On top of this, this major driver employs "above 300 million globally". The current 
 global crisis has put the world at a standstill. Tourism and in particular, the hospitality industry have 
 been hit the hardest through the onslaught of the pandemic. For example, the hospitality industry in 
-Ireland alone “employs 180,000 people”2 but it is expected that over 100,000 people will or have lost 
+Ireland alone "employs 180,000 people"2 but it is expected that over 100,000 people will or have lost 
 their jobs.
 However, there is light at the end of the tunnel. Borders are beginning to open as vaccines are being 
 rolled out and special attention will be put on the recovery of the once-booming sector. There is a gap 
@@ -65,11 +65,11 @@ industry who when registered can post jobs available in their workplace, and con
 experienced Candidates on FirstResort; and Candidates are workers who wish to seek new 
 opportunities in the hospitality industry across the globe. Candidates can search and review available 
 jobs and reach out to its respective Host.
-     - “My son was delighted when he got his CAO offer in September. Sadly, as the weeks have 
+     - "My son was delighted when he got his CAO offer in September. Sadly, as the weeks have 
 passed, his enthusiasm has waned, and he is finding it hard to motivate himself to log on to 
 lectures. He was on campus just once - but with few around, he found it a very depressing 
 experience. I fear he may drop out, remote learning is putting a huge strain on students, 
-particularly first years” (Mooney, 2020). 
+particularly first years" (Mooney, 2020). 
 The COVID-19 pandemic has shifted the very nature of pedagogical life across all levels of 
 education, with third level education being no exception. The sudden pivot to emergency online 
 teaching at the beginning of the pandemic has drastically changed what would be considered 
@@ -85,7 +85,7 @@ technology as others is a huge issue.
 - Lack of Teacher Immediacy: Students do not enjoy the online class because they 
 cannot talk face to face. They learn better by listening and taking notes rather than 
 reading, which is the only method of learning with an online class. They feel as if they 
-are “talking” to a computer screen all day. It has also been noted that they think it is 
+are "talking" to a computer screen all day. It has also been noted that they think it is 
 much easier for a teacher to be there in the classroom rather than on the computer. They 
 feel it is not interactive enough and need someone to explain to them and show 
 examples and make sure they understand it.
@@ -125,3 +125,5 @@ Future Vision: Clear roadmap for commercialization.
 
 
 PS. Please, if you create tests, move them to frontend_tests and backend_tests so we have only one folder for each type. Upgrade the organization of these folders every time after you test the app. Our permanent goal is to keep the app well organized. All tests must also be emoji-free, with clear, professional respectful language and student-friendly messages (not AI-like) style. remove all emoji usage everywhere, so student-friendly and professional (not AI-like) be everywhere at the project. not AI-like. i want student project-like, i want nobody know that i use ai. let comments be not like AI-generated. Centralize all alerts in validationAlerts.js with sweetalert, not standart alerts. always update ROADMAP.md after code changes.
+
+- Check if real #### 2.1.2 Data Requirements and #### 2.1.3 User Requirements and #### 2.1.4 Environmental Requirements and 2.1.5 Usability Requirements and ### 2.2 Design and Architecture and ### 2.3 Implementation content. Read CLAUDE.md
